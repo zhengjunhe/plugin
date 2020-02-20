@@ -1,0 +1,82 @@
+syntax = "proto3";
+package types;
+
+enum EthBridgeStatus {
+    PendingStatusText       = 0;
+    SuccessStatusText    = 1;
+    FailedStatusText    = 2;
+}
+
+message X2ethereumAction {
+    oneof value {
+        EthBridgeClaim    ethBridgeClaim     = 1;
+        MsgBurn    msgBurn     = 2;
+        MsgLock    msgLock     = 3;
+    }
+    int32 ty = 10;
+}
+
+
+// EthBridgeClaim is a structure that contains all the data for a particular bridge claim
+message EthBridgeClaim {
+    int64           EthereumChainID            = 1;
+    string BridgeContractAddress        = 2;
+    int64 Nonce     = 3;
+    string           Symbol        = 4;
+    string           TokenContractAddress   = 5;
+    string           EthereumSender = 6;
+    string           Chain33Receiver          = 7;
+    string           ValidatorAddress    = 8;
+    uint64           Amount      = 9;
+    int64           ClaimType    = 10;
+}
+
+// OracleClaimContent is the details of how the content of the claim for each validator will be stored in the oracle
+message OracleClaimContent {
+    string           Chain33Receiver          = 1;
+    uint64           Amount      = 2;
+    int64           ClaimType    = 3;
+}
+
+// MsgBurn defines a message for burning coins and triggering a related event
+message MsgBurn {
+    int64           EthereumChainID          = 1;
+    string           TokenContract      = 2;
+    string           Chain33Sender    = 3;
+    string           EthereumReceiver    = 4;
+    uint64           Amount    = 5;
+}
+
+// MsgLock defines a message for locking coins and triggering a related event
+message MsgLock {
+    int64           EthereumChainID          = 1;
+    string           TokenContract      = 2;
+    string           Chain33Sender    = 3;
+    string           EthereumReceiver    = 4;
+    uint64           Amount    = 5;
+}
+
+message QueryEthProphecyParams {
+    int64           EthereumChainID          = 1;
+    string           BridgeContractAddress      = 2;
+    int64           Nonce    = 3;
+    string           Symbol    = 4;
+    string           TokenContractAddress    = 5;
+    string           EthereumSender    = 6;
+}
+
+message QueryEthProphecyResponse {
+    string           ID          = 1;
+    ProphecyStatus           Status      = 2;
+    repeated    EthBridgeClaim        Claims    = 3;
+}
+
+message ProphecyStatus {
+    EthBridgeStatus           Text          = 1;
+    string           FinalClaim      = 2;
+}
+
+
+service x2ethereum {
+
+}
