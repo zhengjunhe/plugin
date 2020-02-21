@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"strings"
@@ -18,7 +19,7 @@ func NewMsgCreateEthBridgeClaim(ethBridgeClaim types.EthBridgeClaim) MsgCreateEt
 }
 
 // Route should return the name of the module
-func (msg MsgCreateEthBridgeClaim) Route() string { return ModuleName }
+func (msg MsgCreateEthBridgeClaim) Route() string { return executor.ModuleName }
 
 // Type should return the action
 func (msg MsgCreateEthBridgeClaim) Type() string { return "create_bridge_claim" }

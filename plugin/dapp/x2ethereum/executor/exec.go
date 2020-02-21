@@ -11,19 +11,16 @@ import (
  */
 
 func (x *x2ethereum) Exec_EthBridgeClaim(payload *x2ethereumtypes.EthBridgeClaim, tx *types.Transaction, index int) (*types.Receipt, error) {
-	var receipt *types.Receipt
-	//implement code
+	action := newAction(x, tx, int32(index))
 	return receipt, nil
 }
 
 func (x *x2ethereum) Exec_MsgBurn(payload *x2ethereumtypes.MsgBurn, tx *types.Transaction, index int) (*types.Receipt, error) {
-	var receipt *types.Receipt
-	//implement code
+	action := newAction(x, tx, int32(index))
 	return receipt, nil
 }
 
 func (x *x2ethereum) Exec_MsgLock(payload *x2ethereumtypes.MsgLock, tx *types.Transaction, index int) (*types.Receipt, error) {
-	var receipt *types.Receipt
-	//implement code
+	action := newAction(x, tx, int32(index))
 	return receipt, nil
 }

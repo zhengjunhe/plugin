@@ -11,10 +11,6 @@ import (
 // EthereumAddress defines a standard ethereum address
 type EthAddress gethCommon.Address
 
-func NewEthAddressByProto(ethereumAddress string) EthAddress {
-	return EthAddress(gethCommon.HexToAddress(ethereumAddress))
-}
-
 // NewEthereumAddress is a constructor function for EthereumAddress
 func NewEthereumAddress(address string) EthAddress {
 	return EthAddress(gethCommon.HexToAddress(address))
@@ -37,7 +33,11 @@ func (ethAddr *EthAddress) UnmarshalJSON(input []byte) error {
 
 type Chain33Address address.Address
 
-func NewChain33AddressByProto(chain33Address string) Chain33Address {
+func NewChain33Address(chain33Address string) Chain33Address {
 	addr, _ := address.NewAddrFromString(chain33Address)
 	return Chain33Address(*addr)
+}
+
+func (a *Chain33Address) String() string {
+	return address.Address(*a).String()
 }
