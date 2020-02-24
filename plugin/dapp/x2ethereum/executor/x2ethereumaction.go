@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"encoding/json"
 	"github.com/33cn/chain33/account"
 	"github.com/33cn/chain33/client"
 	dbm "github.com/33cn/chain33/common/db"
@@ -38,5 +39,31 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 	if err != nil {
 		return nil, err
 	}
+
+	status, err := a.ProcessClaim(oracleClaim)
+	if err != nil {
+		return nil, err
+	}
+
+	msgEthBridgeClaimBytes, err := json.Marshal(msgEthBridgeClaim)
+	if err != nil {
+		return nil, types.ErrMarshal
+	}
+
+	statusBytes, err := json.Marshal(status)
+	if err != nil {
+		return nil, types.ErrMarshal
+	}
+	receipt := &types.Receipt{KV: make([]*types.KeyValue, 0)}
+	receipt.KV = append(receipt.KV, &types.KeyValue{Key: msgEthBridgeClaimBytes, Value: statusBytes})
+
+	receipt.Ty = types.ExecOk
+}
+
+func (a *action) procMsgLock(msgLock *types2.MsgLock) (*types.Receipt, error) {
+
+}
+
+func (a *action) procMsgBurn(msgBurn *types2.MsgBurn) (*types.Receipt, error) {
 
 }

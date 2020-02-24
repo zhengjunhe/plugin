@@ -14,8 +14,14 @@ var (
 	ErrProphecyNotFound  = errors.New("prophecy with given id not found")
 	ErrProphecyGet       = errors.New("prophecy with given id find error")
 	ErrinternalDB        = errors.New("internal error serializing/deserializing prophecy")
+	ErrNoClaims          = errors.New("cannot create prophecy without initial claim")
+	ErrInvalidClaim      = errors.New("claim cannot be empty string")
+	ErrProphecyFinalized = errors.New("prophecy already finalized")
+	ErrDuplicateMessage  = errors.New("already processed message from validator for this id")
 )
 
+//common
 var (
 	ErrUnmarshal = errors.New("Unmarshal error")
+	ErrMarshal   = errors.New("Marshal error")
 )

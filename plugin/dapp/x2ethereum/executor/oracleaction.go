@@ -33,67 +33,69 @@ func (a *action) GetProphecy(id string) (excutor.Prophecy, error) {
 }
 
 // setProphecy saves a prophecy with an initial claim
-func (a *action) setProphecy(ctx sdk.Context, prophecy types.Prophecy) sdk.Error {
+func (a *action) setProphecy(prophecy excutor.Prophecy) error {
 	if prophecy.ID == "" {
-		return types.ErrInvalidIdentifier(k.Codespace())
+		return types.ErrInvalidIdentifier
 	}
 	if len(prophecy.ClaimValidators) == 0 {
-		return types.ErrNoClaims(k.Codespace())
+		return types.ErrNoClaims
 	}
-	store := ctx.KVStore(k.storeKey)
 	serializedProphecy, err := prophecy.SerializeForDB()
 	if err != nil {
-		return types.ErrInternalDB(k.Codespace(), err)
+		return types.ErrinternalDB
 	}
-	store.Set([]byte(prophecy.ID), k.cdc.MustMarshalBinaryBare(serializedProphecy))
+	serializedProphecyBytes, err := json.Marshal(serializedProphecy)
+	if err != nil {
+		return types.ErrMarshal
+	}
+	_ = a.db.Set([]byte(prophecy.ID), serializedProphecyBytes)
 	return nil
 }
 
-// ProcessClaim TODO: write description
-func (a *executor.action) ProcessClaim(ctx sdk.Context, claim types.Claim) (types.Status, sdk.Error) {
-	activeValidator := k.checkActiveValidator(ctx, claim.ValidatorAddress)
-	if !activeValidator {
-		return types.Status{}, types.ErrInvalidValidator(k.Codespace())
-	}
+// ProcessClaim TODO: validator hasn't implement
+func (a *action) ProcessClaim(claim types.OracleClaim) (excutor.Status, error) {
 	if strings.TrimSpace(claim.Content) == "" {
-		return types.Status{}, types.ErrInvalidClaim(k.Codespace())
+		return excutor.Status{}, types.ErrInvalidClaim
 	}
-	prophecy, err := k.GetProphecy(ctx, claim.ID)
+	prophecy, err := a.GetProphecy(claim.ID)
 	if err != nil {
-		if err.Code() != types.CodeProphecyNotFound {
-			return types.Status{}, err
+		if err != types.ErrProphecyNotFound {
+			return excutor.Status{}, err
 		}
-		prophecy = types.NewProphecy(claim.ID)
+		prophecy = excutor.NewProphecy(claim.ID)
 	} else {
-		if prophecy.Status.Text == types.SuccessStatusText || prophecy.Status.Text == types.FailedStatusText {
-			return types.Status{}, types.ErrProphecyFinalized(k.Codespace())
+		if prophecy.Status.Text == excutor.StatusText(types.EthBridgeStatus_SuccessStatusText) || prophecy.Status.Text == excutor.StatusText(types.EthBridgeStatus_FailedStatusText) {
+			return excutor.Status{}, types.ErrProphecyFinalized
 		}
-		if prophecy.ValidatorClaims[claim.ValidatorAddress.String()] != "" {
-			return types.Status{}, types.ErrDuplicateMessage(k.Codespace())
+		if prophecy.ValidatorClaims[claim.ValidatorAddress] != "" {
+			return excutor.Status{}, types.ErrDuplicateMessage
 		}
 	}
-	prophecy.AddClaim(claim.ValidatorAddress, claim.Content)
-	prophecy = k.processCompletion(ctx, prophecy)
-	err = k.setProphecy(ctx, prophecy)
+	prophecy.AddClaim(NewChain33Address(claim.ValidatorAddress), claim.Content)
+	prophecy = a.processCompletion(prophecy)
+	err = a.setProphecy(prophecy)
 	if err != nil {
-		return types.Status{}, err
+		return excutor.Status{}, err
 	}
 	return prophecy.Status, nil
 }
 
-func (a *executor.action) checkActiveValidator(ctx sdk.Context, validatorAddress sdk.ValAddress) bool {
-	validator, found := k.stakeKeeper.GetValidator(ctx, validatorAddress)
-	if !found {
-		return false
-	}
-	bondStatus := validator.GetStatus()
-	return bondStatus == sdk.Bonded
-}
+//todo
+//func (a *action) checkActiveValidator(validatorAddress Chain33Address) bool {
+//	validator, found := a.GetValidator(validatorAddress)
+//	if !found {
+//		return false
+//	}
+//	bondStatus := validator.GetStatus()
+//	return bondStatus == sdk.Bonded
+//}
+//
+//func (a *action) GetValidator(addr Chain33Address) ()
 
 // processCompletion looks at a given prophecy an assesses whether the claim with the highest power on that prophecy has enough
 // power to be considered successful, or alternatively, will never be able to become successful due to not enough validation power being
 // left to push it over the threshold required for consensus.
-func (a *executor.action) processCompletion(ctx sdk.Context, prophecy types.Prophecy) types.Prophecy {
+func (a *action) processCompletion(prophecy types.Prophecy) types.Prophecy {
 	highestClaim, highestClaimPower, totalClaimsPower := prophecy.FindHighestClaim(ctx, k.stakeKeeper)
 	totalPower := k.stakeKeeper.GetLastTotalPower(ctx)
 	highestConsensusRatio := float64(highestClaimPower) / float64(totalPower.Int64())
@@ -101,10 +103,10 @@ func (a *executor.action) processCompletion(ctx sdk.Context, prophecy types.Prop
 	highestPossibleClaimPower := highestClaimPower + remainingPossibleClaimPower
 	highestPossibleConsensusRatio := float64(highestPossibleClaimPower) / float64(totalPower.Int64())
 	if highestConsensusRatio >= k.consensusNeeded {
-		prophecy.Status.Text = types.SuccessStatusText
+		prophecy.Status.Text = types.EthBridgeStatus_SuccessStatusText
 		prophecy.Status.FinalClaim = highestClaim
 	} else if highestPossibleConsensusRatio < k.consensusNeeded {
-		prophecy.Status.Text = types.FailedStatusText
+		prophecy.Status.Text = types.EthBridgeStatus_FailedStatusText
 	}
 	return prophecy
 }
