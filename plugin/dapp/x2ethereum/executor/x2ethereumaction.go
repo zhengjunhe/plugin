@@ -8,6 +8,7 @@ import (
 	"github.com/33cn/chain33/system/dapp"
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/ethbridge"
+	excutor "github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/oracle"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
@@ -21,21 +22,22 @@ type action struct {
 	height       int64
 	index        int32
 	execaddr     string
+	keeper       ethbridge.Keeper
 }
 
 func newAction(a *x2ethereum, tx *types.Transaction, index int32) *action {
 	hash := tx.Hash()
 	fromaddr := tx.From()
-	return &action{a.GetAPI(), a.GetCoinsAccount(), a.GetStateDB(), hash, fromaddr,
-		a.GetBlockTime(), a.GetHeight(), index, dapp.ExecAddress(string(tx.Execer))}
+	return &action{a.GetAPI(), a.GetCoinsAccount(), a.GetLocalDB(), hash, fromaddr,
+		a.GetBlockTime(), a.GetHeight(), index, dapp.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper()}
 }
 
 func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*types.Receipt, error) {
-	msgEthBridgeClaim := executor.NewMsgCreateEthBridgeClaim(*ethBridgeClaim)
+	msgEthBridgeClaim := ethbridge.NewMsgCreateEthBridgeClaim(*ethBridgeClaim)
 	if err := msgEthBridgeClaim.ValidateBasic(); err != nil {
 		return nil, err
 	}
-	oracleClaim, err := executor.CreateOracleClaimFromEthClaim(*ethBridgeClaim)
+	oracleClaim, err := ethbridge.CreateOracleClaimFromEthClaim(*ethBridgeClaim)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +45,10 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 	status, err := a.ProcessClaim(oracleClaim)
 	if err != nil {
 		return nil, err
+	}
+
+	if status.Text == excutor.StatusText(types2.EthBridgeStatus_SuccessStatusText) {
+		a.process
 	}
 
 	msgEthBridgeClaimBytes, err := json.Marshal(msgEthBridgeClaim)
@@ -58,6 +64,7 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 	receipt.KV = append(receipt.KV, &types.KeyValue{Key: msgEthBridgeClaimBytes, Value: statusBytes})
 
 	receipt.Ty = types.ExecOk
+	return receipt, nil
 }
 
 func (a *action) procMsgLock(msgLock *types2.MsgLock) (*types.Receipt, error) {

@@ -1,8 +1,8 @@
-package excutor
+package oracle
 
 import (
 	"encoding/json"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
@@ -20,8 +20,40 @@ type Prophecy struct {
 	ID     string `json:"id"`
 	Status Status `json:"status"`
 	//WARNING: Mappings are nondeterministic in Amino, an so iterating over them could result in consensus failure. New code should not iterate over the below 2 mappings.
-	ClaimValidators map[string][]executor.Chain33Address `json:"claim_validators"` //This is a mapping from a claim to the list of validators that made that claim.
-	ValidatorClaims map[string]string                    `json:"validator_claims"` //This is a mapping from a validator bech32 address to their claim
+	ClaimValidators map[string][]common.Chain33Address `json:"claim_validators"` //This is a mapping from a claim to the list of validators that made that claim.
+	ValidatorClaims map[string]string                  `json:"validator_claims"` //This is a mapping from a validator bech32 address to their claim
+}
+
+// NewProphecy returns a new Prophecy, initialized in pending status with an initial claim
+func NewProphecy(id string) Prophecy {
+	return Prophecy{
+		ID:              id,
+		Status:          NewStatus(StatusText(types.EthBridgeStatus_PendingStatusText), ""),
+		ClaimValidators: make(map[string][]common.Chain33Address),
+		ValidatorClaims: make(map[string]string),
+	}
+}
+
+// NewEmptyProphecy returns a blank prophecy, used with errors
+func NewEmptyProphecy() Prophecy {
+	return NewProphecy("")
+}
+
+func NewProphecyByproto(prophecy types.Prophecy) Prophecy {
+	claimValidators := make(map[string][]common.Chain33Address)
+	for claim, addresses := range prophecy.ClaimValidators {
+		addressArrays := make([]common.Chain33Address, 0)
+		for _, addr := range addresses.ClaimValidator {
+			addressArrays = append(addressArrays, common.NewChain33Address(addr))
+		}
+		claimValidators[claim] = addressArrays
+	}
+	return Prophecy{
+		ID:              prophecy.ID,
+		Status:          NewStatus(StatusText(prophecy.Status.Text), prophecy.Status.FinalClaim),
+		ClaimValidators: claimValidators,
+		ValidatorClaims: prophecy.ValidatorClaims,
+	}
 }
 
 // DBProphecy is what the prophecy becomes when being saved to the database. Tendermint/Amino does not support maps so we must serialize those variables into bytes.
@@ -57,7 +89,7 @@ func (prophecy Prophecy) SerializeForDB() (DBProphecy, error) {
 
 // DeserializeFromDB deserializes a DBProphecy into a prophecy
 func (dbProphecy DBProphecy) DeserializeFromDB() (Prophecy, error) {
-	var claimValidators map[string][]executor.Chain33Address
+	var claimValidators map[string][]common.Chain33Address
 	err := json.Unmarshal(dbProphecy.ClaimValidators, &claimValidators)
 	if err != nil {
 		return Prophecy{}, err
@@ -78,7 +110,7 @@ func (dbProphecy DBProphecy) DeserializeFromDB() (Prophecy, error) {
 }
 
 // AddClaim adds a given claim to this prophecy
-func (prophecy Prophecy) AddClaim(validator executor.Chain33Address, claim string) {
+func (prophecy Prophecy) AddClaim(validator common.Chain33Address, claim string) {
 	claimValidators := prophecy.ClaimValidators[claim]
 	prophecy.ClaimValidators[claim] = append(claimValidators, validator)
 
@@ -86,19 +118,25 @@ func (prophecy Prophecy) AddClaim(validator executor.Chain33Address, claim strin
 	prophecy.ValidatorClaims[validatorBech32] = claim
 }
 
-// NewProphecy returns a new Prophecy, initialized in pending status with an initial claim
-func NewProphecy(id string) Prophecy {
-	return Prophecy{
-		ID:              id,
-		Status:          NewStatus(StatusText(types.EthBridgeStatus_PendingStatusText), ""),
-		ClaimValidators: make(map[string][]executor.Chain33Address),
-		ValidatorClaims: make(map[string]string),
+// FindHighestClaim looks through all the existing claims on a given prophecy. It adds up the total power across
+// all claims and returns the highest claim, power for that claim, and total power claimed on the prophecy overall.
+func (prophecy Prophecy) FindHighestClaim(validators map[string]float64) (string, float64, float64) {
+	totalClaimsPower := float64(0)
+	highestClaimPower := float64(-1)
+	highestClaim := ""
+	for claim, validatorAddrs := range prophecy.ClaimValidators {
+		claimPower := float64(0)
+		for _, validatorAddr := range validatorAddrs {
+			validatorPower := validators[validatorAddr.String()]
+			claimPower += validatorPower
+		}
+		totalClaimsPower += claimPower
+		if claimPower > highestClaimPower {
+			highestClaimPower = claimPower
+			highestClaim = claim
+		}
 	}
-}
-
-// NewEmptyProphecy returns a blank prophecy, used with errors
-func NewEmptyProphecy() Prophecy {
-	return NewProphecy("")
+	return highestClaim, highestClaimPower, totalClaimsPower
 }
 
 // Status is a struct that contains the status of a given prophecy

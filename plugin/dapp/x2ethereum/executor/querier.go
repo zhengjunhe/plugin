@@ -3,6 +3,7 @@ package executor
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	"github.com/gogo/protobuf/codec"
 	"strconv"
@@ -11,12 +12,12 @@ import (
 // QueryEthProphecyParams defines the params for the following queries:
 // - 'custom/ethbridge/prophecies/'
 type QueryEthProphecyParams struct {
-	EthereumChainID       int        `json:"ethereum_chain_id"`
-	BridgeContractAddress EthAddress `json:"bridge_contract_address"`
-	Nonce                 int        `json:"nonce"`
-	Symbol                string     `json:"symbol"`
-	TokenContractAddress  EthAddress `json:"token_contract_address"`
-	EthereumSender        EthAddress `json:"ethereum_sender"`
+	EthereumChainID       int               `json:"ethereum_chain_id"`
+	BridgeContractAddress common.EthAddress `json:"bridge_contract_address"`
+	Nonce                 int               `json:"nonce"`
+	Symbol                string            `json:"symbol"`
+	TokenContractAddress  common.EthAddress `json:"token_contract_address"`
+	EthereumSender        common.EthAddress `json:"ethereum_sender"`
 }
 
 // QueryEthProphecyParams creates a new QueryEthProphecyParams

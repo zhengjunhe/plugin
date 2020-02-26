@@ -1,4 +1,4 @@
-package excutor
+package oracle
 
 import (
 	"encoding/json"

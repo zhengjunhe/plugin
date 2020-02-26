@@ -12,10 +12,15 @@ message X2ethereumAction {
         EthBridgeClaim    ethBridgeClaim     = 1;
         MsgBurn    msgBurn     = 2;
         MsgLock    msgLock     = 3;
+        MsgLogInValidator msgLogInValidator = 4;
     }
     int32 ty = 10;
 }
 
+message MsgLogInValidator {
+    string address = 1;
+    double power = 2;
+}
 
 // EthBridgeClaim is a structure that contains all the data for a particular bridge claim
 message EthBridgeClaim {
