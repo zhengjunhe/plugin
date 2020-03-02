@@ -9,18 +9,20 @@ import (
 )
 
 // NewEthBridgeClaim is a constructor function for NewEthBridgeClaim
-func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, symbol string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount uint64, claimType int64) types.EthBridgeClaim {
+func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount uint64, claimType int64) types.EthBridgeClaim {
 	return types.EthBridgeClaim{
 		EthereumChainID:       ethereumChainID,
 		BridgeContractAddress: bridgeContract,
 		Nonce:                 nonce,
-		Symbol:                symbol,
+		EthSymbol:             ethSymbol,
 		TokenContractAddress:  tokenContact,
 		EthereumSender:        ethereumSender,
 		Chain33Receiver:       chain33Receiver,
 		ValidatorAddress:      validator,
 		Amount:                amount,
 		ClaimType:             claimType,
+		LocalCoinSymbol:       localCoinSymbol,
+		LocalCoinExec:         localCoinExec,
 	}
 }
 
@@ -59,7 +61,7 @@ func CreateOracleClaimFromEthClaim(ethClaim types.EthBridgeClaim) (types.OracleC
 }
 
 // CreateEthClaimFromOracleString converts a string from any generic claim from the oracle module into an ethereum bridge specific claim.
-func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string, nonce int64, symbol string, tokenContract string, ethereumAddress string, validator string, oracleClaimString string) (types.EthBridgeClaim, error) {
+func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContract string, ethereumAddress string, validator string, oracleClaimString string) (types.EthBridgeClaim, error) {
 	oracleClaim, err := CreateOracleClaimFromOracleString(oracleClaimString)
 	if err != nil {
 		return types.EthBridgeClaim{}, err
@@ -69,7 +71,9 @@ func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string
 		ethereumChainID,
 		bridgeContract,
 		nonce,
-		symbol,
+		ethSymbol,
+		localCoinSymbol,
+		localCoinExec,
 		tokenContract,
 		ethereumAddress,
 		oracleClaim.Chain33Receiver,

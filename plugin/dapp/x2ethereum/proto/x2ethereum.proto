@@ -27,13 +27,15 @@ message EthBridgeClaim {
     int64           EthereumChainID            = 1;
     string BridgeContractAddress        = 2;
     int64 Nonce     = 3;
-    string           Symbol        = 4;
-    string           TokenContractAddress   = 5;
-    string           EthereumSender = 6;
-    string           Chain33Receiver          = 7;
-    string           ValidatorAddress    = 8;
-    uint64           Amount      = 9;
-    int64           ClaimType    = 10;
+    string           localCoinSymbol = 4;
+    string           localCoinExec  = 5;
+    string           TokenContractAddress   = 6;
+    string           EthereumSender = 7;
+    string           Chain33Receiver          = 8;
+    string           ValidatorAddress    = 9;
+    uint64           Amount      = 10;
+    int64           ClaimType    = 11;
+    string           EthSymbol  = 12;
 }
 
 // OracleClaimContent is the details of how the content of the claim for each validator will be stored in the oracle
@@ -50,6 +52,8 @@ message MsgBurn {
     string           Chain33Sender    = 3;
     string           EthereumReceiver    = 4;
     uint64           Amount    = 5;
+    string           localCoinSymbol = 6;
+    string           localCoinExec  = 7;
 }
 
 // MsgLock defines a message for locking coins and triggering a related event
@@ -59,6 +63,8 @@ message MsgLock {
     string           Chain33Sender    = 3;
     string           EthereumReceiver    = 4;
     uint64           Amount    = 5;
+    string           localCoinSymbol = 6;
+    string           localCoinExec  = 7;
 }
 
 message QueryEthProphecyParams {

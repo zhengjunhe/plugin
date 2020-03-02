@@ -19,6 +19,8 @@ var (
 	ErrProphecyFinalized             = errors.New("prophecy already finalized")
 	ErrDuplicateMessage              = errors.New("already processed message from validator for this id")
 	ErrMinimumConsensusNeededInvalid = errors.New("minimum consensus proportion of validator staking power must be > 0 and <= 1")
+	ErrInvalidValidator              = errors.New("validator is invalid")
+	ErrUnknownAddress                = errors.New("module account does not exist")
 )
 
 //common

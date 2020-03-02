@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"strings"
@@ -19,7 +18,7 @@ func NewMsgCreateEthBridgeClaim(ethBridgeClaim types.EthBridgeClaim) MsgCreateEt
 }
 
 // Route should return the name of the module
-func (msg MsgCreateEthBridgeClaim) Route() string { return executor.ModuleName }
+func (msg MsgCreateEthBridgeClaim) Route() string { return types.ModuleName }
 
 // Type should return the action
 func (msg MsgCreateEthBridgeClaim) Type() string { return "create_bridge_claim" }
@@ -44,7 +43,7 @@ func (msg MsgCreateEthBridgeClaim) ValidateBasic() error {
 	if !gethCommon.IsHexAddress(msg.BridgeContractAddress) {
 		return types.ErrInvalidEthAddress
 	}
-	if strings.ToLower(msg.Symbol) == "eth" && msg.TokenContractAddress != "0x0000000000000000000000000000000000000000" {
+	if strings.ToLower(msg.EthSymbol) == "eth" && msg.TokenContractAddress != "0x0000000000000000000000000000000000000000" {
 		return types.ErrInvalidEthSymbol
 	}
 	return nil

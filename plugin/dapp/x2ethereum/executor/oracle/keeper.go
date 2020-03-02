@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	"strings"
 )
@@ -70,12 +69,18 @@ func (k Keeper) setProphecy(prophecy Prophecy) error {
 	if err != nil {
 		return types2.ErrMarshal
 	}
+	//todo
+	//stateDB存储还是localDB???
 	_ = k.db.Set([]byte(prophecy.ID), serializedProphecyBytes)
 	return nil
 }
 
 // ProcessClaim TODO: validator hasn't implement
 func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
+	activeValidator := k.checkActiveValidator(claim.ValidatorAddress)
+	if !activeValidator {
+		return Status{}, types.ErrInvalidValidator
+	}
 	if strings.TrimSpace(claim.Content) == "" {
 		return Status{}, types.ErrInvalidClaim
 	}
@@ -93,7 +98,7 @@ func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 			return Status{}, types.ErrDuplicateMessage
 		}
 	}
-	prophecy.AddClaim(common.NewChain33Address(claim.ValidatorAddress), claim.Content)
+	prophecy.AddClaim(claim.ValidatorAddress, claim.Content)
 	prophecy, err = k.processCompletion(prophecy)
 	err = k.setProphecy(prophecy)
 	if err != nil {
@@ -102,17 +107,13 @@ func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 	return prophecy.Status, nil
 }
 
-//todo
-//func (k Keeper) checkActiveValidator(validatorAddress Chain33Address) bool {
-//	validator, found := a.GetValidator(validatorAddress)
-//	if !found {
-//		return false
-//	}
-//	bondStatus := validator.GetStatus()
-//	return bondStatus == sdk.Bonded
-//}
-//
-//func (k Keeper) GetValidator(addr Chain33Address) ()
+func (k Keeper) checkActiveValidator(validatorAddress string) bool {
+	_, err := k.db.Get([]byte(validatorAddress))
+	if err != nil {
+		return false
+	}
+	return true
+}
 
 // 计算该prophecy是否达标
 func (k Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {

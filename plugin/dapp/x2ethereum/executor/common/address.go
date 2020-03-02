@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"github.com/33cn/chain33/common/address"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"reflect"
@@ -29,15 +28,4 @@ func (ethAddr EthAddress) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshals an ethereum address
 func (ethAddr *EthAddress) UnmarshalJSON(input []byte) error {
 	return hexutil.UnmarshalFixedJSON(reflect.TypeOf(gethCommon.Address{}), input, ethAddr[:])
-}
-
-type Chain33Address address.Address
-
-func NewChain33Address(chain33Address string) Chain33Address {
-	addr, _ := address.NewAddrFromString(chain33Address)
-	return Chain33Address(*addr)
-}
-
-func (a *Chain33Address) String() string {
-	return address.Address(*a).String()
 }

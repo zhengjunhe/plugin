@@ -1,141 +1,91 @@
 package common
 
-import "fmt"
+import (
+	"github.com/33cn/chain33/account"
+	types2 "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+)
+
+type amount struct {
+	spendable_amount int64
+	locked_amount    int64
+}
 
 // SendCoinsFromModuleToAccount transfers coins from a ModuleAccount to an AccAddress
-func (k Keeper) SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string,
-	recipientAddr sdk.AccAddress, amt sdk.Coins) sdk.Error {
-
-	senderAddr := k.GetModuleAddress(senderModule)
-	if senderAddr == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("module account %s does not exist", senderModule))
+func (k Keeper) SendCoinsFromModuleToAccount(senderModule, recipientAddr, execAddr string, amt int64, accDB *account.DB) (*types2.Receipt, error) {
+	senderAddr, ok := k.moduleAddresses[senderModule]
+	if !ok {
+		return nil, types.ErrUnknownAddress
 	}
 
-	return k.bk.SendCoins(ctx, senderAddr, recipientAddr, amt)
+	receipt, err := accDB.ExecTransfer(senderAddr, recipientAddr, execAddr, amt)
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
 }
 
 // SendCoinsFromModuleToModule transfers coins from a ModuleAccount to another
-func (k Keeper) SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) sdk.Error {
-
-	senderAddr := k.GetModuleAddress(senderModule)
-	if senderAddr == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("module account %s does not exist", senderModule))
+func (k Keeper) SendCoinsFromModuleToModule(senderModule, recipientModule, execAddr string, amt int64, accDB *account.DB) (*types2.Receipt, error) {
+	senderAddr, ok := k.moduleAddresses[senderModule]
+	if !ok {
+		return nil, types.ErrUnknownAddress
+	}
+	recipientAddr, ok := k.moduleAddresses[recipientModule]
+	if !ok {
+		return nil, types.ErrUnknownAddress
 	}
 
-	// create the account if it doesn't yet exist
-	recipientAcc := k.GetModuleAccount(ctx, recipientModule)
-	if recipientAcc == nil {
-		panic(fmt.Sprintf("module account %s isn't able to be created", recipientModule))
+	receipt, err := accDB.ExecTransfer(senderAddr, recipientAddr, execAddr, amt)
+	if err != nil {
+		return nil, err
 	}
-
-	return k.bk.SendCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
+	return receipt, nil
 }
 
 // SendCoinsFromAccountToModule transfers coins from an AccAddress to a ModuleAccount
-func (k Keeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress,
-	recipientModule string, amt sdk.Coins) sdk.Error {
-
-	// create the account if it doesn't yet exist
-	recipientAcc := k.GetModuleAccount(ctx, recipientModule)
-	if recipientAcc == nil {
-		panic(fmt.Sprintf("module account %s isn't able to be created", recipientModule))
+func (k Keeper) SendCoinsFromAccountToModule(senderAddr, recipientModule, execAddr string, amt int64, accDB *account.DB) (*types2.Receipt, error) {
+	recipientAddr, ok := k.moduleAddresses[recipientModule]
+	if !ok {
+		return nil, types.ErrUnknownAddress
 	}
-
-	return k.bk.SendCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
-}
-
-// DelegateCoinsFromAccountToModule delegates coins and transfers
-// them from a delegator account to a module account
-func (k Keeper) DelegateCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress,
-	recipientModule string, amt sdk.Coins) sdk.Error {
-
-	// create the account if it doesn't yet exist
-	recipientAcc := k.GetModuleAccount(ctx, recipientModule)
-	if recipientAcc == nil {
-		panic(fmt.Sprintf("module account %s isn't able to be created", recipientModule))
+	receipt, err := accDB.ExecTransfer(senderAddr, recipientAddr, execAddr, amt)
+	if err != nil {
+		return nil, err
 	}
-
-	if !recipientAcc.HasPermission(types.Staking) {
-		panic(fmt.Sprintf("module account %s does not have permissions to receive delegated coins", recipientModule))
-	}
-
-	return k.bk.DelegateCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
-}
-
-// UndelegateCoinsFromModuleToAccount undelegates the unbonding coins and transfers
-// them from a module account to the delegator account
-func (k Keeper) UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string,
-	recipientAddr sdk.AccAddress, amt sdk.Coins) sdk.Error {
-
-	acc := k.GetModuleAccount(ctx, senderModule)
-	if acc == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("module account %s does not exist", senderModule))
-	}
-
-	if !acc.HasPermission(types.Staking) {
-		panic(fmt.Sprintf("module account %s does not have permissions to undelegate coins", senderModule))
-	}
-
-	return k.bk.UndelegateCoins(ctx, acc.GetAddress(), recipientAddr, amt)
+	return receipt, nil
 }
 
 // MintCoins creates new coins from thin air and adds it to the module account.
 // Panics if the name maps to a non-minter module account or if the amount is invalid.
-func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) sdk.Error {
+func (k Keeper) MintCoins(amt int64, moduleName, execAddr string, accDB *account.DB) (*types2.Receipt, error) {
 
-	// create the account if it doesn't yet exist
-	acc := k.GetModuleAccount(ctx, moduleName)
-	if acc == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("module account %s does not exist", moduleName))
+	bankAddr, ok := k.moduleAddresses[moduleName]
+	if !ok {
+		return nil, types.ErrUnknownAddress
 	}
 
-	if !acc.HasPermission(types.Minter) {
-		panic(fmt.Sprintf("module account %s does not have permissions to mint tokens", moduleName))
-	}
-
-	_, err := k.bk.AddCoins(ctx, acc.GetAddress(), amt)
+	receipt, err := accDB.ExecDeposit(bankAddr, execAddr, amt)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	// update total supply
-	supply := k.GetSupply(ctx)
-	supply = supply.Inflate(amt)
-
-	k.SetSupply(ctx, supply)
-
-	logger := k.Logger(ctx)
-	logger.Info(fmt.Sprintf("minted %s from %s module account", amt.String(), moduleName))
-
-	return nil
+	return receipt, nil
 }
 
 // BurnCoins burns coins deletes coins from the balance of the module account.
 // Panics if the name maps to a non-burner module account or if the amount is invalid.
-func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) sdk.Error {
+func (k Keeper) BurnCoins(amt int64, moduleName, execAddr string, accDB *account.DB) (*types2.Receipt, error) {
 
-	// create the account if it doesn't yet exist
-	acc := k.GetModuleAccount(ctx, moduleName)
-	if acc == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("module account %s does not exist", moduleName))
+	bankAddr, ok := k.moduleAddresses[moduleName]
+	if !ok {
+		return nil, types.ErrUnknownAddress
 	}
 
-	if !acc.HasPermission(types.Burner) {
-		panic(fmt.Sprintf("module account %s does not have permissions to burn tokens", moduleName))
-	}
-
-	_, err := k.bk.SubtractCoins(ctx, acc.GetAddress(), amt)
+	receipt, err := accDB.ExecWithdraw(bankAddr, execAddr, amt)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	// update total supply
-	supply := k.GetSupply(ctx)
-	supply = supply.Deflate(amt)
-	k.SetSupply(ctx, supply)
-
-	logger := k.Logger(ctx)
-	logger.Info(fmt.Sprintf("burned %s from %s module account", amt.String(), moduleName))
-
-	return nil
+	return receipt, nil
 }

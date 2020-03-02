@@ -1,7 +1,6 @@
 package ethbridge
 
 import (
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
@@ -9,11 +8,11 @@ import (
 )
 
 type Msg_Burn struct {
-	EthereumChainID  int64                 `json:"ethereum_chain_id" yaml:"ethereum_chain_id"`
-	TokenContract    common.EthAddress     `json:"token_contract_address" yaml:"token_contract_address"`
-	Chain33Sender    common.Chain33Address `json:"chain33_sender" yaml:"chain33_sender"`
-	EthereumReceiver common.EthAddress     `json:"ethereum_receiver" yaml:"ethereum_receiver"`
-	Amount           uint64                `json:"amount" yaml:"amount"`
+	EthereumChainID  int64             `json:"ethereum_chain_id" yaml:"ethereum_chain_id"`
+	TokenContract    common.EthAddress `json:"token_contract_address" yaml:"token_contract_address"`
+	Chain33Sender    string            `json:"chain33_sender" yaml:"chain33_sender"`
+	EthereumReceiver common.EthAddress `json:"ethereum_receiver" yaml:"ethereum_receiver"`
+	Amount           uint64            `json:"amount" yaml:"amount"`
 }
 
 // NewMsgBurn is a constructor function for MsgBurn
@@ -21,14 +20,14 @@ func NewMsgBurn(ethereumChainID int64, tokenContract string, chain33Sender strin
 	return Msg_Burn{
 		EthereumChainID:  ethereumChainID,
 		TokenContract:    common.NewEthereumAddress(tokenContract),
-		Chain33Sender:    common.NewChain33Address(chain33Sender),
+		Chain33Sender:    chain33Sender,
 		EthereumReceiver: common.NewEthereumAddress(ethereumReceiver),
 		Amount:           amount,
 	}
 }
 
 // Route should return the name of the module
-func (msg Msg_Burn) Route() string { return executor.ModuleName }
+func (msg Msg_Burn) Route() string { return types.ModuleName }
 
 // Type should return the action
 func (msg Msg_Burn) Type() string { return "burn" }
@@ -47,7 +46,7 @@ func (msg Msg_Burn) ValidateBasic() error {
 		return types.ErrInvalidEthAddress
 	}
 
-	if AddressIsEmpty(msg.Chain33Sender.Enc58str) {
+	if AddressIsEmpty(msg.Chain33Sender) {
 		return types.ErrInvalidAddress
 	}
 

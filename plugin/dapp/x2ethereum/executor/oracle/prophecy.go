@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"encoding/json"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
@@ -10,18 +9,11 @@ import (
 // prophecy to be finalized
 const DefaultConsensusNeeded float64 = 0.7
 
-// Prophecy is a struct that contains all the metadata of an oracle ritual.
-// Claims are indexed by the claim's validator bech32 address and by the claim's json value to allow
-// for constant lookup times for any validation/verifiation checks of duplicate claims
-// Each transaction, pending potential results are also calculated, stored and indexed by their byte result
-// to allow discovery of consensus on any the result in constant time without having to sort or run
-// through the list of claims to find the one with highest consensus
 type Prophecy struct {
-	ID     string `json:"id"`
-	Status Status `json:"status"`
-	//WARNING: Mappings are nondeterministic in Amino, an so iterating over them could result in consensus failure. New code should not iterate over the below 2 mappings.
-	ClaimValidators map[string][]common.Chain33Address `json:"claim_validators"` //This is a mapping from a claim to the list of validators that made that claim.
-	ValidatorClaims map[string]string                  `json:"validator_claims"` //This is a mapping from a validator bech32 address to their claim
+	ID              string              `json:"id"`
+	Status          Status              `json:"status"`
+	ClaimValidators map[string][]string `json:"claim_validators"` //This is a mapping from a claim to the list of validators that made that claim.
+	ValidatorClaims map[string]string   `json:"validator_claims"` //This is a mapping from a validator bech32 address to their claim
 }
 
 // NewProphecy returns a new Prophecy, initialized in pending status with an initial claim
@@ -29,7 +21,7 @@ func NewProphecy(id string) Prophecy {
 	return Prophecy{
 		ID:              id,
 		Status:          NewStatus(StatusText(types.EthBridgeStatus_PendingStatusText), ""),
-		ClaimValidators: make(map[string][]common.Chain33Address),
+		ClaimValidators: make(map[string][]string),
 		ValidatorClaims: make(map[string]string),
 	}
 }
@@ -40,11 +32,11 @@ func NewEmptyProphecy() Prophecy {
 }
 
 func NewProphecyByproto(prophecy types.Prophecy) Prophecy {
-	claimValidators := make(map[string][]common.Chain33Address)
+	claimValidators := make(map[string][]string)
 	for claim, addresses := range prophecy.ClaimValidators {
-		addressArrays := make([]common.Chain33Address, 0)
+		addressArrays := make([]string, 0)
 		for _, addr := range addresses.ClaimValidator {
-			addressArrays = append(addressArrays, common.NewChain33Address(addr))
+			addressArrays = append(addressArrays, addr)
 		}
 		claimValidators[claim] = addressArrays
 	}
@@ -89,7 +81,7 @@ func (prophecy Prophecy) SerializeForDB() (DBProphecy, error) {
 
 // DeserializeFromDB deserializes a DBProphecy into a prophecy
 func (dbProphecy DBProphecy) DeserializeFromDB() (Prophecy, error) {
-	var claimValidators map[string][]common.Chain33Address
+	var claimValidators map[string][]string
 	err := json.Unmarshal(dbProphecy.ClaimValidators, &claimValidators)
 	if err != nil {
 		return Prophecy{}, err
@@ -110,11 +102,11 @@ func (dbProphecy DBProphecy) DeserializeFromDB() (Prophecy, error) {
 }
 
 // AddClaim adds a given claim to this prophecy
-func (prophecy Prophecy) AddClaim(validator common.Chain33Address, claim string) {
+func (prophecy Prophecy) AddClaim(validator string, claim string) {
 	claimValidators := prophecy.ClaimValidators[claim]
 	prophecy.ClaimValidators[claim] = append(claimValidators, validator)
 
-	validatorBech32 := validator.String()
+	validatorBech32 := validator
 	prophecy.ValidatorClaims[validatorBech32] = claim
 }
 
@@ -127,7 +119,7 @@ func (prophecy Prophecy) FindHighestClaim(validators map[string]float64) (string
 	for claim, validatorAddrs := range prophecy.ClaimValidators {
 		claimPower := float64(0)
 		for _, validatorAddr := range validatorAddrs {
-			validatorPower := validators[validatorAddr.String()]
+			validatorPower := validators[validatorAddr]
 			claimPower += validatorPower
 		}
 		totalClaimsPower += claimPower

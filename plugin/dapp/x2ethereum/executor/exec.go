@@ -12,15 +12,15 @@ import (
 
 func (x *x2ethereum) Exec_EthBridgeClaim(payload *x2ethereumtypes.EthBridgeClaim, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
-	return receipt, nil
+	return action.procMsgEthBridgeClaim(payload)
 }
 
 func (x *x2ethereum) Exec_MsgBurn(payload *x2ethereumtypes.MsgBurn, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
-	return receipt, nil
+	return action.procMsgBurn(payload)
 }
 
 func (x *x2ethereum) Exec_MsgLock(payload *x2ethereumtypes.MsgLock, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
-	return receipt, nil
+	return action.procMsgLock(payload)
 }

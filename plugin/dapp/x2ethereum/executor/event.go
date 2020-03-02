@@ -1,5 +1,7 @@
 package executor
 
+import "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+
 // Ethbridge module event types
 var (
 	EventTypeCreateClaim    = "create_claim"
@@ -7,18 +9,16 @@ var (
 	EventTypeBurn           = "burn"
 	EventTypeLock           = "lock"
 
-	AttributeKeyEthereumSender = "ethereum_sender"
+	AttributeKeyEthereumSender  = "ethereum_sender"
 	AttributeKeyChain33Receiver = "chain33_receiver"
-	AttributeKeyAmount         = "amount"
-	AttributeKeyStatus         = "status"
-	AttributeKeyClaimType      = "claim_type"
+	AttributeKeyAmount          = "amount"
+	AttributeKeyStatus          = "status"
+	AttributeKeyClaimType       = "claim_type"
 
 	AttributeKeyEthereumChainID  = "ethereum_chain_id"
 	AttributeKeyTokenContract    = "token_contract_address"
-	AttributeKeyChain33Sender     = "chain33_sender"
+	AttributeKeyChain33Sender    = "chain33_sender"
 	AttributeKeyEthereumReceiver = "ethereum_receiver"
 
-	AttributeValueCategory = ModuleName
+	AttributeValueCategory = types.ModuleName
 )
-
-const ModuleName = "x2ethereum"
