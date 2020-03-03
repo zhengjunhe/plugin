@@ -13,11 +13,17 @@ message X2ethereumAction {
         MsgBurn    msgBurn     = 2;
         MsgLock    msgLock     = 3;
         MsgLogInValidator msgLogInValidator = 4;
+        MsgLogOutValidator msgLogOutValidator = 5;
     }
     int32 ty = 10;
 }
 
 message MsgLogInValidator {
+    string address = 1;
+    double power = 2;
+}
+
+message MsgLogOutValidator {
     string address = 1;
     double power = 2;
 }

@@ -1,8 +1,11 @@
 package ethbridge
 
 import (
+	"encoding/json"
 	"github.com/33cn/chain33/account"
+	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/oracle"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
@@ -11,13 +14,15 @@ import (
 type Keeper struct {
 	supplyKeeper SupplyKeeper
 	oracleKeeper OracleKeeper
+	db           dbm.KV
 }
 
 // NewKeeper creates new instances of the oracle Keeper
-func NewKeeper(supplyKeeper SupplyKeeper, oracleKeeper OracleKeeper) Keeper {
+func NewKeeper(supplyKeeper SupplyKeeper, oracleKeeper OracleKeeper, db dbm.KV) Keeper {
 	return Keeper{
 		supplyKeeper: supplyKeeper,
 		oracleKeeper: oracleKeeper,
+		db:           db,
 	}
 }
 
@@ -81,5 +86,79 @@ func (k Keeper) ProcessLock(address, execAddr string, amount int64, accDB *accou
 	if err != nil {
 		return nil, err
 	}
+	return receipt, nil
+}
+
+//todo
+//对于相同的地址该如何处理?
+func (k Keeper) ProcessLogInValidator(address string, power float64) (*types2.Receipt, error) {
+	receipt := new(types2.Receipt)
+
+	validatorMaps, err := k.oracleKeeper.GetValidatorArray()
+	if err != nil {
+		return nil, err
+	}
+
+	var totalPower float64
+	for _, p := range validatorMaps {
+		receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
+		totalPower += p.Power
+	}
+	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(address), Value: common.Float64ToBytes(power)})
+	totalPower += power
+
+	validatorMaps = append(validatorMaps, oracle.ValidatorMap{
+		Address: address,
+		Power:   power,
+	})
+	validatorMapsBytes, err := json.Marshal(validatorMaps)
+	if err != nil {
+		return nil, types2.ErrMarshal
+	}
+	err = k.db.Set(types.ValidatorMapsKey, validatorMapsBytes)
+	if err != nil {
+		return nil, types.ErrSetKV
+	}
+
+	err = k.db.Set(types.LastTotalPowerKey, common.Float64ToBytes(totalPower))
+	if err != nil {
+		return nil, types.ErrSetKV
+	}
+
+	return receipt, nil
+}
+
+func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.Receipt, error) {
+	receipt := new(types2.Receipt)
+
+	validatorMaps, err := k.oracleKeeper.GetValidatorArray()
+	if err != nil {
+		return nil, err
+	}
+
+	var totalPower float64
+	for index, p := range validatorMaps {
+		if address != p.Address {
+			receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
+		} else {
+			if p.Power < power {
+				return nil, types.ErrLogOutPowerIsTooBig
+			} else if p.Power == power {
+				oracle.RemoveAddrFromValidatorMap(validatorMaps, index)
+				continue
+			} else {
+				p.Power -= power
+				receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
+			}
+		}
+		totalPower += p.Power
+	}
+
+	validatorMapsBytes, err := json.Marshal(validatorMaps)
+	if err != nil {
+		return nil, types2.ErrMarshal
+	}
+	err = k.db.Set(types.ValidatorMapsKey, validatorMapsBytes)
+
 	return receipt, nil
 }

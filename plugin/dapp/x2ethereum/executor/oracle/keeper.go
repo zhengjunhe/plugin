@@ -4,20 +4,16 @@ import (
 	"encoding/json"
 	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	"strings"
 )
 
-// oracle KV:
-// id -> prophecy
-// address -> power
 type Keeper struct {
-	db dbm.KV
-	// TODO: use this as param instead
+	db              dbm.KV
 	consensusNeeded float64 // The minimum % of stake needed to sign claims in order for consensus to occur
 }
 
-// NewKeeper creates new instances of the oracle Keeper
 func NewKeeper(db dbm.KV, consensusNeeded float64) Keeper {
 	if consensusNeeded <= 0 || consensusNeeded > 1 {
 		panic(types.ErrMinimumConsensusNeededInvalid)
@@ -28,12 +24,11 @@ func NewKeeper(db dbm.KV, consensusNeeded float64) Keeper {
 	}
 }
 
-// GetProphecy gets the entire prophecy data struct for a given id
 func (k Keeper) GetProphecy(id string) (Prophecy, error) {
 	if id == "" {
 		return NewEmptyProphecy(), types.ErrInvalidIdentifier
 	}
-	//store to localDB
+
 	bz, err := k.db.Get([]byte(id))
 	if err != nil {
 		return NewEmptyProphecy(), types.ErrProphecyGet
@@ -69,13 +64,14 @@ func (k Keeper) setProphecy(prophecy Prophecy) error {
 	if err != nil {
 		return types2.ErrMarshal
 	}
-	//todo
-	//stateDB存储还是localDB???
-	_ = k.db.Set([]byte(prophecy.ID), serializedProphecyBytes)
+
+	err = k.db.Set([]byte(prophecy.ID), serializedProphecyBytes)
+	if err != nil {
+		return types.ErrSetKV
+	}
 	return nil
 }
 
-// ProcessClaim TODO: validator hasn't implement
 func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 	activeValidator := k.checkActiveValidator(claim.ValidatorAddress)
 	if !activeValidator {
@@ -108,11 +104,17 @@ func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 }
 
 func (k Keeper) checkActiveValidator(validatorAddress string) bool {
-	_, err := k.db.Get([]byte(validatorAddress))
+	validatorMap, err := k.GetValidatorArray()
 	if err != nil {
 		return false
 	}
-	return true
+
+	for _, v := range validatorMap {
+		if v.Address == validatorAddress {
+			return true
+		}
+	}
+	return false
 }
 
 // 计算该prophecy是否达标
@@ -123,16 +125,7 @@ func (k Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
 		return prophecy, err
 	}
 	for _, validator := range validatorArrays {
-		powerBytes, err := k.db.Get([]byte(validator))
-		if err != nil {
-			return prophecy, err
-		}
-		var power float64
-		err = json.Unmarshal(powerBytes, &power)
-		if err != nil {
-			return prophecy, types2.ErrUnmarshal
-		}
-		address2power[validator] = power
+		address2power[validator.Address] = validator.Power
 	}
 	highestClaim, highestClaimPower, totalClaimsPower := prophecy.FindHighestClaim(address2power)
 	totalPower, err := k.GetLastTotalPower()
@@ -175,37 +168,33 @@ func (k Keeper) SetLastTotalPower() error {
 		return err
 	}
 	for _, validator := range validatorArrays {
-		powerBytes, err := k.db.Get([]byte(validator))
-		if err != nil {
-			return err
-		}
-		var power float64
-		err = json.Unmarshal(powerBytes, &power)
-		if err != nil {
-			return types2.ErrUnmarshal
-		}
-		totalPower += power
+		totalPower += validator.Power
 	}
-	powerBytes, err := json.Marshal(totalPower)
-	if err != nil {
-		return types2.ErrMarshal
-	}
-	err = k.db.Set(types.LastTotalPowerKey, powerBytes)
+	err = k.db.Set(types.LastTotalPowerKey, common.Float64ToBytes(totalPower))
 	if err != nil {
 		return types.ErrSetKV
 	}
 	return nil
 }
 
-func (k Keeper) GetValidatorArray() ([]string, error) {
-	validatorsBytes, err := k.db.Get(types.ValidatorMaps)
+func (k Keeper) GetValidatorArray() ([]ValidatorMap, error) {
+	validatorsBytes, err := k.db.Get(types.ValidatorMapsKey)
 	if err != nil {
 		return nil, err
 	}
-	var validatorArrays []string
+	var validatorArrays []ValidatorMap
 	err = json.Unmarshal(validatorsBytes, &validatorArrays)
 	if err != nil {
 		return nil, types2.ErrUnmarshal
 	}
 	return validatorArrays, nil
+}
+
+type ValidatorMap struct {
+	Address string
+	Power   float64
+}
+
+func RemoveAddrFromValidatorMap(validatorMap []ValidatorMap, index int) []ValidatorMap {
+	return append(validatorMap[:index], validatorMap[index+1:]...)
 }

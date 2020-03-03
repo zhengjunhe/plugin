@@ -5,7 +5,6 @@ import "errors"
 var (
 	ErrInvalidClaimType              = errors.New("invalid claim type provided")
 	ErrInvalidEthSymbol              = errors.New("invalid symbol provided, symbol \"eth\" must have null address set as token contract address")
-	ErrJSONMarshalling               = errors.New("error marshalling JSON for this claim")
 	ErrInvalidChainID                = errors.New("invalid ethereum chain id")
 	ErrInvalidEthAddress             = errors.New("invalid ethereum address provided, must be a valid hex-encoded Ethereum address")
 	ErrInvalidEthNonce               = errors.New("invalid ethereum nonce provided, must be >= 0")
@@ -21,6 +20,7 @@ var (
 	ErrMinimumConsensusNeededInvalid = errors.New("minimum consensus proportion of validator staking power must be > 0 and <= 1")
 	ErrInvalidValidator              = errors.New("validator is invalid")
 	ErrUnknownAddress                = errors.New("module account does not exist")
+	ErrLogOutPowerIsTooBig           = errors.New("log out power is more than which this address saves")
 )
 
 //common

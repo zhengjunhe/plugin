@@ -6,11 +6,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
-type amount struct {
-	spendable_amount int64
-	locked_amount    int64
-}
-
 // SendCoinsFromModuleToAccount transfers coins from a ModuleAccount to an AccAddress
 func (k Keeper) SendCoinsFromModuleToAccount(senderModule, recipientAddr, execAddr string, amt int64, accDB *account.DB) (*types2.Receipt, error) {
 	senderAddr, ok := k.moduleAddresses[senderModule]

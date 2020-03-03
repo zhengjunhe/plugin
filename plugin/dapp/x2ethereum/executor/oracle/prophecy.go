@@ -5,10 +5,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
-// DefaultConsensusNeeded defines the default consensus value required for a
-// prophecy to be finalized
-const DefaultConsensusNeeded float64 = 0.7
-
 type Prophecy struct {
 	ID              string              `json:"id"`
 	Status          Status              `json:"status"`
@@ -52,14 +48,11 @@ func NewProphecyByproto(prophecy types.Prophecy) Prophecy {
 type DBProphecy struct {
 	ID              string `json:"id"`
 	Status          Status `json:"status"`
-	ClaimValidators []byte `json:"claim_validators"` //This is a mapping from a claim to the list of validators that made that claim
-	ValidatorClaims []byte `json:"validator_claims"` //This is a mapping from a validator bech32 address to their claim
+	ClaimValidators []byte `json:"claim_validators"`
+	ValidatorClaims []byte `json:"validator_claims"`
 }
 
 // SerializeForDB serializes a prophecy into a DBProphecy
-// TODO: Using gob here may mean that different tendermint clients in different languages may serialize/store
-// prophecies in their db in different ways - check with @codereviewer if this is ok or if it introduces a risk of creating forks.
-// Or maybe using a slower json serializer or Amino:JSON would be ok
 func (prophecy Prophecy) SerializeForDB() (DBProphecy, error) {
 	claimValidators, err := json.Marshal(prophecy.ClaimValidators)
 	if err != nil {
@@ -106,8 +99,7 @@ func (prophecy Prophecy) AddClaim(validator string, claim string) {
 	claimValidators := prophecy.ClaimValidators[claim]
 	prophecy.ClaimValidators[claim] = append(claimValidators, validator)
 
-	validatorBech32 := validator
-	prophecy.ValidatorClaims[validatorBech32] = claim
+	prophecy.ValidatorClaims[validator] = claim
 }
 
 // FindHighestClaim looks through all the existing claims on a given prophecy. It adds up the total power across

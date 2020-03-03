@@ -24,3 +24,13 @@ func (x *x2ethereum) Exec_MsgLock(payload *x2ethereumtypes.MsgLock, tx *types.Tr
 	action := newAction(x, tx, int32(index))
 	return action.procMsgLock(payload)
 }
+
+func (x *x2ethereum) Exec_MsgLogInValidator(payload *x2ethereumtypes.MsgLogInValidator, tx *types.Transaction, index int) (*types.Receipt, error) {
+	action := newAction(x, tx, int32(index))
+	return action.procMsgLogInValidator(payload)
+}
+
+func (x *x2ethereum) Exec_MsgLogOutValidator(payload *x2ethereumtypes.MsgLogOutValidator, tx *types.Transaction, index int) (*types.Receipt, error) {
+	action := newAction(x, tx, int32(index))
+	return action.procMsgLogOutValidator(payload)
+}
