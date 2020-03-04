@@ -28,6 +28,14 @@ func (x *x2ethereum) ExecLocal_MsgLock(payload *x2ethereumtypes.MsgLock, tx *typ
 	return x.addAutoRollBack(tx, dbSet.KV), nil
 }
 
+func (x *x2ethereum) execLocal(receipt *types.ReceiptData) ([]*types.KeyValue, error) {
+	for _, item := range receipt.Logs {
+		switch item.Ty {
+
+		}
+	}
+}
+
 //设置自动回滚
 func (x *x2ethereum) addAutoRollBack(tx *types.Transaction, kv []*types.KeyValue) *types.LocalDBSet {
 

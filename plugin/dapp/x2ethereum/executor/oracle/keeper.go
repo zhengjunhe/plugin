@@ -198,3 +198,8 @@ type ValidatorMap struct {
 func RemoveAddrFromValidatorMap(validatorMap []ValidatorMap, index int) []ValidatorMap {
 	return append(validatorMap[:index], validatorMap[index+1:]...)
 }
+
+func (k Keeper) SetConsensusNeeded(consensusNeeded float64) {
+	k.consensusNeeded = consensusNeeded
+	return
+}

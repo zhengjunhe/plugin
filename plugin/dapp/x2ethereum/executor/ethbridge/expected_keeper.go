@@ -21,4 +21,5 @@ type OracleKeeper interface {
 	ProcessClaim(claim types.OracleClaim) (oracle.Status, error)
 	GetProphecy(id string) (oracle.Prophecy, error)
 	GetValidatorArray() ([]oracle.ValidatorMap, error)
+	SetConsensusNeeded(consensusNeeded float64)
 }

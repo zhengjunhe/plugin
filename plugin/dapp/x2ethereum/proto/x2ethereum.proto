@@ -14,8 +14,13 @@ message X2ethereumAction {
         MsgLock    msgLock     = 3;
         MsgLogInValidator msgLogInValidator = 4;
         MsgLogOutValidator msgLogOutValidator = 5;
+        MsgSetConsensusNeeded msgSetConsensusNeeded = 6;
     }
     int32 ty = 10;
+}
+
+message MsgSetConsensusNeeded {
+    double power = 1;
 }
 
 message MsgLogInValidator {

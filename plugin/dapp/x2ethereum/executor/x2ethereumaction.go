@@ -73,6 +73,7 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 		}
 
 		//增发货币到exec地址
+		//需要在配置项中配置挖矿
 		receipt, err = accDB.ExecIssueCoins(a.execaddr, int64(ethBridgeClaim.Amount))
 		if err != nil {
 			return nil, err
@@ -161,6 +162,21 @@ func (a *action) procMsgLogOutValidator(msgLogOutValidator *types2.MsgLogOutVali
 	}
 
 	execlog := &types.ReceiptLog{Ty: types2.TyLogMsgLogOutValidator, Log: types.Encode(msgLogOutValidator)}
+	receipt.Logs = append(receipt.Logs, execlog)
+
+	receipt.Ty = types.ExecOk
+	return receipt, nil
+}
+
+func (a *action) procMsgSetConsensusNeeded(msgSetConsensusNeeded *types2.MsgSetConsensusNeeded) (*types.Receipt, error) {
+	receipt := new(types.Receipt)
+
+	receipt, err := a.keeper.ProcessSetConsensusNeeded(msgSetConsensusNeeded.Power)
+	if err != nil {
+		return nil, err
+	}
+
+	execlog := &types.ReceiptLog{Ty: types2.TyLogMsgSetConsensusNeeded, Log: types.Encode(msgSetConsensusNeeded)}
 	receipt.Logs = append(receipt.Logs, execlog)
 
 	receipt.Ty = types.ExecOk

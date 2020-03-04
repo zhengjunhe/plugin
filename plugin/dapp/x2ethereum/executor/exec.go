@@ -34,3 +34,8 @@ func (x *x2ethereum) Exec_MsgLogOutValidator(payload *x2ethereumtypes.MsgLogOutV
 	action := newAction(x, tx, int32(index))
 	return action.procMsgLogOutValidator(payload)
 }
+
+func (x *x2ethereum) Exec_MsgSetConsensusNeeded(payload *x2ethereumtypes.MsgSetConsensusNeeded, tx *types.Transaction, index int) (*types.Receipt, error) {
+	action := newAction(x, tx, int32(index))
+	return action.procMsgSetConsensusNeeded(payload)
+}
