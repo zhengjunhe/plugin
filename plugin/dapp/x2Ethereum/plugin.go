@@ -1,11 +1,11 @@
-package types
+package x2Ethereum
 
 import (
 	"github.com/33cn/chain33/pluginmgr"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/commands"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/rpc"
-	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/commands"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/rpc"
+	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
 /*

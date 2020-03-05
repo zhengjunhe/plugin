@@ -3,7 +3,7 @@ package common
 import (
 	"github.com/33cn/chain33/account"
 	types2 "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
 // SendCoinsFromModuleToAccount transfers coins from a ModuleAccount to an AccAddress

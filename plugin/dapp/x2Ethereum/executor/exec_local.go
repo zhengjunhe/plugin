@@ -2,7 +2,7 @@ package executor
 
 import (
 	"github.com/33cn/chain33/types"
-	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
 /*

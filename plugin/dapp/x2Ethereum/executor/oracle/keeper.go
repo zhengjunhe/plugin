@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"strings"
 )
 

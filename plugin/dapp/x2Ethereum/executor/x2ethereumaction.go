@@ -9,10 +9,10 @@ import (
 	"github.com/33cn/chain33/system/dapp"
 	"github.com/33cn/chain33/types"
 	token "github.com/33cn/plugin/plugin/dapp/token/types"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/ethbridge"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/oracle"
-	types2 "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/ethbridge"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
+	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/pkg/errors"
 )
 

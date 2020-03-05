@@ -1,40 +1,41 @@
 package ethbridge
 
 import (
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/common"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"strconv"
 )
 
-type Msg_Burn struct {
-	EthereumChainID  int64             `json:"ethereum_chain_id" yaml:"ethereum_chain_id"`
+// MsgLock defines a message for locking coins and triggering a related event
+type MsgLock struct {
+	EthereumChainID  int               `json:"ethereum_chain_id" yaml:"ethereum_chain_id"`
 	TokenContract    common.EthAddress `json:"token_contract_address" yaml:"token_contract_address"`
 	Chain33Sender    string            `json:"chain33_sender" yaml:"chain33_sender"`
 	EthereumReceiver common.EthAddress `json:"ethereum_receiver" yaml:"ethereum_receiver"`
 	Amount           uint64            `json:"amount" yaml:"amount"`
 }
 
-// NewMsgBurn is a constructor function for MsgBurn
-func NewMsgBurn(ethereumChainID int64, tokenContract string, chain33Sender string, ethereumReceiver string, amount uint64) Msg_Burn {
-	return Msg_Burn{
+// NewMsgLock is a constructor function for MsgLock
+func NewMsgLock(ethereumChainID int, tokenContract string, cosmosSender string, ethereumReceiver string, amount uint64) MsgLock {
+	return MsgLock{
 		EthereumChainID:  ethereumChainID,
 		TokenContract:    common.NewEthereumAddress(tokenContract),
-		Chain33Sender:    chain33Sender,
+		Chain33Sender:    cosmosSender,
 		EthereumReceiver: common.NewEthereumAddress(ethereumReceiver),
 		Amount:           amount,
 	}
 }
 
 // Route should return the name of the module
-func (msg Msg_Burn) Route() string { return types.ModuleName }
+func (msg MsgLock) Route() string { return types.ModuleName }
 
 // Type should return the action
-func (msg Msg_Burn) Type() string { return "burn" }
+func (msg MsgLock) Type() string { return "lock" }
 
 // ValidateBasic runs stateless checks on the message
-func (msg Msg_Burn) ValidateBasic() error {
-	if strconv.Itoa(int(msg.EthereumChainID)) == "" {
+func (msg MsgLock) ValidateBasic() error {
+	if strconv.Itoa(msg.EthereumChainID) == "" {
 		return types.ErrInvalidChainID
 	}
 
@@ -59,13 +60,4 @@ func (msg Msg_Burn) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func AddressIsEmpty(address string) bool {
-	if address == "" {
-		return true
-	}
-
-	var aa2 string
-	return address == aa2
 }

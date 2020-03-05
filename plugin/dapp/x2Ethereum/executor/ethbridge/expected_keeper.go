@@ -3,8 +3,8 @@ package ethbridge
 import (
 	"github.com/33cn/chain33/account"
 	types2 "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/executor/oracle"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
 // SupplyKeeper defines the expected supply keeper

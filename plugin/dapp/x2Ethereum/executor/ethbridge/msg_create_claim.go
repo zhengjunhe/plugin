@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"strings"
 )

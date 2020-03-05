@@ -3,7 +3,7 @@ package oracle
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"strconv"
 )
 

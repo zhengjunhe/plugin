@@ -2,7 +2,7 @@ package rpc
 
 import (
 	rpctypes "github.com/33cn/chain33/rpc/types"
-	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
+	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
 /*
