@@ -13,7 +13,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer"
+	//"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer"
 	"math/big"
 	"os"
 	"sync"
@@ -34,12 +34,11 @@ import (
 )
 
 type EthereumRelayer struct {
-	chainID              string
 	provider             string
 	contractAddress      common.Address
-	validatorName        string
+	//validatorName        string
 	db                   dbm.DB
-	passphase            string
+	//passphase            string
 	rwLock               sync.RWMutex
 	validatorAddress     []byte
 	privateKey4Chain33   chain33Crypto.PrivKey
@@ -47,7 +46,7 @@ type EthereumRelayer struct {
 	ethSender            common.Address
 	totalTx4Eth2Chain33  int64
 	totalTx4Chain33ToEth int64
-	rpcURL               string
+	rpcURL2Chain33       string
 	unlockchan           chan int
 }
 
@@ -55,10 +54,11 @@ var (
 	relayerLog = log.New("module", "ethereum_relayer")
 )
 
-func StartEthereumRelayer(db dbm.DB) *EthereumRelayer {
+func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB) *EthereumRelayer {
 	relayer := &EthereumRelayer{
 		db:         db,
 		unlockchan: make(chan int),
+		rpcURL2Chain33:rpcURL2Chain33,
 	}
 
 	go relayer.proc()
@@ -67,7 +67,7 @@ func StartEthereumRelayer(db dbm.DB) *EthereumRelayer {
 
 func (ethRelayer *EthereumRelayer) proc() {
 	// Start client with infura ropsten provider
-	client, err := relayer.SetupWebsocketEthClient(ethRelayer.provider)
+	client, err := setupWebsocketEthClient(ethRelayer.provider)
 	if err != nil {
 		panic(err)
 	}
@@ -156,11 +156,11 @@ func (ethRelayer *EthereumRelayer) proc() {
 	}
 }
 
-func (ethRelayer *EthereumRelayer) SetPassphase(passphase string) {
-	ethRelayer.rwLock.Lock()
-	ethRelayer.passphase = passphase
-	ethRelayer.rwLock.Unlock()
-}
+//func (ethRelayer *EthereumRelayer) SetPassphase(passphase string) {
+//	ethRelayer.rwLock.Lock()
+//	ethRelayer.passphase = passphase
+//	ethRelayer.rwLock.Unlock()
+//}
 
 func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Eth() ebrelayerTypes.Txhashes {
 	txhashs := ethRelayer.queryTxhashes([]byte(chain33ToEthTxHashPrefix))
@@ -175,9 +175,8 @@ func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Chain33() *ebrelayerTypes.Tx
 // handleLogLockEvent : unpacks a LogLock event, converts it to a ProphecyClaim, and relays a tx to chain33
 func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, contractABI abi.ABI, eventName string, log types.Log) error {
 	contractAddress := ethRelayer.contractAddress.Hex()
-	chainID := ethRelayer.chainID
 	validatorAddress := ethRelayer.validatorAddress
-	rpcURL := ethRelayer.rpcURL
+	rpcURL := ethRelayer.rpcURL2Chain33
 
 	// Unpack the LogLock event using its unique event signature from the contract's ABI
 	event, err := events.UnpackLogLock(clientChainID, contractAddress, contractABI, eventName, log.Data)
@@ -194,7 +193,7 @@ func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, co
 	}
 
 	// Initiate the relay
-	txhash, err := txs.RelayLockToChain33(ethRelayer.privateKey4Chain33, chainID, &prophecyClaim, rpcURL)
+	txhash, err := txs.RelayLockToChain33(ethRelayer.privateKey4Chain33, &prophecyClaim, rpcURL)
 	if err != nil {
 		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
 		return err

@@ -12,7 +12,7 @@ import (
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	syncTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33/transceiver/sync"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/txs"
+	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/txs"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	ethCommon "github.com/ethereum/go-ethereum/common"
@@ -23,12 +23,6 @@ import (
 )
 
 var relayerLog = log.New("module", "chain33_relayer")
-
-const (
-	X2Eth      = "x2ethereum"
-	BurnAction = "burn"
-	LockAction = "lock"
-)
 
 type Chain33Relayer struct {
 	syncTxReceipts      *syncTx.SyncTxReceipts
@@ -44,6 +38,7 @@ type Chain33Relayer struct {
 	passphase            string
 	privateKey4Ethereum  *ecdsa.PrivateKey
 	ethSender            ethCommon.Address
+	contractAddress      ethCommon.Address
 	totalTx4Chain33ToEth int64
 	ctx                  context.Context
 	wg                   sync.WaitGroup
@@ -131,16 +126,19 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 		txs := TxReceipts.Tx
 		for i, tx := range txs {
 			//检查是否为lns的交易(包括平行链：user.p.xxx.lns)，将闪电网络交易进行收集
-			if 0 != bytes.Compare(tx.Execer, []byte(X2Eth)) &&
-				(len(tx.Execer) > 4 && string(tx.Execer[(len(tx.Execer)-4):]) != "."+X2Eth) {
+			if 0 != bytes.Compare(tx.Execer, []byte(relayerTx.X2Eth)) &&
+				(len(tx.Execer) > 4 && string(tx.Execer[(len(tx.Execer)-4):]) != "."+relayerTx.X2Eth) {
 				relayerLog.Debug("onNewHeightProc, the tx is not x2ethereum", "Execer", tx.Execer, "height:", TxReceipts.Height)
 				continue
 			}
 			relayerLog.Debug("SyncLnsTx", "exec", string(tx.Execer), "action", tx.ActionName(), "fromAddr", tx.From())
 			actionName := tx.ActionName()
-			if BurnAction == actionName || LockAction == actionName {
+			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				actionEvent := getOracleClaimType(actionName)
-				chain33Relayer.handleBurnLockMsg(actionEvent, TxReceipts.KV[i])
+				if err := chain33Relayer.handleBurnLockMsg(actionEvent, TxReceipts.ReceiptData[i]); nil != err {
+					errInfo := fmt.Sprintf("Failed to handleBurnLockMsg due to:", err.Error())
+					panic(errInfo)
+				}
 			}
 		}
 		chain33Relayer.lastHeight4Tx = TxReceipts.Height
@@ -165,21 +163,16 @@ func getOracleClaimType(eventType string) events.Event {
 }
 
 // handleBurnLockMsg : parse event data as a Chain33Msg, package it into a ProphecyClaim, then relay tx to the Ethereum Network
-func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(
-	//attributes []tmCommon.KVPair,
-	kv *chain33Types.KeyValue,
-	claimEvent events.Event,
-	contractAddress ethCommon.Address,
-) error {
+func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event, receipt *chain33Types.ReceiptData) error {
 	// Parse the witnessed event's data into a new Chain33Msg
-	chain33Msg := txs.BurnLockTxReceiptToChain33Msg(claimEvent, kv)
+	chain33Msg := relayerTx.BurnLockTxReceiptToChain33Msg(claimEvent, receipt)
 
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
-	prophecyClaim := txs.Chain33MsgToProphecyClaim(chain33Msg)
+	prophecyClaim := relayerTx.Chain33MsgToProphecyClaim(chain33Msg)
 
 	// TODO: Need some sort of delay on this so validators aren't all submitting at the same time
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := txs.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, contractAddress, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum)
+	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, chain33Relayer.contractAddress, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)

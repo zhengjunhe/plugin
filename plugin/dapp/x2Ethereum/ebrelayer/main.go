@@ -39,7 +39,7 @@ func main() {
 		return
 	}
 	if *configPath == "" {
-		*configPath = "lns.toml"
+		*configPath = "relayer.toml"
 	}
 
 	err := os.Chdir(pwd())
@@ -58,7 +58,7 @@ func main() {
 
 	//set config: lns 用 lns.toml 这个配置文件
 	cfg := initCfg(*configPath)
-	log.Info("Starting FUZAMEI relayer software:", "Name:", cfg.Title)
+	log.Info("Starting FUZAMEI Chain33-X-Ethereum relayer software:", "Name:", cfg.Title)
 
 	logf.SetFileLog(convertLogCfg(cfg.Log))
 
@@ -66,9 +66,9 @@ func main() {
 	//创建blockchain服务，用于接收chain33的区块推送，过滤转发，以及转发闪电钱包的相关交易
 	var wg sync.WaitGroup
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
-	chain33Relayer := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, db)
-    ethRelayer := ethRelayer.StartEthereumRelayer(db)
-	relayerManager := relayer.NewRelayerManager(chain33Relayer, ethRelayer, db)
+	chain33RelayerService := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, db)
+    ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db)
+	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
 
 	startRpcServer(cfg.JrpcBindAddr, relayerManager)
 

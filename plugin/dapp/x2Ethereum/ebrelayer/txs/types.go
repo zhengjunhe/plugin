@@ -7,6 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+const (
+	X2Eth      = "x2ethereum"
+	BurnAction = "burn"
+	LockAction = "lock"
+)
+
 // OracleClaim : contains data required to make an OracleClaim
 type OracleClaim struct {
 	ProphecyID *big.Int

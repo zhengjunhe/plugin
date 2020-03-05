@@ -107,7 +107,6 @@ func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqWalletS
 	}
 	manager.passphase = setPasswdReq.NewPassphase
 	atomic.StoreInt64(&manager.encryptFlag, EncryptEnable)
-	manager.ethRelayer.SetPassphase(setPasswdReq.NewPassphase)
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	dbm "github.com/33cn/chain33/common/db"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/33cn/chain33/types"
 	"github.com/pkg/errors"
 )
@@ -129,24 +130,12 @@ func (syncTx *SyncTxReceipts) dealTxReceipts(txReceipts *types.TxReceipts4Subscr
 	return
 }
 
-//LoadBlockLastSequence 获取当前最新的block操作序列号
-func (syncTx *SyncTxReceipts) loadInt64FromDB(key []byte) (int64, error) {
-	bytes, err := syncTx.db.Get(key)
-	if bytes == nil || err != nil {
-		if err != dbm.ErrNotFoundInDb {
-			log.Error("LoadBlockLastSequence", "error", err)
-		}
-		return -1, types.ErrHeightNotExist
-	}
-	return decodeInt64(bytes)
-}
-
 func (syncTx *SyncTxReceipts) loadBlockLastSequence() (int64, error) {
-	return LoadInt64FromDB(lastSequences, syncTx.db)
+	return utils.LoadInt64FromDB(lastSequences, syncTx.db)
 }
 
 func (syncTx *SyncTxReceipts) LoadLastBlockHeight() (int64, error) {
-	return LoadInt64FromDB(syncLastHeight, syncTx.db)
+	return utils.LoadInt64FromDB(syncLastHeight, syncTx.db)
 }
 
 func (syncTx *SyncTxReceipts) setBlockLastSequence(newSequence int64) {

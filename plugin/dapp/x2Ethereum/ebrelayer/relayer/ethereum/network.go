@@ -1,4 +1,4 @@
-package relayer
+package ethereum
 
 // ------------------------------------------------------------
 //    Network: Validates input and initializes a websocket Ethereum client.
@@ -14,7 +14,7 @@ import (
 )
 
 // IsWebsocketURL : returns true if the given URL is a websocket URL
-func IsWebsocketURL(rawurl string) bool {
+func isWebsocketURL(rawurl string) bool {
 	u, err := url.Parse(rawurl)
 	if err != nil {
 		log.Infof("Error while parsing URL: %v", err)
@@ -24,12 +24,12 @@ func IsWebsocketURL(rawurl string) bool {
 }
 
 // SetupWebsocketEthClient : returns boolean indicating if a URL is valid websocket ethclient
-func SetupWebsocketEthClient(ethURL string) (*ethclient.Client, error) {
+func setupWebsocketEthClient(ethURL string) (*ethclient.Client, error) {
 	if strings.TrimSpace(ethURL) == "" {
 		return nil, nil
 	}
 
-	if !IsWebsocketURL(ethURL) {
+	if !isWebsocketURL(ethURL) {
 		return nil, fmt.Errorf("invalid websocket eth client URL: %v", ethURL)
 	}
 

@@ -46,4 +46,5 @@ message EthBridgeClaim {
     bytes ValidatorAddress = 8;
     int64 amount = 9;
     int32 claimType = 10;
+    string chainName = 11;
 }

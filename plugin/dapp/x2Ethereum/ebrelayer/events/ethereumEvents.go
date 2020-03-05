@@ -23,7 +23,8 @@ func IsEventRecorded(txHash string) bool {
 // PrintLockEventByTx : prints any witnessed events associated with a given transaction hash
 func PrintLockEventByTx(txHash string) {
 	if IsEventRecorded(txHash) {
-		printLockEvent(EventRecords[txHash])
+		event := EventRecords[txHash]
+		printLockEvent(&event)
 	} else {
 		log.Printf("\nNo records from this session for tx: %v\n", txHash)
 	}
@@ -34,6 +35,6 @@ func PrintLockEvents() {
 	// For each claim, print the validator which submitted the claim
 	for txHash, event := range EventRecords {
 		log.Printf("\nTransaction: %v\n", txHash)
-		printLockEvent(event)
+		printLockEvent(&event)
 	}
 }

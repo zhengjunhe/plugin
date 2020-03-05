@@ -11,13 +11,11 @@ package txs
 
 import (
 	"crypto/ecdsa"
-	"log"
 	"math/big"
 	"regexp"
 	"strings"
 
 	chain33Types "github.com/33cn/chain33/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
@@ -56,7 +54,7 @@ func LogLockToEthBridgeClaim(valAddr []byte, event *events.LockEvent) (ebrelayer
 }
 
 // BurnLockTxReceiptToChain33Msg : parses data from a Burn/Lock event witnessed on chain33 into a CosmosMsg struct
-func BurnLockTxReceiptToChain33Msg(claimType events.Event, kv *chain33Types.KeyValue,) events.Chain33Msg {
+func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types.ReceiptData) events.Chain33Msg {
 	// Set up variables
 	var cosmosSender []byte
 	var ethereumReceiver, tokenContractAddress common.Address
@@ -64,37 +62,43 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, kv *chain33Types.KeyV
 	var amount *big.Int
 
 	// Iterate over attributes
-	for i, key := range kv.Key {
+	for _, log := range receipt.Logs {
 		// Get (key, value) for each attribute
-		val := kv.Value[i]
+
+		switch log.Ty {
+		case 1:
+			txslog.Debug("BurnLockTxReceiptToChain33Msg", "value", string(log.Log))
+		default:
+
+		}
 
 		// Set variable based on value of CosmosMsgAttributeKey
-		switch key {
-		case events.CosmosSender.String():
-			// Parse sender's Cosmos address
-			cosmosSender = []byte(val)
-		case events.EthereumReceiver.String():
-			// Confirm recipient is valid Ethereum address
-			if !common.IsHexAddress(val) {
-				log.Fatal("Invalid recipient address:", val)
-			}
-			// Parse recipient's Ethereum address
-			ethereumReceiver = common.HexToAddress(val)
-		case events.Coin.String():
-			// Parse symbol and amount from coin string
-			symbol, amount = getSymbolAmountFromCoin(val)
-		case events.TokenContractAddress.String():
-			// Confirm token contract address is valid Ethereum address
-			if !common.IsHexAddress(val) {
-				log.Fatal("Invalid token address:", val)
-			}
-			// Parse token contract address
-			tokenContractAddress = common.HexToAddress(val)
-		}
+		//switch key {
+		//case events.CosmosSender.String():
+		//	// Parse sender's Cosmos address
+		//	cosmosSender = []byte(val)
+		//case events.EthereumReceiver.String():
+		//	// Confirm recipient is valid Ethereum address
+		//	if !common.IsHexAddress(val) {
+		//		log.Fatal("Invalid recipient address:", val)
+		//	}
+		//	// Parse recipient's Ethereum address
+		//	ethereumReceiver = common.HexToAddress(val)
+		//case events.Coin.String():
+		//	// Parse symbol and amount from coin string
+		//	symbol, amount = getSymbolAmountFromCoin(val)
+		//case events.TokenContractAddress.String():
+		//	// Confirm token contract address is valid Ethereum address
+		//	if !common.IsHexAddress(val) {
+		//		log.Fatal("Invalid token address:", val)
+		//	}
+		//	// Parse token contract address
+		//	tokenContractAddress = common.HexToAddress(val)
+		//}
 	}
 
 	// Package the event data into a CosmosMsg
-	return events.NewCosmosMsg(claimType, cosmosSender, ethereumReceiver, symbol, amount, tokenContractAddress)
+	return events.NewChain33Msg(claimType, cosmosSender, ethereumReceiver, symbol, amount, tokenContractAddress)
 }
 
 // ProphecyClaimToSignedOracleClaim : packages and signs a prophecy claim's data, returning a new oracle claim

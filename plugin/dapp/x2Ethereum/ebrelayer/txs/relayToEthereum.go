@@ -3,7 +3,6 @@ package txs
 import (
 	"context"
 	"crypto/ecdsa"
-	"log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -12,9 +11,9 @@ import (
 
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	cosmosBridge "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/generated/cosmosbridge"
 	oracle "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/generated/oracle"
+	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 
 var (
@@ -35,7 +34,7 @@ func RelayProphecyClaimToEthereum(provider string, sender, contractAddress commo
 	}
 
 	// Initialize CosmosBridge instance
-	cosmosBridgeInstance, err := cosmosBridge.NewCosmosBridge(target, client)
+	cosmosBridgeInstance, err := cosmosBridge.NewCosmosBridge(*target, client)
 	if err != nil {
 		txslog.Error("RelayProphecyClaimToEthereum", "NewCosmosBridge failed due to:", err.Error())
 		return "", err
