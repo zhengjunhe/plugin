@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package types;
+
+message TxReceiptConfig {
+  string chain33host = 1;
+  string pushHost = 2;
+  string pushName = 3;
+  string pushBind = 4;
+  int32 maturityDegree = 5;
+  string dbdriver = 6; //数据库类型
+  string dbPath = 7;   //数据库存储目录
+  int32 dbCache = 8;   //数据库缓存大小
+  int32 newHeightConcurrnet = 9;
+  int32 send2AppConcurrnet = 10;
+  int64 fetchHeightPeriodMs = 11;
+}
+
+message Log {
+  string loglevel = 1;
+  string logConsoleLevel = 2;
+  string logFile = 3;
+  uint32 maxFileSize = 4;
+  uint32 maxBackups = 5;
+  uint32 maxAge = 6;
+  bool localTime = 7;
+  bool compress = 8;
+  bool callerFile = 9;
+  bool callerFunction = 10;
+}
+
+message RelayerConfig {
+  string title = 1;
+  TxReceiptConfig syncTxConfig = 2;
+  Log log = 3;
+  string jrpcBindAddr = 4; // Jrpc服务地址
+}
+
+message SyncTxReceiptConfig {
+  string chain33host = 1;
+  string pushHost = 2;
+  string pushName = 3;
+  string pushBind = 4;
+}
