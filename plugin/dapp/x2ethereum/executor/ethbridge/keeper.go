@@ -163,12 +163,16 @@ func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.R
 	return receipt, nil
 }
 
-func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (*types2.Receipt, error) {
+func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (*types2.Receipt, float64, float64, error) {
 	receipt := new(types2.Receipt)
+
+	preCon := k.oracleKeeper.GetConsensusNeeded()
 
 	k.oracleKeeper.SetConsensusNeeded(consensusNeeded)
 
+	nowCon := k.oracleKeeper.GetConsensusNeeded()
+
 	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.ConsensusNeededKey, Value: common.Float64ToBytes(consensusNeeded)})
 
-	return receipt, nil
+	return receipt, preCon, nowCon, nil
 }

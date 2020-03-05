@@ -203,3 +203,7 @@ func (k Keeper) SetConsensusNeeded(consensusNeeded float64) {
 	k.consensusNeeded = consensusNeeded
 	return
 }
+
+func (k Keeper) GetConsensusNeeded() float64 {
+	return k.consensusNeeded
+}

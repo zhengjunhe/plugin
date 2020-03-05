@@ -28,12 +28,22 @@ func (x *x2ethereum) ExecLocal_MsgLock(payload *x2ethereumtypes.MsgLock, tx *typ
 	return x.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (x *x2ethereum) execLocal(receipt *types.ReceiptData) ([]*types.KeyValue, error) {
-	for _, item := range receipt.Logs {
-		switch item.Ty {
+func (x *x2ethereum) ExecLocal_MsgLogInValidator(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+	dbSet := &types.LocalDBSet{}
+	//implement code
+	return x.addAutoRollBack(tx, dbSet.KV), nil
+}
 
-		}
-	}
+func (x *x2ethereum) ExecLocal_MsgLogOutValidator(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+	dbSet := &types.LocalDBSet{}
+	//implement code
+	return x.addAutoRollBack(tx, dbSet.KV), nil
+}
+
+func (x *x2ethereum) ExecLocal_MsgSetConsensusNeeded(payload *x2ethereumtypes.MsgSetConsensusNeeded, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+	dbSet := &types.LocalDBSet{}
+	//implement code
+	return x.addAutoRollBack(tx, dbSet.KV), nil
 }
 
 //设置自动回滚

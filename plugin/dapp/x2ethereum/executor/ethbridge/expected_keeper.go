@@ -22,4 +22,5 @@ type OracleKeeper interface {
 	GetProphecy(id string) (oracle.Prophecy, error)
 	GetValidatorArray() ([]oracle.ValidatorMap, error)
 	SetConsensusNeeded(consensusNeeded float64)
+	GetConsensusNeeded() float64
 }

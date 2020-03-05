@@ -1,9 +1,9 @@
 package types
 
 import (
-	"encoding/json"
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
+	"reflect"
 )
 
 /*
@@ -12,38 +12,26 @@ import (
  * 每一种action和log需要用id数值和name名称加以区分
  */
 
-// action类型id和name，这些常量可以自定义修改
-const (
-	TyUnknowAction = iota + 100
-	TyEthBridgeClaimAction
-	TyMsgBurnAction
-	TyMsgLockAction
-
-	NameEthBridgeClaimAction = "EthBridgeClaim"
-	NameMsgBurnAction        = "MsgBurn"
-	NameMsgLockAction        = "MsgLock"
-)
-
-// log类型id值
-const (
-	TyUnknownLog = iota + 100
-	TyEthBridgeClaimLog
-	TyMsgBurnLog
-	TyMsgLockLog
-)
-
 var (
 	//X2ethereumX 执行器名称定义
 	X2ethereumX = "x2ethereum"
 	//定义actionMap
 	actionMap = map[string]int32{
-		NameEthBridgeClaimAction: TyEthBridgeClaimAction,
-		NameMsgBurnAction:        TyMsgBurnAction,
-		NameMsgLockAction:        TyMsgLockAction,
+		NameEthBridgeClaimAction:        TyEthBridgeClaimAction,
+		NameMsgBurnAction:               TyMsgBurnAction,
+		NameMsgLockAction:               TyMsgLockAction,
+		NameMsgLogInValidatorAction:     TyMsgLogInValidatorAction,
+		NameMsgLogOutValidatorAction:    TyMsgLogOutValidatorAction,
+		NameMsgSetConsensusNeededAction: TyMsgSetConsensusNeededAction,
 	}
 	//定义log的id和具体log类型及名称，填入具体自定义log类型
 	logMap = map[int64]*types.LogInfo{
-		//LogID:	{Ty: reflect.TypeOf(LogStruct), Name: LogName},
+		TyEthBridgeClaimLog:        {Ty: reflect.TypeOf(ReceiptEthBridgeClaim{}), Name: "LogEthBridgeClaimAction"},
+		TyMsgBurnLog:               {Ty: reflect.TypeOf(ReceiptBurn{}), Name: "MsgBurnLog"},
+		TyMsgLockLog:               {Ty: reflect.TypeOf(ReceiptLock{}), Name: "MsgLockLog"},
+		TyMsgLogInValidatorLog:     {Ty: reflect.TypeOf(ReceiptLogIn{}), Name: "MsgLogInValidatorLog"},
+		TyMsgLogOutValidatorLog:    {Ty: reflect.TypeOf(ReceiptLogOut{}), Name: "MsgLogOutValidatorLog"},
+		TyMsgSetConsensusNeededLog: {Ty: reflect.TypeOf(ReceiptSetConsensusNeeded{}), Name: "MsgSetConsensusNeededLog"},
 	}
 	tlog = log.New("module", "x2ethereum.types")
 )
@@ -79,7 +67,7 @@ func NewType(cfg *types.Chain33Config) *x2ethereumType {
 
 // GetPayload 获取合约action结构
 func (x *x2ethereumType) GetPayload() types.Message {
-	return &X2ethereumAction{}
+	return &X2EthereumAction{}
 }
 
 // GeTypeMap 获取合约action的id和name信息

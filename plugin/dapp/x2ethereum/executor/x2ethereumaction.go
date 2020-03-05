@@ -99,7 +99,22 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 
 	receipt.KV = append(receipt.KV, &types.KeyValue{Key: msgEthBridgeClaimBytes, Value: statusBytes})
 
-	execlog := &types.ReceiptLog{Ty: types2.TyLogMsgEthBridgeClaim, Log: types.Encode(ethBridgeClaim)}
+	execlog := &types.ReceiptLog{Ty: types2.TyEthBridgeClaimLog, Log: types.Encode(&types2.ReceiptEthBridgeClaim{
+		EthereumChainID:       msgEthBridgeClaim.EthereumChainID,
+		BridgeContractAddress: msgEthBridgeClaim.BridgeContractAddress,
+		Nonce:                 msgEthBridgeClaim.Nonce,
+		LocalCoinSymbol:       msgEthBridgeClaim.LocalCoinSymbol,
+		LocalCoinExec:         msgEthBridgeClaim.LocalCoinExec,
+		TokenContractAddress:  msgEthBridgeClaim.TokenContractAddress,
+		EthereumSender:        msgEthBridgeClaim.EthereumSender,
+		Chain33Receiver:       msgEthBridgeClaim.Chain33Receiver,
+		ValidatorAddress:      msgEthBridgeClaim.ValidatorAddress,
+		Amount:                msgEthBridgeClaim.Amount,
+		ClaimType:             msgEthBridgeClaim.ClaimType,
+		EthSymbol:             msgEthBridgeClaim.EthSymbol,
+		XTxHash:               a.txhash,
+		XHeight:               uint64(a.height),
+	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
 	receipt.Ty = types.ExecOk
@@ -116,6 +131,19 @@ func (a *action) procMsgLock(msgLock *types2.MsgLock) (*types.Receipt, error) {
 		return nil, err
 	}
 
+	execlog := &types.ReceiptLog{Ty: types2.TyMsgLockLog, Log: types.Encode(&types2.ReceiptLock{
+		EthereumChainID:  msgLock.EthereumChainID,
+		TokenContract:    msgLock.TokenContract,
+		Chain33Sender:    msgLock.Chain33Sender,
+		EthereumReceiver: msgLock.EthereumReceiver,
+		Amount:           msgLock.Amount,
+		LocalCoinSymbol:  msgLock.LocalCoinSymbol,
+		LocalCoinExec:    msgLock.LocalCoinExec,
+		XTxHash:          a.txhash,
+		XHeight:          uint64(a.height),
+	})}
+	receipt.Logs = append(receipt.Logs, execlog)
+
 	receipt.Ty = types.ExecOk
 	return receipt, nil
 }
@@ -131,6 +159,19 @@ func (a *action) procMsgBurn(msgBurn *types2.MsgBurn) (*types.Receipt, error) {
 		return nil, err
 	}
 
+	execlog := &types.ReceiptLog{Ty: types2.TyMsgBurnLog, Log: types.Encode(&types2.ReceiptBurn{
+		EthereumChainID:  msgBurn.EthereumChainID,
+		TokenContract:    msgBurn.TokenContract,
+		Chain33Sender:    msgBurn.Chain33Sender,
+		EthereumReceiver: msgBurn.EthereumReceiver,
+		Amount:           msgBurn.Amount,
+		LocalCoinSymbol:  msgBurn.LocalCoinSymbol,
+		LocalCoinExec:    msgBurn.LocalCoinExec,
+		XTxHash:          a.txhash,
+		XHeight:          uint64(a.height),
+	})}
+	receipt.Logs = append(receipt.Logs, execlog)
+
 	receipt.Ty = types.ExecOk
 	return receipt, nil
 }
@@ -138,7 +179,7 @@ func (a *action) procMsgBurn(msgBurn *types2.MsgBurn) (*types.Receipt, error) {
 //需要一笔交易来注册validator
 //这里注册的validator的power之和可能不为1，需要在内部进行加权
 //返回的回执中，KV包含所有validator的power值，Log中包含本次注册的validator的power值
-func (a *action) procMsgLogInValidator(msgLogInValidator *types2.MsgLogInValidator) (*types.Receipt, error) {
+func (a *action) procMsgLogInValidator(msgLogInValidator *types2.MsgValidator) (*types.Receipt, error) {
 	receipt := new(types.Receipt)
 
 	receipt, err := a.keeper.ProcessLogInValidator(msgLogInValidator.Address, msgLogInValidator.Power)
@@ -146,14 +187,32 @@ func (a *action) procMsgLogInValidator(msgLogInValidator *types2.MsgLogInValidat
 		return nil, err
 	}
 
-	execlog := &types.ReceiptLog{Ty: types2.TyLogMsgLogInValidator, Log: types.Encode(msgLogInValidator)}
+	validatorsMapBytes, err := a.db.Get(types2.ValidatorMapsKey)
+	if err != nil {
+		return nil, err
+	}
+
+	//可能会有问题
+	var validators []*types2.MsgValidator
+	err = json.Unmarshal(validatorsMapBytes, validators)
+	if err != nil {
+		return nil, err
+	}
+
+	execlog := &types.ReceiptLog{Ty: types2.TyMsgLogInValidatorLog, Log: types.Encode(&types2.ReceiptLogIn{
+		Address:    msgLogInValidator.Address,
+		Power:      msgLogInValidator.Power,
+		XTxHash:    a.txhash,
+		XHeight:    uint64(a.height),
+		Validators: validators,
+	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
 	receipt.Ty = types.ExecOk
 	return receipt, nil
 }
 
-func (a *action) procMsgLogOutValidator(msgLogOutValidator *types2.MsgLogOutValidator) (*types.Receipt, error) {
+func (a *action) procMsgLogOutValidator(msgLogOutValidator *types2.MsgValidator) (*types.Receipt, error) {
 	receipt := new(types.Receipt)
 
 	receipt, err := a.keeper.ProcessLogOutValidator(msgLogOutValidator.Address, msgLogOutValidator.Power)
@@ -161,7 +220,25 @@ func (a *action) procMsgLogOutValidator(msgLogOutValidator *types2.MsgLogOutVali
 		return nil, err
 	}
 
-	execlog := &types.ReceiptLog{Ty: types2.TyLogMsgLogOutValidator, Log: types.Encode(msgLogOutValidator)}
+	validatorsMapBytes, err := a.db.Get(types2.ValidatorMapsKey)
+	if err != nil {
+		return nil, err
+	}
+
+	//可能会有问题
+	var validators []*types2.MsgValidator
+	err = json.Unmarshal(validatorsMapBytes, validators)
+	if err != nil {
+		return nil, err
+	}
+
+	execlog := &types.ReceiptLog{Ty: types2.TyMsgLogOutValidatorLog, Log: types.Encode(&types2.ReceiptLogOut{
+		Address:    msgLogOutValidator.Address,
+		Power:      msgLogOutValidator.Power,
+		XTxHash:    a.txhash,
+		XHeight:    uint64(a.height),
+		Validators: validators,
+	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
 	receipt.Ty = types.ExecOk
@@ -171,12 +248,17 @@ func (a *action) procMsgLogOutValidator(msgLogOutValidator *types2.MsgLogOutVali
 func (a *action) procMsgSetConsensusNeeded(msgSetConsensusNeeded *types2.MsgSetConsensusNeeded) (*types.Receipt, error) {
 	receipt := new(types.Receipt)
 
-	receipt, err := a.keeper.ProcessSetConsensusNeeded(msgSetConsensusNeeded.Power)
+	receipt, preConsensusNeeded, nowConsensusNeeded, err := a.keeper.ProcessSetConsensusNeeded(msgSetConsensusNeeded.Power)
 	if err != nil {
 		return nil, err
 	}
 
-	execlog := &types.ReceiptLog{Ty: types2.TyLogMsgSetConsensusNeeded, Log: types.Encode(msgSetConsensusNeeded)}
+	execlog := &types.ReceiptLog{Ty: types2.TyMsgSetConsensusNeededLog, Log: types.Encode(&types2.ReceiptSetConsensusNeeded{
+		PreConsensusNeeded: preConsensusNeeded,
+		NowConsensusNeeded: nowConsensusNeeded,
+		XTxHash:            a.txhash,
+		XHeight:            uint64(a.height),
+	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
 	receipt.Ty = types.ExecOk

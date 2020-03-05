@@ -46,7 +46,7 @@ func (x EthBridgeStatus) String() string {
 	return proto.EnumName(EthBridgeStatus_name, int32(x))
 }
 func (EthBridgeStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{0}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{0}
 }
 
 type X2EthereumAction struct {
@@ -68,7 +68,7 @@ func (m *X2EthereumAction) Reset()         { *m = X2EthereumAction{} }
 func (m *X2EthereumAction) String() string { return proto.CompactTextString(m) }
 func (*X2EthereumAction) ProtoMessage()    {}
 func (*X2EthereumAction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{0}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{0}
 }
 func (m *X2EthereumAction) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_X2EthereumAction.Unmarshal(m, b)
@@ -102,10 +102,10 @@ type X2EthereumAction_MsgLock struct {
 	MsgLock *MsgLock `protobuf:"bytes,3,opt,name=msgLock,oneof"`
 }
 type X2EthereumAction_MsgLogInValidator struct {
-	MsgLogInValidator *MsgLogInValidator `protobuf:"bytes,4,opt,name=msgLogInValidator,oneof"`
+	MsgLogInValidator *MsgValidator `protobuf:"bytes,4,opt,name=msgLogInValidator,oneof"`
 }
 type X2EthereumAction_MsgLogOutValidator struct {
-	MsgLogOutValidator *MsgLogOutValidator `protobuf:"bytes,5,opt,name=msgLogOutValidator,oneof"`
+	MsgLogOutValidator *MsgValidator `protobuf:"bytes,5,opt,name=msgLogOutValidator,oneof"`
 }
 type X2EthereumAction_MsgSetConsensusNeeded struct {
 	MsgSetConsensusNeeded *MsgSetConsensusNeeded `protobuf:"bytes,6,opt,name=msgSetConsensusNeeded,oneof"`
@@ -146,14 +146,14 @@ func (m *X2EthereumAction) GetMsgLock() *MsgLock {
 	return nil
 }
 
-func (m *X2EthereumAction) GetMsgLogInValidator() *MsgLogInValidator {
+func (m *X2EthereumAction) GetMsgLogInValidator() *MsgValidator {
 	if x, ok := m.GetValue().(*X2EthereumAction_MsgLogInValidator); ok {
 		return x.MsgLogInValidator
 	}
 	return nil
 }
 
-func (m *X2EthereumAction) GetMsgLogOutValidator() *MsgLogOutValidator {
+func (m *X2EthereumAction) GetMsgLogOutValidator() *MsgValidator {
 	if x, ok := m.GetValue().(*X2EthereumAction_MsgLogOutValidator); ok {
 		return x.MsgLogOutValidator
 	}
@@ -258,7 +258,7 @@ func _X2EthereumAction_OneofUnmarshaler(msg proto.Message, tag, wire int, b *pro
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(MsgLogInValidator)
+		msg := new(MsgValidator)
 		err := b.DecodeMessage(msg)
 		m.Value = &X2EthereumAction_MsgLogInValidator{msg}
 		return true, err
@@ -266,7 +266,7 @@ func _X2EthereumAction_OneofUnmarshaler(msg proto.Message, tag, wire int, b *pro
 		if wire != proto.WireBytes {
 			return true, proto.ErrInternalBadWireType
 		}
-		msg := new(MsgLogOutValidator)
+		msg := new(MsgValidator)
 		err := b.DecodeMessage(msg)
 		m.Value = &X2EthereumAction_MsgLogOutValidator{msg}
 		return true, err
@@ -335,7 +335,7 @@ func (m *MsgSetConsensusNeeded) Reset()         { *m = MsgSetConsensusNeeded{} }
 func (m *MsgSetConsensusNeeded) String() string { return proto.CompactTextString(m) }
 func (*MsgSetConsensusNeeded) ProtoMessage()    {}
 func (*MsgSetConsensusNeeded) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{1}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{1}
 }
 func (m *MsgSetConsensusNeeded) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MsgSetConsensusNeeded.Unmarshal(m, b)
@@ -362,7 +362,7 @@ func (m *MsgSetConsensusNeeded) GetPower() float64 {
 	return 0
 }
 
-type MsgLogInValidator struct {
+type MsgValidator struct {
 	Address              string   `protobuf:"bytes,1,opt,name=address" json:"address,omitempty"`
 	Power                float64  `protobuf:"fixed64,2,opt,name=power" json:"power,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -370,84 +370,38 @@ type MsgLogInValidator struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *MsgLogInValidator) Reset()         { *m = MsgLogInValidator{} }
-func (m *MsgLogInValidator) String() string { return proto.CompactTextString(m) }
-func (*MsgLogInValidator) ProtoMessage()    {}
-func (*MsgLogInValidator) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{2}
+func (m *MsgValidator) Reset()         { *m = MsgValidator{} }
+func (m *MsgValidator) String() string { return proto.CompactTextString(m) }
+func (*MsgValidator) ProtoMessage()    {}
+func (*MsgValidator) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{2}
 }
-func (m *MsgLogInValidator) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MsgLogInValidator.Unmarshal(m, b)
+func (m *MsgValidator) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MsgValidator.Unmarshal(m, b)
 }
-func (m *MsgLogInValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MsgLogInValidator.Marshal(b, m, deterministic)
+func (m *MsgValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MsgValidator.Marshal(b, m, deterministic)
 }
-func (dst *MsgLogInValidator) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgLogInValidator.Merge(dst, src)
+func (dst *MsgValidator) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgValidator.Merge(dst, src)
 }
-func (m *MsgLogInValidator) XXX_Size() int {
-	return xxx_messageInfo_MsgLogInValidator.Size(m)
+func (m *MsgValidator) XXX_Size() int {
+	return xxx_messageInfo_MsgValidator.Size(m)
 }
-func (m *MsgLogInValidator) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgLogInValidator.DiscardUnknown(m)
+func (m *MsgValidator) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgValidator.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgLogInValidator proto.InternalMessageInfo
+var xxx_messageInfo_MsgValidator proto.InternalMessageInfo
 
-func (m *MsgLogInValidator) GetAddress() string {
+func (m *MsgValidator) GetAddress() string {
 	if m != nil {
 		return m.Address
 	}
 	return ""
 }
 
-func (m *MsgLogInValidator) GetPower() float64 {
-	if m != nil {
-		return m.Power
-	}
-	return 0
-}
-
-type MsgLogOutValidator struct {
-	Address              string   `protobuf:"bytes,1,opt,name=address" json:"address,omitempty"`
-	Power                float64  `protobuf:"fixed64,2,opt,name=power" json:"power,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *MsgLogOutValidator) Reset()         { *m = MsgLogOutValidator{} }
-func (m *MsgLogOutValidator) String() string { return proto.CompactTextString(m) }
-func (*MsgLogOutValidator) ProtoMessage()    {}
-func (*MsgLogOutValidator) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{3}
-}
-func (m *MsgLogOutValidator) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MsgLogOutValidator.Unmarshal(m, b)
-}
-func (m *MsgLogOutValidator) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MsgLogOutValidator.Marshal(b, m, deterministic)
-}
-func (dst *MsgLogOutValidator) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgLogOutValidator.Merge(dst, src)
-}
-func (m *MsgLogOutValidator) XXX_Size() int {
-	return xxx_messageInfo_MsgLogOutValidator.Size(m)
-}
-func (m *MsgLogOutValidator) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgLogOutValidator.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgLogOutValidator proto.InternalMessageInfo
-
-func (m *MsgLogOutValidator) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
-}
-
-func (m *MsgLogOutValidator) GetPower() float64 {
+func (m *MsgValidator) GetPower() float64 {
 	if m != nil {
 		return m.Power
 	}
@@ -477,7 +431,7 @@ func (m *EthBridgeClaim) Reset()         { *m = EthBridgeClaim{} }
 func (m *EthBridgeClaim) String() string { return proto.CompactTextString(m) }
 func (*EthBridgeClaim) ProtoMessage()    {}
 func (*EthBridgeClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{4}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{3}
 }
 func (m *EthBridgeClaim) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EthBridgeClaim.Unmarshal(m, b)
@@ -595,7 +549,7 @@ func (m *OracleClaimContent) Reset()         { *m = OracleClaimContent{} }
 func (m *OracleClaimContent) String() string { return proto.CompactTextString(m) }
 func (*OracleClaimContent) ProtoMessage()    {}
 func (*OracleClaimContent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{5}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{4}
 }
 func (m *OracleClaimContent) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OracleClaimContent.Unmarshal(m, b)
@@ -654,7 +608,7 @@ func (m *MsgBurn) Reset()         { *m = MsgBurn{} }
 func (m *MsgBurn) String() string { return proto.CompactTextString(m) }
 func (*MsgBurn) ProtoMessage()    {}
 func (*MsgBurn) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{6}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{5}
 }
 func (m *MsgBurn) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MsgBurn.Unmarshal(m, b)
@@ -741,7 +695,7 @@ func (m *MsgLock) Reset()         { *m = MsgLock{} }
 func (m *MsgLock) String() string { return proto.CompactTextString(m) }
 func (*MsgLock) ProtoMessage()    {}
 func (*MsgLock) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{7}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{6}
 }
 func (m *MsgLock) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MsgLock.Unmarshal(m, b)
@@ -810,6 +764,554 @@ func (m *MsgLock) GetLocalCoinExec() string {
 	return ""
 }
 
+type ReceiptEthBridgeClaim struct {
+	EthereumChainID       int64    `protobuf:"varint,1,opt,name=EthereumChainID" json:"EthereumChainID,omitempty"`
+	BridgeContractAddress string   `protobuf:"bytes,2,opt,name=BridgeContractAddress" json:"BridgeContractAddress,omitempty"`
+	Nonce                 int64    `protobuf:"varint,3,opt,name=Nonce" json:"Nonce,omitempty"`
+	LocalCoinSymbol       string   `protobuf:"bytes,4,opt,name=localCoinSymbol" json:"localCoinSymbol,omitempty"`
+	LocalCoinExec         string   `protobuf:"bytes,5,opt,name=localCoinExec" json:"localCoinExec,omitempty"`
+	TokenContractAddress  string   `protobuf:"bytes,6,opt,name=TokenContractAddress" json:"TokenContractAddress,omitempty"`
+	EthereumSender        string   `protobuf:"bytes,7,opt,name=EthereumSender" json:"EthereumSender,omitempty"`
+	Chain33Receiver       string   `protobuf:"bytes,8,opt,name=Chain33Receiver" json:"Chain33Receiver,omitempty"`
+	ValidatorAddress      string   `protobuf:"bytes,9,opt,name=ValidatorAddress" json:"ValidatorAddress,omitempty"`
+	Amount                uint64   `protobuf:"varint,10,opt,name=Amount" json:"Amount,omitempty"`
+	ClaimType             int64    `protobuf:"varint,11,opt,name=ClaimType" json:"ClaimType,omitempty"`
+	EthSymbol             string   `protobuf:"bytes,12,opt,name=EthSymbol" json:"EthSymbol,omitempty"`
+	XTxHash               []byte   `protobuf:"bytes,13,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
+	XHeight               uint64   `protobuf:"varint,14,opt,name=xHeight" json:"xHeight,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{} `json:"-"`
+	XXX_unrecognized      []byte   `json:"-"`
+	XXX_sizecache         int32    `json:"-"`
+}
+
+func (m *ReceiptEthBridgeClaim) Reset()         { *m = ReceiptEthBridgeClaim{} }
+func (m *ReceiptEthBridgeClaim) String() string { return proto.CompactTextString(m) }
+func (*ReceiptEthBridgeClaim) ProtoMessage()    {}
+func (*ReceiptEthBridgeClaim) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{7}
+}
+func (m *ReceiptEthBridgeClaim) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptEthBridgeClaim.Unmarshal(m, b)
+}
+func (m *ReceiptEthBridgeClaim) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptEthBridgeClaim.Marshal(b, m, deterministic)
+}
+func (dst *ReceiptEthBridgeClaim) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptEthBridgeClaim.Merge(dst, src)
+}
+func (m *ReceiptEthBridgeClaim) XXX_Size() int {
+	return xxx_messageInfo_ReceiptEthBridgeClaim.Size(m)
+}
+func (m *ReceiptEthBridgeClaim) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptEthBridgeClaim.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReceiptEthBridgeClaim proto.InternalMessageInfo
+
+func (m *ReceiptEthBridgeClaim) GetEthereumChainID() int64 {
+	if m != nil {
+		return m.EthereumChainID
+	}
+	return 0
+}
+
+func (m *ReceiptEthBridgeClaim) GetBridgeContractAddress() string {
+	if m != nil {
+		return m.BridgeContractAddress
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetNonce() int64 {
+	if m != nil {
+		return m.Nonce
+	}
+	return 0
+}
+
+func (m *ReceiptEthBridgeClaim) GetLocalCoinSymbol() string {
+	if m != nil {
+		return m.LocalCoinSymbol
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetLocalCoinExec() string {
+	if m != nil {
+		return m.LocalCoinExec
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetTokenContractAddress() string {
+	if m != nil {
+		return m.TokenContractAddress
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetEthereumSender() string {
+	if m != nil {
+		return m.EthereumSender
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetChain33Receiver() string {
+	if m != nil {
+		return m.Chain33Receiver
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetValidatorAddress() string {
+	if m != nil {
+		return m.ValidatorAddress
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetAmount() uint64 {
+	if m != nil {
+		return m.Amount
+	}
+	return 0
+}
+
+func (m *ReceiptEthBridgeClaim) GetClaimType() int64 {
+	if m != nil {
+		return m.ClaimType
+	}
+	return 0
+}
+
+func (m *ReceiptEthBridgeClaim) GetEthSymbol() string {
+	if m != nil {
+		return m.EthSymbol
+	}
+	return ""
+}
+
+func (m *ReceiptEthBridgeClaim) GetXTxHash() []byte {
+	if m != nil {
+		return m.XTxHash
+	}
+	return nil
+}
+
+func (m *ReceiptEthBridgeClaim) GetXHeight() uint64 {
+	if m != nil {
+		return m.XHeight
+	}
+	return 0
+}
+
+type ReceiptBurn struct {
+	EthereumChainID      int64    `protobuf:"varint,1,opt,name=EthereumChainID" json:"EthereumChainID,omitempty"`
+	TokenContract        string   `protobuf:"bytes,2,opt,name=TokenContract" json:"TokenContract,omitempty"`
+	Chain33Sender        string   `protobuf:"bytes,3,opt,name=Chain33Sender" json:"Chain33Sender,omitempty"`
+	EthereumReceiver     string   `protobuf:"bytes,4,opt,name=EthereumReceiver" json:"EthereumReceiver,omitempty"`
+	Amount               uint64   `protobuf:"varint,5,opt,name=Amount" json:"Amount,omitempty"`
+	LocalCoinSymbol      string   `protobuf:"bytes,6,opt,name=localCoinSymbol" json:"localCoinSymbol,omitempty"`
+	LocalCoinExec        string   `protobuf:"bytes,7,opt,name=localCoinExec" json:"localCoinExec,omitempty"`
+	XTxHash              []byte   `protobuf:"bytes,8,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
+	XHeight              uint64   `protobuf:"varint,9,opt,name=xHeight" json:"xHeight,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReceiptBurn) Reset()         { *m = ReceiptBurn{} }
+func (m *ReceiptBurn) String() string { return proto.CompactTextString(m) }
+func (*ReceiptBurn) ProtoMessage()    {}
+func (*ReceiptBurn) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{8}
+}
+func (m *ReceiptBurn) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptBurn.Unmarshal(m, b)
+}
+func (m *ReceiptBurn) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptBurn.Marshal(b, m, deterministic)
+}
+func (dst *ReceiptBurn) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptBurn.Merge(dst, src)
+}
+func (m *ReceiptBurn) XXX_Size() int {
+	return xxx_messageInfo_ReceiptBurn.Size(m)
+}
+func (m *ReceiptBurn) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptBurn.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReceiptBurn proto.InternalMessageInfo
+
+func (m *ReceiptBurn) GetEthereumChainID() int64 {
+	if m != nil {
+		return m.EthereumChainID
+	}
+	return 0
+}
+
+func (m *ReceiptBurn) GetTokenContract() string {
+	if m != nil {
+		return m.TokenContract
+	}
+	return ""
+}
+
+func (m *ReceiptBurn) GetChain33Sender() string {
+	if m != nil {
+		return m.Chain33Sender
+	}
+	return ""
+}
+
+func (m *ReceiptBurn) GetEthereumReceiver() string {
+	if m != nil {
+		return m.EthereumReceiver
+	}
+	return ""
+}
+
+func (m *ReceiptBurn) GetAmount() uint64 {
+	if m != nil {
+		return m.Amount
+	}
+	return 0
+}
+
+func (m *ReceiptBurn) GetLocalCoinSymbol() string {
+	if m != nil {
+		return m.LocalCoinSymbol
+	}
+	return ""
+}
+
+func (m *ReceiptBurn) GetLocalCoinExec() string {
+	if m != nil {
+		return m.LocalCoinExec
+	}
+	return ""
+}
+
+func (m *ReceiptBurn) GetXTxHash() []byte {
+	if m != nil {
+		return m.XTxHash
+	}
+	return nil
+}
+
+func (m *ReceiptBurn) GetXHeight() uint64 {
+	if m != nil {
+		return m.XHeight
+	}
+	return 0
+}
+
+type ReceiptLock struct {
+	EthereumChainID      int64    `protobuf:"varint,1,opt,name=EthereumChainID" json:"EthereumChainID,omitempty"`
+	TokenContract        string   `protobuf:"bytes,2,opt,name=TokenContract" json:"TokenContract,omitempty"`
+	Chain33Sender        string   `protobuf:"bytes,3,opt,name=Chain33Sender" json:"Chain33Sender,omitempty"`
+	EthereumReceiver     string   `protobuf:"bytes,4,opt,name=EthereumReceiver" json:"EthereumReceiver,omitempty"`
+	Amount               uint64   `protobuf:"varint,5,opt,name=Amount" json:"Amount,omitempty"`
+	LocalCoinSymbol      string   `protobuf:"bytes,6,opt,name=localCoinSymbol" json:"localCoinSymbol,omitempty"`
+	LocalCoinExec        string   `protobuf:"bytes,7,opt,name=localCoinExec" json:"localCoinExec,omitempty"`
+	XTxHash              []byte   `protobuf:"bytes,8,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
+	XHeight              uint64   `protobuf:"varint,9,opt,name=xHeight" json:"xHeight,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReceiptLock) Reset()         { *m = ReceiptLock{} }
+func (m *ReceiptLock) String() string { return proto.CompactTextString(m) }
+func (*ReceiptLock) ProtoMessage()    {}
+func (*ReceiptLock) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{9}
+}
+func (m *ReceiptLock) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptLock.Unmarshal(m, b)
+}
+func (m *ReceiptLock) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptLock.Marshal(b, m, deterministic)
+}
+func (dst *ReceiptLock) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptLock.Merge(dst, src)
+}
+func (m *ReceiptLock) XXX_Size() int {
+	return xxx_messageInfo_ReceiptLock.Size(m)
+}
+func (m *ReceiptLock) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptLock.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReceiptLock proto.InternalMessageInfo
+
+func (m *ReceiptLock) GetEthereumChainID() int64 {
+	if m != nil {
+		return m.EthereumChainID
+	}
+	return 0
+}
+
+func (m *ReceiptLock) GetTokenContract() string {
+	if m != nil {
+		return m.TokenContract
+	}
+	return ""
+}
+
+func (m *ReceiptLock) GetChain33Sender() string {
+	if m != nil {
+		return m.Chain33Sender
+	}
+	return ""
+}
+
+func (m *ReceiptLock) GetEthereumReceiver() string {
+	if m != nil {
+		return m.EthereumReceiver
+	}
+	return ""
+}
+
+func (m *ReceiptLock) GetAmount() uint64 {
+	if m != nil {
+		return m.Amount
+	}
+	return 0
+}
+
+func (m *ReceiptLock) GetLocalCoinSymbol() string {
+	if m != nil {
+		return m.LocalCoinSymbol
+	}
+	return ""
+}
+
+func (m *ReceiptLock) GetLocalCoinExec() string {
+	if m != nil {
+		return m.LocalCoinExec
+	}
+	return ""
+}
+
+func (m *ReceiptLock) GetXTxHash() []byte {
+	if m != nil {
+		return m.XTxHash
+	}
+	return nil
+}
+
+func (m *ReceiptLock) GetXHeight() uint64 {
+	if m != nil {
+		return m.XHeight
+	}
+	return 0
+}
+
+type ReceiptLogIn struct {
+	Address              string          `protobuf:"bytes,1,opt,name=address" json:"address,omitempty"`
+	Power                float64         `protobuf:"fixed64,2,opt,name=power" json:"power,omitempty"`
+	XTxHash              []byte          `protobuf:"bytes,3,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
+	XHeight              uint64          `protobuf:"varint,4,opt,name=xHeight" json:"xHeight,omitempty"`
+	Validators           []*MsgValidator `protobuf:"bytes,5,rep,name=validators" json:"validators,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *ReceiptLogIn) Reset()         { *m = ReceiptLogIn{} }
+func (m *ReceiptLogIn) String() string { return proto.CompactTextString(m) }
+func (*ReceiptLogIn) ProtoMessage()    {}
+func (*ReceiptLogIn) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{10}
+}
+func (m *ReceiptLogIn) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptLogIn.Unmarshal(m, b)
+}
+func (m *ReceiptLogIn) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptLogIn.Marshal(b, m, deterministic)
+}
+func (dst *ReceiptLogIn) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptLogIn.Merge(dst, src)
+}
+func (m *ReceiptLogIn) XXX_Size() int {
+	return xxx_messageInfo_ReceiptLogIn.Size(m)
+}
+func (m *ReceiptLogIn) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptLogIn.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReceiptLogIn proto.InternalMessageInfo
+
+func (m *ReceiptLogIn) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *ReceiptLogIn) GetPower() float64 {
+	if m != nil {
+		return m.Power
+	}
+	return 0
+}
+
+func (m *ReceiptLogIn) GetXTxHash() []byte {
+	if m != nil {
+		return m.XTxHash
+	}
+	return nil
+}
+
+func (m *ReceiptLogIn) GetXHeight() uint64 {
+	if m != nil {
+		return m.XHeight
+	}
+	return 0
+}
+
+func (m *ReceiptLogIn) GetValidators() []*MsgValidator {
+	if m != nil {
+		return m.Validators
+	}
+	return nil
+}
+
+type ReceiptLogOut struct {
+	Address              string          `protobuf:"bytes,1,opt,name=address" json:"address,omitempty"`
+	Power                float64         `protobuf:"fixed64,2,opt,name=power" json:"power,omitempty"`
+	XTxHash              []byte          `protobuf:"bytes,3,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
+	XHeight              uint64          `protobuf:"varint,4,opt,name=xHeight" json:"xHeight,omitempty"`
+	Validators           []*MsgValidator `protobuf:"bytes,5,rep,name=validators" json:"validators,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *ReceiptLogOut) Reset()         { *m = ReceiptLogOut{} }
+func (m *ReceiptLogOut) String() string { return proto.CompactTextString(m) }
+func (*ReceiptLogOut) ProtoMessage()    {}
+func (*ReceiptLogOut) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{11}
+}
+func (m *ReceiptLogOut) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptLogOut.Unmarshal(m, b)
+}
+func (m *ReceiptLogOut) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptLogOut.Marshal(b, m, deterministic)
+}
+func (dst *ReceiptLogOut) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptLogOut.Merge(dst, src)
+}
+func (m *ReceiptLogOut) XXX_Size() int {
+	return xxx_messageInfo_ReceiptLogOut.Size(m)
+}
+func (m *ReceiptLogOut) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptLogOut.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReceiptLogOut proto.InternalMessageInfo
+
+func (m *ReceiptLogOut) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *ReceiptLogOut) GetPower() float64 {
+	if m != nil {
+		return m.Power
+	}
+	return 0
+}
+
+func (m *ReceiptLogOut) GetXTxHash() []byte {
+	if m != nil {
+		return m.XTxHash
+	}
+	return nil
+}
+
+func (m *ReceiptLogOut) GetXHeight() uint64 {
+	if m != nil {
+		return m.XHeight
+	}
+	return 0
+}
+
+func (m *ReceiptLogOut) GetValidators() []*MsgValidator {
+	if m != nil {
+		return m.Validators
+	}
+	return nil
+}
+
+type ReceiptSetConsensusNeeded struct {
+	PreConsensusNeeded   float64  `protobuf:"fixed64,1,opt,name=preConsensusNeeded" json:"preConsensusNeeded,omitempty"`
+	NowConsensusNeeded   float64  `protobuf:"fixed64,2,opt,name=nowConsensusNeeded" json:"nowConsensusNeeded,omitempty"`
+	XTxHash              []byte   `protobuf:"bytes,3,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
+	XHeight              uint64   `protobuf:"varint,4,opt,name=xHeight" json:"xHeight,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReceiptSetConsensusNeeded) Reset()         { *m = ReceiptSetConsensusNeeded{} }
+func (m *ReceiptSetConsensusNeeded) String() string { return proto.CompactTextString(m) }
+func (*ReceiptSetConsensusNeeded) ProtoMessage()    {}
+func (*ReceiptSetConsensusNeeded) Descriptor() ([]byte, []int) {
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{12}
+}
+func (m *ReceiptSetConsensusNeeded) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptSetConsensusNeeded.Unmarshal(m, b)
+}
+func (m *ReceiptSetConsensusNeeded) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptSetConsensusNeeded.Marshal(b, m, deterministic)
+}
+func (dst *ReceiptSetConsensusNeeded) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptSetConsensusNeeded.Merge(dst, src)
+}
+func (m *ReceiptSetConsensusNeeded) XXX_Size() int {
+	return xxx_messageInfo_ReceiptSetConsensusNeeded.Size(m)
+}
+func (m *ReceiptSetConsensusNeeded) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptSetConsensusNeeded.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReceiptSetConsensusNeeded proto.InternalMessageInfo
+
+func (m *ReceiptSetConsensusNeeded) GetPreConsensusNeeded() float64 {
+	if m != nil {
+		return m.PreConsensusNeeded
+	}
+	return 0
+}
+
+func (m *ReceiptSetConsensusNeeded) GetNowConsensusNeeded() float64 {
+	if m != nil {
+		return m.NowConsensusNeeded
+	}
+	return 0
+}
+
+func (m *ReceiptSetConsensusNeeded) GetXTxHash() []byte {
+	if m != nil {
+		return m.XTxHash
+	}
+	return nil
+}
+
+func (m *ReceiptSetConsensusNeeded) GetXHeight() uint64 {
+	if m != nil {
+		return m.XHeight
+	}
+	return 0
+}
+
 type QueryEthProphecyParams struct {
 	EthereumChainID       int64    `protobuf:"varint,1,opt,name=EthereumChainID" json:"EthereumChainID,omitempty"`
 	BridgeContractAddress string   `protobuf:"bytes,2,opt,name=BridgeContractAddress" json:"BridgeContractAddress,omitempty"`
@@ -826,7 +1328,7 @@ func (m *QueryEthProphecyParams) Reset()         { *m = QueryEthProphecyParams{}
 func (m *QueryEthProphecyParams) String() string { return proto.CompactTextString(m) }
 func (*QueryEthProphecyParams) ProtoMessage()    {}
 func (*QueryEthProphecyParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{8}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{13}
 }
 func (m *QueryEthProphecyParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryEthProphecyParams.Unmarshal(m, b)
@@ -901,7 +1403,7 @@ func (m *QueryEthProphecyResponse) Reset()         { *m = QueryEthProphecyRespon
 func (m *QueryEthProphecyResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryEthProphecyResponse) ProtoMessage()    {}
 func (*QueryEthProphecyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{9}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{14}
 }
 func (m *QueryEthProphecyResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryEthProphecyResponse.Unmarshal(m, b)
@@ -954,7 +1456,7 @@ func (m *ProphecyStatus) Reset()         { *m = ProphecyStatus{} }
 func (m *ProphecyStatus) String() string { return proto.CompactTextString(m) }
 func (*ProphecyStatus) ProtoMessage()    {}
 func (*ProphecyStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_ce546ae61fce443d, []int{10}
+	return fileDescriptor_x2ethereum_fc3493fa8d1928a5, []int{15}
 }
 func (m *ProphecyStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ProphecyStatus.Unmarshal(m, b)
@@ -991,12 +1493,17 @@ func (m *ProphecyStatus) GetFinalClaim() string {
 func init() {
 	proto.RegisterType((*X2EthereumAction)(nil), "types.X2ethereumAction")
 	proto.RegisterType((*MsgSetConsensusNeeded)(nil), "types.MsgSetConsensusNeeded")
-	proto.RegisterType((*MsgLogInValidator)(nil), "types.MsgLogInValidator")
-	proto.RegisterType((*MsgLogOutValidator)(nil), "types.MsgLogOutValidator")
+	proto.RegisterType((*MsgValidator)(nil), "types.MsgValidator")
 	proto.RegisterType((*EthBridgeClaim)(nil), "types.EthBridgeClaim")
 	proto.RegisterType((*OracleClaimContent)(nil), "types.OracleClaimContent")
 	proto.RegisterType((*MsgBurn)(nil), "types.MsgBurn")
 	proto.RegisterType((*MsgLock)(nil), "types.MsgLock")
+	proto.RegisterType((*ReceiptEthBridgeClaim)(nil), "types.ReceiptEthBridgeClaim")
+	proto.RegisterType((*ReceiptBurn)(nil), "types.ReceiptBurn")
+	proto.RegisterType((*ReceiptLock)(nil), "types.ReceiptLock")
+	proto.RegisterType((*ReceiptLogIn)(nil), "types.ReceiptLogIn")
+	proto.RegisterType((*ReceiptLogOut)(nil), "types.ReceiptLogOut")
+	proto.RegisterType((*ReceiptSetConsensusNeeded)(nil), "types.ReceiptSetConsensusNeeded")
 	proto.RegisterType((*QueryEthProphecyParams)(nil), "types.QueryEthProphecyParams")
 	proto.RegisterType((*QueryEthProphecyResponse)(nil), "types.QueryEthProphecyResponse")
 	proto.RegisterType((*ProphecyStatus)(nil), "types.ProphecyStatus")
@@ -1041,57 +1548,66 @@ var _X2Ethereum_serviceDesc = grpc.ServiceDesc{
 	Metadata:    "x2ethereum.proto",
 }
 
-func init() { proto.RegisterFile("x2ethereum.proto", fileDescriptor_x2ethereum_ce546ae61fce443d) }
+func init() { proto.RegisterFile("x2ethereum.proto", fileDescriptor_x2ethereum_fc3493fa8d1928a5) }
 
-var fileDescriptor_x2ethereum_ce546ae61fce443d = []byte{
-	// 772 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0x4f, 0x4f, 0xdb, 0x4a,
-	0x10, 0x4f, 0x6c, 0xe2, 0xbc, 0x0c, 0x90, 0x17, 0x56, 0x24, 0xf2, 0x93, 0xd0, 0x13, 0x8a, 0xd0,
-	0x13, 0x8a, 0x04, 0x87, 0xf0, 0xee, 0x15, 0x84, 0xa0, 0xa0, 0xb6, 0x40, 0x37, 0x69, 0xd5, 0x43,
-	0x2f, 0xc6, 0x1e, 0x25, 0x16, 0xce, 0x3a, 0xb2, 0xd7, 0x94, 0x5c, 0x7b, 0xea, 0xbd, 0x9f, 0xa4,
-	0xdf, 0xa7, 0x1f, 0xa6, 0xf2, 0x78, 0x9d, 0xd8, 0x8e, 0x91, 0xca, 0xa9, 0x97, 0xde, 0xb2, 0xbf,
-	0xf9, 0xcd, 0x6f, 0xe7, 0x5f, 0xc6, 0x0b, 0xad, 0xa7, 0x3e, 0xca, 0x19, 0x06, 0x18, 0xcd, 0x4f,
-	0x17, 0x81, 0x2f, 0x7d, 0x56, 0x93, 0xcb, 0x05, 0x86, 0xdd, 0xef, 0x3a, 0xb4, 0x3e, 0xae, 0x6c,
-	0xe7, 0xb6, 0x74, 0x7d, 0xc1, 0x5e, 0x41, 0x13, 0xe5, 0xec, 0x22, 0x70, 0x9d, 0x29, 0x0e, 0x3c,
-	0xcb, 0x9d, 0x9b, 0xd5, 0xc3, 0xea, 0xf1, 0x76, 0xbf, 0x7d, 0x4a, 0x4e, 0xa7, 0xc3, 0x9c, 0x71,
-	0x54, 0xe1, 0x05, 0x3a, 0xeb, 0x41, 0x7d, 0x1e, 0x4e, 0x2f, 0xa2, 0x40, 0x98, 0x1a, 0x79, 0x36,
-	0x95, 0xe7, 0xdb, 0x04, 0x1d, 0x55, 0x78, 0x4a, 0x50, 0xdc, 0x37, 0xbe, 0xfd, 0x60, 0xea, 0x45,
-	0x6e, 0x8c, 0x2a, 0x6e, 0xfc, 0x93, 0x8d, 0x60, 0x8f, 0x7e, 0x4e, 0xaf, 0xc5, 0x07, 0xcb, 0x73,
-	0x1d, 0x4b, 0xfa, 0x81, 0xb9, 0x45, 0x5e, 0x66, 0xd6, 0x2b, 0x6b, 0x1f, 0x55, 0xf8, 0xa6, 0x13,
-	0x7b, 0x0d, 0x2c, 0x01, 0x6f, 0x23, 0xb9, 0x96, 0xaa, 0x91, 0xd4, 0x3f, 0x39, 0xa9, 0x2c, 0x61,
-	0x54, 0xe1, 0x25, 0x6e, 0x6c, 0x02, 0xed, 0x79, 0x38, 0x1d, 0xa3, 0x1c, 0xf8, 0x22, 0x44, 0x11,
-	0x46, 0xe1, 0x0d, 0xa2, 0x83, 0x8e, 0x69, 0x90, 0xde, 0xc1, 0x5a, 0x6f, 0x93, 0x33, 0xaa, 0xf0,
-	0x72, 0x67, 0xd6, 0x04, 0x4d, 0x2e, 0x4d, 0x38, 0xac, 0x1e, 0xd7, 0xb8, 0x26, 0x97, 0x17, 0x75,
-	0xa8, 0x3d, 0x5a, 0x5e, 0x84, 0xdd, 0x13, 0x68, 0x97, 0x4a, 0xb1, 0x7d, 0xa8, 0x2d, 0xfc, 0xcf,
-	0x18, 0x50, 0xbb, 0xaa, 0x3c, 0x39, 0x74, 0x07, 0xb0, 0xb7, 0x51, 0x14, 0x66, 0x42, 0xdd, 0x72,
-	0x9c, 0x00, 0xc3, 0x90, 0xc8, 0x0d, 0x9e, 0x1e, 0xd7, 0x22, 0x5a, 0x56, 0xe4, 0x12, 0xd8, 0x66,
-	0x39, 0x5e, 0xac, 0xf2, 0x43, 0x87, 0x66, 0x7e, 0x78, 0xd8, 0x31, 0xfc, 0x3d, 0x54, 0xd3, 0x37,
-	0x98, 0x59, 0xae, 0xb8, 0xbe, 0x24, 0x29, 0x9d, 0x17, 0x61, 0xf6, 0x3f, 0xb4, 0x95, 0xa3, 0x2f,
-	0x64, 0x60, 0xd9, 0xf2, 0x5c, 0x5d, 0xad, 0xd1, 0xd5, 0xe5, 0xc6, 0x38, 0x90, 0x1b, 0x5f, 0xd8,
-	0x48, 0xc3, 0xa5, 0xf3, 0xe4, 0x10, 0xdf, 0xea, 0xf9, 0xb6, 0xe5, 0x0d, 0x7c, 0x57, 0x8c, 0x97,
-	0xf3, 0x7b, 0xdf, 0xa3, 0x31, 0x6a, 0xf0, 0x22, 0xcc, 0x8e, 0x60, 0x77, 0x05, 0x0d, 0x9f, 0xd0,
-	0xa6, 0x19, 0x69, 0xf0, 0x3c, 0xc8, 0xfa, 0xb0, 0x3f, 0xf1, 0x1f, 0x50, 0x14, 0x43, 0x33, 0x88,
-	0x5c, 0x6a, 0x63, 0xff, 0x51, 0x2d, 0x28, 0xc5, 0x31, 0x0a, 0x07, 0x03, 0xb3, 0x4e, 0xec, 0x02,
-	0x1a, 0xc7, 0x4a, 0x25, 0x38, 0x3b, 0xe3, 0x68, 0xa3, 0xfb, 0x88, 0x81, 0xf9, 0x57, 0x12, 0x6b,
-	0x01, 0x66, 0x3d, 0x68, 0xad, 0x7a, 0x93, 0x46, 0xd0, 0x20, 0xea, 0x06, 0xce, 0x3a, 0x60, 0x9c,
-	0xcf, 0xfd, 0x48, 0x48, 0x9a, 0xb0, 0x2d, 0xae, 0x4e, 0xec, 0x00, 0x1a, 0xd4, 0x98, 0xc9, 0x72,
-	0x81, 0xe6, 0x36, 0xd5, 0x6c, 0x0d, 0xc4, 0xd6, 0xa1, 0x9c, 0xa9, 0x8a, 0xed, 0x90, 0xf4, 0x1a,
-	0xe8, 0x4a, 0x60, 0xb7, 0x81, 0x65, 0x7b, 0x49, 0x6b, 0xe3, 0x7c, 0x51, 0xc8, 0xb2, 0xf8, 0xab,
-	0xe5, 0xf1, 0xaf, 0x63, 0xd2, 0x9e, 0x8f, 0x49, 0x2f, 0xc4, 0xd4, 0xfd, 0xa6, 0x41, 0x5d, 0xed,
-	0x95, 0x17, 0x4c, 0xd3, 0x11, 0xec, 0xe6, 0xba, 0xa2, 0xa6, 0x28, 0x0f, 0xc6, 0x2c, 0x15, 0xa4,
-	0x6a, 0x91, 0x9e, 0xb0, 0x72, 0x60, 0x5c, 0xf7, 0x54, 0x7e, 0x95, 0x62, 0x32, 0x4e, 0x1b, 0x78,
-	0x26, 0xc7, 0x5a, 0x2e, 0xc7, 0x92, 0x89, 0x34, 0x7e, 0x71, 0x22, 0xeb, 0x25, 0x13, 0x99, 0x56,
-	0x85, 0xd6, 0xe6, 0x9f, 0xaa, 0xa4, 0x55, 0xf9, 0xa2, 0x41, 0xe7, 0x5d, 0x84, 0xc1, 0x72, 0x28,
-	0x67, 0x77, 0x81, 0xbf, 0x98, 0xa1, 0xbd, 0xbc, 0xb3, 0x02, 0x6b, 0x1e, 0xfe, 0xa6, 0x45, 0xd4,
-	0x01, 0x23, 0xb7, 0x7f, 0xd4, 0xe9, 0xd9, 0x85, 0x52, 0x7b, 0xd1, 0x42, 0x31, 0xca, 0x16, 0x4a,
-	0xf7, 0x6b, 0x15, 0xcc, 0x62, 0x11, 0x38, 0x86, 0x8b, 0xf8, 0x6b, 0x12, 0x7f, 0x75, 0x54, 0xe6,
-	0x0d, 0xae, 0x5d, 0x5f, 0xb2, 0x13, 0x30, 0xc6, 0xd2, 0x92, 0x51, 0xa8, 0xbe, 0xe4, 0xe9, 0x1b,
-	0x20, 0x75, 0x4c, 0x8c, 0x5c, 0x91, 0x62, 0x3a, 0xfd, 0x33, 0x43, 0x53, 0x3f, 0xd4, 0x9f, 0x7d,
-	0x32, 0x70, 0x45, 0xea, 0x7e, 0x82, 0x66, 0x5e, 0x88, 0xf5, 0x60, 0x6b, 0x82, 0x4f, 0x92, 0x22,
-	0x68, 0xf6, 0x3b, 0x45, 0x77, 0x75, 0x1d, 0x71, 0xd8, 0xbf, 0x00, 0x57, 0xae, 0xb0, 0xbc, 0xe4,
-	0x8d, 0x92, 0x54, 0x3f, 0x83, 0xf4, 0xde, 0x53, 0x4b, 0xb3, 0x8e, 0xac, 0x0d, 0x7b, 0x77, 0x28,
-	0x1c, 0x57, 0x4c, 0x13, 0x20, 0xd6, 0x69, 0x55, 0x62, 0x78, 0x1c, 0xd9, 0x36, 0x86, 0x61, 0x06,
-	0xae, 0xb2, 0x7d, 0x68, 0x5d, 0x59, 0xae, 0x87, 0x4e, 0x06, 0xd5, 0xfa, 0x3b, 0x00, 0xeb, 0xe7,
-	0xd4, 0xbd, 0x41, 0xef, 0xa9, 0xb3, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xa9, 0x07, 0x8c, 0xa0,
-	0x63, 0x09, 0x00, 0x00,
+var fileDescriptor_x2ethereum_fc3493fa8d1928a5 = []byte{
+	// 913 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0xcd, 0x6e, 0xe3, 0x54,
+	0x14, 0x8e, 0xed, 0xfc, 0x4c, 0x4e, 0xd3, 0x90, 0xb9, 0x34, 0x95, 0x91, 0x46, 0xa8, 0xb2, 0x46,
+	0xa8, 0xaa, 0x34, 0x5d, 0xa4, 0xac, 0x41, 0x6d, 0x26, 0xa3, 0x54, 0x82, 0x69, 0xb9, 0x09, 0x88,
+	0x05, 0x1b, 0x8f, 0x7d, 0x94, 0x58, 0xe3, 0x5c, 0x47, 0xf6, 0x75, 0x27, 0xd9, 0xb2, 0x62, 0xcf,
+	0x82, 0x37, 0x00, 0x76, 0x3c, 0x08, 0xaf, 0xc0, 0xc3, 0x20, 0x1f, 0x5f, 0xc7, 0x3f, 0x75, 0x10,
+	0x85, 0x05, 0x68, 0xd4, 0x9d, 0xef, 0x77, 0xbe, 0xf3, 0x7f, 0x7c, 0x7f, 0x60, 0xb0, 0x19, 0xa1,
+	0x5c, 0x62, 0x88, 0xf1, 0xea, 0x7c, 0x1d, 0x06, 0x32, 0x60, 0x2d, 0xb9, 0x5d, 0x63, 0x64, 0xfd,
+	0x6c, 0xc0, 0xe0, 0xdb, 0x9d, 0xec, 0xd2, 0x91, 0x5e, 0x20, 0xd8, 0xe7, 0xd0, 0x47, 0xb9, 0xbc,
+	0x0a, 0x3d, 0x77, 0x81, 0x63, 0xdf, 0xf6, 0x56, 0xa6, 0x76, 0xa2, 0x9d, 0x1e, 0x8c, 0x86, 0xe7,
+	0xa4, 0x74, 0x3e, 0x29, 0x09, 0xa7, 0x0d, 0x5e, 0xa1, 0xb3, 0x33, 0xe8, 0xac, 0xa2, 0xc5, 0x55,
+	0x1c, 0x0a, 0x53, 0x27, 0xcd, 0xbe, 0xd2, 0xfc, 0x32, 0x45, 0xa7, 0x0d, 0x9e, 0x11, 0x14, 0xf7,
+	0x8b, 0xc0, 0x79, 0x6b, 0x1a, 0x55, 0x6e, 0x82, 0x2a, 0x6e, 0xf2, 0xc9, 0xc6, 0xf0, 0x94, 0x3e,
+	0x17, 0xd7, 0xe2, 0x1b, 0xdb, 0xf7, 0x5c, 0x5b, 0x06, 0xa1, 0xd9, 0x24, 0xad, 0x0f, 0x73, 0xad,
+	0x9d, 0x68, 0xda, 0xe0, 0xf7, 0xf9, 0x6c, 0x02, 0x2c, 0x05, 0x6f, 0x62, 0x99, 0x5b, 0x69, 0xfd,
+	0x95, 0x95, 0x1a, 0x05, 0x36, 0x87, 0xe1, 0x2a, 0x5a, 0xcc, 0x50, 0x8e, 0x03, 0x11, 0xa1, 0x88,
+	0xe2, 0xe8, 0x35, 0xa2, 0x8b, 0xae, 0xd9, 0x26, 0x4b, 0xcf, 0x72, 0x4b, 0xf7, 0x39, 0xd3, 0x06,
+	0xaf, 0x57, 0x66, 0x7d, 0xd0, 0xe5, 0xd6, 0x84, 0x13, 0xed, 0xb4, 0xc5, 0x75, 0xb9, 0xbd, 0xea,
+	0x40, 0xeb, 0xce, 0xf6, 0x63, 0xb4, 0x5e, 0xc0, 0xb0, 0xd6, 0x14, 0x3b, 0x82, 0xd6, 0x3a, 0x78,
+	0x87, 0x21, 0xf5, 0x48, 0xe3, 0xe9, 0xc2, 0xfa, 0x0c, 0x7a, 0xc5, 0x1c, 0x98, 0x09, 0x1d, 0xdb,
+	0x75, 0x43, 0x8c, 0x22, 0xe2, 0x75, 0x79, 0xb6, 0xcc, 0xf5, 0xf5, 0xa2, 0xfe, 0x1f, 0x06, 0xf4,
+	0xcb, 0x6d, 0x66, 0xa7, 0xf0, 0xc1, 0x44, 0xcd, 0xc9, 0x78, 0x69, 0x7b, 0xe2, 0xfa, 0x25, 0x99,
+	0x32, 0x78, 0x15, 0x66, 0x9f, 0xc2, 0x50, 0x29, 0x06, 0x42, 0x86, 0xb6, 0x23, 0x2f, 0x95, 0x6b,
+	0x9d, 0x5c, 0xd7, 0x0b, 0x93, 0x40, 0x5e, 0x07, 0xc2, 0x41, 0x1a, 0x03, 0x83, 0xa7, 0x8b, 0xc4,
+	0xab, 0x1f, 0x38, 0xb6, 0x3f, 0x0e, 0x3c, 0x31, 0xdb, 0xae, 0xde, 0x04, 0x3e, 0x35, 0xbc, 0xcb,
+	0xab, 0x30, 0x7b, 0x0e, 0x87, 0x3b, 0x68, 0xb2, 0x41, 0x87, 0x5a, 0xda, 0xe5, 0x65, 0x90, 0x8d,
+	0xe0, 0x68, 0x1e, 0xbc, 0x45, 0x51, 0x0d, 0xad, 0x4d, 0xe4, 0x5a, 0x19, 0xfb, 0x84, 0x6a, 0x41,
+	0x29, 0xce, 0x50, 0xb8, 0x18, 0x9a, 0x1d, 0x62, 0x57, 0xd0, 0x24, 0x56, 0x2a, 0xc1, 0xc5, 0x05,
+	0x47, 0x07, 0xbd, 0x3b, 0x0c, 0xcd, 0x27, 0x69, 0xac, 0x15, 0x98, 0x9d, 0xc1, 0x60, 0xd7, 0x9b,
+	0x2c, 0x82, 0x2e, 0x51, 0xef, 0xe1, 0xec, 0x18, 0xda, 0x97, 0xab, 0x20, 0x16, 0x92, 0xc6, 0xa2,
+	0xc9, 0xd5, 0x8a, 0x3d, 0x83, 0x2e, 0x35, 0x66, 0xbe, 0x5d, 0xa3, 0x79, 0x40, 0x35, 0xcb, 0x81,
+	0x44, 0x3a, 0x91, 0x4b, 0x55, 0xb1, 0x1e, 0x99, 0xce, 0x01, 0x4b, 0x02, 0xbb, 0x09, 0x6d, 0xc7,
+	0x4f, 0x5b, 0x9b, 0xe4, 0x8b, 0x42, 0xd6, 0xc5, 0xaf, 0xd5, 0xc7, 0x9f, 0xc7, 0xa4, 0xef, 0x8f,
+	0xc9, 0xa8, 0xc4, 0x64, 0xfd, 0xa8, 0x43, 0x47, 0xed, 0x00, 0x0f, 0x98, 0xa6, 0xe7, 0x70, 0x58,
+	0xea, 0x8a, 0x9a, 0xa2, 0x32, 0x98, 0xb0, 0x54, 0x90, 0xaa, 0x45, 0x46, 0xca, 0x2a, 0x81, 0x49,
+	0xdd, 0x33, 0xf3, 0xbb, 0x14, 0xd3, 0x71, 0xba, 0x87, 0x17, 0x72, 0x6c, 0x95, 0x72, 0xac, 0x99,
+	0xc8, 0xf6, 0xdf, 0x9c, 0xc8, 0x4e, 0xcd, 0x44, 0x66, 0x55, 0xa1, 0x0d, 0xee, 0xb1, 0x2a, 0x59,
+	0x55, 0x7e, 0x6a, 0xc2, 0x90, 0x9c, 0xae, 0xe5, 0xe3, 0x3e, 0xf4, 0xbe, 0xee, 0x43, 0xc9, 0xb1,
+	0xb4, 0x99, 0x6f, 0xa6, 0x76, 0xb4, 0x34, 0x0f, 0x4f, 0xb4, 0xd3, 0x1e, 0xcf, 0x96, 0x24, 0x99,
+	0xa2, 0xb7, 0x58, 0x4a, 0xb3, 0x4f, 0xee, 0xb2, 0xa5, 0xf5, 0xbb, 0x0e, 0x07, 0x6a, 0x32, 0x1e,
+	0x77, 0x92, 0xd2, 0x4c, 0x15, 0xaa, 0xf9, 0x64, 0x6f, 0x35, 0xbb, 0x7b, 0xab, 0xf9, 0xb8, 0x03,
+	0xfd, 0xeb, 0x6a, 0xfe, 0xa2, 0x41, 0x6f, 0x57, 0xcd, 0xc5, 0xb5, 0x78, 0xe8, 0xbd, 0xab, 0xe8,
+	0xd4, 0xd8, 0xeb, 0xb4, 0x59, 0x72, 0xca, 0x2e, 0x00, 0xee, 0xb2, 0x9f, 0x35, 0x32, 0x5b, 0x27,
+	0xc6, 0x9e, 0x8b, 0x2c, 0x2f, 0xd0, 0xac, 0x5f, 0x35, 0x38, 0xcc, 0x23, 0xbd, 0x89, 0xe5, 0xff,
+	0x37, 0xd4, 0xdf, 0x34, 0xf8, 0x48, 0x85, 0x5a, 0x73, 0xff, 0x3d, 0x07, 0xb6, 0x0e, 0xb1, 0x7a,
+	0x09, 0x4f, 0x2f, 0xc3, 0x35, 0x92, 0x84, 0x2f, 0x82, 0x77, 0x55, 0x7e, 0x9a, 0x59, 0x8d, 0xe4,
+	0x9f, 0xa4, 0x69, 0x7d, 0xaf, 0xc3, 0xf1, 0x57, 0x31, 0x86, 0xdb, 0x89, 0x5c, 0xde, 0x86, 0xc1,
+	0x7a, 0x89, 0xce, 0xf6, 0xd6, 0x0e, 0xed, 0x55, 0xf4, 0x1f, 0x9d, 0x5e, 0xc7, 0xd0, 0x2e, 0x1d,
+	0x5a, 0x6a, 0xb5, 0xf7, 0x14, 0x6a, 0x3d, 0xe8, 0x14, 0x6a, 0xd7, 0x9d, 0x42, 0xd6, 0x0f, 0x1a,
+	0x98, 0xd5, 0x22, 0x70, 0x8c, 0xd6, 0x49, 0x7d, 0x93, 0x77, 0x8e, 0xca, 0xbc, 0xcb, 0xf5, 0xeb,
+	0x97, 0xec, 0x05, 0xb4, 0x67, 0xd2, 0x96, 0x71, 0xa4, 0x1e, 0x8c, 0xd9, 0x53, 0x33, 0x53, 0x4c,
+	0x85, 0x5c, 0x91, 0x12, 0x3a, 0x1d, 0x31, 0x91, 0x69, 0xd0, 0x0c, 0xd5, 0xbf, 0x4c, 0xb9, 0x22,
+	0x59, 0xdf, 0x41, 0xbf, 0x6c, 0x88, 0x9d, 0x41, 0x73, 0x8e, 0x1b, 0x49, 0x11, 0xf4, 0x47, 0xc7,
+	0x55, 0x75, 0xe5, 0x8e, 0x38, 0xec, 0x63, 0x80, 0x57, 0x9e, 0xb0, 0xfd, 0xf4, 0x29, 0x9c, 0x56,
+	0xbf, 0x80, 0x9c, 0x7d, 0x4d, 0x2d, 0x2d, 0x2a, 0xb2, 0x21, 0x3c, 0xbd, 0x45, 0xe1, 0x7a, 0x62,
+	0x91, 0x02, 0x89, 0x9d, 0x41, 0x23, 0x81, 0x67, 0xb1, 0xe3, 0x60, 0x14, 0x15, 0x60, 0x8d, 0x1d,
+	0xc1, 0xe0, 0x95, 0xed, 0xf9, 0xe8, 0x16, 0x50, 0x7d, 0xd4, 0x03, 0xc8, 0x5f, 0xed, 0x6f, 0xda,
+	0xf4, 0x6c, 0xbf, 0xf8, 0x33, 0x00, 0x00, 0xff, 0xff, 0x6e, 0x16, 0x84, 0xfe, 0xca, 0x0f, 0x00,
+	0x00,
 }

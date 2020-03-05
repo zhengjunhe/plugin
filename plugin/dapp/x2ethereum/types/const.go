@@ -6,18 +6,36 @@ var (
 	ConsensusNeededKey = []byte{0x14}
 )
 
-//log for x2ethereum
+// log for x2ethereum
+// log类型id值
 const (
-	TyLogMsgEthBridgeClaim     = 350
-	TyLogMsgLock               = 351
-	TyLogMsgBurn               = 352
-	TyLogMsgLogInValidator     = 353
-	TyLogMsgLogOutValidator    = 354
-	TyLogMsgSetConsensusNeeded = 355
+	TyUnknownLog = iota + 100
+	TyEthBridgeClaimLog
+	TyMsgBurnLog
+	TyMsgLockLog
+	TyMsgLogInValidatorLog
+	TyMsgLogOutValidatorLog
+	TyMsgSetConsensusNeededLog
+)
+
+// action类型id和name，这些常量可以自定义修改
+const (
+	TyUnknowAction = iota + 100
+	TyEthBridgeClaimAction
+	TyMsgBurnAction
+	TyMsgLockAction
+	TyMsgLogInValidatorAction
+	TyMsgLogOutValidatorAction
+	TyMsgSetConsensusNeededAction
+
+	NameEthBridgeClaimAction        = "EthBridgeClaim"
+	NameMsgBurnAction               = "MsgBurn"
+	NameMsgLockAction               = "MsgLock"
+	NameMsgLogInValidatorAction     = "MsgLogInValidator"
+	NameMsgLogOutValidatorAction    = "MsgLogOutValidator"
+	NameMsgSetConsensusNeededAction = "MsgSetConsensusNeeded"
 )
 
 const ModuleName = "x2ethereum"
 
 const DefaultConsensusNeeded = 0.7
-
-const AddressPowerPrefix = "power-"
