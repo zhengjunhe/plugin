@@ -13,8 +13,10 @@ func (k Keeper) SendCoinsFromModuleToAccount(senderModule, recipientAddr, execAd
 		return nil, types.ErrUnknownAddress
 	}
 
+	clog.Info("SendCoinsFromModuleToAccount", "from", senderAddr, "to", recipientAddr)
 	receipt, err := accDB.ExecTransfer(senderAddr, recipientAddr, execAddr, amt)
 	if err != nil {
+		clog.Error("SendCoinsFromModuleToAccount", "ExecTransfer error ", err)
 		return nil, err
 	}
 	return receipt, nil
@@ -31,8 +33,10 @@ func (k Keeper) SendCoinsFromModuleToModule(senderModule, recipientModule, execA
 		return nil, types.ErrUnknownAddress
 	}
 
+	clog.Info("SendCoinsFromModuleToModule", "from", senderAddr, "to", recipientAddr)
 	receipt, err := accDB.ExecTransfer(senderAddr, recipientAddr, execAddr, amt)
 	if err != nil {
+		clog.Error("SendCoinsFromModuleToModule", "ExecTransfer error ", err)
 		return nil, err
 	}
 	return receipt, nil
@@ -44,8 +48,11 @@ func (k Keeper) SendCoinsFromAccountToModule(senderAddr, recipientModule, execAd
 	if !ok {
 		return nil, types.ErrUnknownAddress
 	}
+
+	clog.Info("SendCoinsFromAccountToModule", "from", senderAddr, "to", recipientAddr)
 	receipt, err := accDB.ExecTransfer(senderAddr, recipientAddr, execAddr, amt)
 	if err != nil {
+		clog.Error("SendCoinsFromAccountToModule", "ExecTransfer error ", err)
 		return nil, err
 	}
 	return receipt, nil
@@ -54,14 +61,15 @@ func (k Keeper) SendCoinsFromAccountToModule(senderAddr, recipientModule, execAd
 // MintCoins creates new coins from thin air and adds it to the module account.
 // Panics if the name maps to a non-minter module account or if the amount is invalid.
 func (k Keeper) MintCoins(amt int64, moduleName, execAddr string, accDB *account.DB) (*types2.Receipt, error) {
-
 	bankAddr, ok := k.moduleAddresses[moduleName]
 	if !ok {
 		return nil, types.ErrUnknownAddress
 	}
+	clog.Info("MintCoins", "from", bankAddr, "to", execAddr, "amount", amt)
 
 	receipt, err := accDB.ExecDeposit(bankAddr, execAddr, amt)
 	if err != nil {
+		clog.Error("MintCoins", "ExecDeposit error ", err)
 		return nil, err
 	}
 
@@ -76,9 +84,11 @@ func (k Keeper) BurnCoins(amt int64, moduleName, execAddr string, accDB *account
 	if !ok {
 		return nil, types.ErrUnknownAddress
 	}
+	clog.Info("BurnCoins", "from", bankAddr, "to", execAddr, "amount", amt)
 
 	receipt, err := accDB.ExecWithdraw(bankAddr, execAddr, amt)
 	if err != nil {
+		clog.Error("BurnCoins", "ExecWithdraw error ", err)
 		return nil, err
 	}
 

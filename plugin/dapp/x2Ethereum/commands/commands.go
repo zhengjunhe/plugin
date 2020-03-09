@@ -22,7 +22,12 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 	}
 	cmd.AddCommand(
-	//add sub command
+		CreateRawEthBridgeClaimTxCmd(),
+		CreateRawBurnTxCmd(),
+		CreateRawLockTxCmd(),
+		CreateRawLogInTxCmd(),
+		CreateRawLogOutTxCmd(),
+		CreateRawSetConsensusTxCmd(),
 	)
 	return cmd
 }

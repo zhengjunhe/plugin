@@ -2,7 +2,13 @@ package common
 
 import (
 	"encoding/binary"
+	log "github.com/33cn/chain33/common/log/log15"
 	"math"
+)
+
+var (
+	//日志
+	clog = log.New("module", "common")
 )
 
 func Float64ToBytes(float float64) []byte {

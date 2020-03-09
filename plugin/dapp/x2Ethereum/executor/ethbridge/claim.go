@@ -4,8 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"strconv"
+)
+
+var (
+	//日志
+	elog = log.New("module", "ethbridge")
 )
 
 // NewEthBridgeClaim is a constructor function for NewEthBridgeClaim
@@ -64,6 +70,7 @@ func CreateOracleClaimFromEthClaim(ethClaim types.EthBridgeClaim) (types.OracleC
 func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContract string, ethereumAddress string, validator string, oracleClaimString string) (types.EthBridgeClaim, error) {
 	oracleClaim, err := CreateOracleClaimFromOracleString(oracleClaimString)
 	if err != nil {
+		elog.Error("CreateEthClaimFromOracleString", "CreateOracleClaimFromOracleString error", err)
 		return types.EthBridgeClaim{}, err
 	}
 

@@ -3,10 +3,16 @@ package oracle
 import (
 	"encoding/json"
 	dbm "github.com/33cn/chain33/common/db"
+	log "github.com/33cn/chain33/common/log/log15"
 	types2 "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"strings"
+)
+
+var (
+	//日志
+	olog = log.New("module", "oracle")
 )
 
 type Keeper struct {
@@ -136,6 +142,7 @@ func (k Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
 	remainingPossibleClaimPower := totalPower - totalClaimsPower
 	highestPossibleClaimPower := highestClaimPower + remainingPossibleClaimPower
 	highestPossibleConsensusRatio := highestPossibleClaimPower / totalPower
+	olog.Info("processCompletion", "highestConsensusRatio", highestConsensusRatio, "consensusNeeded", k.consensusNeeded, "highestPossibleConsensusRatio", highestPossibleConsensusRatio)
 	if highestConsensusRatio >= k.consensusNeeded {
 		prophecy.Status.Text = StatusText(types.EthBridgeStatus_SuccessStatusText)
 		prophecy.Status.FinalClaim = highestClaim

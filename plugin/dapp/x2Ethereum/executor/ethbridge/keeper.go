@@ -30,6 +30,7 @@ func NewKeeper(supplyKeeper SupplyKeeper, oracleKeeper OracleKeeper, db dbm.KV) 
 func (k Keeper) ProcessClaim(claim types.EthBridgeClaim) (oracle.Status, error) {
 	oracleClaim, err := CreateOracleClaimFromEthClaim(claim)
 	if err != nil {
+		elog.Error("CreateEthClaimFromOracleString", "CreateOracleClaimFromOracleString error", err)
 		return oracle.Status{}, err
 	}
 
@@ -45,6 +46,7 @@ func (k Keeper) ProcessSuccessfulClaim(claim, execAddr string, accDB *account.DB
 	var receipt *types2.Receipt
 	oracleClaim, err := CreateOracleClaimFromOracleString(claim)
 	if err != nil {
+		elog.Error("CreateEthClaimFromOracleString", "CreateOracleClaimFromOracleString error", err)
 		return nil, err
 	}
 
@@ -99,6 +101,7 @@ func (k Keeper) ProcessLogInValidator(address string, power float64) (*types2.Re
 		return nil, err
 	}
 
+	elog.Info("ProcessLogInValidator", "pre validatorMaps", validatorMaps, "Add Address", address, "Add power", power)
 	var totalPower float64
 	for _, p := range validatorMaps {
 		receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
@@ -136,6 +139,7 @@ func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.R
 		return nil, err
 	}
 
+	elog.Info("ProcessLogOutValidator", "pre validatorMaps", validatorMaps, "Delete Address", address, "Delete power", power)
 	var totalPower float64
 	for index, p := range validatorMaps {
 		if address != p.Address {
@@ -171,6 +175,8 @@ func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (*types2.Rece
 	k.oracleKeeper.SetConsensusNeeded(consensusNeeded)
 
 	nowCon := k.oracleKeeper.GetConsensusNeeded()
+
+	elog.Info("ProcessSetConsensusNeeded", "pre ConsensusNeeded", preCon, "now ConsensusNeeded", nowCon)
 
 	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.ConsensusNeededKey, Value: common.Float64ToBytes(consensusNeeded)})
 
