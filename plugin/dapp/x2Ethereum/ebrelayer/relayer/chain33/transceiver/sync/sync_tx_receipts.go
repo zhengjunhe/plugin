@@ -131,7 +131,7 @@ func bind(rpcAddr, name, url, encode string, startHeight int64) {
 	if err != nil {
 		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", rpcAddr)
 		log.Error("bind", "sync tx receipts err:", err.Error())
-		panic("bind client failed" + err.Error())
+		panic("bind client failed due to:" + err.Error())
 	}
 	fmt.Println("Succeed to AddSubscribeTxReceipt")
 }
