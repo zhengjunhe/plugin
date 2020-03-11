@@ -5,9 +5,9 @@ JrpcBindAddr="localhost:9901"
 EthProvider="ws://127.0.0.1:7545/"
 
 [SyncTxConfig]
-chain33Host="http://localhost:8801"
-pushHost="192.168.0.135:20000"
-pushName="fzm_lns"
+chain33Host="http://172.20.0.4:8801"
+pushHost="192.168.0.125:20000"
+pushName="x2ethereum"
 pushBind="0.0.0.0:20000"
 maturityDegree=12
 dbdriver="leveldb"
