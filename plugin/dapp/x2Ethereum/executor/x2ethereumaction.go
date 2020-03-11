@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/33cn/chain33/account"
 	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/system/dapp"
 	"github.com/33cn/chain33/types"
@@ -17,11 +16,15 @@ import (
 )
 
 // stateDB存储KV:
-//		id --> DBProphecy
+//		ProphecyKey --> DBProphecy
 //
+//		EthBridgeClaimKey -- > EthBridgeClaim
 //
 //		ValidatorMapsKey -- > ValidatorMaps arrays
 //
+//		LastTotalPowerKey -- > totalPower
+//
+//		ConsensusNeededKey -- > consensusNeeded
 
 type action struct {
 	api          client.QueueProtocolAPI
@@ -40,22 +43,20 @@ func newAction(a *x2ethereum, tx *types.Transaction, index int32) *action {
 	hash := tx.Hash()
 	fromaddr := tx.From()
 
-	moduleAddress, err := address.NewAddrFromString(types2.ModuleName)
-	if err != nil {
-		return nil
-	}
+	moduleAddress := dapp.ExecAddress(types2.ModuleName)
 	addressMap := make(map[string]string)
-	addressMap[types2.ModuleName] = moduleAddress.String()
+	addressMap[types2.ModuleName] = moduleAddress
 	supplyKeeper := common.NewKeeper(addressMap)
 	oracleKeeper := oracle.NewKeeper(a.GetStateDB(), types2.DefaultConsensusNeeded)
 
+	elog.Info("newAction", "newAction", "done")
 	return &action{a.GetAPI(), a.GetCoinsAccount(), a.GetStateDB(), hash, fromaddr,
 		a.GetBlockTime(), a.GetHeight(), index, dapp.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(supplyKeeper, oracleKeeper, a.GetStateDB())}
 }
 
 //ethereum ---> chain33
 func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*types.Receipt, error) {
-	var receipt *types.Receipt
+	receipt := new(types.Receipt)
 	msgEthBridgeClaim := ethbridge.NewMsgCreateEthBridgeClaim(*ethBridgeClaim)
 	if err := msgEthBridgeClaim.ValidateBasic(); err != nil {
 		return nil, err
@@ -65,6 +66,13 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 	if err != nil {
 		return nil, err
 	}
+
+	statusBytes, err := json.Marshal(status)
+	if err != nil {
+		return nil, types.ErrMarshal
+	}
+
+	receipt.KV = append(receipt.KV, &types.KeyValue{Key: types2.CalProphecyPrefix(), Value: statusBytes})
 
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_SuccessStatusText) {
 		accDB, err := a.createAccount(ethBridgeClaim.LocalCoinExec, ethBridgeClaim.LocalCoinSymbol)
@@ -83,7 +91,7 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 		if err != nil {
 			return nil, err
 		}
-		receipt.KV = append(receipt.KV, receipt.KV...)
+		receipt.KV = append(receipt.KV, r.KV...)
 		receipt.Logs = append(receipt.Logs, r.Logs...)
 	}
 
@@ -91,13 +99,7 @@ func (a *action) procMsgEthBridgeClaim(ethBridgeClaim *types2.EthBridgeClaim) (*
 	if err != nil {
 		return nil, types.ErrMarshal
 	}
-
-	statusBytes, err := json.Marshal(status)
-	if err != nil {
-		return nil, types.ErrMarshal
-	}
-
-	receipt.KV = append(receipt.KV, &types.KeyValue{Key: msgEthBridgeClaimBytes, Value: statusBytes})
+	receipt.KV = append(receipt.KV, &types.KeyValue{Key: types2.CalEthBridgeClaimPrefix(), Value: msgEthBridgeClaimBytes})
 
 	execlog := &types.ReceiptLog{Ty: types2.TyEthBridgeClaimLog, Log: types.Encode(&types2.ReceiptEthBridgeClaim{
 		EthereumChainID:       msgEthBridgeClaim.EthereumChainID,
@@ -144,6 +146,12 @@ func (a *action) procMsgLock(msgLock *types2.MsgLock) (*types.Receipt, error) {
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
+	msgLockBytes, err := json.Marshal(msgLock)
+	if err != nil {
+		return nil, types.ErrMarshal
+	}
+	receipt.KV = append(receipt.KV, &types.KeyValue{Key: types2.CalLockPrefix(), Value: msgLockBytes})
+
 	receipt.Ty = types.ExecOk
 	return receipt, nil
 }
@@ -172,6 +180,12 @@ func (a *action) procMsgBurn(msgBurn *types2.MsgBurn) (*types.Receipt, error) {
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
+	msgBurnBytes, err := json.Marshal(msgBurn)
+	if err != nil {
+		return nil, types.ErrMarshal
+	}
+	receipt.KV = append(receipt.KV, &types.KeyValue{Key: types2.CalBurnPrefix(), Value: msgBurnBytes})
+
 	receipt.Ty = types.ExecOk
 	return receipt, nil
 }
@@ -180,7 +194,8 @@ func (a *action) procMsgBurn(msgBurn *types2.MsgBurn) (*types.Receipt, error) {
 //这里注册的validator的power之和可能不为1，需要在内部进行加权
 //返回的回执中，KV包含所有validator的power值，Log中包含本次注册的validator的power值
 func (a *action) procMsgLogInValidator(msgLogInValidator *types2.MsgValidator) (*types.Receipt, error) {
-	receipt := new(types.Receipt)
+	empty := false
+	elog.Info("procMsgLogInValidator", "start", msgLogInValidator)
 
 	receipt, err := a.keeper.ProcessLogInValidator(msgLogInValidator.Address, msgLogInValidator.Power)
 	if err != nil {
@@ -189,14 +204,32 @@ func (a *action) procMsgLogInValidator(msgLogInValidator *types2.MsgValidator) (
 
 	validatorsMapBytes, err := a.db.Get(types2.ValidatorMapsKey)
 	if err != nil {
-		return nil, err
+		if err != types.ErrNotFound {
+			return nil, err
+		} else {
+			empty = true
+		}
 	}
 
-	//可能会有问题
-	var validators []*types2.MsgValidator
-	err = json.Unmarshal(validatorsMapBytes, validators)
-	if err != nil {
-		return nil, err
+	var validatorMap []oracle.ValidatorMap
+	if !empty {
+		err = json.Unmarshal(validatorsMapBytes, &validatorMap)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	validators := make([]*types2.MsgValidator, len(validatorMap)+1)
+	for index, mv := range validatorMap {
+		validators[index] = &types2.MsgValidator{
+			Address: mv.Address,
+			Power:   mv.Power,
+		}
+	}
+
+	validators[len(validatorMap)] = &types2.MsgValidator{
+		Address: msgLogInValidator.Address,
+		Power:   msgLogInValidator.Power,
 	}
 
 	execlog := &types.ReceiptLog{Ty: types2.TyMsgLogInValidatorLog, Log: types.Encode(&types2.ReceiptLogIn{
@@ -220,16 +253,14 @@ func (a *action) procMsgLogOutValidator(msgLogOutValidator *types2.MsgValidator)
 		return nil, err
 	}
 
-	validatorsMapBytes, err := a.db.Get(types2.ValidatorMapsKey)
-	if err != nil {
-		return nil, err
-	}
-
-	//可能会有问题
-	var validators []*types2.MsgValidator
-	err = json.Unmarshal(validatorsMapBytes, validators)
-	if err != nil {
-		return nil, err
+	validators := make([]*types2.MsgValidator, len(receipt.KV))
+	for index, kv := range receipt.KV {
+		var mv types2.MsgValidator
+		err := json.Unmarshal(kv.Value, &mv)
+		if err != nil {
+			return nil, types.ErrUnmarshal
+		}
+		validators[index] = &mv
 	}
 
 	execlog := &types.ReceiptLog{Ty: types2.TyMsgLogOutValidatorLog, Log: types.Encode(&types2.ReceiptLogOut{
@@ -260,6 +291,12 @@ func (a *action) procMsgSetConsensusNeeded(msgSetConsensusNeeded *types2.MsgSetC
 		XHeight:            uint64(a.height),
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
+
+	msgSetConsensusNeededBytes, err := json.Marshal(msgSetConsensusNeeded)
+	if err != nil {
+		return nil, types.ErrMarshal
+	}
+	receipt.KV = append(receipt.KV, &types.KeyValue{Key: types2.CalConsensusNeededPrefix(), Value: msgSetConsensusNeededBytes})
 
 	receipt.Ty = types.ExecOk
 	return receipt, nil

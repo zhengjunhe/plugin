@@ -1,9 +1,13 @@
 package types
 
 var (
-	LastTotalPowerKey  = []byte{0x12}
-	ValidatorMapsKey   = []byte{0x13}
-	ConsensusNeededKey = []byte{0x14}
+	ProphecyKey        = []byte("prefix_for_ProphecyKey")
+	EthBridgeClaimKey  = []byte("prefix_for_EthBridgeClaim")
+	LockKey            = []byte("prefix_for_LockKey")
+	BurnKey            = []byte("prefix_for_BurnKey")
+	LastTotalPowerKey  = []byte("prefix_for_LastTotalPowerKey")
+	ValidatorMapsKey   = []byte("prefix_for_ValidatorMapsKey")
+	ConsensusNeededKey = []byte("prefix_for_ConsensusNeededKey")
 )
 
 // log for x2ethereum
@@ -36,6 +40,6 @@ const (
 	NameMsgSetConsensusNeededAction = "MsgSetConsensusNeeded"
 )
 
-const ModuleName = "x2ethereum"
+const ModuleName = "x2ethereumBank"
 
 const DefaultConsensusNeeded = 0.7

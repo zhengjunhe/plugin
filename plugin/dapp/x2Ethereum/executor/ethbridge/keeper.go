@@ -92,47 +92,74 @@ func (k Keeper) ProcessLock(address, execAddr string, amount int64, accDB *accou
 }
 
 //todo
-//对于相同的地址该如何处理?
+// 对于相同的地址该如何处理?
+// 现有方案是相同地址power覆盖处理
 func (k Keeper) ProcessLogInValidator(address string, power float64) (*types2.Receipt, error) {
+	//flg 为true时，则说明有相同地址
+	flg := false
 	receipt := new(types2.Receipt)
 
 	validatorMaps, err := k.oracleKeeper.GetValidatorArray()
-	if err != nil {
+	if err != nil && err != types2.ErrNotFound {
 		return nil, err
 	}
 
 	elog.Info("ProcessLogInValidator", "pre validatorMaps", validatorMaps, "Add Address", address, "Add power", power)
 	var totalPower float64
 	for _, p := range validatorMaps {
-		receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
-		totalPower += p.Power
-	}
-	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(address), Value: common.Float64ToBytes(power)})
-	totalPower += power
+		if p.Address != address {
+			v, _ := json.Marshal(p)
+			receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalValidatorMapsPrefix(), Value: v})
+			totalPower += p.Power
+		} else {
+			v, _ := json.Marshal(oracle.ValidatorMap{
+				Address: address,
+				Power:   power,
+			})
+			receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalValidatorMapsPrefix(), Value: v})
+			totalPower += power
+			flg = true
+		}
 
-	validatorMaps = append(validatorMaps, oracle.ValidatorMap{
-		Address: address,
-		Power:   power,
-	})
-	validatorMapsBytes, err := json.Marshal(validatorMaps)
-	if err != nil {
-		return nil, types2.ErrMarshal
-	}
-	err = k.db.Set(types.ValidatorMapsKey, validatorMapsBytes)
-	if err != nil {
-		return nil, types.ErrSetKV
 	}
 
-	err = k.db.Set(types.LastTotalPowerKey, common.Float64ToBytes(totalPower))
-	if err != nil {
-		return nil, types.ErrSetKV
+	if !flg {
+		v, _ := json.Marshal(oracle.ValidatorMap{
+			Address: address,
+			Power:   power,
+		})
+		receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalValidatorMapsPrefix(), Value: v})
+		totalPower += power
 	}
+
+	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalLastTotalPowerPrefix(), Value: common.Float64ToBytes(totalPower)})
+
+	//validatorMaps = append(validatorMaps, oracle.ValidatorMap{
+	//	Address: address,
+	//	Power:   power,
+	//})
+	//validatorMapsBytes, err := json.Marshal(validatorMaps)
+	//if err != nil {
+	//	return nil, types2.ErrMarshal
+	//}
+	//err = k.db.Set(types.ValidatorMapsKey, validatorMapsBytes)
+	//if err != nil {
+	//	return nil, types.ErrSetKV
+	//}
+	//
+	//err = k.db.Set(types.LastTotalPowerKey, common.Float64ToBytes(totalPower))
+	//if err != nil {
+	//	return nil, types.ErrSetKV
+	//}
 
 	return receipt, nil
 }
 
+//LogOut的power代表的是减少的量
 func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.Receipt, error) {
 	receipt := new(types2.Receipt)
+	//flg 为true时，则说明有相同地址
+	flg := false
 
 	validatorMaps, err := k.oracleKeeper.GetValidatorArray()
 	if err != nil {
@@ -143,7 +170,11 @@ func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.R
 	var totalPower float64
 	for index, p := range validatorMaps {
 		if address != p.Address {
-			receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
+			bz, _ := json.Marshal(types.MsgValidator{
+				Address: address,
+				Power:   power,
+			})
+			receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalValidatorMapsPrefix(), Value: bz})
 		} else {
 			if p.Power < power {
 				return nil, types.ErrLogOutPowerIsTooBig
@@ -152,17 +183,28 @@ func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.R
 				continue
 			} else {
 				p.Power -= power
-				receipt.KV = append(receipt.KV, &types2.KeyValue{Key: []byte(p.Address), Value: common.Float64ToBytes(p.Power)})
+				bz, _ := json.Marshal(types.MsgValidator{
+					Address: address,
+					Power:   p.Power,
+				})
+				receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalValidatorMapsPrefix(), Value: bz})
 			}
+			flg = true
 		}
 		totalPower += p.Power
 	}
 
-	validatorMapsBytes, err := json.Marshal(validatorMaps)
-	if err != nil {
-		return nil, types2.ErrMarshal
+	if flg {
+		return nil, types.ErrLogOutAddressNotExist
 	}
-	err = k.db.Set(types.ValidatorMapsKey, validatorMapsBytes)
+
+	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalLastTotalPowerPrefix(), Value: common.Float64ToBytes(totalPower)})
+
+	//validatorMapsBytes, err := json.Marshal(validatorMaps)
+	//if err != nil {
+	//	return nil, types2.ErrMarshal
+	//}
+	//_ = k.db.Set(types.ValidatorMapsKey, validatorMapsBytes)
 
 	return receipt, nil
 }
@@ -178,7 +220,9 @@ func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (*types2.Rece
 
 	elog.Info("ProcessSetConsensusNeeded", "pre ConsensusNeeded", preCon, "now ConsensusNeeded", nowCon)
 
-	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.ConsensusNeededKey, Value: common.Float64ToBytes(consensusNeeded)})
+	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalConsensusNeededPrefix(), Value: common.Float64ToBytes(consensusNeeded)})
+
+	_ = k.db.Set(types.ConsensusNeededKey, common.Float64ToBytes(consensusNeeded))
 
 	return receipt, preCon, nowCon, nil
 }

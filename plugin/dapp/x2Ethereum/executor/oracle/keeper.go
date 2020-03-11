@@ -35,16 +35,24 @@ func (k Keeper) GetProphecy(id string) (Prophecy, error) {
 		return NewEmptyProphecy(), types.ErrInvalidIdentifier
 	}
 
-	bz, err := k.db.Get([]byte(id))
-	if err != nil {
+	bz, err := k.db.Get(types.CalProphecyPrefix())
+	if err != nil && err != types2.ErrNotFound {
 		return NewEmptyProphecy(), types.ErrProphecyGet
-	} else if bz == nil {
+	} else if err == types2.ErrNotFound {
 		return NewEmptyProphecy(), types.ErrProphecyNotFound
 	}
+	var dbProphecys []DBProphecy
 	var dbProphecy DBProphecy
-	err = json.Unmarshal(bz, &dbProphecy)
+	err = json.Unmarshal(bz, &dbProphecys)
 	if err != nil {
 		return NewEmptyProphecy(), types2.ErrUnmarshal
+	}
+
+	for _, p := range dbProphecys {
+		if p.ID == id {
+			dbProphecy = p
+			continue
+		}
 	}
 
 	deSerializedProphecy, err := dbProphecy.DeserializeFromDB()
@@ -56,24 +64,49 @@ func (k Keeper) GetProphecy(id string) (Prophecy, error) {
 
 // setProphecy saves a prophecy with an initial claim
 func (k Keeper) setProphecy(prophecy Prophecy) error {
+	err := k.checkProphecy(prophecy)
+	if err != nil {
+		return err
+	}
+
+	serializedProphecy, err := prophecy.SerializeForDB()
+	if err != nil {
+		return types.ErrinternalDB
+	}
+
+	bz, err := k.db.Get(types.CalProphecyPrefix())
+	if err != nil && err != types2.ErrNotFound {
+		return types.ErrProphecyGet
+	}
+
+	var dbProphecys []DBProphecy
+	if err != types2.ErrNotFound {
+		err = json.Unmarshal(bz, &dbProphecys)
+		if err != nil {
+			return types2.ErrUnmarshal
+		}
+	}
+
+	dbProphecys = append(dbProphecys, serializedProphecy)
+
+	serializedProphecyBytes, err := json.Marshal(dbProphecys)
+	if err != nil {
+		return types2.ErrMarshal
+	}
+
+	err = k.db.Set(types.CalProphecyPrefix(), serializedProphecyBytes)
+	if err != nil {
+		return types.ErrSetKV
+	}
+	return nil
+}
+
+func (k Keeper) checkProphecy(prophecy Prophecy) error {
 	if prophecy.ID == "" {
 		return types.ErrInvalidIdentifier
 	}
 	if len(prophecy.ClaimValidators) == 0 {
 		return types.ErrNoClaims
-	}
-	serializedProphecy, err := prophecy.SerializeForDB()
-	if err != nil {
-		return types.ErrinternalDB
-	}
-	serializedProphecyBytes, err := json.Marshal(serializedProphecy)
-	if err != nil {
-		return types2.ErrMarshal
-	}
-
-	err = k.db.Set([]byte(prophecy.ID), serializedProphecyBytes)
-	if err != nil {
-		return types.ErrSetKV
 	}
 	return nil
 }
@@ -102,7 +135,7 @@ func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 	}
 	prophecy.AddClaim(claim.ValidatorAddress, claim.Content)
 	prophecy, err = k.processCompletion(prophecy)
-	err = k.setProphecy(prophecy)
+	err = k.checkProphecy(prophecy)
 	if err != nil {
 		return Status{}, err
 	}
