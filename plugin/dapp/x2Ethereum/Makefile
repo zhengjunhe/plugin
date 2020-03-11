@@ -25,10 +25,10 @@ default: build
 
 build:
 	@go build -v -i -o $(EBRELAER) $(SRC_EBRELAYER)
-	@go build -v -i -o $(EBRELAER_A) $(SRC_EBRELAYER)
-	@go build -v -i -o $(EBRELAER_B) $(SRC_EBRELAYER)
-	@go build -v -i -o $(EBRELAER_C) $(SRC_EBRELAYER)
-	@go build -v -i -o $(EBRELAER_D) $(SRC_EBRELAYER)
+	@cp $(EBRELAER) $(EBRELAER_A)
+	@cp $(EBRELAER) $(EBRELAER_B)
+	@cp $(EBRELAER) $(EBRELAER_C)
+	@cp $(EBRELAER) $(EBRELAER_D)
 	@go build -v -i -o $(CLI_A) $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_B) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9902" $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_C) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9903" $(SRC_EBCLI)

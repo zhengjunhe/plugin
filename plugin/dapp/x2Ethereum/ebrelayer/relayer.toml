@@ -1,8 +1,10 @@
 # 本配置文件专门用于33复杂美闪电网络使用,即lns33
 title="x2Ethereum_relayer"
-JrpcBindAddr="0.0.0.0:7701"
+#用于cli向该relayer进行配置
+JrpcBindAddr="localhost:9901"
+EthProvider="ws://127.0.0.1:7545/"
 
-[syncConfig]
+[SyncTxConfig]
 chain33Host="http://localhost:8801"
 pushHost="192.168.0.135:20000"
 pushName="fzm_lns"
@@ -11,8 +13,7 @@ maturityDegree=12
 dbdriver="leveldb"
 dbPath="datadir"
 dbCache=64
-newHeightConcurrnet=10
-send2AppConcurrnet=10
+fetchHeightPeriodMs=5000
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit

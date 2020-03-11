@@ -6,7 +6,7 @@ package main
 import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
-	chain33Types "github.com/33cn/chain33/types"
+	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/spf13/cobra"
 )
 
@@ -52,9 +52,9 @@ func setPwd(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	oldPwd, _ := cmd.Flags().GetString("old")
 	newPwd, _ := cmd.Flags().GetString("new")
-	params := chain33Types.ReqWalletSetPasswd{
-		OldPass: oldPwd,
-		NewPass: newPwd,
+	params := relayerTypes.ReqSetPasswd{
+		OldPassphase: oldPwd,
+		NewPassphase: newPwd,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.SetPassphase", params, &res)
@@ -99,7 +99,7 @@ func unLock(cmd *cobra.Command, args []string) {
 	pwd, _ := cmd.Flags().GetString("pwd")
 
 	params := pwd
-	var res rpctypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.UnLock", params, &res)
+	var res string
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.Unlock", params, &res)
 	ctx.Run()
 }
