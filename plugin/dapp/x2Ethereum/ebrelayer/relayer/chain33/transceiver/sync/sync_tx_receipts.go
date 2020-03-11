@@ -5,6 +5,7 @@ package sync
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 	dbm "github.com/33cn/chain33/common/db"
 	l "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/rpc/jsonclient"
-	rpcTypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/rs/cors"
@@ -28,7 +28,7 @@ func StartSyncTxReceipt(cfg *relayerTypes.SyncTxReceiptConfig, syncChan chan<- i
 	log.Debug("StartSyncTxReceipt, load config", "para:", cfg)
 	log.Debug("SyncTxReceipts started ")
 
-	bind(cfg.Chain33Host, cfg.PushName, "http://"+cfg.PushHost, "proto")
+	bind(cfg.Chain33Host, cfg.PushName, "http://"+cfg.PushHost, "proto", cfg.StartSyncHeight)
 	syncTxReceipts = NewSyncTxReceipts(db, syncChan)
 	go syncTxReceipts.SaveAndSyncTxs2Relayer()
 	go startHTTPService(cfg.PushBind, "*")
@@ -117,17 +117,21 @@ func checkClient(addr string, expectClient string) bool {
 	return addr == expectClient
 }
 
-func bind(rpcAddr, name, url, encode string) {
-	params := types.BlockSeqCB{
+func bind(rpcAddr, name, url, encode string, startHeight int64) {
+	params := types.SubscribeTxReceipt{
 		Name:   name,
 		URL:    url,
 		Encode: encode,
+		LastHeight:startHeight,
+		Contract:"coins",
 	}
-	var res rpcTypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcAddr, "Chain33.AddSeqCallBack", params, &res)
+	var res types.ReplySubTxReceipt
+	ctx := jsonclient.NewRPCCtx(rpcAddr, "Chain33.AddSubscribeTxReceipt", params, &res)
 	_, err := ctx.RunResult()
 	if err != nil {
+		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", rpcAddr)
 		log.Error("bind", "sync tx receipts err:", err.Error())
 		panic("bind client failed" + err.Error())
 	}
+	fmt.Println("Succeed to AddSubscribeTxReceipt")
 }

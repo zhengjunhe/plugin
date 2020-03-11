@@ -12,6 +12,7 @@ message SyncTxConfig {
   string dbPath = 7;   //数据库存储目录
   int32 dbCache = 8;   //数据库缓存大小
   int64 fetchHeightPeriodMs = 9;
+  int64 startSyncHeight = 10;
 }
 
 message Log {
@@ -40,4 +41,5 @@ message SyncTxReceiptConfig {
   string pushHost = 2;
   string pushName = 3;
   string pushBind = 4;
+  int64 startSyncHeight = 5;
 }

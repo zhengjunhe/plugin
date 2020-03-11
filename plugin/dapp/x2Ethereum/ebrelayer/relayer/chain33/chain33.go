@@ -62,6 +62,7 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, db dbm.DB, ctx cont
 		PushHost:    syncTxConfig.PushHost,
 		PushName:    syncTxConfig.PushName,
 		PushBind:    syncTxConfig.PushBind,
+		StartSyncHeight: syncTxConfig.StartSyncHeight,
 	}
 
 	go relayer.syncProc(syncCfg)

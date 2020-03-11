@@ -128,7 +128,7 @@ func (ethRelayer *EthereumRelayer) RestorePrivateKeys(passPhase string) (err err
 	}
 
 	if ethRelayer.privateKey4Ethereum != nil &&  nil != ethRelayer.privateKey4Chain33{
-		ethRelayer.unlockchan<-start
+		//ethRelayer.unlockchan<-start
 	}
 
 	return nil

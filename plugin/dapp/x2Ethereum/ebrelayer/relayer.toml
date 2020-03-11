@@ -14,6 +14,7 @@ dbdriver="leveldb"
 dbPath="datadir"
 dbCache=64
 fetchHeightPeriodMs=5000
+startSyncHeight=100
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit

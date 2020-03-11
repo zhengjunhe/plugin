@@ -34,11 +34,10 @@ func (chain33Relayer *Chain33Relayer) setLastestRelay2EthTxhash(txhash string, t
 //获取上次同步到app的高度
 func (chain33Relayer *Chain33Relayer) loadLastSyncHeight() int64 {
 	height, err := utils.LoadInt64FromDB(lastSyncHeightPrefix, chain33Relayer.db)
-	if nil != err {
+	if nil != err && err != types.ErrHeightNotExist {
 		relayerLog.Error("loadLastSyncHeight", "err:", err.Error())
 		return 0
 	}
-	relayerLog.Error("loadLastSyncHeight", "err:", err.Error())
 	return height
 }
 
