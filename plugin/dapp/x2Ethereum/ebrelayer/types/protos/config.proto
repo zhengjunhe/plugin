@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package types;
 
-message TxReceiptConfig {
+message SyncTxConfig {
   string chain33host = 1;
   string pushHost = 2;
   string pushName = 3;
@@ -11,9 +11,7 @@ message TxReceiptConfig {
   string dbdriver = 6; //数据库类型
   string dbPath = 7;   //数据库存储目录
   int32 dbCache = 8;   //数据库缓存大小
-  int32 newHeightConcurrnet = 9;
-  int32 send2AppConcurrnet = 10;
-  int64 fetchHeightPeriodMs = 11;
+  int64 fetchHeightPeriodMs = 9;
 }
 
 message Log {
@@ -31,9 +29,10 @@ message Log {
 
 message RelayerConfig {
   string title = 1;
-  TxReceiptConfig syncTxConfig = 2;
+  SyncTxConfig syncTxConfig = 2;
   Log log = 3;
   string jrpcBindAddr = 4; // Jrpc服务地址
+  string ethProvider  = 5;
 }
 
 message SyncTxReceiptConfig {

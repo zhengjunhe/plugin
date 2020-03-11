@@ -19,7 +19,7 @@ message Txhashes {
     repeated string txhash = 1;
 }
 
-message ReqWalletSetPasswd {
+message ReqSetPasswd {
     string oldPassphase = 1;
     string newPassphase = 2;
 }
@@ -47,4 +47,13 @@ message EthBridgeClaim {
     int64 amount = 9;
     int32 claimType = 10;
     string chainName = 11;
+}
+
+message ImportKeyReq {
+    string privateKey = 1;
+}
+
+message RelayerRunStatus {
+    int32 status = 1;
+    string details = 2;
 }

@@ -58,7 +58,8 @@ func run(RPCAddr string) {
 	RPCAddr = testTLS(RPCAddr)
 	pluginmgr.AddCmd(rootCmd)
 	log.SetLogLevel("error")
-	rootCmd.PersistentFlags().String("rpc_laddr", "", "http url")
+	rootCmd.PersistentFlags().String("rpc_laddr", RPCAddr, "http url")
+	//rootCmd.PersistentFlags().String("rpc_laddr", "", "http url")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

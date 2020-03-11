@@ -25,10 +25,10 @@ var (
 )
 
 func StartSyncTxReceipt(cfg *relayerTypes.SyncTxReceiptConfig, syncChan chan<- int64, db dbm.DB) *SyncTxReceipts {
-	log.Debug("StartSyncTxReceipt, load config", "h1", cfg.Chain33Host, "me", cfg.PushHost, "me-bind", cfg.PushBind)
+	log.Debug("StartSyncTxReceipt, load config", "para:", cfg)
 	log.Debug("SyncTxReceipts started ")
 
-	bind(cfg.Chain33Host, cfg.PushName, "http://"+cfg.PushHost, "proto")
+	//(cfg.Chain33Host, cfg.PushName, "http://"+cfg.PushHost, "proto")
 	syncTxReceipts = NewSyncTxReceipts(db, syncChan)
 	go syncTxReceipts.SaveAndSyncTxs2Relayer()
 	go startHTTPService(cfg.PushBind, "*")
@@ -127,6 +127,7 @@ func bind(rpcAddr, name, url, encode string) {
 	ctx := jsonclient.NewRPCCtx(rpcAddr, "Chain33.AddSeqCallBack", params, &res)
 	_, err := ctx.RunResult()
 	if err != nil {
-		panic("bind client failed" + err.Error())
+		log.Error("bind", "sync tx receipts err:", err.Error())
+		//panic("bind client failed" + err.Error())
 	}
 }

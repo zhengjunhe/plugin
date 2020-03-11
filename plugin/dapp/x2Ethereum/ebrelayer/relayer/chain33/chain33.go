@@ -44,14 +44,17 @@ type Chain33Relayer struct {
 	wg                   sync.WaitGroup
 	rwLock               sync.RWMutex
 	unlock               chan int
+	status               int32
 }
 
 // StartChain33Relayer : initializes a relayer which witnesses events on the chain33 network and relays them to Ethereum
-func StartChain33Relayer(syncTxConfig *ebTypes.TxReceiptConfig, db dbm.DB) *Chain33Relayer {
+func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, db dbm.DB, ctx context.Context) *Chain33Relayer {
 	relayer := &Chain33Relayer{
 		rpcLaddr:            syncTxConfig.Chain33Host,
 		fetchHeightPeriodMs: syncTxConfig.FetchHeightPeriodMs,
 		unlock: make(chan int),
+		db:db,
+		ctx:ctx,
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -76,10 +79,25 @@ func (chain33Relayer *Chain33Relayer) QueryTxhashRelay2Eth() ebTypes.Txhashes {
 	return ebTypes.Txhashes{Txhash:txhashs}
 }
 
+func (chain33Relayer *Chain33Relayer) GetRunningStatus() (relayerRunStatus *ebTypes.RelayerRunStatus) {
+	relayerRunStatus = &ebTypes.RelayerRunStatus{}
+	chain33Relayer.rwLock.RLock()
+	relayerRunStatus.Status = chain33Relayer.status
+	chain33Relayer.rwLock.RUnlock()
+	if relayerRunStatus.Status == ebTypes.StatusPending {
+		if nil == chain33Relayer.privateKey4Ethereum {
+			relayerRunStatus.Details = "Ethereum's private key not imported"
+		}
+		return
+	}
+	relayerRunStatus.Details = "Running"
+	return
+}
+
 func (chain33Relayer *Chain33Relayer) syncProc(syncCfg *ebTypes.SyncTxReceiptConfig) {
 	fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Chain33 relayer")
 	<-chain33Relayer.unlock
-	fmt.Fprintln(os.Stdout, "Chain33 relayer has been unlocked or private key has been imported")
+	fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
 
 	syncChan := make(chan int64, 10)
 	chain33Relayer.syncTxReceipts = syncTx.StartSyncTxReceipt(syncCfg, syncChan, chain33Relayer.db)

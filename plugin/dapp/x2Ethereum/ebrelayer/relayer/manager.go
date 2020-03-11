@@ -2,12 +2,14 @@ package relayer
 
 import (
 	"errors"
+	"fmt"
 	dbm "github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/common/log/log15"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"sync"
 	"sync/atomic"
@@ -50,10 +52,11 @@ func NewRelayerManager(chain33Relayer *chain33.Chain33Relayer, ethRelayer *ether
 	return manager
 }
 
-func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqWalletSetPasswd, result *interface{}) error {
+func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqSetPasswd, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	// 新密码合法性校验
+	fmt.Printf("\nnew:%s, old:%s\n", setPasswdReq.NewPassphase, setPasswdReq.OldPassphase)
 	if !utils.IsValidPassWord(setPasswdReq.NewPassphase) {
 		return chain33Types.ErrInvalidPassWord
 	}
@@ -100,6 +103,12 @@ func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqWalletS
 		return err
 	}
 
+	err = manager.chain33Relayer.StoreAccountWithNewPassphase(setPasswdReq.NewPassphase, setPasswdReq.OldPassphase)
+	if err != nil {
+		mlog.Error("SetPassphase", "StoreAccountWithNewPassphase err", err)
+		return err
+	}
+
 	err = newBatch.Write()
 	if err != nil {
 		mlog.Error("ProcWalletSetPasswd newBatch.Write", "err", err)
@@ -107,6 +116,11 @@ func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqWalletS
 	}
 	manager.passphase = setPasswdReq.NewPassphase
 	atomic.StoreInt64(&manager.encryptFlag, EncryptEnable)
+
+	*result = rpctypes.Reply{
+		IsOk:true,
+		Msg:"Succeed to set passphase",
+	}
 	return nil
 }
 
@@ -125,6 +139,15 @@ func (manager *RelayerManager) Unlock(passphase string, result *interface{}) err
 		return errors.New("wrong passphase")
 	}
 
+	if err := manager.chain33Relayer.RestorePrivateKeys(passphase); nil != err {
+		info := fmt.Sprintf("Failed to RestorePrivateKeys for chain33Relayer due to:%s", err.Error())
+		return errors.New(info)
+	}
+	if err := manager.ethRelayer.RestorePrivateKeys(passphase); nil != err {
+		info := fmt.Sprintf("Failed to RestorePrivateKeys for ethRelayer due to:%s", err.Error())
+		return errors.New(info)
+	}
+
 	manager.isLocked = Unlocked
 	manager.passphase = passphase
 	*result = "Succeed to unlock"
@@ -140,13 +163,18 @@ func (manager *RelayerManager) Lock(param interface{}, result *interface{}) erro
 		return err
 	}
 	manager.isLocked = Locked
+	*result = rpctypes.Reply{
+		IsOk:true,
+		Msg:"Succeed to lock",
+	}
 	return nil
 }
 
 //导入chain33relayer验证人的私钥,该私钥实际用于向ethereum提交验证交易时签名使用
-func (manager *RelayerManager) ImportChain33RelayerPrivateKey(privateKey string, result *interface{}) error {
+func (manager *RelayerManager) ImportChain33RelayerPrivateKey(importKeyReq relayerTypes.ImportKeyReq, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	privateKey := importKeyReq.PrivateKey
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
@@ -156,7 +184,10 @@ func (manager *RelayerManager) ImportChain33RelayerPrivateKey(privateKey string,
 		return err
 	}
 
-	*result = "Succeed to import private key for chain33 relayer"
+	*result = rpctypes.Reply{
+		IsOk:true,
+		Msg:"Succeed to import private key for chain33 relayer",
+	}
 	return nil
 }
 
@@ -187,7 +218,10 @@ func (manager *RelayerManager) ImportChain33PrivateKey4EthRelayer(privateKey str
 	if err := manager.ethRelayer.ImportChain33PrivateKey(manager.passphase, privateKey); nil != err {
 		return err
 	}
-	*result = "Succeed to import chain33 private key for ethereum relayer"
+	*result = rpctypes.Reply{
+		IsOk:true,
+		Msg:"Succeed to import chain33 private key for ethereum relayer",
+	}
 	return nil
 }
 
@@ -222,6 +256,20 @@ func (manager *RelayerManager) checkPermission() error {
 	if Locked == manager.isLocked {
 		return errors.New("pls unlock this relay-manager first")
 	}
+	return nil
+}
+
+func (manager *RelayerManager) ShowEthRelayerStatus(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	*result = manager.ethRelayer.GetRunningStatus()
+	return nil
+}
+
+func (manager *RelayerManager) ShowChain33RelayerStatus(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	*result = manager.chain33Relayer.GetRunningStatus()
 	return nil
 }
 

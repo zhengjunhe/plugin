@@ -30,14 +30,14 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/contract"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/txs"
-	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 
 type EthereumRelayer struct {
-	provider             string
-	contractAddress      common.Address
+	provider        string
+	contractAddress common.Address
 	//validatorName        string
-	db                   dbm.DB
+	db dbm.DB
 	//passphase            string
 	rwLock               sync.RWMutex
 	validatorAddress     []byte
@@ -48,30 +48,62 @@ type EthereumRelayer struct {
 	totalTx4Chain33ToEth int64
 	rpcURL2Chain33       string
 	unlockchan           chan int
+	status               int32
 }
 
 var (
 	relayerLog = log.New("module", "ethereum_relayer")
 )
 
-func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB) *EthereumRelayer {
+func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider string) *EthereumRelayer {
 	relayer := &EthereumRelayer{
-		db:         db,
-		unlockchan: make(chan int),
-		rpcURL2Chain33:rpcURL2Chain33,
+		provider:       provider,
+		db:             db,
+		unlockchan:     make(chan int),
+		rpcURL2Chain33: rpcURL2Chain33,
+		status:         ebTypes.StatusPending,
 	}
 
 	go relayer.proc()
 	return relayer
 }
 
+func (ethRelayer *EthereumRelayer) SetPrivateKey4Ethereum(privateKey4Ethereum *ecdsa.PrivateKey) {
+	ethRelayer.rwLock.Lock()
+	defer ethRelayer.rwLock.Unlock()
+	ethRelayer.privateKey4Ethereum = privateKey4Ethereum
+	if ethRelayer.privateKey4Chain33 != nil {
+		ethRelayer.unlockchan <- start
+	}
+}
+
+func (ethRelayer *EthereumRelayer) GetRunningStatus() (relayerRunStatus *ebTypes.RelayerRunStatus) {
+	relayerRunStatus = &ebTypes.RelayerRunStatus{}
+	ethRelayer.rwLock.RLock()
+	relayerRunStatus.Status = ethRelayer.status
+	ethRelayer.rwLock.RUnlock()
+	if relayerRunStatus.Status == ebTypes.StatusPending {
+		if nil == ethRelayer.privateKey4Ethereum {
+			relayerRunStatus.Details = "Ethereum's private key not imported"
+		}
+
+		if nil == ethRelayer.privateKey4Chain33 {
+			relayerRunStatus.Details += "\nChain33's private key not imported"
+		}
+		return
+	}
+	relayerRunStatus.Details = "Running"
+	return
+}
+
 func (ethRelayer *EthereumRelayer) proc() {
 	// Start client with infura ropsten provider
+	relayerLog.Info("EthereumRelayer proc", "Started Ethereum websocket with provider:", ethRelayer.provider,
+		"rpcURL2Chain33:", ethRelayer.rpcURL2Chain33)
 	client, err := setupWebsocketEthClient(ethRelayer.provider)
 	if err != nil {
 		panic(err)
 	}
-	relayerLog.Info("EthereumRelayer proc", "\nStarted Ethereum websocket with provider:", ethRelayer.provider)
 
 	var targetContract txs.ContractRegistry
 	var eventName string
@@ -92,7 +124,7 @@ func (ethRelayer *EthereumRelayer) proc() {
 
 	fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Ethereum relayer")
 	<-ethRelayer.unlockchan
-	fmt.Fprintln(os.Stdout, "Ethereum relayer has been unlocked or private key has been imported")
+	fmt.Fprintln(os.Stdout, "Ethereum relayer starts to run...")
 	//等待解锁获取私钥或者导入私钥
 
 	sender, err := txs.LoadSender(ethRelayer.privateKey4Ethereum)
@@ -102,12 +134,14 @@ func (ethRelayer *EthereumRelayer) proc() {
 	}
 	ethRelayer.ethSender = *sender
 
+	fmt.Fprintln(os.Stdout, "Finsish LoadSender")
 	// Get the specific contract's address (CosmosBridge or BridgeBank)
 	targetAddress, err := txs.GetAddressFromBridgeRegistry(client, *sender, ethRelayer.contractAddress, targetContract)
 	if err != nil {
 		errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
 		panic(errinfo)
 	}
+	fmt.Fprintln(os.Stdout, "Finish GetAddressFromBridgeRegistry")
 
 	// We need the target address in bytes[] for the query
 	query := ethereum.FilterQuery{
@@ -162,14 +196,14 @@ func (ethRelayer *EthereumRelayer) proc() {
 //	ethRelayer.rwLock.Unlock()
 //}
 
-func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Eth() ebrelayerTypes.Txhashes {
+func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Eth() ebTypes.Txhashes {
 	txhashs := ethRelayer.queryTxhashes([]byte(chain33ToEthTxHashPrefix))
-	return ebrelayerTypes.Txhashes{Txhash:txhashs}
+	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
-func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Chain33() *ebrelayerTypes.Txhashes {
+func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Chain33() *ebTypes.Txhashes {
 	txhashs := ethRelayer.queryTxhashes([]byte(eth2chain33TxHashPrefix))
-	return &ebrelayerTypes.Txhashes{Txhash:txhashs}
+	return &ebTypes.Txhashes{Txhash: txhashs}
 }
 
 // handleLogLockEvent : unpacks a LogLock event, converts it to a ProphecyClaim, and relays a tx to chain33
