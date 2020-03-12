@@ -109,7 +109,7 @@ func (chain33Relayer *Chain33Relayer) syncProc(syncCfg *ebTypes.SyncTxReceiptCon
 		select {
 		case <-timer.C:
 			height := chain33Relayer.getCurrentHeight()
-			relayerLog.Debug("syncProc", "getCurrentHeight=", height)
+			relayerLog.Debug("syncProc", "getCurrentHeight", height)
 			chain33Relayer.onNewHeightProc(height)
 
 		case <-chain33Relayer.ctx.Done():
@@ -122,7 +122,10 @@ func (chain33Relayer *Chain33Relayer) syncProc(syncCfg *ebTypes.SyncTxReceiptCon
 func (chain33Relayer *Chain33Relayer) getCurrentHeight() int64 {
 	var res rpctypes.Header
 	ctx := jsonclient.NewRPCCtx(chain33Relayer.rpcLaddr, "Chain33.GetLastHeader", nil, &res)
-	ctx.Run()
+	_, err := ctx.RunResult()
+	if nil != err {
+		relayerLog.Error("getCurrentHeight", "Failede due to:", err.Error())
+	}
 	return res.Height
 }
 
@@ -132,6 +135,8 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 	//           ^             ^           ^
 	// lastHeight4Tx    matDegress   currentHeight
 	for chain33Relayer.lastHeight4Tx+int64(chain33Relayer.matDegree)+1 <= currentHeight {
+		relayerLog.Debug("onNewHeightProc", "currHeight", currentHeight, "lastHeight4Tx", chain33Relayer.lastHeight4Tx)
+
 		lastHeight4Tx := chain33Relayer.lastHeight4Tx
 		TxReceipts, err := chain33Relayer.syncTxReceipts.GetNextValidTxReceipts(lastHeight4Tx)
 		if nil == TxReceipts || nil != err {

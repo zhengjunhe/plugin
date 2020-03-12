@@ -59,8 +59,21 @@ func NewSyncTxReceipts(db dbm.DB, syncReceiptChan chan<- int64) *SyncTxReceipts 
 	sync.height, _ = sync.LoadLastBlockHeight()
 	sync.quit = make(chan struct{})
 	sync.syncReceiptChan = syncReceiptChan
+	sync.initSyncReceiptDataBase()
 
 	return sync
+}
+
+//此处添加一个高度为0的空块，只是为了查找下一个比较方便，并不需要使用其信息
+func (syncTx *SyncTxReceipts) initSyncReceiptDataBase() {
+	txblock0, _ := syncTx.GetTxReceipts(0)
+	if nil != txblock0 {
+		return
+	}
+	txsPerBlock := &types.TxReceipts4SubscribePerBlk{
+		Height:0,
+	}
+	syncTx.setTxReceiptsPerBlock(txsPerBlock)
 }
 
 func (syncTx *SyncTxReceipts) Stop() {
@@ -158,7 +171,9 @@ func (syncTx *SyncTxReceipts) updateSequence(newSequence int64) {
 func (syncTx *SyncTxReceipts) setTxReceiptsPerBlock(txReceipts *types.TxReceipts4SubscribePerBlk) {
 	key := txReceiptsKey4Height(txReceipts.Height)
 	value := types.Encode(txReceipts)
-	syncTx.db.Set(key, value)
+	if err := syncTx.db.Set(key, value); nil != err {
+		panic("setTxReceiptsPerBlock failed due to:"+err.Error())
+	}
 }
 
 func (syncTx *SyncTxReceipts) GetTxReceipts(height int64) (*types.TxReceipts4SubscribePerBlk, error) {
@@ -188,18 +203,11 @@ func (syncTx *SyncTxReceipts) GetNextValidTxReceipts(height int64) (*types.TxRec
 		return nil, err
 	}
 	return detail, nil
-
-
-
-
-
-
-
 }
 
 func (syncTx *SyncTxReceipts) delTxReceipts(height int64) {
 	key := txReceiptsKey4Height(height)
-	syncTx.db.Set(key, nil)
+	_ = syncTx.db.Set(key, nil)
 }
 
 // 检查输入是否有问题, 并解析输入
