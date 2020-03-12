@@ -52,17 +52,19 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, db dbm.DB, ctx cont
 	relayer := &Chain33Relayer{
 		rpcLaddr:            syncTxConfig.Chain33Host,
 		fetchHeightPeriodMs: syncTxConfig.FetchHeightPeriodMs,
-		unlock: make(chan int),
-		db:db,
-		ctx:ctx,
+		unlock:              make(chan int),
+		db:                  db,
+		ctx:                 ctx,
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
-		Chain33Host: syncTxConfig.Chain33Host,
-		PushHost:    syncTxConfig.PushHost,
-		PushName:    syncTxConfig.PushName,
-		PushBind:    syncTxConfig.PushBind,
-		StartSyncHeight: syncTxConfig.StartSyncHeight,
+		Chain33Host:       syncTxConfig.Chain33Host,
+		PushHost:          syncTxConfig.PushHost,
+		PushName:          syncTxConfig.PushName,
+		PushBind:          syncTxConfig.PushBind,
+		StartSyncHeight:   syncTxConfig.StartSyncHeight,
+		StartSyncSequence: syncTxConfig.StartSyncSequence,
+		StartSyncHash:     syncTxConfig.StartSyncHash,
 	}
 
 	go relayer.syncProc(syncCfg)
@@ -77,7 +79,7 @@ func (chain33Relayer *Chain33Relayer) SetPassphase(passphase string) {
 
 func (chain33Relayer *Chain33Relayer) QueryTxhashRelay2Eth() ebTypes.Txhashes {
 	txhashs := utils.QueryTxhashes([]byte(chain33ToEthBurnLockTxHashPrefix), chain33Relayer.db)
-	return ebTypes.Txhashes{Txhash:txhashs}
+	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
 func (chain33Relayer *Chain33Relayer) GetRunningStatus() (relayerRunStatus *ebTypes.RelayerRunStatus) {

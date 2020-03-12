@@ -29,7 +29,7 @@ func StartSyncTxReceipt(cfg *relayerTypes.SyncTxReceiptConfig, syncChan chan<- i
 	log.Debug("StartSyncTxReceipt, load config", "para:", cfg)
 	log.Debug("SyncTxReceipts started ")
 
-	bind(cfg.Chain33Host, cfg.PushName, "http://"+cfg.PushHost, "proto", cfg.StartSyncHeight)
+	bind(cfg)
 	syncTxReceipts = NewSyncTxReceipts(db, syncChan)
 	go syncTxReceipts.SaveAndSyncTxs2Relayer()
 	go startHTTPService(cfg.PushBind, "*")
@@ -118,25 +118,27 @@ func checkClient(addr string, expectClient string) bool {
 	return addr == expectClient
 }
 
-func bind(rpcAddr, name, url, encode string, startHeight int64) {
+func bind(cfg *relayerTypes.SyncTxReceiptConfig) {
 	params := types.SubscribeTxReceipt{
-		Name:   name,
-		URL:    url,
-		Encode: encode,
-		LastHeight:startHeight,
+		Name:   cfg.PushName,
+		URL:    cfg.PushHost,
+		Encode: "proto",
+		LastSequence:cfg.StartSyncSequence,
+		LastHeight:cfg.StartSyncHeight,
+		LastBlockHash:cfg.StartSyncHash,
 		Contract:"coins",
 	}
 	var res rpctypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcAddr, "Chain33.AddSubscribeTxReceipt", params, &res)
+	ctx := jsonclient.NewRPCCtx(cfg.Chain33Host, "Chain33.AddSubscribeTxReceipt", params, &res)
 	_, err := ctx.RunResult()
 	if err != nil {
-		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", rpcAddr, "ReplySubTxReceipt", res)
+		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", cfg.Chain33Host, "ReplySubTxReceipt", res)
 		panic("bind client failed due to:" + err.Error())
 	}
 	if !res.IsOk {
-		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", rpcAddr, "ReplySubTxReceipt", res)
+		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", cfg.Chain33Host, "ReplySubTxReceipt", res)
 		panic("bind client failed due to:" + res.Msg)
 	}
-	log.Info("bind", "Succeed to AddSubscribeTxReceipt for rpc address:", rpcAddr)
+	log.Info("bind", "Succeed to AddSubscribeTxReceipt for rpc address:", cfg.Chain33Host)
 	fmt.Println("Succeed to AddSubscribeTxReceipt")
 }

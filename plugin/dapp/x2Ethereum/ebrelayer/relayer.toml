@@ -6,7 +6,7 @@ EthProvider="ws://127.0.0.1:7545/"
 
 [SyncTxConfig]
 chain33Host="http://172.20.0.4:8801"
-pushHost="192.168.0.125:20000"
+pushHost="http://192.168.0.125:20000"
 pushName="x2ethereum"
 pushBind="0.0.0.0:20000"
 maturityDegree=12
@@ -14,7 +14,10 @@ dbdriver="leveldb"
 dbPath="datadir"
 dbCache=64
 fetchHeightPeriodMs=5000
-startSyncHeight=100
+#如果需要配置起始的块的信息，则为了保持一致性，三项缺一不可，或者都不配置
+startSyncHeight=24531
+startSyncSequence=24531
+startSyncHash="0xb96168940ceebc12dcf4a4911ec8f509344f5c8591af37a49f4fb5f433093d2e"
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit
