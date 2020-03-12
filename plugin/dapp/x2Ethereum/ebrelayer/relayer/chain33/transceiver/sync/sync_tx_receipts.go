@@ -16,6 +16,7 @@ import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	"github.com/33cn/chain33/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/rs/cors"
 )
 
@@ -125,12 +126,12 @@ func bind(rpcAddr, name, url, encode string, startHeight int64) {
 		LastHeight:startHeight,
 		Contract:"coins",
 	}
-	var res types.ReplySubTxReceipt
+	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcAddr, "Chain33.AddSubscribeTxReceipt", params, &res)
 	_, err := ctx.RunResult()
 	if err != nil {
-		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", rpcAddr)
-		log.Error("bind", "sync tx receipts err:", err.Error())
+		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", rpcAddr, "ReplySubTxReceipt", res)
+
 		panic("bind client failed due to:" + err.Error())
 	}
 	fmt.Println("Succeed to AddSubscribeTxReceipt")
