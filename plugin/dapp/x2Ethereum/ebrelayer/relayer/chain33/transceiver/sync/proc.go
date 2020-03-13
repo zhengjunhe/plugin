@@ -113,9 +113,10 @@ func (syncTx *SyncTxReceipts) dealTxReceipts(txReceipts *types.TxReceipts4Subscr
 	}
 	// 在app 端保存成功， 但回复ok时，程序挂掉, 记录日志
 	if start <= syncTx.seqNum {
-		log.Error("deal request", "seq", start, "current_seq", syncTx.seqNum)
+		log.Error("dealTxReceipts", "start", start, "current_seq", syncTx.seqNum)
 	}
-	if start+int64(count-1) <= syncTx.seqNum {
+	if start+int64(count-1) < syncTx.seqNum {
+		log.Error("dealTxReceipts", "start", start, "current_seq", syncTx.seqNum)
 		resultCh <- errors.New("The tx and receipt pushed is old")
 		return
 	}
