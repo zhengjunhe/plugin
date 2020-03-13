@@ -72,6 +72,30 @@ check_balance() {
 
 #${CLI} x2ethereum login -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 7
 
+# SetConsensusNeeded
+hash=`${CLI} send x2ethereum setconsensus -p 0.7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# query consensusNeeded
+preConsensus=`${CLI} send x2ethereum query consensus -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .consensusNeed | sed 's/\"//g'`
+check_balance 0.7 ${preConsensus}
+
+# SetConsensusNeeded
+hash=`${CLI} send x2ethereum setconsensus -p 0.8 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# query consensusNeeded
+nowConsensus=`${CLI} send x2ethereum query consensus -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .consensusNeed | sed 's/\"//g'`
+check_balance 0.8 ${nowConsensus}
+
+# login a address
 hash=`${CLI} send x2ethereum login -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# login a address again
+hash=`${CLI} send x2ethereum login -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 2
 check_tx 2 ${hash}

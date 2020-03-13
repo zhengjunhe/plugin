@@ -23,6 +23,7 @@ var driverName = x2ethereumtypes.X2ethereumX
 func Init(name string, cfg *types.Chain33Config, sub []byte) {
 	drivers.Register(cfg, GetName(), newX2ethereum, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
+
 }
 
 // InitExecType Init Exec Type

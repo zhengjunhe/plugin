@@ -96,7 +96,7 @@ func (k Keeper) ProcessLock(address, execAddr string, amount int64, accDB *accou
 // 现有方案是相同地址power覆盖处理
 func (k Keeper) ProcessLogInValidator(address string, power float64) (*types2.Receipt, error) {
 	//flg 为true时，则说明有相同地址
-	flg := false
+	exist := false
 	receipt := new(types2.Receipt)
 
 	validatorMaps, err := k.oracleKeeper.GetValidatorArray()
@@ -118,12 +118,12 @@ func (k Keeper) ProcessLogInValidator(address string, power float64) (*types2.Re
 			})
 			receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalValidatorMapsPrefix(), Value: v})
 			totalPower += power
-			flg = true
+			exist = true
 		}
 
 	}
 
-	if !flg {
+	if !exist {
 		v, _ := json.Marshal(oracle.ValidatorMap{
 			Address: address,
 			Power:   power,
@@ -209,8 +209,7 @@ func (k Keeper) ProcessLogOutValidator(address string, power float64) (*types2.R
 	return receipt, nil
 }
 
-func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (*types2.Receipt, float64, float64, error) {
-	receipt := new(types2.Receipt)
+func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (float64, float64, error) {
 
 	preCon := k.oracleKeeper.GetConsensusNeeded()
 
@@ -220,9 +219,5 @@ func (k Keeper) ProcessSetConsensusNeeded(consensusNeeded float64) (*types2.Rece
 
 	elog.Info("ProcessSetConsensusNeeded", "pre ConsensusNeeded", preCon, "now ConsensusNeeded", nowCon)
 
-	receipt.KV = append(receipt.KV, &types2.KeyValue{Key: types.CalConsensusNeededPrefix(), Value: common.Float64ToBytes(consensusNeeded)})
-
-	_ = k.db.Set(types.ConsensusNeededKey, common.Float64ToBytes(consensusNeeded))
-
-	return receipt, preCon, nowCon, nil
+	return preCon, nowCon, nil
 }

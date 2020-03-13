@@ -22,6 +22,7 @@ var (
 	ErrUnknownAddress                = errors.New("module account does not exist")
 	ErrLogOutPowerIsTooBig           = errors.New("log out power is more than which this address saves")
 	ErrLogOutAddressNotExist         = errors.New("log out address doesn't exist in DB")
+	ErrInvalidProphecyID             = errors.New("Prophecy ID is invalid")
 )
 
 //common

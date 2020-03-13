@@ -43,3 +43,11 @@ const (
 const ModuleName = "x2ethereumBank"
 
 const DefaultConsensusNeeded = 0.7
+
+// query function name
+const (
+	FuncQueryEthProphecy     = "GetEthProphecy"
+	FuncQueryValidators      = "GetValidators"
+	FuncQueryTotalPower      = "GetTotalPower"
+	FuncQueryConsensusNeeded = "GetConsensusNeeded"
+)

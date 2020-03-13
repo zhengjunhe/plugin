@@ -28,6 +28,7 @@ func Cmd() *cobra.Command {
 		CreateRawLogInTxCmd(),
 		CreateRawLogOutTxCmd(),
 		CreateRawSetConsensusTxCmd(),
+		queryCmd(),
 	)
 	return cmd
 }
@@ -338,7 +339,7 @@ func setConsensus(cmd *cobra.Command, args []string) {
 	power, _ := cmd.Flags().GetFloat64("power")
 
 	params := &types3.MsgSetConsensusNeeded{
-		Power: power,
+		ConsensusNeed: power,
 	}
 
 	payLoad, err := json.Marshal(params)

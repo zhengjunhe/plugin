@@ -30,7 +30,7 @@ func NewKeeper(db dbm.KV, consensusNeeded float64) Keeper {
 	}
 }
 
-func (k Keeper) GetProphecy(id string) (Prophecy, error) {
+func (k *Keeper) GetProphecy(id string) (Prophecy, error) {
 	if id == "" {
 		return NewEmptyProphecy(), types.ErrInvalidIdentifier
 	}
@@ -63,7 +63,7 @@ func (k Keeper) GetProphecy(id string) (Prophecy, error) {
 }
 
 // setProphecy saves a prophecy with an initial claim
-func (k Keeper) setProphecy(prophecy Prophecy) error {
+func (k *Keeper) setProphecy(prophecy Prophecy) error {
 	err := k.checkProphecy(prophecy)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (k Keeper) setProphecy(prophecy Prophecy) error {
 	return nil
 }
 
-func (k Keeper) checkProphecy(prophecy Prophecy) error {
+func (k *Keeper) checkProphecy(prophecy Prophecy) error {
 	if prophecy.ID == "" {
 		return types.ErrInvalidIdentifier
 	}
@@ -111,7 +111,7 @@ func (k Keeper) checkProphecy(prophecy Prophecy) error {
 	return nil
 }
 
-func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
+func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 	activeValidator := k.checkActiveValidator(claim.ValidatorAddress)
 	if !activeValidator {
 		return Status{}, types.ErrInvalidValidator
@@ -142,7 +142,7 @@ func (k Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 	return prophecy.Status, nil
 }
 
-func (k Keeper) checkActiveValidator(validatorAddress string) bool {
+func (k *Keeper) checkActiveValidator(validatorAddress string) bool {
 	validatorMap, err := k.GetValidatorArray()
 	if err != nil {
 		return false
@@ -157,7 +157,7 @@ func (k Keeper) checkActiveValidator(validatorAddress string) bool {
 }
 
 // 计算该prophecy是否达标
-func (k Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
+func (k *Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
 	address2power := make(map[string]float64)
 	validatorArrays, err := k.GetValidatorArray()
 	if err != nil {
@@ -186,7 +186,7 @@ func (k Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
 }
 
 // Load the last total validator power.
-func (k Keeper) GetLastTotalPower() (power float64, err error) {
+func (k *Keeper) GetLastTotalPower() (power float64, err error) {
 	b, err := k.db.Get(types.LastTotalPowerKey)
 	if err != nil && err != types2.ErrNotFound {
 		return 0, err
@@ -201,7 +201,7 @@ func (k Keeper) GetLastTotalPower() (power float64, err error) {
 }
 
 // Set the last total validator power.
-func (k Keeper) SetLastTotalPower() error {
+func (k *Keeper) SetLastTotalPower() error {
 	var totalPower float64
 	validatorArrays, err := k.GetValidatorArray()
 	if err != nil {
@@ -217,7 +217,7 @@ func (k Keeper) SetLastTotalPower() error {
 	return nil
 }
 
-func (k Keeper) GetValidatorArray() ([]ValidatorMap, error) {
+func (k *Keeper) GetValidatorArray() ([]ValidatorMap, error) {
 	validatorsBytes, err := k.db.Get(types.ValidatorMapsKey)
 	if err != nil {
 		return nil, err
@@ -239,11 +239,12 @@ func RemoveAddrFromValidatorMap(validatorMap []ValidatorMap, index int) []Valida
 	return append(validatorMap[:index], validatorMap[index+1:]...)
 }
 
-func (k Keeper) SetConsensusNeeded(consensusNeeded float64) {
+func (k *Keeper) SetConsensusNeeded(consensusNeeded float64) {
 	k.consensusNeeded = consensusNeeded
+	olog.Info("SetConsensusNeeded", "nowConsensusNeeded", k.consensusNeeded)
 	return
 }
 
-func (k Keeper) GetConsensusNeeded() float64 {
+func (k *Keeper) GetConsensusNeeded() float64 {
 	return k.consensusNeeded
 }
