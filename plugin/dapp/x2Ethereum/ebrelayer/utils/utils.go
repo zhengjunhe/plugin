@@ -64,7 +64,7 @@ func LoadInt64FromDB(key []byte, db dbm.DB) (int64, error) {
 		//if err != dbm.ErrNotFoundInDb {
 		//	log.Error("LoadInt64FromDB", "error", err)
 		//}
-		return -1, types.ErrHeightNotExist
+		return 0, types.ErrHeightNotExist
 	}
 	return decodeInt64(bytes)
 }

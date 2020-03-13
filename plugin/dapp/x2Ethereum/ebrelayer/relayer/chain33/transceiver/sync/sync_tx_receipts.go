@@ -29,7 +29,7 @@ func StartSyncTxReceipt(cfg *relayerTypes.SyncTxReceiptConfig, syncChan chan<- i
 	log.Debug("StartSyncTxReceipt, load config", "para:", cfg)
 	log.Debug("SyncTxReceipts started ")
 
-	bind(cfg)
+	bindOrResumePush(cfg)
 	syncTxReceipts = NewSyncTxReceipts(db, syncChan)
 	go syncTxReceipts.SaveAndSyncTxs2Relayer()
 	go startHTTPService(cfg.PushBind, "*")
@@ -118,7 +118,10 @@ func checkClient(addr string, expectClient string) bool {
 	return addr == expectClient
 }
 
-func bind(cfg *relayerTypes.SyncTxReceiptConfig) {
+//向chain33节点的注册推送交易回执，AddSubscribeTxReceipt具有2种功能：
+//首次注册功能，如果没有进行过注册，则进行首次注册
+//如果已经注册，则继续推送
+func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 	params := types.SubscribeTxReceipt{
 		Name:   cfg.PushName,
 		URL:    cfg.PushHost,
@@ -133,12 +136,12 @@ func bind(cfg *relayerTypes.SyncTxReceiptConfig) {
 	_, err := ctx.RunResult()
 	if err != nil {
 		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", cfg.Chain33Host, "ReplySubTxReceipt", res)
-		panic("bind client failed due to:" + err.Error())
+		panic("bindOrResumePush client failed due to:" + err.Error())
 	}
 	if !res.IsOk {
 		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", cfg.Chain33Host, "ReplySubTxReceipt", res)
-		panic("bind client failed due to:" + res.Msg)
+		panic("bindOrResumePush client failed due to:" + res.Msg)
 	}
-	log.Info("bind", "Succeed to AddSubscribeTxReceipt for rpc address:", cfg.Chain33Host)
+	log.Info("bindOrResumePush", "Succeed to AddSubscribeTxReceipt for rpc address:", cfg.Chain33Host)
 	fmt.Println("Succeed to AddSubscribeTxReceipt")
 }

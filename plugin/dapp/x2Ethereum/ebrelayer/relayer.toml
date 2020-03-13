@@ -15,9 +15,12 @@ dbPath="datadir"
 dbCache=64
 fetchHeightPeriodMs=5000
 #如果需要配置起始的块的信息，则为了保持一致性，三项缺一不可，或者都不配置
-startSyncHeight=24531
-startSyncSequence=24531
-startSyncHash="0xb96168940ceebc12dcf4a4911ec8f509344f5c8591af37a49f4fb5f433093d2e"
+#startSyncHeight=24531
+#startSyncSequence=24531
+#startSyncHash="0xb96168940ceebc12dcf4a4911ec8f509344f5c8591af37a49f4fb5f433093d2e"
+startSyncHeight=0
+startSyncSequence=0
+startSyncHash=""
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit
