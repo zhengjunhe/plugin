@@ -57,7 +57,8 @@ func (chain33Relayer *Chain33Relayer) ImportPrivateKey(passphrase, privateKeyStr
 	ethSender := crypto.PubkeyToAddress(privateKey.PublicKey)
 	chain33Relayer.privateKey4Ethereum = privateKey
 	chain33Relayer.ethSender = ethSender
-	chain33Relayer.unlock<-start
+	//chain33Relayer.unlock<-start
+	close(chain33Relayer.unlock)
 
 	addr = chain33Common.ToHex(ethSender.Bytes())
 	encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySlice)
@@ -109,7 +110,8 @@ func (chain33Relayer *Chain33Relayer) RestorePrivateKeys(passphrase string) erro
 	chain33Relayer.rwLock.Lock()
 	chain33Relayer.privateKey4Ethereum = privateKey
 	chain33Relayer.rwLock.Unlock()
-	chain33Relayer.unlock<-start
+	//chain33Relayer.unlock<-start
+	close(chain33Relayer.unlock)
 	return nil
 }
 

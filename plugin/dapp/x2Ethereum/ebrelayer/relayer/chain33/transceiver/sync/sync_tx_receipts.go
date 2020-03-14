@@ -129,7 +129,7 @@ func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 		LastSequence:cfg.StartSyncSequence,
 		LastHeight:cfg.StartSyncHeight,
 		LastBlockHash:cfg.StartSyncHash,
-		Contract:"coins",
+		Contract:"ticket",
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(cfg.Chain33Host, "Chain33.AddSubscribeTxReceipt", params, &res)

@@ -22,6 +22,7 @@ var (
 	txReceiptPrefix = []byte("txReceiptPrefix:")
 	lastSequences   = []byte("lastSequences:")
 	lastSyncHeight  = []byte("lastSyncHeight:")
+	seqOperationType = []string{"SeqTypeAdd", "SeqTypeDel"}
 )
 
 var txReceiptCh chan *types.TxReceipts4Subscribe
@@ -227,7 +228,7 @@ func parseTxReceipts(txReceipts *types.TxReceipts4Subscribe) (count int, start i
 			start = txReceipts.TxReceipts[i].SeqNum
 		}
 		log.Debug("parseTxReceipts get one block's tx with receipts", "seq", txReceipts.TxReceipts[i].SeqNum,
-			"height", txReceipts.TxReceipts[i].Height, "seqOp", txReceipts.TxReceipts[i].AddDelType)
+			"height", txReceipts.TxReceipts[i].Height, "seqOpType", seqOperationType[txReceipts.TxReceipts[i].AddDelType - 1])
 
 	}
 	if len(txsWithReceipt) != count {
