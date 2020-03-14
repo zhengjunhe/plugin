@@ -154,10 +154,10 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 			//检查是否为lns的交易(包括平行链：user.p.xxx.lns)，将闪电网络交易进行收集
 			if 0 != bytes.Compare(tx.Execer, []byte(relayerTx.X2Eth)) &&
 				(len(tx.Execer) > 4 && string(tx.Execer[(len(tx.Execer)-4):]) != "."+relayerTx.X2Eth) {
-				relayerLog.Debug("onNewHeightProc, the tx is not x2ethereum", "Execer", tx.Execer, "height:", TxReceipts.Height)
+				relayerLog.Debug("onNewHeightProc, the tx is not x2ethereum", "Execer", string(tx.Execer), "height:", TxReceipts.Height)
 				continue
 			}
-			relayerLog.Debug("SyncLnsTx", "exec", string(tx.Execer), "action", tx.ActionName(), "fromAddr", tx.From())
+			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "action", tx.ActionName(), "fromAddr", tx.From())
 			actionName := tx.ActionName()
 			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				actionEvent := getOracleClaimType(actionName)
