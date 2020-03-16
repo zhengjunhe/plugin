@@ -20,7 +20,7 @@ message X2ethereumAction {
 }
 
 message MsgSetConsensusNeeded {
-    double power = 1;
+    double consensusNeed = 1;
 }
 
 message MsgValidator {
@@ -73,6 +73,7 @@ message MsgLock {
     string localCoinExec = 7;
 }
 
+// 回执接口定义
 message ReceiptEthBridgeClaim {
     int64 EthereumChainID = 1;
     string BridgeContractAddress = 2;
@@ -114,20 +115,11 @@ message ReceiptLock {
     uint64 xHeight = 9;
 }
 
-message ReceiptLogIn {
+message ReceiptLogInOut {
     string address = 1;
     double power = 2;
     bytes xTxHash = 3;
     uint64 xHeight = 4;
-    repeated MsgValidator validators = 5;
-}
-
-message ReceiptLogOut {
-    string address = 1;
-    double power = 2;
-    bytes xTxHash = 3;
-    uint64 xHeight = 4;
-    repeated MsgValidator validators = 5;
 }
 
 message ReceiptSetConsensusNeeded {
@@ -137,19 +129,20 @@ message ReceiptSetConsensusNeeded {
     uint64 xHeight = 4;
 }
 
+// 查询接口定义
 message QueryEthProphecyParams {
-    int64 EthereumChainID = 1;
-    string BridgeContractAddress = 2;
-    int64 Nonce = 3;
-    string Symbol = 4;
-    string TokenContractAddress = 5;
-    string EthereumSender = 6;
+    string ID = 1;
 }
 
-message QueryEthProphecyResponse {
+message ReceiptEthProphecy {
     string ID = 1;
     ProphecyStatus Status = 2;
-    repeated EthBridgeClaim Claims = 3;
+    map<string,StringMap>  ClaimValidators = 3;
+    map<string,string>  ValidatorClaims = 4;
+}
+
+message StringMap {
+    repeated string validators = 1;
 }
 
 message ProphecyStatus {
@@ -157,6 +150,28 @@ message ProphecyStatus {
     string FinalClaim = 2;
 }
 
+message QueryValidatorsParams {
+    string validator = 1;
+}
+
+message ReceiptQueryValidator {
+    repeated MsgValidator validators = 1;
+    double totalPower = 2;
+}
+
+message QueryTotalPowerParams {
+}
+
+message ReceiptQueryTotalPower {
+    double totalPower = 1;
+}
+
+message QueryConsensusNeededParams {
+}
+
+message ReceiptQueryConsensusNeeded {
+    double consensusNeed = 1;
+}
 
 service x2ethereum {
 

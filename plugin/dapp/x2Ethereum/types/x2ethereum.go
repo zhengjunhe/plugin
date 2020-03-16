@@ -29,8 +29,8 @@ var (
 		TyEthBridgeClaimLog:        {Ty: reflect.TypeOf(ReceiptEthBridgeClaim{}), Name: "LogEthBridgeClaimAction"},
 		TyMsgBurnLog:               {Ty: reflect.TypeOf(ReceiptBurn{}), Name: "MsgBurnLog"},
 		TyMsgLockLog:               {Ty: reflect.TypeOf(ReceiptLock{}), Name: "MsgLockLog"},
-		TyMsgLogInValidatorLog:     {Ty: reflect.TypeOf(ReceiptLogIn{}), Name: "MsgLogInValidatorLog"},
-		TyMsgLogOutValidatorLog:    {Ty: reflect.TypeOf(ReceiptLogOut{}), Name: "MsgLogOutValidatorLog"},
+		TyMsgLogInValidatorLog:     {Ty: reflect.TypeOf(ReceiptLogInOut{}), Name: "MsgLogInValidatorLog"},
+		TyMsgLogOutValidatorLog:    {Ty: reflect.TypeOf(ReceiptLogInOut{}), Name: "MsgLogOutValidatorLog"},
 		TyMsgSetConsensusNeededLog: {Ty: reflect.TypeOf(ReceiptSetConsensusNeeded{}), Name: "MsgSetConsensusNeededLog"},
 	}
 	tlog = log.New("module", "x2ethereum.types")

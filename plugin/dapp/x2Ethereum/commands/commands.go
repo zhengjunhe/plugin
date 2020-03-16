@@ -28,6 +28,7 @@ func Cmd() *cobra.Command {
 		CreateRawLogInTxCmd(),
 		CreateRawLogOutTxCmd(),
 		CreateRawSetConsensusTxCmd(),
+		queryCmd(),
 	)
 	return cmd
 }
@@ -78,7 +79,7 @@ func addEthBridgeClaimFlags(cmd *cobra.Command) {
 	cmd.Flags().Int64("claimtype", 0, "the type of this claim")
 	_ = cmd.MarkFlagRequired("claimtype")
 
-	cmd.Flags().StringP("esymbol", "h", "", "the symbol of ethereum side")
+	cmd.Flags().StringP("esymbol", "g", "", "the symbol of ethereum side")
 	_ = cmd.MarkFlagRequired("esymbol")
 }
 
@@ -272,7 +273,7 @@ func logIn(cmd *cobra.Command, args []string) {
 		Power:   power,
 	}
 
-	payLoad, err := json.Marshal(params)
+	payLoad, err := types.PBToJSON(params)
 	if err != nil {
 		return
 	}
@@ -338,7 +339,7 @@ func setConsensus(cmd *cobra.Command, args []string) {
 	power, _ := cmd.Flags().GetFloat64("power")
 
 	params := &types3.MsgSetConsensusNeeded{
-		Power: power,
+		ConsensusNeed: power,
 	}
 
 	payLoad, err := json.Marshal(params)
