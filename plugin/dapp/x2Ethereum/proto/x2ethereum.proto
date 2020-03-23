@@ -5,31 +5,34 @@ enum EthBridgeStatus {
     PendingStatusText = 0;
     SuccessStatusText = 1;
     FailedStatusText = 2;
+    WithdrawedStatusText = 3;
 }
 
 message X2ethereumAction {
     oneof value {
-        EthBridgeClaim ethBridgeClaim = 1;
-        MsgBurn msgBurn = 2;
-        MsgLock msgLock = 3;
-        MsgValidator msgLogInValidator = 4;
-        MsgValidator msgLogOutValidator = 5;
-        MsgSetConsensusNeeded msgSetConsensusNeeded = 6;
+        Eth2Chain33 eth2Chain33 = 1;
+        Eth2Chain33 withdrawEth = 2;
+        Chain33ToEth withdrawChain33 = 3;
+        Chain33ToEth chain33ToEth = 4;
+        MsgValidator addValidator = 5;
+        MsgValidator removeValidator = 6;
+        MsgValidator modifyPower = 7;
+        MsgConsensusThreshold setConsensusThreshold = 8;
     }
     int32 ty = 10;
 }
 
-message MsgSetConsensusNeeded {
-    double consensusNeed = 1;
+message MsgConsensusThreshold {
+    int64 consensusThreshold = 1;
 }
 
 message MsgValidator {
     string address = 1;
-    double power = 2;
+    int64 power = 2;
 }
 
 // EthBridgeClaim is a structure that contains all the data for a particular bridge claim
-message EthBridgeClaim {
+message Eth2Chain33 {
     int64 EthereumChainID = 1;
     string BridgeContractAddress = 2;
     int64 Nonce = 3;
@@ -52,7 +55,7 @@ message OracleClaimContent {
 }
 
 // MsgBurn defines a message for burning coins and triggering a related event
-message MsgBurn {
+message Chain33ToEth {
     int64 EthereumChainID = 1;
     string TokenContract = 2;
     string Chain33Sender = 3;
@@ -60,21 +63,11 @@ message MsgBurn {
     uint64 Amount = 5;
     string localCoinSymbol = 6;
     string localCoinExec = 7;
-}
-
-// MsgLock defines a message for locking coins and triggering a related event
-message MsgLock {
-    int64 EthereumChainID = 1;
-    string TokenContract = 2;
-    string Chain33Sender = 3;
-    string EthereumReceiver = 4;
-    uint64 Amount = 5;
-    string localCoinSymbol = 6;
-    string localCoinExec = 7;
+    string EthSymbol = 8;
 }
 
 // 回执接口定义
-message ReceiptEthBridgeClaim {
+message ReceiptEth2Chain33 {
     int64 EthereumChainID = 1;
     string BridgeContractAddress = 2;
     int64 Nonce = 3;
@@ -89,9 +82,10 @@ message ReceiptEthBridgeClaim {
     string EthSymbol = 12;
     bytes xTxHash = 13;
     uint64 xHeight = 14;
+    string ProphecyID = 15;
 }
 
-message ReceiptBurn {
+message ReceiptChain33ToEth {
     int64 EthereumChainID = 1;
     string TokenContract = 2;
     string Chain33Sender = 3;
@@ -101,30 +95,20 @@ message ReceiptBurn {
     string localCoinExec = 7;
     bytes xTxHash = 8;
     uint64 xHeight = 9;
+    string EthSymbol = 10;
+    string ProphecyID = 11;
 }
 
-message ReceiptLock {
-    int64 EthereumChainID = 1;
-    string TokenContract = 2;
-    string Chain33Sender = 3;
-    string EthereumReceiver = 4;
-    uint64 Amount = 5;
-    string localCoinSymbol = 6;
-    string localCoinExec = 7;
-    bytes xTxHash = 8;
-    uint64 xHeight = 9;
-}
-
-message ReceiptLogInOut {
+message ReceiptValidator {
     string address = 1;
-    double power = 2;
+    int64 power = 2;
     bytes xTxHash = 3;
     uint64 xHeight = 4;
 }
 
-message ReceiptSetConsensusNeeded {
-    double preConsensusNeeded = 1;
-    double nowConsensusNeeded = 2;
+message ReceiptSetConsensusThreshold {
+    int64 preConsensusThreshold = 1;
+    int64 nowConsensusThreshold = 2;
     bytes xTxHash = 3;
     uint64 xHeight = 4;
 }
@@ -137,8 +121,18 @@ message QueryEthProphecyParams {
 message ReceiptEthProphecy {
     string ID = 1;
     ProphecyStatus Status = 2;
-    map<string,StringMap>  ClaimValidators = 3;
-    map<string,string>  ValidatorClaims = 4;
+    repeated ClaimValidators  ClaimValidators = 3;
+    repeated ValidatorClaims  ValidatorClaims = 4;
+}
+
+message ClaimValidators {
+    string claim = 1;
+    StringMap validators = 2;
+}
+
+message ValidatorClaims {
+    string validator = 1;
+    string claim = 2;
 }
 
 message StringMap {
@@ -156,21 +150,30 @@ message QueryValidatorsParams {
 
 message ReceiptQueryValidator {
     repeated MsgValidator validators = 1;
-    double totalPower = 2;
+    int64 totalPower = 2;
 }
 
 message QueryTotalPowerParams {
 }
 
 message ReceiptQueryTotalPower {
-    double totalPower = 1;
+    int64 totalPower = 1;
 }
 
-message QueryConsensusNeededParams {
+message QueryConsensusThresholdParams {
 }
 
-message ReceiptQueryConsensusNeeded {
-    double consensusNeed = 1;
+message ReceiptQueryConsensusThreshold {
+    int64 consensusThreshold = 1;
+}
+
+message QuerySymbolAssetsParams {
+    string tokenSymbol = 1;
+}
+
+message ReceiptQuerySymbolAssets {
+    string tokenSymbol = 1;
+    uint64 totalAmount = 2;
 }
 
 service x2ethereum {

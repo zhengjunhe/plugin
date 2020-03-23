@@ -11,13 +11,9 @@ message OracleClaim {
     string Content     = 3;
 }
 
-message AddressArray {
-    repeated string ClaimValidator    =1;
-}
-
 message Prophecy {
     string           ID          = 1;
     ProphecyStatus           Status      = 2;
-    map<string,AddressArray>           ClaimValidators    = 3;
-    map<string,string>           ValidatorClaims    = 4;
+    repeated ClaimValidators  ClaimValidators = 3;
+    repeated ValidatorClaims  ValidatorClaims = 4;
 }

@@ -3,7 +3,6 @@ package executor
 import (
 	"encoding/json"
 	"github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
@@ -35,11 +34,11 @@ func (x *x2ethereum) Query_GetEthProphecy(in *types2.QueryEthProphecyParams) (ty
 					Text:       types2.EthBridgeStatus(dbP.Status.Text),
 					FinalClaim: dbP.Status.FinalClaim,
 				},
-				ClaimValidators: stringArray2StringMap(dbPD.ClaimValidators),
+				ClaimValidators: dbPD.ClaimValidators,
 				ValidatorClaims: dbPD.ValidatorClaims,
 			}
+			return prophecy, nil
 		}
-		return prophecy, nil
 	}
 	return nil, types2.ErrInvalidProphecyID
 }
@@ -47,7 +46,7 @@ func (x *x2ethereum) Query_GetEthProphecy(in *types2.QueryEthProphecyParams) (ty
 func (x *x2ethereum) Query_GetValidators(in *types2.QueryValidatorsParams) (types.Message, error) {
 	validatorsKey := types2.CalValidatorMapsPrefix()
 
-	var v []oracle.ValidatorMap
+	var v []*types2.MsgValidator
 	vBytes, err := x.GetStateDB().Get(validatorsKey)
 	if err != nil {
 		elog.Error("Query_GetValidators", "GetValidators Err", err)
@@ -64,10 +63,7 @@ func (x *x2ethereum) Query_GetValidators(in *types2.QueryValidatorsParams) (type
 		for _, vv := range v {
 			if vv.Address == in.Validator {
 				val := make([]*types2.MsgValidator, 1)
-				val[0] = &types2.MsgValidator{
-					Address: vv.Address,
-					Power:   vv.Power,
-				}
+				val[0] = vv
 				validatorsRes = &types2.ReceiptQueryValidator{
 					Validators: val,
 					TotalPower: vv.Power,
@@ -79,16 +75,11 @@ func (x *x2ethereum) Query_GetValidators(in *types2.QueryValidatorsParams) (type
 		return nil, types2.ErrInvalidValidator
 	} else {
 		validatorsRes := new(types2.ReceiptQueryValidator)
-		val := make([]*types2.MsgValidator, len(v))
-		var totalPower float64
-		for index, vv := range v {
-			val[index] = &types2.MsgValidator{
-				Address: vv.Address,
-				Power:   vv.Power,
-			}
+		var totalPower int64
+		for _, vv := range v {
 			totalPower += vv.Power
 		}
-		validatorsRes.Validators = val
+		validatorsRes.Validators = v
 		validatorsRes.TotalPower = totalPower
 		return validatorsRes, nil
 	}
@@ -103,26 +94,43 @@ func (x *x2ethereum) Query_GetTotalPower(in *types2.QueryTotalPowerParams) (type
 		elog.Error("Query_GetTotalPower", "GetTotalPower Err", err)
 		return nil, err
 	}
-	totalPower.TotalPower = common.BytesToFloat64(totalPowerBytes)
+	err = json.Unmarshal(totalPowerBytes, &totalPower)
+	if err != nil {
+		return nil, types.ErrUnmarshal
+	}
 	return totalPower, nil
 }
 
-func (x *x2ethereum) Query_GetConsensusNeeded(in *types2.QueryConsensusNeededParams) (types.Message, error) {
-	consensus := &types2.ReceiptQueryConsensusNeeded{}
-	consensusKey := types2.CalConsensusNeededPrefix()
+func (x *x2ethereum) Query_GetConsensusThreshold(in *types2.QueryConsensusThresholdParams) (types.Message, error) {
+	consensus := &types2.ReceiptSetConsensusThreshold{}
+	consensusKey := types2.CalConsensusThresholdPrefix()
 
-	var consensusTemp types2.MsgSetConsensusNeeded
-	consensusTempBytes, err := x.GetStateDB().Get(consensusKey)
+	consensusBytes, err := x.GetStateDB().Get(consensusKey)
 	if err != nil {
 		elog.Error("Query_GetConsensusNeeded", "GetConsensusNeeded Err", err)
 		return nil, err
 	}
-	err = json.Unmarshal(consensusTempBytes, &consensusTemp)
+	err = json.Unmarshal(consensusBytes, &consensus)
 	if err != nil {
 		return nil, types.ErrUnmarshal
 	}
-	consensus.ConsensusNeed = consensusTemp.ConsensusNeed
 	return consensus, nil
+}
+
+func (x *x2ethereum) Query_GetSymbolTotalAmount(in *types2.QuerySymbolAssetsParams) (types.Message, error) {
+	symbolAmount := &types2.ReceiptQuerySymbolAssets{}
+	symbolAmountKey := types2.CalTokenSymbolTotalAmountPrefix(in.TokenSymbol)
+
+	consensusTempBytes, err := x.GetStateDB().Get(symbolAmountKey)
+	if err != nil {
+		elog.Error("Query_GetSymbolTotalAmount", "GetSymbolTotalAmount Err", err)
+		return nil, err
+	}
+	err = json.Unmarshal(consensusTempBytes, &symbolAmount)
+	if err != nil {
+		return nil, types.ErrUnmarshal
+	}
+	return symbolAmount, nil
 }
 
 func stringArray2StringMap(in map[string][]string) map[string]*types2.StringMap {

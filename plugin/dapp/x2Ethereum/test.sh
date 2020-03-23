@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -x
-CLI="/opt/src/github.com/33cn/plugin/build/chain33-cli"
+CLI="/opt/src/github.com/33cn/plugin/cli/chain33-cli"
 
 # 测试流程
 #
@@ -50,52 +50,116 @@ check_tx() {
     fi
 }
 
-check_balance() {
+check_Number() {
     if [[ $# -lt 2 ]]; then
-        echo "wrong check_balance parameters"
+        echo "wrong check_Number parameters"
         exit 1
     fi
     if [[ ${1} != ${2} ]]; then
-        echo "error balance, expect ${1}, get ${2}"
+        echo "error Number, expect ${1}, get ${2}"
         exit 1
     fi
 }
 
-# 转币到lns合约
-#${CLI} send coins transfer -a 500 -t 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
-#block_wait 2
-#${CLI} send coins send_exec -e x2ethereum -a 200 -k 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi
-#block_wait 2
-#balance=`${CLI} account balance -e x2ethereum -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi | jq .balance | sed 's/\"//g'`
-#check_balance "200.0000" ${balance}
-#echo "check balance on chain ok"
-
-#${CLI} x2ethereum login -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 7
-
-# SetConsensusNeeded
-hash=`${CLI} send x2ethereum setconsensus -p 0.7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+# SetConsensusThreshold
+hash=`${CLI} send x2ethereum setconsensus -p 80 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 2
 check_tx 2 ${hash}
 
-# query consensusNeeded
-preConsensus=`${CLI} send x2ethereum query consensus -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .consensusNeed | sed 's/\"//g'`
-check_balance 0.7 ${preConsensus}
+# query ConsensusThreshold
+nowConsensus=`${CLI} send x2ethereum query consensus -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .nowConsensusThreshold | sed 's/\"//g'`
+check_Number 80 ${nowConsensus}
 
-# SetConsensusNeeded
-hash=`${CLI} send x2ethereum setconsensus -p 0.8 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+# add a validator
+hash=`${CLI} send x2ethereum add -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 2
 check_tx 2 ${hash}
 
-# query consensusNeeded
-nowConsensus=`${CLI} send x2ethereum query consensus -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .consensusNeed | sed 's/\"//g'`
-check_balance 0.8 ${nowConsensus}
+# query Validators
+validators=`${CLI} send x2ethereum query validators -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .validators | sed 's/\"//g'`
+totalPower=`${CLI} send x2ethereum query validators -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g'`
+check_Number 7 ${totalPower}
 
-# login a address
-hash=`${CLI} send x2ethereum login -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+# add a validator again
+hash=`${CLI} send x2ethereum add -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 2
 check_tx 2 ${hash}
 
-# login a address again
-hash=`${CLI} send x2ethereum login -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+# query Validators
+validators=`${CLI} send x2ethereum query validators -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .validators | sed 's/\"//g'`
+totalPower=`${CLI} send x2ethereum query validators -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g'`
+check_Number 13 ${totalPower}
+
+# remove a validator
+hash=`${CLI} send x2ethereum remove -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 2
 check_tx 2 ${hash}
+
+# query Validators
+validators=`${CLI} send x2ethereum query validators -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .validators | sed 's/\"//g'`
+totalPower=`${CLI} send x2ethereum query validators -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g'`
+check_Number 7 ${totalPower}
+
+# add a validator again
+hash=`${CLI} send x2ethereum add -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# query Validators
+validators=`${CLI} send x2ethereum query validators -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .validators | sed 's/\"//g'`
+totalPower=`${CLI} send x2ethereum query validators -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g'`
+check_Number 13 ${totalPower}
+
+totalPower=`${CLI} send x2ethereum query totalpower -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g'`
+check_Number 13 ${totalPower}
+
+# send a eth2chain33 tx
+hash=`${CLI} send x2ethereum create --amount 10 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 0 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# send a eth2chain33 tx again
+hash=`${CLI} send x2ethereum create --amount 10 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 0 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# query prophecy
+ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
+Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+
+Amount=`${CLI} send x2ethereum query symbolamount -s eth -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
+check_Number 10 ${Amount}
+
+# send a withdrawEth tx
+hash=`${CLI} send x2ethereum withdraweth --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t eth -g eth --ethid 0 --nonce 1 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# send a withdrawEth tx again
+hash=`${CLI} send x2ethereum withdraweth --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t eth -g eth --ethid 0 --nonce 1 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# query prophecy
+ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
+Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+
+Amount=`${CLI} send x2ethereum query symbolamount -s eth -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
+check_Number 5 ${Amount}
+
+# send a eth2chain33 tx
+hash=`${CLI} send x2ethereum create --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 2 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# send a eth2chain33 tx again
+hash=`${CLI} send x2ethereum create --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 2 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait 2
+check_tx 2 ${hash}
+
+# query prophecy
+ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
+Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+
+Amount=`${CLI} send x2ethereum query symbolamount -s eth -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
+check_Number 10 ${Amount}
