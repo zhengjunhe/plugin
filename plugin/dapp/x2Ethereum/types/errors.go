@@ -16,13 +16,16 @@ var (
 	ErrNoClaims                      = errors.New("cannot create prophecy without initial claim")
 	ErrInvalidClaim                  = errors.New("claim cannot be empty string")
 	ErrProphecyFinalized             = errors.New("prophecy already finalized")
+	ErrProphecyFailed                = errors.New("prophecy failed so you can't burn this prophecy")
 	ErrDuplicateMessage              = errors.New("already processed message from validator for this id")
 	ErrMinimumConsensusNeededInvalid = errors.New("minimum consensus proportion of validator staking power must be > 0 and <= 1")
 	ErrInvalidValidator              = errors.New("validator is invalid")
 	ErrUnknownAddress                = errors.New("module account does not exist")
-	ErrLogOutPowerIsTooBig           = errors.New("log out power is more than which this address saves")
-	ErrLogOutAddressNotExist         = errors.New("log out address doesn't exist in DB")
+	ErrPowerIsNotEnough              = errors.New("remove power is more than which this address saves")
+	ErrAddressNotExist               = errors.New("this address doesn't exist in DB")
 	ErrInvalidProphecyID             = errors.New("Prophecy ID is invalid")
+	ErrAddressExists                 = errors.New("This address already exists")
+	ErrInvalidAdminAddress           = errors.New("This address is not admin address")
 )
 
 //common

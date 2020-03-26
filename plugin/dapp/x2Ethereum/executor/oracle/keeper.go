@@ -16,17 +16,17 @@ var (
 )
 
 type Keeper struct {
-	db              dbm.KV
-	consensusNeeded float64 // The minimum % of stake needed to sign claims in order for consensus to occur
+	db                 dbm.KV
+	ConsensusThreshold float64 // The minimum % of stake needed to sign claims in order for consensus to occur
 }
 
-func NewKeeper(db dbm.KV, consensusNeeded float64) Keeper {
-	if consensusNeeded <= 0 || consensusNeeded > 1 {
+func NewKeeper(db dbm.KV, ConsensusThreshold float64) Keeper {
+	if ConsensusThreshold <= 0 || ConsensusThreshold > 1 {
 		panic(types.ErrMinimumConsensusNeededInvalid)
 	}
 	return Keeper{
-		db:              db,
-		consensusNeeded: consensusNeeded,
+		db:                 db,
+		ConsensusThreshold: ConsensusThreshold,
 	}
 }
 
@@ -48,18 +48,24 @@ func (k *Keeper) GetProphecy(id string) (Prophecy, error) {
 		return NewEmptyProphecy(), types2.ErrUnmarshal
 	}
 
+	var exist bool
 	for _, p := range dbProphecys {
 		if p.ID == id {
 			dbProphecy = p
-			continue
+			exist = true
+			break
 		}
 	}
 
-	deSerializedProphecy, err := dbProphecy.DeserializeFromDB()
-	if err != nil {
-		return NewEmptyProphecy(), types.ErrinternalDB
+	if exist {
+		deSerializedProphecy, err := dbProphecy.DeserializeFromDB()
+		if err != nil {
+			return NewEmptyProphecy(), types.ErrinternalDB
+		}
+		return deSerializedProphecy, nil
+	} else {
+		return NewEmptyProphecy(), types.ErrProphecyNotFound
 	}
-	return deSerializedProphecy, nil
 }
 
 // setProphecy saves a prophecy with an initial claim
@@ -87,7 +93,61 @@ func (k *Keeper) setProphecy(prophecy Prophecy) error {
 		}
 	}
 
-	dbProphecys = append(dbProphecys, serializedProphecy)
+	var exist bool
+	for index, dbP := range dbProphecys {
+		if dbP.ID == serializedProphecy.ID {
+			exist = true
+			dbProphecys[index] = serializedProphecy
+			break
+		}
+	}
+	if !exist {
+		dbProphecys = append(dbProphecys, serializedProphecy)
+	}
+
+	serializedProphecyBytes, err := json.Marshal(dbProphecys)
+	if err != nil {
+		return types2.ErrMarshal
+	}
+
+	err = k.db.Set(types.CalProphecyPrefix(), serializedProphecyBytes)
+	if err != nil {
+		return types.ErrSetKV
+	}
+	return nil
+}
+
+// modifyProphecy saves a modified prophecy
+func (k *Keeper) modifyProphecy(prophecy Prophecy) error {
+	err := k.checkProphecy(prophecy)
+	if err != nil {
+		return err
+	}
+
+	serializedProphecy, err := prophecy.SerializeForDB()
+	if err != nil {
+		return types.ErrinternalDB
+	}
+
+	bz, err := k.db.Get(types.CalProphecyPrefix())
+	if err != nil && err != types2.ErrNotFound {
+		return types.ErrProphecyGet
+	}
+
+	var dbProphecys []DBProphecy
+	if err != types2.ErrNotFound {
+		err = json.Unmarshal(bz, &dbProphecys)
+		if err != nil {
+			return types2.ErrUnmarshal
+		}
+	}
+
+	for index, dbP := range dbProphecys {
+		if dbP.ID == serializedProphecy.ID {
+			dbProphecys[index] = serializedProphecy
+			break
+		}
+	}
 
 	serializedProphecyBytes, err := json.Marshal(dbProphecys)
 	if err != nil {
@@ -119,6 +179,11 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 	if strings.TrimSpace(claim.Content) == "" {
 		return Status{}, types.ErrInvalidClaim
 	}
+	var claimContent types.OracleClaimContent
+	err := json.Unmarshal([]byte(claim.Content), &claimContent)
+	if err != nil {
+		return Status{}, types2.ErrUnmarshal
+	}
 	prophecy, err := k.GetProphecy(claim.ID)
 	if err != nil {
 		if err != types.ErrProphecyNotFound {
@@ -126,16 +191,24 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 		}
 		prophecy = NewProphecy(claim.ID)
 	} else {
-		if prophecy.Status.Text == StatusText(types.EthBridgeStatus_SuccessStatusText) || prophecy.Status.Text == StatusText(types.EthBridgeStatus_FailedStatusText) {
-			return Status{}, types.ErrProphecyFinalized
-		}
-		if prophecy.ValidatorClaims[claim.ValidatorAddress] != "" {
-			return Status{}, types.ErrDuplicateMessage
+		if claimContent.ClaimType == common.LockText {
+			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_SuccessStatusText) {
+				return Status{}, types.ErrProphecyFinalized
+			}
+			for _, vc := range prophecy.ValidatorClaims {
+				if vc.Validator == claim.ValidatorAddress && vc.Claim != "" {
+					return Status{}, types.ErrDuplicateMessage
+				}
+			}
+		} else if claimContent.ClaimType == common.BurnText {
+			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_WithdrawedStatusText) {
+				return Status{}, types.ErrProphecyFinalized
+			}
 		}
 	}
 	prophecy.AddClaim(claim.ValidatorAddress, claim.Content)
-	prophecy, err = k.processCompletion(prophecy)
-	err = k.checkProphecy(prophecy)
+	prophecy, err = k.processCompletion(&prophecy, claimContent.ClaimType)
+	err = k.setProphecy(prophecy)
 	if err != nil {
 		return Status{}, err
 	}
@@ -157,11 +230,11 @@ func (k *Keeper) checkActiveValidator(validatorAddress string) bool {
 }
 
 // 计算该prophecy是否达标
-func (k *Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
-	address2power := make(map[string]float64)
+func (k *Keeper) processCompletion(prophecy *Prophecy, claimType int64) (Prophecy, error) {
+	address2power := make(map[string]int64)
 	validatorArrays, err := k.GetValidatorArray()
 	if err != nil {
-		return prophecy, err
+		return *prophecy, err
 	}
 	for _, validator := range validatorArrays {
 		address2power[validator.Address] = validator.Power
@@ -169,40 +242,46 @@ func (k *Keeper) processCompletion(prophecy Prophecy) (Prophecy, error) {
 	highestClaim, highestClaimPower, totalClaimsPower := prophecy.FindHighestClaim(address2power)
 	totalPower, err := k.GetLastTotalPower()
 	if err != nil {
-		return prophecy, err
+		return *prophecy, err
 	}
 	highestConsensusRatio := highestClaimPower / totalPower
 	remainingPossibleClaimPower := totalPower - totalClaimsPower
 	highestPossibleClaimPower := highestClaimPower + remainingPossibleClaimPower
 	highestPossibleConsensusRatio := highestPossibleClaimPower / totalPower
-	olog.Info("processCompletion", "highestConsensusRatio", highestConsensusRatio, "consensusNeeded", k.consensusNeeded, "highestPossibleConsensusRatio", highestPossibleConsensusRatio)
-	if highestConsensusRatio >= k.consensusNeeded {
-		prophecy.Status.Text = StatusText(types.EthBridgeStatus_SuccessStatusText)
+	olog.Info("processCompletion", "highestConsensusRatio", highestConsensusRatio, "ConsensusThreshold", k.ConsensusThreshold, "highestPossibleConsensusRatio", highestPossibleConsensusRatio)
+	if highestConsensusRatio >= k.ConsensusThreshold {
+		if claimType == common.LockText {
+			prophecy.Status.Text = StatusText(types.EthBridgeStatus_SuccessStatusText)
+		} else {
+			prophecy.Status.Text = StatusText(types.EthBridgeStatus_WithdrawedStatusText)
+		}
+
 		prophecy.Status.FinalClaim = highestClaim
-	} else if highestPossibleConsensusRatio < k.consensusNeeded {
+	} else if highestPossibleConsensusRatio < k.ConsensusThreshold {
 		prophecy.Status.Text = StatusText(types.EthBridgeStatus_FailedStatusText)
 	}
-	return prophecy, nil
+	return *prophecy, nil
 }
 
 // Load the last total validator power.
-func (k *Keeper) GetLastTotalPower() (power float64, err error) {
-	b, err := k.db.Get(types.LastTotalPowerKey)
+func (k *Keeper) GetLastTotalPower() (float64, error) {
+	b, err := k.db.Get(types.CalLastTotalPowerPrefix())
 	if err != nil && err != types2.ErrNotFound {
 		return 0, err
 	} else if err == types2.ErrNotFound {
 		return 0, nil
 	}
-	err = json.Unmarshal(b, &power)
+	var powers types.ReceiptQueryTotalPower
+	err = json.Unmarshal(b, &powers)
 	if err != nil {
 		return 0, types2.ErrUnmarshal
 	}
-	return
+	return float64(powers.TotalPower), nil
 }
 
 // Set the last total validator power.
 func (k *Keeper) SetLastTotalPower() error {
-	var totalPower float64
+	var totalPower int64
 	validatorArrays, err := k.GetValidatorArray()
 	if err != nil {
 		return err
@@ -210,19 +289,23 @@ func (k *Keeper) SetLastTotalPower() error {
 	for _, validator := range validatorArrays {
 		totalPower += validator.Power
 	}
-	err = k.db.Set(types.LastTotalPowerKey, common.Float64ToBytes(totalPower))
+	totalP := types.ReceiptQueryTotalPower{
+		TotalPower: totalPower,
+	}
+	totalPBytes, _ := json.Marshal(totalP)
+	err = k.db.Set(types.CalLastTotalPowerPrefix(), totalPBytes)
 	if err != nil {
 		return types.ErrSetKV
 	}
 	return nil
 }
 
-func (k *Keeper) GetValidatorArray() ([]ValidatorMap, error) {
-	validatorsBytes, err := k.db.Get(types.ValidatorMapsKey)
+func (k *Keeper) GetValidatorArray() ([]types.MsgValidator, error) {
+	validatorsBytes, err := k.db.Get(types.CalValidatorMapsPrefix())
 	if err != nil {
 		return nil, err
 	}
-	var validatorArrays []ValidatorMap
+	var validatorArrays []types.MsgValidator
 	err = json.Unmarshal(validatorsBytes, &validatorArrays)
 	if err != nil {
 		return nil, types2.ErrUnmarshal
@@ -230,21 +313,16 @@ func (k *Keeper) GetValidatorArray() ([]ValidatorMap, error) {
 	return validatorArrays, nil
 }
 
-type ValidatorMap struct {
-	Address string
-	Power   float64
-}
-
-func RemoveAddrFromValidatorMap(validatorMap []ValidatorMap, index int) []ValidatorMap {
+func RemoveAddrFromValidatorMap(validatorMap []types.MsgValidator, index int) []types.MsgValidator {
 	return append(validatorMap[:index], validatorMap[index+1:]...)
 }
 
-func (k *Keeper) SetConsensusNeeded(consensusNeeded float64) {
-	k.consensusNeeded = consensusNeeded
-	olog.Info("SetConsensusNeeded", "nowConsensusNeeded", k.consensusNeeded)
+func (k *Keeper) SetConsensusThreshold(ConsensusThreshold float64) {
+	k.ConsensusThreshold = ConsensusThreshold
+	olog.Info("SetConsensusNeeded", "nowConsensusNeeded", k.ConsensusThreshold)
 	return
 }
 
-func (k *Keeper) GetConsensusNeeded() float64 {
-	return k.consensusNeeded
+func (k *Keeper) GetConsensusThreshold() float64 {
+	return k.ConsensusThreshold
 }

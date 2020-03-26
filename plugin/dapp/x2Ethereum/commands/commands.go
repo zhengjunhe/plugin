@@ -22,30 +22,32 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 	}
 	cmd.AddCommand(
-		CreateRawEthBridgeClaimTxCmd(),
-		CreateRawBurnTxCmd(),
-		CreateRawLockTxCmd(),
-		CreateRawLogInTxCmd(),
-		CreateRawLogOutTxCmd(),
+		CreateRawEth2Chain33TxCmd(),
+		CreateRawWithdrawEthTxCmd(),
+		CreateRawWithdrawChain33TxCmd(),
+		CreateRawChain33ToEthTxCmd(),
+		CreateRawAddValidatorTxCmd(),
+		CreateRawRemoveValidatorTxCmd(),
+		CreateRawModifyValidatorTxCmd(),
 		CreateRawSetConsensusTxCmd(),
 		queryCmd(),
 	)
 	return cmd
 }
 
-// ethBridgeClaim
-func CreateRawEthBridgeClaimTxCmd() *cobra.Command {
+// Eth2Chain33
+func CreateRawEth2Chain33TxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a EthBridgeClaim",
-		Run:   ethBridgeClaim,
+		Short: "Create a Eth2Chain33",
+		Run:   Eth2Chain33,
 	}
 
-	addEthBridgeClaimFlags(cmd)
+	addEth2Chain33Flags(cmd)
 	return cmd
 }
 
-func addEthBridgeClaimFlags(cmd *cobra.Command) {
+func addEth2Chain33Flags(cmd *cobra.Command) {
 	cmd.Flags().Int64("ethid", 0, "the ethereum chain ID which send asset to chain33")
 	_ = cmd.MarkFlagRequired("ethid")
 
@@ -76,14 +78,14 @@ func addEthBridgeClaimFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint64("amount", 0, "the amount of this contract want to lock")
 	_ = cmd.MarkFlagRequired("amount")
 
-	cmd.Flags().Int64("claimtype", 0, "the type of this claim")
+	cmd.Flags().Int64("claimtype", 0, "the type of this claim,lock=0,burn=1")
 	_ = cmd.MarkFlagRequired("claimtype")
 
 	cmd.Flags().StringP("esymbol", "g", "", "the symbol of ethereum side")
 	_ = cmd.MarkFlagRequired("esymbol")
 }
 
-func ethBridgeClaim(cmd *cobra.Command, args []string) {
+func Eth2Chain33(cmd *cobra.Command, args []string) {
 	ethid, _ := cmd.Flags().GetInt64("ethid")
 	bcontract, _ := cmd.Flags().GetString("bcontract")
 	nonce, _ := cmd.Flags().GetInt64("nonce")
@@ -97,7 +99,7 @@ func ethBridgeClaim(cmd *cobra.Command, args []string) {
 	claimtype, _ := cmd.Flags().GetInt64("claimtype")
 	esymbol, _ := cmd.Flags().GetString("esymbol")
 
-	params := &types3.EthBridgeClaim{
+	params := &types3.Eth2Chain33{
 		EthereumChainID:       ethid,
 		BridgeContractAddress: bcontract,
 		Nonce:                 nonce,
@@ -117,22 +119,71 @@ func ethBridgeClaim(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createTx(cmd, payLoad, "EthBridgeClaim")
+	createTx(cmd, payLoad, "Eth2Chain33")
 }
 
-// Burn
-func CreateRawBurnTxCmd() *cobra.Command {
+// WithdrawEth
+func CreateRawWithdrawEthTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "burn",
-		Short: "Create a burn tx in chain33",
-		Run:   burn,
+		Use:   "withdraweth",
+		Short: "withdraw a Eth2Chain33",
+		Run:   WithdrawEth,
 	}
 
-	addBurnFlags(cmd)
+	addEth2Chain33Flags(cmd)
 	return cmd
 }
 
-func addBurnFlags(cmd *cobra.Command) {
+func WithdrawEth(cmd *cobra.Command, args []string) {
+	ethid, _ := cmd.Flags().GetInt64("ethid")
+	bcontract, _ := cmd.Flags().GetString("bcontract")
+	nonce, _ := cmd.Flags().GetInt64("nonce")
+	csymbol, _ := cmd.Flags().GetString("csymbol")
+	cexec, _ := cmd.Flags().GetString("cexec")
+	tcontract, _ := cmd.Flags().GetString("tcontract")
+	sender, _ := cmd.Flags().GetString("sender")
+	receiver, _ := cmd.Flags().GetString("receiver")
+	validator, _ := cmd.Flags().GetString("validator")
+	amount, _ := cmd.Flags().GetUint64("amount")
+	claimtype, _ := cmd.Flags().GetInt64("claimtype")
+	esymbol, _ := cmd.Flags().GetString("esymbol")
+
+	params := &types3.Eth2Chain33{
+		EthereumChainID:       ethid,
+		BridgeContractAddress: bcontract,
+		Nonce:                 nonce,
+		LocalCoinSymbol:       csymbol,
+		LocalCoinExec:         cexec,
+		TokenContractAddress:  tcontract,
+		EthereumSender:        sender,
+		Chain33Receiver:       receiver,
+		ValidatorAddress:      validator,
+		Amount:                amount,
+		ClaimType:             claimtype,
+		EthSymbol:             esymbol,
+	}
+
+	payLoad, err := json.Marshal(params)
+	if err != nil {
+		return
+	}
+
+	createTx(cmd, payLoad, "WithdrawEth")
+}
+
+// Burn
+func CreateRawWithdrawChain33TxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "burn",
+		Short: "Create a burn tx in chain33,withdraw chain33ToEth",
+		Run:   burn,
+	}
+
+	addChain33ToEthFlags(cmd)
+	return cmd
+}
+
+func addChain33ToEthFlags(cmd *cobra.Command) {
 	cmd.Flags().Int64("ethid", 0, "the ethereum chain ID which send asset to chain33")
 	_ = cmd.MarkFlagRequired("ethid")
 
@@ -153,6 +204,9 @@ func addBurnFlags(cmd *cobra.Command) {
 
 	cmd.Flags().Uint64("amount", 0, "the amount of this contract want to lock")
 	_ = cmd.MarkFlagRequired("amount")
+
+	cmd.Flags().StringP("esymbol", "g", "", "the symbol of ethereum side")
+	_ = cmd.MarkFlagRequired("esymbol")
 }
 
 func burn(cmd *cobra.Command, args []string) {
@@ -163,8 +217,9 @@ func burn(cmd *cobra.Command, args []string) {
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetUint64("amount")
+	esymbol, _ := cmd.Flags().GetString("esymbol")
 
-	params := &types3.MsgBurn{
+	params := &types3.Chain33ToEth{
 		EthereumChainID:  ethid,
 		TokenContract:    contract,
 		Chain33Sender:    sender,
@@ -172,6 +227,7 @@ func burn(cmd *cobra.Command, args []string) {
 		Amount:           amount,
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
+		EthSymbol:        esymbol,
 	}
 
 	payLoad, err := json.Marshal(params)
@@ -179,42 +235,19 @@ func burn(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createTx(cmd, payLoad, "MsgBurn")
+	createTx(cmd, payLoad, "WithdrawChain33")
 }
 
 // Lock
-func CreateRawLockTxCmd() *cobra.Command {
+func CreateRawChain33ToEthTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lock",
-		Short: "Create a lock tx in chain33",
+		Short: "Create a lock tx in chain33,create a chain33ToEth tx",
 		Run:   lock,
 	}
 
-	addLockFlags(cmd)
+	addChain33ToEthFlags(cmd)
 	return cmd
-}
-
-func addLockFlags(cmd *cobra.Command) {
-	cmd.Flags().Int64("ethid", 0, "the ethereum chain ID which send asset to chain33")
-	_ = cmd.MarkFlagRequired("ethid")
-
-	cmd.Flags().StringP("contract", "b", "", "token contract address")
-	_ = cmd.MarkFlagRequired("contract")
-
-	cmd.Flags().StringP("csymbol", "t", "", "token symbol in chain33")
-	_ = cmd.MarkFlagRequired("csymbol")
-
-	cmd.Flags().StringP("cexec", "e", "", "chain execer in chain33")
-	_ = cmd.MarkFlagRequired("cexec")
-
-	cmd.Flags().StringP("sender", "s", "", "chain33 sender address")
-	_ = cmd.MarkFlagRequired("sender")
-
-	cmd.Flags().StringP("receiver", "r", "", "ethereum receiver address")
-	_ = cmd.MarkFlagRequired("cExec")
-
-	cmd.Flags().Uint64("amount", 0, "the amount of this contract want to lock")
-	_ = cmd.MarkFlagRequired("amount")
 }
 
 func lock(cmd *cobra.Command, args []string) {
@@ -225,8 +258,9 @@ func lock(cmd *cobra.Command, args []string) {
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetUint64("amount")
+	esymbol, _ := cmd.Flags().GetString("esymbol")
 
-	params := &types3.MsgLock{
+	params := &types3.Chain33ToEth{
 		EthereumChainID:  ethid,
 		TokenContract:    contract,
 		Chain33Sender:    sender,
@@ -234,6 +268,7 @@ func lock(cmd *cobra.Command, args []string) {
 		Amount:           amount,
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
+		EthSymbol:        esymbol,
 	}
 
 	payLoad, err := json.Marshal(params)
@@ -241,32 +276,31 @@ func lock(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createTx(cmd, payLoad, "MsgLock")
+	createTx(cmd, payLoad, "Chain33ToEth")
 }
 
-// MsgLogInValidator
-func CreateRawLogInTxCmd() *cobra.Command {
+// AddValidator
+func CreateRawAddValidatorTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "login",
-		Short: "Create a LogIn tx in chain33",
-		Run:   logIn,
+		Use:   "add",
+		Short: "Create a add validator tx in chain33",
+		Run:   addValidator,
 	}
 
-	addLogInFlags(cmd)
+	addValidatorFlags(cmd)
+	cmd.Flags().Int64P("power", "p", 0, "validator power set")
+	_ = cmd.MarkFlagRequired("power")
 	return cmd
 }
 
-func addLogInFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("address", "a", "", "the address you want to log in ")
+func addValidatorFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("address", "a", "", "the address you want to add/remove/modify as a validator ")
 	_ = cmd.MarkFlagRequired("address")
-
-	cmd.Flags().Float64P("power", "p", 0, "validator power set")
-	_ = cmd.MarkFlagRequired("power")
 }
 
-func logIn(cmd *cobra.Command, args []string) {
+func addValidator(cmd *cobra.Command, args []string) {
 	address, _ := cmd.Flags().GetString("address")
-	power, _ := cmd.Flags().GetFloat64("power")
+	power, _ := cmd.Flags().GetInt64("power")
 
 	params := &types3.MsgValidator{
 		Address: address,
@@ -278,32 +312,54 @@ func logIn(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createTx(cmd, payLoad, "MsgLogInValidator")
+	createTx(cmd, payLoad, "AddValidator")
 }
 
-// MsgLogOutValidator
-func CreateRawLogOutTxCmd() *cobra.Command {
+// RemoveValidator
+func CreateRawRemoveValidatorTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "logout",
-		Short: "Create a LogOut tx in chain33",
-		Run:   logOut,
+		Use:   "remove",
+		Short: "Create a remove validator tx in chain33",
+		Run:   removeValidator,
 	}
 
-	addLogOutFlags(cmd)
+	addValidatorFlags(cmd)
 	return cmd
 }
 
-func addLogOutFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("address", "a", "", "the address you want to log out ")
-	_ = cmd.MarkFlagRequired("address")
+func removeValidator(cmd *cobra.Command, args []string) {
+	address, _ := cmd.Flags().GetString("address")
 
-	cmd.Flags().Float64P("power", "p", 0, "validator power set")
-	_ = cmd.MarkFlagRequired("power")
+	params := &types3.MsgValidator{
+		Address: address,
+	}
+
+	payLoad, err := json.Marshal(params)
+	if err != nil {
+		return
+	}
+
+	createTx(cmd, payLoad, "RemoveValidator")
 }
 
-func logOut(cmd *cobra.Command, args []string) {
+// ModifyValidator
+func CreateRawModifyValidatorTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "modify",
+		Short: "Create a modify validator tx in chain33",
+		Run:   modify,
+	}
+
+	addValidatorFlags(cmd)
+
+	cmd.Flags().Int64P("power", "p", 0, "validator power set")
+	_ = cmd.MarkFlagRequired("power")
+	return cmd
+}
+
+func modify(cmd *cobra.Command, args []string) {
 	address, _ := cmd.Flags().GetString("address")
-	power, _ := cmd.Flags().GetFloat64("power")
+	power, _ := cmd.Flags().GetInt64("power")
 
 	params := &types3.MsgValidator{
 		Address: address,
@@ -315,14 +371,14 @@ func logOut(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createTx(cmd, payLoad, "MsgLogOutValidator")
+	createTx(cmd, payLoad, "ModifyPower")
 }
 
 // MsgSetConsensusNeeded
 func CreateRawSetConsensusTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setconsensus",
-		Short: "Create a set consensus Need tx in chain33",
+		Short: "Create a set consensus threshold tx in chain33",
 		Run:   setConsensus,
 	}
 
@@ -331,15 +387,15 @@ func CreateRawSetConsensusTxCmd() *cobra.Command {
 }
 
 func addSetConsensusFlags(cmd *cobra.Command) {
-	cmd.Flags().Float64P("power", "p", 0, "the power you want to set consensus need")
+	cmd.Flags().Int64P("power", "p", 0, "the power you want to set consensus need")
 	_ = cmd.MarkFlagRequired("power")
 }
 
 func setConsensus(cmd *cobra.Command, args []string) {
-	power, _ := cmd.Flags().GetFloat64("power")
+	power, _ := cmd.Flags().GetInt64("power")
 
-	params := &types3.MsgSetConsensusNeeded{
-		ConsensusNeed: power,
+	params := &types3.MsgConsensusThreshold{
+		ConsensusThreshold: power,
 	}
 
 	payLoad, err := json.Marshal(params)
@@ -347,7 +403,7 @@ func setConsensus(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	createTx(cmd, payLoad, "MsgSetConsensusNeeded")
+	createTx(cmd, payLoad, "SetConsensusThreshold")
 }
 
 func createTx(cmd *cobra.Command, payLoad []byte, action string) {

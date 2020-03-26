@@ -10,10 +10,10 @@ import (
 )
 
 // MsgCreateEthBridgeClaim defines a message for creating claims on the ethereum bridge
-type MsgCreateEthBridgeClaim types.EthBridgeClaim
+type MsgCreateEthBridgeClaim types.Eth2Chain33
 
 // NewMsgCreateEthBridgeClaim is a constructor function for MsgCreateBridgeClaim
-func NewMsgCreateEthBridgeClaim(ethBridgeClaim types.EthBridgeClaim) MsgCreateEthBridgeClaim {
+func NewMsgCreateEthBridgeClaim(ethBridgeClaim types.Eth2Chain33) MsgCreateEthBridgeClaim {
 	return MsgCreateEthBridgeClaim(ethBridgeClaim)
 }
 
@@ -50,8 +50,8 @@ func (msg MsgCreateEthBridgeClaim) ValidateBasic() error {
 }
 
 // MapOracleClaimsToEthBridgeClaims maps a set of generic oracle claim data into EthBridgeClaim objects
-func MapOracleClaimsToEthBridgeClaims(ethereumChainID int, bridgeContract string, nonce int, symbol string, tokenContract string, ethereumSender string, oracleValidatorClaims map[string]string, f func(int, string, int, string, string, string, string, string) (types.EthBridgeClaim, error)) ([]types.EthBridgeClaim, error) {
-	mappedClaims := make([]types.EthBridgeClaim, len(oracleValidatorClaims))
+func MapOracleClaimsToEthBridgeClaims(ethereumChainID int, bridgeContract string, nonce int, symbol string, tokenContract string, ethereumSender string, oracleValidatorClaims map[string]string, f func(int, string, int, string, string, string, string, string) (types.Eth2Chain33, error)) ([]types.Eth2Chain33, error) {
+	mappedClaims := make([]types.Eth2Chain33, len(oracleValidatorClaims))
 	i := 0
 	for validator, validatorClaim := range oracleValidatorClaims {
 		parseErr := address.CheckAddress(validator)

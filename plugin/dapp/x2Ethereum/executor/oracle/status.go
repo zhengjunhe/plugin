@@ -10,11 +10,12 @@ import (
 // StatusText is an enum used to represent the status of the prophecy
 type StatusText int
 
-var StatusTextToString = [...]string{"pending", "success", "failed"}
+var StatusTextToString = [...]string{"pending", "success", "failed", "withdrawed"}
 var StringToStatusText = map[string]types.EthBridgeStatus{
-	"pending": types.EthBridgeStatus_PendingStatusText,
-	"success": types.EthBridgeStatus_SuccessStatusText,
-	"failed":  types.EthBridgeStatus_FailedStatusText,
+	"pending":    types.EthBridgeStatus_PendingStatusText,
+	"success":    types.EthBridgeStatus_SuccessStatusText,
+	"failed":     types.EthBridgeStatus_FailedStatusText,
+	"withdrawed": types.EthBridgeStatus_WithdrawedStatusText,
 }
 
 func (text StatusText) String() string {

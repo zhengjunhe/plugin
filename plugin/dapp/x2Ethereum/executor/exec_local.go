@@ -10,46 +10,58 @@ import (
  * 非关键数据，本地存储(localDB), 用于辅助查询，效率高
  */
 
-func (x *x2ethereum) ExecLocal_EthBridgeClaim(payload *x2ethereumtypes.EthBridgeClaim, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_Eth2Chain33(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
-	return x.addAutoRollBack(tx, dbSet.KV), nil
+	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (x *x2ethereum) ExecLocal_MsgBurn(payload *x2ethereumtypes.MsgBurn, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_WithdrawEth(payload *x2ethereumtypes.X2EthereumAction_WithdrawEth, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
-	return x.addAutoRollBack(tx, dbSet.KV), nil
+	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (x *x2ethereum) ExecLocal_MsgLock(payload *x2ethereumtypes.MsgLock, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_WithdrawChain33(payload *x2ethereumtypes.X2EthereumAction_WithdrawChain33, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
-	return x.addAutoRollBack(tx, dbSet.KV), nil
+	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (x *x2ethereum) ExecLocal_MsgLogInValidator(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_Chain33ToEth(payload *x2ethereumtypes.Chain33ToEth, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
-	return x.addAutoRollBack(tx, dbSet.KV), nil
+	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (x *x2ethereum) ExecLocal_MsgLogOutValidator(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_AddValidator(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
-	return x.addAutoRollBack(tx, dbSet.KV), nil
+	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (x *x2ethereum) ExecLocal_MsgSetConsensusNeeded(payload *x2ethereumtypes.MsgSetConsensusNeeded, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_RemoveValidator(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
-	return x.addAutoRollBack(tx, dbSet.KV), nil
+	return s.addAutoRollBack(tx, dbSet.KV), nil
+}
+
+func (s *x2ethereum) ExecLocal_ModifyPower(payload *x2ethereumtypes.MsgValidator, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+	dbSet := &types.LocalDBSet{}
+	//implement code
+	return s.addAutoRollBack(tx, dbSet.KV), nil
+}
+
+func (s *x2ethereum) ExecLocal_SetConsensusThreshold(payload *x2ethereumtypes.MsgConsensusThreshold, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+	dbSet := &types.LocalDBSet{}
+	//implement code
+	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
 //设置自动回滚
-func (x *x2ethereum) addAutoRollBack(tx *types.Transaction, kv []*types.KeyValue) *types.LocalDBSet {
+func (s *x2ethereum) addAutoRollBack(tx *types.Transaction, kv []*types.KeyValue) *types.LocalDBSet {
 
 	dbSet := &types.LocalDBSet{}
-	dbSet.KV = x.AddRollbackKV(tx, tx.Execer, kv)
+	dbSet.KV = s.AddRollbackKV(tx, tx.Execer, kv)
 	return dbSet
 }

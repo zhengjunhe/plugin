@@ -1,4 +1,4 @@
-package ethbridge
+package common
 
 import (
 	"encoding/json"

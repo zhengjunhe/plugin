@@ -17,21 +17,27 @@ var (
 	X2ethereumX = "x2ethereum"
 	//定义actionMap
 	actionMap = map[string]int32{
-		NameEthBridgeClaimAction:        TyEthBridgeClaimAction,
-		NameMsgBurnAction:               TyMsgBurnAction,
-		NameMsgLockAction:               TyMsgLockAction,
-		NameMsgLogInValidatorAction:     TyMsgLogInValidatorAction,
-		NameMsgLogOutValidatorAction:    TyMsgLogOutValidatorAction,
-		NameMsgSetConsensusNeededAction: TyMsgSetConsensusNeededAction,
+		NameEth2Chain33Action:           TyEth2Chain33Action,
+		NameWithdrawEthAction:           TyWithdrawEthAction,
+		NameWithdrawChain33Action:       TyWithdrawChain33Action,
+		NameChain33ToEthAction:          TyChain33ToEthAction,
+		NameAddValidatorAction:          TyAddValidatorAction,
+		NameRemoveValidatorAction:       TyRemoveValidatorAction,
+		NameModifyPowerAction:           TyModifyPowerAction,
+		NameSetConsensusThresholdAction: TySetConsensusThresholdAction,
 	}
 	//定义log的id和具体log类型及名称，填入具体自定义log类型
 	logMap = map[int64]*types.LogInfo{
-		TyEthBridgeClaimLog:        {Ty: reflect.TypeOf(ReceiptEthBridgeClaim{}), Name: "LogEthBridgeClaimAction"},
-		TyMsgBurnLog:               {Ty: reflect.TypeOf(ReceiptBurn{}), Name: "MsgBurnLog"},
-		TyMsgLockLog:               {Ty: reflect.TypeOf(ReceiptLock{}), Name: "MsgLockLog"},
-		TyMsgLogInValidatorLog:     {Ty: reflect.TypeOf(ReceiptLogInOut{}), Name: "MsgLogInValidatorLog"},
-		TyMsgLogOutValidatorLog:    {Ty: reflect.TypeOf(ReceiptLogInOut{}), Name: "MsgLogOutValidatorLog"},
-		TyMsgSetConsensusNeededLog: {Ty: reflect.TypeOf(ReceiptSetConsensusNeeded{}), Name: "MsgSetConsensusNeededLog"},
+		TyEth2Chain33Log:           {Ty: reflect.TypeOf(ReceiptEth2Chain33{}), Name: "LogEth2Chain33"},
+		TyWithdrawEthLog:           {Ty: reflect.TypeOf(ReceiptEth2Chain33{}), Name: "LogWithdrawEth"},
+		TyWithdrawChain33Log:       {Ty: reflect.TypeOf(ReceiptChain33ToEth{}), Name: "LogWithdrawChain33"},
+		TyChain33ToEthLog:          {Ty: reflect.TypeOf(ReceiptChain33ToEth{}), Name: "LogChain33ToEth"},
+		TyAddValidatorLog:          {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogAddValidator"},
+		TyRemoveValidatorLog:       {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogRemoveValidator"},
+		TyModifyPowerLog:           {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogModifyPower"},
+		TySetConsensusThresholdLog: {Ty: reflect.TypeOf(ReceiptSetConsensusThreshold{}), Name: "LogSetConsensusThreshold"},
+		TySymbolAssetsLog:          {Ty: reflect.TypeOf(ReceiptQuerySymbolAssets{}), Name: "LogSymbolAssets"},
+		TyProphecyLog:              {Ty: reflect.TypeOf(ReceiptEthProphecy{}), Name: "LogEthProphecy"},
 	}
 	tlog = log.New("module", "x2ethereum.types")
 )
