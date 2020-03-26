@@ -23,6 +23,8 @@ func EthereumRelayerCmd() *cobra.Command {
 		ShowChain33TxsHashCmd(),
 		ShowEthereumTxsHashCmd(),
 		ShowEthRelayerStatusCmd(),
+		IsValidatorActiveCmd(),
+		ShowOperatorCmd(),
 	)
 
 	return cmd
@@ -146,4 +148,43 @@ func showEthRelayerStatus(cmd *cobra.Command, args []string) {
 	ctx.Run()
 }
 
+func IsValidatorActiveCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "active",
+		Short: "show whether the validator is active or not",
+		Run:   IsValidatorActive,
+	}
+	IsValidatorActiveFlags(cmd)
+	return cmd
+}
 
+func IsValidatorActiveFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("addr", "a", "", "validator address")
+	_ = cmd.MarkFlagRequired("addr")
+}
+
+func IsValidatorActive(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	addr, _ := cmd.Flags().GetString("addr")
+
+	params := addr
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.IsValidatorActive", params, &res)
+	ctx.Run()
+}
+
+func ShowOperatorCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "operator",
+		Short: "show me the operator",
+		Run:   ShowOperator,
+	}
+	return cmd
+}
+
+func ShowOperator(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	var res string
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowOperator", nil, &res)
+	ctx.Run()
+}

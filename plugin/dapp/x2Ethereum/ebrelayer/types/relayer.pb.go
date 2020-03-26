@@ -3,9 +3,11 @@
 
 package types
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,11 +18,11 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-// 以太坊账户信息
+//以太坊账户信息
 // 	 privkey : 账户地址对应的私钥
-// 	 addr :账户地址
+//	 addr :账户地址
 type Account4Relayer struct {
 	Privkey              []byte   `protobuf:"bytes,1,opt,name=privkey,proto3" json:"privkey,omitempty"`
 	Addr                 string   `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
@@ -33,16 +35,17 @@ func (m *Account4Relayer) Reset()         { *m = Account4Relayer{} }
 func (m *Account4Relayer) String() string { return proto.CompactTextString(m) }
 func (*Account4Relayer) ProtoMessage()    {}
 func (*Account4Relayer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{0}
+	return fileDescriptor_202a89775a80bd4c, []int{0}
 }
+
 func (m *Account4Relayer) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Account4Relayer.Unmarshal(m, b)
 }
 func (m *Account4Relayer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Account4Relayer.Marshal(b, m, deterministic)
 }
-func (dst *Account4Relayer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Account4Relayer.Merge(dst, src)
+func (m *Account4Relayer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Account4Relayer.Merge(m, src)
 }
 func (m *Account4Relayer) XXX_Size() int {
 	return xxx_messageInfo_Account4Relayer.Size(m)
@@ -79,16 +82,17 @@ func (m *ValidatorAddr4EthRelayer) Reset()         { *m = ValidatorAddr4EthRelay
 func (m *ValidatorAddr4EthRelayer) String() string { return proto.CompactTextString(m) }
 func (*ValidatorAddr4EthRelayer) ProtoMessage()    {}
 func (*ValidatorAddr4EthRelayer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{1}
+	return fileDescriptor_202a89775a80bd4c, []int{1}
 }
+
 func (m *ValidatorAddr4EthRelayer) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ValidatorAddr4EthRelayer.Unmarshal(m, b)
 }
 func (m *ValidatorAddr4EthRelayer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ValidatorAddr4EthRelayer.Marshal(b, m, deterministic)
 }
-func (dst *ValidatorAddr4EthRelayer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ValidatorAddr4EthRelayer.Merge(dst, src)
+func (m *ValidatorAddr4EthRelayer) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ValidatorAddr4EthRelayer.Merge(m, src)
 }
 func (m *ValidatorAddr4EthRelayer) XXX_Size() int {
 	return xxx_messageInfo_ValidatorAddr4EthRelayer.Size(m)
@@ -124,16 +128,17 @@ func (m *Txhashes) Reset()         { *m = Txhashes{} }
 func (m *Txhashes) String() string { return proto.CompactTextString(m) }
 func (*Txhashes) ProtoMessage()    {}
 func (*Txhashes) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{2}
+	return fileDescriptor_202a89775a80bd4c, []int{2}
 }
+
 func (m *Txhashes) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Txhashes.Unmarshal(m, b)
 }
 func (m *Txhashes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Txhashes.Marshal(b, m, deterministic)
 }
-func (dst *Txhashes) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Txhashes.Merge(dst, src)
+func (m *Txhashes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Txhashes.Merge(m, src)
 }
 func (m *Txhashes) XXX_Size() int {
 	return xxx_messageInfo_Txhashes.Size(m)
@@ -163,16 +168,17 @@ func (m *ReqSetPasswd) Reset()         { *m = ReqSetPasswd{} }
 func (m *ReqSetPasswd) String() string { return proto.CompactTextString(m) }
 func (*ReqSetPasswd) ProtoMessage()    {}
 func (*ReqSetPasswd) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{3}
+	return fileDescriptor_202a89775a80bd4c, []int{3}
 }
+
 func (m *ReqSetPasswd) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReqSetPasswd.Unmarshal(m, b)
 }
 func (m *ReqSetPasswd) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ReqSetPasswd.Marshal(b, m, deterministic)
 }
-func (dst *ReqSetPasswd) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReqSetPasswd.Merge(dst, src)
+func (m *ReqSetPasswd) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReqSetPasswd.Merge(m, src)
 }
 func (m *ReqSetPasswd) XXX_Size() int {
 	return xxx_messageInfo_ReqSetPasswd.Size(m)
@@ -209,16 +215,17 @@ func (m *Account4Show) Reset()         { *m = Account4Show{} }
 func (m *Account4Show) String() string { return proto.CompactTextString(m) }
 func (*Account4Show) ProtoMessage()    {}
 func (*Account4Show) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{4}
+	return fileDescriptor_202a89775a80bd4c, []int{4}
 }
+
 func (m *Account4Show) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Account4Show.Unmarshal(m, b)
 }
 func (m *Account4Show) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Account4Show.Marshal(b, m, deterministic)
 }
-func (dst *Account4Show) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Account4Show.Merge(dst, src)
+func (m *Account4Show) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Account4Show.Merge(m, src)
 }
 func (m *Account4Show) XXX_Size() int {
 	return xxx_messageInfo_Account4Show.Size(m)
@@ -256,16 +263,17 @@ func (m *AssetType) Reset()         { *m = AssetType{} }
 func (m *AssetType) String() string { return proto.CompactTextString(m) }
 func (*AssetType) ProtoMessage()    {}
 func (*AssetType) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{5}
+	return fileDescriptor_202a89775a80bd4c, []int{5}
 }
+
 func (m *AssetType) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AssetType.Unmarshal(m, b)
 }
 func (m *AssetType) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_AssetType.Marshal(b, m, deterministic)
 }
-func (dst *AssetType) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AssetType.Merge(dst, src)
+func (m *AssetType) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AssetType.Merge(m, src)
 }
 func (m *AssetType) XXX_Size() int {
 	return xxx_messageInfo_AssetType.Size(m)
@@ -318,16 +326,17 @@ func (m *EthBridgeClaim) Reset()         { *m = EthBridgeClaim{} }
 func (m *EthBridgeClaim) String() string { return proto.CompactTextString(m) }
 func (*EthBridgeClaim) ProtoMessage()    {}
 func (*EthBridgeClaim) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{6}
+	return fileDescriptor_202a89775a80bd4c, []int{6}
 }
+
 func (m *EthBridgeClaim) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EthBridgeClaim.Unmarshal(m, b)
 }
 func (m *EthBridgeClaim) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EthBridgeClaim.Marshal(b, m, deterministic)
 }
-func (dst *EthBridgeClaim) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EthBridgeClaim.Merge(dst, src)
+func (m *EthBridgeClaim) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EthBridgeClaim.Merge(m, src)
 }
 func (m *EthBridgeClaim) XXX_Size() int {
 	return xxx_messageInfo_EthBridgeClaim.Size(m)
@@ -426,16 +435,17 @@ func (m *ImportKeyReq) Reset()         { *m = ImportKeyReq{} }
 func (m *ImportKeyReq) String() string { return proto.CompactTextString(m) }
 func (*ImportKeyReq) ProtoMessage()    {}
 func (*ImportKeyReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{7}
+	return fileDescriptor_202a89775a80bd4c, []int{7}
 }
+
 func (m *ImportKeyReq) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ImportKeyReq.Unmarshal(m, b)
 }
 func (m *ImportKeyReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ImportKeyReq.Marshal(b, m, deterministic)
 }
-func (dst *ImportKeyReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ImportKeyReq.Merge(dst, src)
+func (m *ImportKeyReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ImportKeyReq.Merge(m, src)
 }
 func (m *ImportKeyReq) XXX_Size() int {
 	return xxx_messageInfo_ImportKeyReq.Size(m)
@@ -465,16 +475,17 @@ func (m *RelayerRunStatus) Reset()         { *m = RelayerRunStatus{} }
 func (m *RelayerRunStatus) String() string { return proto.CompactTextString(m) }
 func (*RelayerRunStatus) ProtoMessage()    {}
 func (*RelayerRunStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_relayer_b5787320756cb69b, []int{8}
+	return fileDescriptor_202a89775a80bd4c, []int{8}
 }
+
 func (m *RelayerRunStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RelayerRunStatus.Unmarshal(m, b)
 }
 func (m *RelayerRunStatus) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_RelayerRunStatus.Marshal(b, m, deterministic)
 }
-func (dst *RelayerRunStatus) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RelayerRunStatus.Merge(dst, src)
+func (m *RelayerRunStatus) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RelayerRunStatus.Merge(m, src)
 }
 func (m *RelayerRunStatus) XXX_Size() int {
 	return xxx_messageInfo_RelayerRunStatus.Size(m)
@@ -511,9 +522,11 @@ func init() {
 	proto.RegisterType((*RelayerRunStatus)(nil), "types.RelayerRunStatus")
 }
 
-func init() { proto.RegisterFile("relayer.proto", fileDescriptor_relayer_b5787320756cb69b) }
+func init() {
+	proto.RegisterFile("relayer.proto", fileDescriptor_202a89775a80bd4c)
+}
 
-var fileDescriptor_relayer_b5787320756cb69b = []byte{
+var fileDescriptor_202a89775a80bd4c = []byte{
 	// 500 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x53, 0xdf, 0x6b, 0xdb, 0x30,
 	0x10, 0x26, 0x4b, 0x93, 0xd6, 0x37, 0xf7, 0x07, 0xa2, 0x1b, 0x7a, 0x18, 0x23, 0x88, 0x31, 0xc2,

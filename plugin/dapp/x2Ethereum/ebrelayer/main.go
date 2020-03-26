@@ -71,7 +71,7 @@ func main() {
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
 	chain33RelayerService := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, db, ctx)
-    ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider)
+    ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry)
 	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
 
 	log.Info("cfg.JrpcBindAddr = ", cfg.JrpcBindAddr)

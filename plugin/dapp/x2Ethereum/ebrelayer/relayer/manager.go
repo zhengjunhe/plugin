@@ -249,6 +249,31 @@ func (manager *RelayerManager) ShowEthRelayerValidator(param interface{}, result
 	return nil
 }
 
+func (manager *RelayerManager) IsValidatorActive(vallidatorAddr string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	active, err := manager.ethRelayer.IsValidatorActive(vallidatorAddr)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: active,
+		Msg:  "",
+	}
+	return nil
+}
+
+func (manager *RelayerManager) ShowOperator(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	operator, err := manager.ethRelayer.ShowOperator()
+	if nil != err {
+		return err
+	}
+	*result = operator
+	return nil
+}
+
 func (manager *RelayerManager) checkPermission() error {
 	if EncryptEnable != manager.encryptFlag {
 		return errors.New("pls set passphase first")

@@ -36,6 +36,7 @@ message RelayerConfig {
   Log log = 3;
   string jrpcBindAddr = 4; // Jrpc服务地址
   string ethProvider  = 5;
+  string bridgeRegistry = 6;
 }
 
 message SyncTxReceiptConfig {
