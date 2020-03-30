@@ -10,23 +10,19 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
-// Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
-	supplyKeeper SupplyKeeper
 	oracleKeeper OracleKeeper
 	db           dbm.KV
 }
 
-// NewKeeper creates new instances of the oracle Keeper
-func NewKeeper(supplyKeeper SupplyKeeper, oracleKeeper OracleKeeper, db dbm.KV) Keeper {
+func NewKeeper(oracleKeeper OracleKeeper, db dbm.KV) Keeper {
 	return Keeper{
-		supplyKeeper: supplyKeeper,
 		oracleKeeper: oracleKeeper,
 		db:           db,
 	}
 }
 
-// ProcessClaim processes a new claim coming in from a validator
+// 处理接收到的ethchain33请求
 func (k Keeper) ProcessClaim(claim types.Eth2Chain33) (oracle.Status, error) {
 	oracleClaim, err := CreateOracleClaimFromEthClaim(claim)
 	if err != nil {
@@ -41,7 +37,7 @@ func (k Keeper) ProcessClaim(claim types.Eth2Chain33) (oracle.Status, error) {
 	return status, nil
 }
 
-// ProcessSuccessfulClaim processes a claim that has just completed successfully with consensus
+// 处理经过审核的关于Lock的claim
 func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol string, accDB *account.DB) (*types2.Receipt, error) {
 	var receipt *types2.Receipt
 	oracleClaim, err := CreateOracleClaimFromOracleString(claim)
@@ -54,21 +50,22 @@ func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol strin
 
 	if oracleClaim.ClaimType == common.LockText {
 		//铸币到相关的tokenSymbolBank账户下
-		receipt, err = k.supplyKeeper.MintCoins(int64(oracleClaim.Amount), tokenSymbol, accDB)
+		receipt, err = accDB.Mint(execAddr, int64(oracleClaim.Amount))
 		if err != nil {
 			return nil, err
 		}
+		r, err := accDB.ExecDeposit(receiverAddress, execAddr, int64(oracleClaim.Amount))
+		if err != nil {
+			panic(err)
+		}
+		receipt.KV = append(receipt.KV, r.KV...)
+		receipt.Logs = append(receipt.Logs, r.Logs...)
+		return receipt, nil
 	}
-	r, err := k.supplyKeeper.SendCoinsFromModuleToAccount(tokenSymbol, receiverAddress, execAddr, int64(oracleClaim.Amount), accDB)
-	if err != nil {
-		panic(err)
-	}
-	receipt.KV = append(receipt.KV, r.KV...)
-	receipt.Logs = append(receipt.Logs, r.Logs...)
-	return receipt, nil
+	return nil, types.ErrInvalidClaimType
 }
 
-// ProcessSuccessfulClaim processes a claim that has just completed successfully with consensus
+// 处理经过审核的关于Burn的claim
 func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol string, accDB *account.DB) (*types2.Receipt, error) {
 	receipt := new(types2.Receipt)
 	oracleClaim, err := CreateOracleClaimFromOracleString(claim)
@@ -77,31 +74,31 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 		return nil, err
 	}
 
-	receiverAddress := oracleClaim.Chain33Receiver
-
-	receipt, err = k.supplyKeeper.SendCoinsFromAccountToModule(receiverAddress, tokenSymbol, execAddr, int64(oracleClaim.Amount), accDB)
-	if err != nil {
-		panic(err)
-	}
+	senderAddr := oracleClaim.Chain33Receiver
 
 	if oracleClaim.ClaimType == common.BurnText {
-		r, err := k.supplyKeeper.BurnCoins(int64(oracleClaim.Amount), tokenSymbol, accDB)
+		receipt, err = accDB.ExecWithdraw(execAddr, senderAddr, int64(oracleClaim.Amount))
+		if err != nil {
+			panic(err)
+		}
+		r, err := accDB.Burn(execAddr, int64(oracleClaim.Amount))
 		if err != nil {
 			return nil, err
 		}
 		receipt.KV = append(receipt.KV, r.KV...)
 		receipt.Logs = append(receipt.Logs, r.Logs...)
+		return receipt, nil
 	}
-	return receipt, nil
+	return nil, types.ErrInvalidClaimType
 }
 
 // ProcessBurn processes the burn of bridged coins from the given sender
-func (k Keeper) ProcessBurn(address, execAddr, tokenSymbol string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
-	receipt, err := k.supplyKeeper.SendCoinsFromAccountToModule(address, tokenSymbol, execAddr, amount, accDB)
+func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
+	receipt, err := accDB.TransferToExec(address, execAddr, amount)
 	if err != nil {
 		return nil, err
 	}
-	r, err := k.supplyKeeper.BurnCoins(amount, tokenSymbol, accDB)
+	r, err := accDB.ExecActive(address, execAddr, amount)
 	if err != nil {
 		panic(err)
 	}
@@ -111,11 +108,19 @@ func (k Keeper) ProcessBurn(address, execAddr, tokenSymbol string, amount int64,
 }
 
 // ProcessLock processes the lockup of cosmos coins from the given sender
-func (k Keeper) ProcessLock(address, execAddr, tokenSymbol string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
-	receipt, err := k.supplyKeeper.SendCoinsFromAccountToModule(address, tokenSymbol, execAddr, amount, accDB)
+// accDB = mavl-coins-bty-addr
+func (k Keeper) ProcessLock(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
+	// 转到 mavl-coins-bty-execAddr:addr
+	receipt, err := accDB.TransferToExec(address, execAddr, amount*1e8)
 	if err != nil {
 		return nil, err
 	}
+	r, err := accDB.ExecFrozen(address, execAddr, amount*1e8)
+	if err != nil {
+		return nil, err
+	}
+	receipt.KV = append(receipt.KV, r.KV...)
+	receipt.Logs = append(receipt.Logs, r.Logs...)
 	return receipt, nil
 }
 
@@ -231,11 +236,8 @@ func (k Keeper) ProcessModifyValidator(address string, power int64) (*types2.Rec
 }
 
 func (k Keeper) ProcessSetConsensusNeeded(ConsensusThreshold float64) (float64, float64, error) {
-
 	preCon := k.oracleKeeper.GetConsensusThreshold()
-
 	k.oracleKeeper.SetConsensusThreshold(ConsensusThreshold)
-
 	nowCon := k.oracleKeeper.GetConsensusThreshold()
 
 	elog.Info("ProcessSetConsensusNeeded", "pre ConsensusThreshold", preCon, "now ConsensusThreshold", nowCon)

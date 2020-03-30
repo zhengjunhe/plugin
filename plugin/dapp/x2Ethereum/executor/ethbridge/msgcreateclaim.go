@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	gethCommon "github.com/ethereum/go-ethereum/common"
 	"strings"
@@ -25,11 +26,11 @@ func (msg MsgCreateEthBridgeClaim) Type() string { return "create_bridge_claim" 
 
 // ValidateBasic runs stateless checks on the message
 func (msg MsgCreateEthBridgeClaim) ValidateBasic() error {
-	if AddressIsEmpty(msg.Chain33Receiver) {
+	if common.AddressIsEmpty(msg.Chain33Receiver) {
 		return types.ErrInvalidAddress
 	}
 
-	if AddressIsEmpty(msg.ValidatorAddress) {
+	if common.AddressIsEmpty(msg.ValidatorAddress) {
 		return types.ErrInvalidAddress
 	}
 

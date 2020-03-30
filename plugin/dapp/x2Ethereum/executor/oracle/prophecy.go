@@ -2,17 +2,17 @@ package oracle
 
 import (
 	"encoding/json"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
 type Prophecy struct {
 	ID              string                   `json:"id"`
 	Status          Status                   `json:"status"`
-	ClaimValidators []*types.ClaimValidators `json:"claim_validators"` //This is a mapping from a claim to the list of validators that made that claim.
-	ValidatorClaims []*types.ValidatorClaims `json:"validator_claims"` //This is a mapping from a validator bech32 address to their claim
+	ClaimValidators []*types.ClaimValidators `json:"claim_validators"`
+	ValidatorClaims []*types.ValidatorClaims `json:"validator_claims"`
 }
 
-// NewProphecy returns a new Prophecy, initialized in pending status with an initial claim
 func NewProphecy(id string) Prophecy {
 	return Prophecy{
 		ID:              id,
@@ -22,12 +22,10 @@ func NewProphecy(id string) Prophecy {
 	}
 }
 
-// NewEmptyProphecy returns a blank prophecy, used with errors
 func NewEmptyProphecy() Prophecy {
 	return NewProphecy("")
 }
 
-// DBProphecy is what the prophecy becomes when being saved to the database. Tendermint/Amino does not support maps so we must serialize those variables into bytes.
 type DBProphecy struct {
 	ID              string `json:"id"`
 	Status          Status `json:"status"`
@@ -91,7 +89,7 @@ func (prophecy *Prophecy) AddClaim(validator string, claim string) {
 		for index, cv := range prophecy.ClaimValidators {
 			if cv.Claim == claim {
 				claimValidators = cv.Validators
-				prophecy.ClaimValidators[index].Validators = AddToStringMap(claimValidators, validator)
+				prophecy.ClaimValidators[index].Validators = common.AddToStringMap(claimValidators, validator)
 				break
 			}
 		}
@@ -118,8 +116,7 @@ func (prophecy *Prophecy) AddClaim(validator string, claim string) {
 
 }
 
-// FindHighestClaim looks through all the existing claims on a given prophecy. It adds up the total power across
-// all claims and returns the highest claim, power for that claim, and total power claimed on the prophecy overall.
+// 遍历该prophecy所有claim，找出获得最多票数的claim
 func (prophecy *Prophecy) FindHighestClaim(validators map[string]int64) (string, float64, float64) {
 	totalClaimsPower := int64(0)
 	highestClaimPower := int64(-1)
@@ -151,11 +148,4 @@ func NewStatus(text StatusText, finalClaim string) Status {
 		Text:       text,
 		FinalClaim: finalClaim,
 	}
-}
-
-func AddToStringMap(in *types.StringMap, validator string) *types.StringMap {
-	inStringMap := append(in.GetValidators(), validator)
-	stringMapRes := new(types.StringMap)
-	stringMapRes.Validators = inStringMap
-	return stringMapRes
 }

@@ -187,7 +187,7 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 	cmd.Flags().Int64("ethid", 0, "the ethereum chain ID which send asset to chain33")
 	_ = cmd.MarkFlagRequired("ethid")
 
-	cmd.Flags().StringP("contract", "b", "", "token contract address")
+	cmd.Flags().StringP("tcontract", "q", "", "token contract address")
 	_ = cmd.MarkFlagRequired("contract")
 
 	cmd.Flags().StringP("csymbol", "t", "", "token symbol in chain33")
@@ -207,27 +207,37 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("esymbol", "g", "", "the symbol of ethereum side")
 	_ = cmd.MarkFlagRequired("esymbol")
+
+	cmd.Flags().StringP("bcontract", "b", "", "bridge contract address")
+	_ = cmd.MarkFlagRequired("contract")
+
+	cmd.Flags().Int64("nonce", 0, "the nonce for this tx in chain33")
+	_ = cmd.MarkFlagRequired("nonce")
 }
 
 func burn(cmd *cobra.Command, args []string) {
 	ethid, _ := cmd.Flags().GetInt64("ethid")
-	contract, _ := cmd.Flags().GetString("contract")
+	bcontract, _ := cmd.Flags().GetString("bcontract")
 	csymbol, _ := cmd.Flags().GetString("csymbol")
 	cexec, _ := cmd.Flags().GetString("cexec")
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetUint64("amount")
 	esymbol, _ := cmd.Flags().GetString("esymbol")
+	nonce, _ := cmd.Flags().GetInt64("nonce")
+	tcontract, _ := cmd.Flags().GetString("tcontract")
 
 	params := &types3.Chain33ToEth{
-		EthereumChainID:  ethid,
-		TokenContract:    contract,
-		Chain33Sender:    sender,
-		EthereumReceiver: receiver,
-		Amount:           amount,
-		LocalCoinSymbol:  csymbol,
-		LocalCoinExec:    cexec,
-		EthSymbol:        esymbol,
+		EthereumChainID:       ethid,
+		TokenContract:         tcontract,
+		Chain33Sender:         sender,
+		EthereumReceiver:      receiver,
+		Amount:                amount,
+		LocalCoinSymbol:       csymbol,
+		LocalCoinExec:         cexec,
+		EthSymbol:             esymbol,
+		Nonce:                 nonce,
+		BridgeContractAddress: bcontract,
 	}
 
 	payLoad, err := json.Marshal(params)

@@ -14,9 +14,9 @@ import (
 	dbm "github.com/33cn/chain33/common/db"
 	l "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/rpc/jsonclient"
+	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
-	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/rs/cors"
 )
 
@@ -123,13 +123,13 @@ func checkClient(addr string, expectClient string) bool {
 //如果已经注册，则继续推送
 func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 	params := types.SubscribeTxReceipt{
-		Name:   cfg.PushName,
-		URL:    cfg.PushHost,
-		Encode: "proto",
-		LastSequence:cfg.StartSyncSequence,
-		LastHeight:cfg.StartSyncHeight,
-		LastBlockHash:cfg.StartSyncHash,
-		Contract:"ticket",
+		Name:          cfg.PushName,
+		URL:           cfg.PushHost,
+		Encode:        "proto",
+		LastSequence:  cfg.StartSyncSequence,
+		LastHeight:    cfg.StartSyncHeight,
+		LastBlockHash: cfg.StartSyncHash,
+		Contract:      "x2ethereum",
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(cfg.Chain33Host, "Chain33.AddSubscribeTxReceipt", params, &res)

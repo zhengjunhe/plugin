@@ -64,6 +64,8 @@ message Chain33ToEth {
     string localCoinSymbol = 6;
     string localCoinExec = 7;
     string EthSymbol = 8;
+    int64 Nonce = 9;
+    string BridgeContractAddress = 10;
 }
 
 // 回执接口定义
@@ -96,7 +98,8 @@ message ReceiptChain33ToEth {
     bytes xTxHash = 8;
     uint64 xHeight = 9;
     string EthSymbol = 10;
-    string ProphecyID = 11;
+    int64 Nonce = 11;
+    string BridgeContractAddress = 12;
 }
 
 message ReceiptValidator {

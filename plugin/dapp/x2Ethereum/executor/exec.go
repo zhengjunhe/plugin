@@ -11,11 +11,6 @@ import (
  * 关键数据上链（statedb）并生成交易回执（log）
  */
 
-//todo
-//增加ethBridgeunlock接口
-//系统接口要增加地址验证，合约管理员地址在代码中写死
-//增发到不同地址，不是同一个执行器的地址
-
 //---------------- Ethereum --> Chain33(eth/erc20)-------------------//
 
 // Eth2Chain33类型的交易是Ethereum侧锁定一定金额的eth或者erc20到合约中
@@ -26,7 +21,6 @@ func (x *x2ethereum) Exec_Eth2Chain33(payload *x2ethereumtypes.Eth2Chain33, tx *
 	return action.procMsgEth2Chain33(payload)
 }
 
-// todo
 // 将因ethereum端锁定的eth或者erc20而在chain33端生成的token返还
 func (x *x2ethereum) Exec_WithdrawEth(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))

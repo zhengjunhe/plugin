@@ -16,8 +16,9 @@ var (
 )
 
 type Keeper struct {
-	db                 dbm.KV
-	ConsensusThreshold float64 // The minimum % of stake needed to sign claims in order for consensus to occur
+	db dbm.KV
+	// 通过审核的最低阈值
+	ConsensusThreshold float64
 }
 
 func NewKeeper(db dbm.KV, ConsensusThreshold float64) Keeper {
@@ -311,10 +312,6 @@ func (k *Keeper) GetValidatorArray() ([]types.MsgValidator, error) {
 		return nil, types2.ErrUnmarshal
 	}
 	return validatorArrays, nil
-}
-
-func RemoveAddrFromValidatorMap(validatorMap []types.MsgValidator, index int) []types.MsgValidator {
-	return append(validatorMap[:index], validatorMap[index+1:]...)
 }
 
 func (k *Keeper) SetConsensusThreshold(ConsensusThreshold float64) {

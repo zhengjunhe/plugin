@@ -7,8 +7,6 @@ import (
 	dbm "github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/system/dapp"
 	chain33types "github.com/33cn/chain33/types"
-	token "github.com/33cn/plugin/plugin/dapp/token/types"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/ethbridge"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
@@ -18,23 +16,33 @@ import (
 
 // stateDB存储KV:
 //		CalProphecyPrefix --> DBProphecy
-//
 //		CalEth2Chain33Prefix -- > Eth2Chain33
-//
 //		CalWithdrawEthPrefix -- > Eth2Chain33
-//
 //		CalWithdrawChain33Prefix -- > Chain33ToEth
-//
 //		CalChain33ToEthPrefix -- > Chain33ToEth
-//
 //		CalValidatorMapsPrefix -- > MsgValidator maps
-//
 //		CalLastTotalPowerPrefix -- > ReceiptQueryTotalPower
-//
 //		CalConsensusThresholdPrefix -- > ReceiptSetConsensusThreshold
-//
 //		CalTokenSymbolTotalAmountPrefix -- > ReceiptQuerySymbolAssets
+
+// 当前存在一个问题：
+// token的发行需要提前授权，所以账户模型该如何设计？
 //
+// 解决方案：
+// 当eth-->chain33时，采用 mavl-x2ethereum-symbol的账户模型，但是这样的资产是无法提现的，是一个完全虚拟的资产
+// 而在chain33-->eth时，采用 mavl-coins-bty 的账户模型（后续可以升级为mavl-token-symbol以支持多个token资产）
+
+// token 合约转币到x2ethereum合约
+// 个人账户地址 = mavl-token-symbol-execAddr:aliceAddr
+// 不同币种账户地址 = mavl-token-symbol-execAddr
+
+// eth -- > chain33:
+// 在 mavl-token-symbol-execAddr 上铸币，然后转到 mavl-token-symbol-execAddr:addr 上
+// withdraw 的时候先从mavl-coins-symbol-execAddr:addr 中withdraw到 mavl-token-symbol-execAddr，然后 burn
+
+// chain33 -- > eth:
+// 在 mavl-token-symbol-execAddr:addr 上withdraw到 mavl-token-symbol-execAddr 上，然后frozen住
+// withdraw 的时候从 mavl-token-symbol-execAddr 上 deposit mavl-token-symbol-execAddr:addr
 
 type action struct {
 	api          client.QueueProtocolAPI
@@ -52,11 +60,6 @@ type action struct {
 func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action {
 	hash := tx.Hash()
 	fromaddr := tx.From()
-
-	moduleAddress := dapp.ExecAddress(types2.CalTokenSymbol(types2.ModuleName))
-	addressMap := make(map[string]string)
-	addressMap[types2.CalTokenSymbol(types2.ModuleName)] = moduleAddress
-	supplyKeeper := common.NewKeeper(addressMap)
 
 	var ConsensusThreshold float64
 	consensusNeededBytes, err := a.GetStateDB().Get(types2.CalConsensusThresholdPrefix())
@@ -80,7 +83,7 @@ func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action
 
 	elog.Info("newAction", "newAction", "done")
 	return &action{a.GetAPI(), a.GetCoinsAccount(), a.GetStateDB(), hash, fromaddr,
-		a.GetBlockTime(), a.GetHeight(), index, dapp.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(&supplyKeeper, &oracleKeeper, a.GetStateDB())}
+		a.GetBlockTime(), a.GetHeight(), index, dapp.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(&oracleKeeper, a.GetStateDB())}
 }
 
 //ethereum ---> chain33
@@ -137,9 +140,9 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 	})})
 
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_SuccessStatusText) {
-		accDB, err := a.createAccount(ethBridgeClaim.LocalCoinExec, ethBridgeClaim.LocalCoinSymbol)
+		accDB, err := account.NewAccountDB(a.api.GetConfig(), msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol, a.db)
 		if err != nil {
-			return nil, errors.Wrapf(err, "relay procMsgEth2Chain33,exec=%s,sym=%s", ethBridgeClaim.LocalCoinExec, ethBridgeClaim.LocalCoinSymbol)
+			return nil, errors.Wrapf(err, "relay procMsgEth2Chain33,exec=%s,sym=%s", msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol)
 		}
 
 		r, err := a.keeper.ProcessSuccessfulClaimForLock(status.FinalClaim, a.execaddr, ethBridgeClaim.LocalCoinSymbol, accDB)
@@ -261,7 +264,7 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 	})})
 
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_WithdrawedStatusText) {
-		accDB, err := a.createAccount(withdrawEth.LocalCoinExec, withdrawEth.LocalCoinSymbol)
+		accDB, err := account.NewAccountDB(a.api.GetConfig(), msgWithdrawEth.LocalCoinExec, msgWithdrawEth.LocalCoinSymbol, a.db)
 		if err != nil {
 			return nil, errors.Wrapf(err, "relay procWithdrawEth,exec=%s,sym=%s", withdrawEth.LocalCoinExec, withdrawEth.LocalCoinSymbol)
 		}
@@ -328,27 +331,26 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 }
 
 func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receipt, error) {
-	accDB, err := a.createAccount(msgLock.LocalCoinExec, msgLock.LocalCoinSymbol)
-	if err != nil {
-		return nil, errors.Wrapf(err, "relay procMsgLock,exec=%s,sym=%s", msgLock.LocalCoinExec, msgLock.LocalCoinSymbol)
-	}
-	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, msgLock.LocalCoinSymbol, a.execaddr, int64(msgLock.Amount), accDB)
+	accDB := account.NewCoinsAccount(a.api.GetConfig())
+	accDB.SetDB(a.db)
+	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, a.execaddr, int64(msgLock.Amount), accDB)
 	if err != nil {
 		return nil, err
 	}
 
 	execlog := &chain33types.ReceiptLog{Ty: types2.TyChain33ToEthLog, Log: chain33types.Encode(&types2.ReceiptChain33ToEth{
-		EthereumChainID:  msgLock.EthereumChainID,
-		TokenContract:    msgLock.TokenContract,
-		Chain33Sender:    msgLock.Chain33Sender,
-		EthereumReceiver: msgLock.EthereumReceiver,
-		Amount:           msgLock.Amount,
-		LocalCoinSymbol:  msgLock.LocalCoinSymbol,
-		LocalCoinExec:    msgLock.LocalCoinExec,
-		XTxHash:          a.txhash,
-		XHeight:          uint64(a.height),
-		EthSymbol:        msgLock.EthSymbol,
-		ProphecyID:       "",
+		EthereumChainID:       msgLock.EthereumChainID,
+		TokenContract:         msgLock.TokenContract,
+		Chain33Sender:         msgLock.Chain33Sender,
+		EthereumReceiver:      msgLock.EthereumReceiver,
+		Amount:                msgLock.Amount,
+		LocalCoinSymbol:       msgLock.LocalCoinSymbol,
+		LocalCoinExec:         msgLock.LocalCoinExec,
+		XTxHash:               a.txhash,
+		XHeight:               uint64(a.height),
+		EthSymbol:             msgLock.EthSymbol,
+		Nonce:                 msgLock.Nonce,
+		BridgeContractAddress: msgLock.BridgeContractAddress,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -358,7 +360,7 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalChain33ToEthPrefix(), Value: msgLockBytes})
 
-	// 记录该token的总量
+	// 记录锁定总资产
 	var resAmount uint64
 	amount, err := a.getTotalAmountByTokenSymbol(msgLock.LocalCoinSymbol)
 	if err != nil {
@@ -390,28 +392,26 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 }
 
 func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receipt, error) {
-	accDB, err := a.createAccount(msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
-	if err != nil {
-		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
-	}
-
-	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, msgBurn.LocalCoinSymbol, int64(msgBurn.Amount), accDB)
+	accDB := account.NewCoinsAccount(a.api.GetConfig())
+	accDB.SetDB(a.db)
+	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, int64(msgBurn.Amount), accDB)
 	if err != nil {
 		return nil, err
 	}
 
 	execlog := &chain33types.ReceiptLog{Ty: types2.TyWithdrawChain33Log, Log: chain33types.Encode(&types2.ReceiptChain33ToEth{
-		EthereumChainID:  msgBurn.EthereumChainID,
-		TokenContract:    msgBurn.TokenContract,
-		Chain33Sender:    msgBurn.Chain33Sender,
-		EthereumReceiver: msgBurn.EthereumReceiver,
-		Amount:           msgBurn.Amount,
-		LocalCoinSymbol:  msgBurn.LocalCoinSymbol,
-		LocalCoinExec:    msgBurn.LocalCoinExec,
-		XTxHash:          a.txhash,
-		XHeight:          uint64(a.height),
-		EthSymbol:        msgBurn.EthSymbol,
-		ProphecyID:       "",
+		EthereumChainID:       msgBurn.EthereumChainID,
+		TokenContract:         msgBurn.TokenContract,
+		Chain33Sender:         msgBurn.Chain33Sender,
+		EthereumReceiver:      msgBurn.EthereumReceiver,
+		Amount:                msgBurn.Amount,
+		LocalCoinSymbol:       msgBurn.LocalCoinSymbol,
+		LocalCoinExec:         msgBurn.LocalCoinExec,
+		XTxHash:               a.txhash,
+		XHeight:               uint64(a.height),
+		EthSymbol:             msgBurn.EthSymbol,
+		Nonce:                 msgBurn.Nonce,
+		BridgeContractAddress: msgBurn.BridgeContractAddress,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -420,17 +420,13 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 		return nil, chain33types.ErrMarshal
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalWithdrawChain33Prefix(), Value: msgBurnBytes})
-	// 记录该token的总量
+	// 记录锁定总资产
 	var resAmount uint64
 	amount, err := a.getTotalAmountByTokenSymbol(msgBurn.LocalCoinSymbol)
 	if err != nil {
-		if err != chain33types.ErrNotFound {
-			return nil, err
-		} else {
-			resAmount = amount
-		}
+		return nil, err
 	} else {
-		resAmount = amount + msgBurn.Amount
+		resAmount = amount - msgBurn.Amount
 	}
 	symbolAssets := types2.ReceiptQuerySymbolAssets{
 		TokenSymbol: msgBurn.LocalCoinSymbol,
@@ -539,21 +535,6 @@ func (a *action) procMsgSetConsensusThreshold(msgSetConsensusThreshold *types2.M
 
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil
-}
-
-func (a *action) createAccount(exec, symbol string) (*account.DB, error) {
-	var accDB *account.DB
-	cfg := a.api.GetConfig()
-
-	if symbol == "" {
-		accDB = account.NewCoinsAccount(cfg)
-		accDB.SetDB(a.db)
-		return accDB, nil
-	}
-	if exec == "" {
-		exec = token.TokenX
-	}
-	return account.NewAccountDB(cfg, exec, symbol, a.db)
 }
 
 func (a *action) getTotalAmountByTokenSymbol(symbol string) (uint64, error) {

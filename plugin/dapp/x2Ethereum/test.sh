@@ -163,3 +163,22 @@ Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7L
 
 Amount=`${CLI} send x2ethereum query symbolamount -s eth -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
 check_Number 10 ${Amount}
+
+# send bty to mavl-x2ethereum-bty-12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
+${CLI} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
+
+## send a chain33eth tx
+#hash=`${CLI} send x2ethereum lock --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum -t bty  -g eth --ethid 0 --nonce 0 -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0x0000000000000000000000000000000000000000 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+##block_wait 2
+#check_tx 2 ${hash}
+#
+#Amount=`${CLI} send x2ethereum query symbolamount -s eth -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
+#check_Number 10 ${Amount}
+#
+## send a chain33eth tx
+#hash=`${CLI} send x2ethereum burn --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum -t bty -g eth --ethid 0 --nonce 0 -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0x0000000000000000000000000000000000000000 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+##block_wait 2
+#check_tx 2 ${hash}
+#
+#Amount=`${CLI} send x2ethereum query symbolamount -s eth -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
+#check_Number 10 ${Amount}
