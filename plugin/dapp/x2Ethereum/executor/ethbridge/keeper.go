@@ -94,16 +94,10 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 
 // ProcessBurn processes the burn of bridged coins from the given sender
 func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
-	receipt, err := accDB.TransferToExec(address, execAddr, amount)
-	if err != nil {
-		return nil, err
-	}
-	r, err := accDB.ExecActive(address, execAddr, amount)
+	receipt, err := accDB.ExecActive(address, execAddr, amount)
 	if err != nil {
 		panic(err)
 	}
-	receipt.KV = append(receipt.KV, r.KV...)
-	receipt.Logs = append(receipt.Logs, r.Logs...)
 	return receipt, nil
 }
 
@@ -111,16 +105,10 @@ func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *accou
 // accDB = mavl-coins-bty-addr
 func (k Keeper) ProcessLock(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
 	// 转到 mavl-coins-bty-execAddr:addr
-	receipt, err := accDB.TransferToExec(address, execAddr, amount*1e8)
+	receipt, err := accDB.ExecFrozen(address, execAddr, amount*1e8)
 	if err != nil {
 		return nil, err
 	}
-	r, err := accDB.ExecFrozen(address, execAddr, amount*1e8)
-	if err != nil {
-		return nil, err
-	}
-	receipt.KV = append(receipt.KV, r.KV...)
-	receipt.Logs = append(receipt.Logs, r.Logs...)
 	return receipt, nil
 }
 
