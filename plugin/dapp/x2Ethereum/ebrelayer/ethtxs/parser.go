@@ -11,7 +11,6 @@ package ethtxs
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 	"math/big"
 	"regexp"
 	"strings"
@@ -116,13 +115,10 @@ func ProphecyClaimToSignedOracleClaim(event events.NewProphecyClaimEvent, privat
 	hash := GenerateClaimHash(prophecyID, sender, recipient, token, amount, validator)
 
 	// Sign the hash using the active validator's private key
-	//signature := SignClaim(hash)
 	signature, err := SignClaim4Eth(hash, privateKey)
 	if nil != err {
 		return nil, err
 	}
-
-	fmt.Printf("\nGenerateClaimHash Hash is %v", hash)
 	// Package the ProphecyID, Message, and Signature into an OracleClaim
 	oracleClaim := &OracleClaim{
 		ProphecyID: event.ProphecyID,

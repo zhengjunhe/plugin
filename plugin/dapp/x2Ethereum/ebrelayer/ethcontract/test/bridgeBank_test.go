@@ -302,4 +302,14 @@ func TestBrigeTokenMint(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, balance.Int64(), amount)
 	t.Logf("The minted amount is:%d", balance.Int64())
+
+	////////////////
+	ethMessageHash, err := x2EthContracts.Valset.DebugEthMessageHash(opts, OracleClaim.Message)
+	require.Nil(t, err)
+	t.Logf("The ethMessageHash is:%s", common.Bytes2Hex(ethMessageHash[:]))
+
+	ethMessagePack, err := x2EthContracts.Valset.DebugPacked(opts, OracleClaim.Message)
+	require.Nil(t, err)
+	t.Logf("The ethMessagePack is:%s", common.Bytes2Hex(ethMessagePack[:]))
+
 }

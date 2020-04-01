@@ -32,13 +32,22 @@ func SignClaim4Eth(hash common.Hash, privateKey *ecdsa.PrivateKey) ([]byte, erro
 	return signature, nil
 }
 
+func concatByteSlices(arrays ...[]byte) []byte {
+	var result []byte
+
+	for _, b := range arrays {
+		result = append(result, b...)
+	}
+
+	return result
+}
+
 func prefixMessage(message common.Hash, key *ecdsa.PrivateKey) ([]byte, []byte) {
-	// Turn the message into a 32-byte hash
-	//hash := solsha3.SoliditySHA3(solsha3.String(message))
-	// Prefix and then hash to mimic behavior of eth_sign
-	//prefixed := solsha3.SoliditySHA3(solsha3.String("\x19Ethereum Signed Message:\n32"), solsha3.Bytes32(hash))
-	fmt.Printf("\nsolsha3.Bytes32(message) is %v", solsha3.Bytes32(message[:]))
-	prefixed := solsha3.SoliditySHA3(solsha3.String("\x19Ethereum Signed Message:\n32"), solsha3.Bytes32(message))
+	prefixHash := concatByteSlices(
+		[]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%v", len(message))),
+		message[:],
+	)
+	prefixed := solsha3.SoliditySHA3(prefixHash)
 	sig, err := secp256k1.Sign(prefixed, math.PaddedBigBytes(key.D, 32))
 
 	if err != nil {

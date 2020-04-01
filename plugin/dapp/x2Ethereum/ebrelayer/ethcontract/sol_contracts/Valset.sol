@@ -396,4 +396,20 @@ contract Valset {
     function ethMessageHash(bytes32 hash) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
     }
+
+    /**
+      * @dev debug for pack
+    */
+    function Debug_Packed(bytes32 hash) public pure returns (bytes memory) {
+         bytes memory info;
+         info = abi.encodePacked("\x19Ethereum Signed Message:\n32", hash);
+         return info;
+    }
+
+    /**
+      * @dev debug for hash
+    */
+    function Debug_ethMessageHash(bytes32 hash) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash));
+    }
 }
