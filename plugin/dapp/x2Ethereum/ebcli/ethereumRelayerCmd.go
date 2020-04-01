@@ -18,6 +18,7 @@ func EthereumRelayerCmd() *cobra.Command {
 
 	cmd.AddCommand(
 		ImportChain33PrivateKeyCmd(),
+		ImportEthValidatorPrivateKeyCmd(),
 		GenEthPrivateKeyCmd(),
 		ShowValidatorsAddrCmd(),
 		ShowChain33TxsHashCmd(),
@@ -36,8 +37,13 @@ func ImportChain33PrivateKeyCmd() *cobra.Command {
 		Short: "import chain33 private key to sign txs to be submitted to chain33",
 		Run:   importChain33Privatekey,
 	}
-	addImportPrivateKeyFlags(cmd)
+	addImportChain33PrivateKeyFlags(cmd)
 	return cmd
+}
+
+func addImportChain33PrivateKeyFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "chain33 private key")
+	cmd.MarkFlagRequired("key")
 }
 
 func importChain33Privatekey(cmd *cobra.Command, args []string) {
@@ -47,6 +53,26 @@ func importChain33Privatekey(cmd *cobra.Command, args []string) {
 
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ImportChain33PrivateKey4EthRelayer", params, &res)
+	ctx.Run()
+}
+
+func ImportEthValidatorPrivateKeyCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "import_ethprivatekey",
+		Short: "import ethereum's validator private key ",
+		Run:   importEthValidtorPrivatekey,
+	}
+	addImportPrivateKeyFlags(cmd)
+	return cmd
+}
+
+func importEthValidtorPrivatekey(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	privateKey, _ := cmd.Flags().GetString("key")
+	params := privateKey
+
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ImportEthValidatorPrivateKey", params, &res)
 	ctx.Run()
 }
 

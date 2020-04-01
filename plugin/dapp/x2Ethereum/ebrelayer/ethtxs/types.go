@@ -1,4 +1,4 @@
-package txs
+package ethtxs
 
 import (
 	"math/big"
@@ -16,7 +16,7 @@ const (
 // OracleClaim : contains data required to make an OracleClaim
 type OracleClaim struct {
 	ProphecyID *big.Int
-	Message    string
+	Message    [32]byte
 	Signature  []byte
 }
 

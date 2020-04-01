@@ -12,7 +12,7 @@ import (
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	syncTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33/transceiver/sync"
-	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/txs"
+	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	ethCommon "github.com/ethereum/go-ethereum/common"

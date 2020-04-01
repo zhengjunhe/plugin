@@ -1,11 +1,11 @@
-package txs
+package ethtxs
 
 import (
 	"context"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	bridgebank "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/generated/bridgebank"
+	bridgebank "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 )
 
 func GetOperator(client *ethclient.Client, sender, bridgeBank common.Address) (common.Address, error) {

@@ -1,4 +1,4 @@
-package txs
+package ethtxs
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	cosmosBridge "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/generated/cosmosbridge"
-	oracle "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/generated/oracle"
+	cosmosBridge "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
+	oracle "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 
@@ -22,7 +22,8 @@ var (
 
 const (
 	// GasLimit : the gas limit in Gwei used for transactions sent with TransactOpts
-	GasLimit = uint64(600000)
+	GasLimit =        uint64(600000)
+	GasLimit4Deploy = uint64(0) //此处需要设置为0,让交易自行估计,否则将会导致部署失败,TODO:其他解决途径后续调研解决
 )
 
 // RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to CosmosBridge contract on the Ethereum network

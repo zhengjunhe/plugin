@@ -31,7 +31,7 @@ import (
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/contract"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/txs"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 
@@ -45,7 +45,7 @@ type EthereumRelayer struct {
 	validatorAddress     []byte
 	privateKey4Chain33   chain33Crypto.PrivKey
 	privateKey4Ethereum  *ecdsa.PrivateKey
-	ethSender            common.Address
+	ethValidator         common.Address
 	totalTx4Eth2Chain33  int64
 	totalTx4Chain33ToEth int64
 	rpcURL2Chain33       string
@@ -55,6 +55,14 @@ type EthereumRelayer struct {
 	client               *ethclient.Client
 	bridgeBankAddr       common.Address
 	cosmosBridgeAddr     common.Address
+	bridgeBankSub        ethereum.Subscription
+	cosmosBridgeSub      ethereum.Subscription
+	bridgeBankLog        chan types.Log
+	cosmosBridgeLog      chan types.Log
+	bridgeBankEventSig   string
+	cosmosBridgeEventSig string
+	bridgeBankAbi   abi.ABI
+	cosmosBridgeAbi   abi.ABI
 }
 
 var (
@@ -63,12 +71,12 @@ var (
 
 func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAddress string) *EthereumRelayer {
 	relayer := &EthereumRelayer{
-		provider:       provider,
-		db:             db,
-		unlockchan:     make(chan int),
-		rpcURL2Chain33: rpcURL2Chain33,
-		status:         ebTypes.StatusPending,
-		registryAddress:common.HexToAddress(registryAddress),
+		provider:        provider,
+		db:              db,
+		unlockchan:      make(chan int),
+		rpcURL2Chain33:  rpcURL2Chain33,
+		status:          ebTypes.StatusPending,
+		registryAddress: common.HexToAddress(registryAddress),
 	}
 
 	go relayer.proc()
@@ -125,157 +133,119 @@ func (ethRelayer *EthereumRelayer) proc() {
 	_, _ = fmt.Fprintln(os.Stdout, "Ethereum relayer starts to run...")
 	//等待解锁获取私钥或者导入私钥
 
+	ethRelayer.ethValidator, err = ethtxs.LoadSender(ethRelayer.privateKey4Ethereum)
+	if nil != err {
+		errinfo := fmt.Sprintf("Failed to load validator for ethereum due to:%s", err.Error())
+		panic(errinfo)
+	}
 
+	//向cosmosBridge订阅事件
+	ethRelayer.subscribeEvent(false)
+	//向bridgeBank订阅事件
+	ethRelayer.subscribeEvent(true)
 
 	for {
 		select {
 		// Handle any errors
-		case err := <-sub.Err():
-			panic(err)
+		case err := <-ethRelayer.bridgeBankSub.Err():
+			panic("bridgeBankSub"+ err.Error())
+		case err := <-ethRelayer.cosmosBridgeSub.Err():
+			panic("cosmosBridgeSub"+ err.Error())
 		// vLog is raw event data
-		case vLog := <-logs:
+		case vLog := <-ethRelayer.bridgeBankLog:
+			_, _ = fmt.Fprintln(os.Stdout, "^_^ ^_^ Received bridgeBankLog")
 			// Check if the event is a 'LogLock' event
-			if vLog.Topics[0].Hex() == eventSignature {
+			if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventSig {
+				eventName := events.LogLock.String()
 				relayerLog.Info("EthereumRelayer proc", "Witnessed new event:", eventName,
 					"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
-				switch eventName {
-				// lock事件为用户在eth侧锁定ETH/ERC20，然后向chain33进行跨链转移
-				case events.LogLock.String():
-					err := ethRelayer.handleLogLockEvent(clientChainID, contractABI, eventName, vLog)
-					if err != nil {
-						errinfo := fmt.Sprintf("Failed to handleLogLockEvent due to:%s", err.Error())
-						panic(errinfo)
-					}
-				case events.LogNewProphecyClaim.String():
-					err := ethRelayer.handleLogNewProphecyClaimEvent(contractABI, eventName, vLog)
-					if err != nil {
-						errinfo := fmt.Sprintf("Failed to handleLogNewProphecyClaimEvent due to:%s", err.Error())
-						panic(errinfo)
-					}
+				err := ethRelayer.handleLogLockEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
+				if err != nil {
+					errinfo := fmt.Sprintf("Failed to handleLogLockEvent due to:%s", err.Error())
+					panic(errinfo)
 				}
 			}
-
+		case vLog := <-ethRelayer.cosmosBridgeLog:
+			_, _ = fmt.Fprintln(os.Stdout, "^_^ ^_^ Received cosmosBridgeLog", "total topic number", len(vLog.Topics),
+				"topic", vLog.Topics[0].Hex())
+			for i := 0; i < len(vLog.Topics); i ++ {
+				_, _ = fmt.Fprintln(os.Stdout, "topic:", i, "topic=", vLog.Topics[i].Hex())
+			}
+			// Check if the event is a 'LogLock' event
+			if vLog.Topics[0].Hex() == ethRelayer.cosmosBridgeEventSig {
+				eventName := events.LogNewProphecyClaim.String()
+				relayerLog.Info("EthereumRelayer proc", "Witnessed new event:", eventName,
+					"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
+				err := ethRelayer.handleLogNewProphecyClaimEvent(ethRelayer.cosmosBridgeAbi, eventName, vLog)
+				if err != nil {
+					errinfo := fmt.Sprintf("Failed to handleLogNewProphecyClaimEvent due to:%s", err.Error())
+					panic(errinfo)
+				}
+			}
 		}
 	}
 }
 
-{
-bridgeBankAbi := contract.LoadABI(false)
-
-var eventName string
-eventName = events.LogLock.String()
-// Load unique event signature from the named event contained within the contract's ABI
-bridgeBankEventSignature := bridgeBankAbi.Events[eventName].Id().Hex()
-
-// cosmosBridge process
-cosmosBridgeAbi := contract.LoadABI(true)
-eventNameLock := events.LogLock.String()
-cosmosBridgeEventSignature := cosmosBridgeAbi.Events[eventNameLock].Id().Hex()
-
-
-
-sender, err := txs.LoadSender(ethRelayer.privateKey4Ethereum)
-if nil != err {
-errinfo := fmt.Sprintf("Failed to load sender due to:%s", err.Error())
-panic(errinfo)
-}
-ethRelayer.ethSender = *sender
-
-_, _ = fmt.Fprintln(os.Stdout, "Finsish LoadSender")
-// Get the specific contract's address (CosmosBridge or BridgeBank)
-targetAddress, err := txs.GetAddressFromBridgeRegistry(client, *sender, ethRelayer.registryAddress, txs.BridgeBank)
-if err != nil {
-errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
-panic(errinfo)
-}
-ethRelayer.bridgeBankAddr = *targetAddress
-_, _ = fmt.Fprintln(os.Stdout, "Succeed to get BridgeBank addr:", targetAddress.String())
-
-targetAddress, err = txs.GetAddressFromBridgeRegistry(client, *sender, ethRelayer.registryAddress, txs.CosmosBridge)
-if err != nil {
-errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
-panic(errinfo)
-}
-ethRelayer.cosmosBridgeAddr = *targetAddress
-_, _ = fmt.Fprintln(os.Stdout, "Succeed to get BridgeBank addr:", targetAddress.String())
-
-// We need the target address in bytes[] for the query
-query := ethereum.FilterQuery{
-Addresses: []common.Address{*targetAddress},
-}
-
-// We will check logs for new events
-logs := make(chan types.Log)
-
-// Filter by contract and event, write results to logs
-sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
-if err != nil {
-errinfo := fmt.Sprintf("Failed to SubscribeFilterLogs due to:%s", err.Error())
-panic(errinfo)
-}
-relayerLog.Info("EthereumRelayer proc", "Subscribed to BridgeBank at address:", targetAddress.Hex())
-}
-
 func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
-	client := ethRelayer.client
-	// bridgeBank process
-	bridgeBankAbi := contract.LoadABI(false)
-
 	var eventName string
-	eventName = events.LogLock.String()
-	// Load unique event signature from the named event contained within the contract's ABI
-	bridgeBankEventSignature := bridgeBankAbi.Events[eventName].Id().Hex()
+	var target ethtxs.ContractRegistry
+	contactAbi := contract.LoadABI(makeClaims)
 
-	// cosmosBridge process
-	cosmosBridgeAbi := contract.LoadABI(true)
-	eventNameLock := events.LogLock.String()
-	cosmosBridgeEventSignature := cosmosBridgeAbi.Events[eventNameLock].Id().Hex()
-
-
-
-	sender, err := txs.LoadSender(ethRelayer.privateKey4Ethereum)
-	if nil != err {
-		errinfo := fmt.Sprintf("Failed to load sender due to:%s", err.Error())
-		panic(errinfo)
+	switch makeClaims {
+	case true:
+		eventName = events.LogNewProphecyClaim.String()
+		// Load unique event signature from the named event contained within the contract's ABI
+		ethRelayer.cosmosBridgeEventSig = contactAbi.Events[eventName].ID().Hex()
+		ethRelayer.cosmosBridgeAbi = contactAbi
+		target = ethtxs.CosmosBridge
+	case false:
+		eventName = events.LogLock.String()
+		ethRelayer.bridgeBankEventSig = contactAbi.Events[eventName].ID().Hex()
+		ethRelayer.bridgeBankAbi = contactAbi
+		target = ethtxs.BridgeBank
 	}
-	ethRelayer.ethSender = *sender
 
-	_, _ = fmt.Fprintln(os.Stdout, "Finsish LoadSender")
+	client := ethRelayer.client
+	sender := ethRelayer.ethValidator
 	// Get the specific contract's address (CosmosBridge or BridgeBank)
-	targetAddress, err := txs.GetAddressFromBridgeRegistry(client, *sender, ethRelayer.registryAddress, txs.BridgeBank)
+	targetAddress, err := ethtxs.GetAddressFromBridgeRegistry(client, sender, ethRelayer.registryAddress, target)
 	if err != nil {
 		errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
 		panic(errinfo)
 	}
-	ethRelayer.bridgeBankAddr = *targetAddress
-	_, _ = fmt.Fprintln(os.Stdout, "Succeed to get BridgeBank addr:", targetAddress.String())
-
-	targetAddress, err = txs.GetAddressFromBridgeRegistry(client, *sender, ethRelayer.registryAddress, txs.CosmosBridge)
-	if err != nil {
-		errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
-		panic(errinfo)
+	if makeClaims {
+		ethRelayer.cosmosBridgeAddr = *targetAddress
+		_, _ = fmt.Fprintln(os.Stdout, "Succeed to get cosmosBridge addr:", targetAddress.String(),
+			"event signature", ethRelayer.cosmosBridgeEventSig)
+	} else {
+		ethRelayer.bridgeBankAddr = *targetAddress
+		_, _ = fmt.Fprintln(os.Stdout, "Succeed to get BridgeBank addr:", targetAddress.String(),
+			"event signature", ethRelayer.bridgeBankEventSig)
 	}
-	ethRelayer.cosmosBridgeAddr = *targetAddress
-	_, _ = fmt.Fprintln(os.Stdout, "Succeed to get BridgeBank addr:", targetAddress.String())
 
 	// We need the target address in bytes[] for the query
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{*targetAddress},
 	}
-
 	// We will check logs for new events
 	logs := make(chan types.Log)
-
 	// Filter by contract and event, write results to logs
 	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 	if err != nil {
 		errinfo := fmt.Sprintf("Failed to SubscribeFilterLogs due to:%s", err.Error())
 		panic(errinfo)
 	}
-	relayerLog.Info("EthereumRelayer proc", "Subscribed to BridgeBank at address:", targetAddress.Hex())
+	relayerLog.Info("EthereumRelayer proc", "Subscribed to contract at address:", targetAddress.Hex())
 
+	if makeClaims {
+		ethRelayer.cosmosBridgeLog = logs
+		ethRelayer.cosmosBridgeSub = sub
+		return
+	}
+
+	ethRelayer.bridgeBankLog = logs
+	ethRelayer.bridgeBankSub = sub
 }
-
 
 func (ethRelayer *EthereumRelayer) IsValidatorActive(addr string) (bool, error) {
 
@@ -283,7 +253,7 @@ func (ethRelayer *EthereumRelayer) IsValidatorActive(addr string) (bool, error) 
 }
 
 func (ethRelayer *EthereumRelayer) ShowOperator() (string, error) {
-	operator, err := txs.GetOperator(ethRelayer.client, ethRelayer.ethSender, ethRelayer.bridgeBankAddr)
+	operator, err := ethtxs.GetOperator(ethRelayer.client, ethRelayer.ethValidator, ethRelayer.bridgeBankAddr)
 	if nil != err {
 		return "", err
 	}
@@ -315,13 +285,13 @@ func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, co
 	events.NewEventWrite(log.TxHash.Hex(), *event)
 
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := txs.LogLockToEthBridgeClaim(validatorAddress, event)
+	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(validatorAddress, event)
 	if err != nil {
 		return err
 	}
 
 	// Initiate the relay
-	txhash, err := txs.RelayLockToChain33(ethRelayer.privateKey4Chain33, &prophecyClaim, rpcURL)
+	txhash, err := ethtxs.RelayLockToChain33(ethRelayer.privateKey4Chain33, &prophecyClaim, rpcURL)
 	if err != nil {
 		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
 		return err
@@ -350,13 +320,13 @@ func (ethRelayer *EthereumRelayer) handleLogNewProphecyClaimEvent(contractABI ab
 		return err
 	}
 	// Parse ProphecyClaim's data into an OracleClaim
-	oracleClaim, err := txs.ProphecyClaimToSignedOracleClaim(event, ethRelayer.privateKey4Ethereum)
+	oracleClaim, err := ethtxs.ProphecyClaimToSignedOracleClaim(event, ethRelayer.privateKey4Ethereum)
 	if nil != err {
 		return err
 	}
 
 	// Initiate the relay
-	txhash, err := txs.RelayOracleClaimToEthereum(ethRelayer.provider, ethRelayer.ethSender, ethRelayer.registryAddress, events.LogNewProphecyClaim, oracleClaim, ethRelayer.privateKey4Ethereum)
+	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.provider, ethRelayer.ethValidator, ethRelayer.registryAddress, events.LogNewProphecyClaim, oracleClaim, ethRelayer.privateKey4Ethereum)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&ethRelayer.totalTx4Chain33ToEth, 1)

@@ -1,4 +1,4 @@
-package txs
+package ethtxs
 
 // --------------------------------------------------------
 //      Parser
@@ -11,6 +11,7 @@ package txs
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	"math/big"
 	"regexp"
 	"strings"
@@ -105,7 +106,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 func ProphecyClaimToSignedOracleClaim(event events.NewProphecyClaimEvent, privateKey *ecdsa.PrivateKey) (*OracleClaim, error) {
 	// Parse relevant data into type byte[]
 	prophecyID := event.ProphecyID.Bytes()
-	sender := event.Chain33Sender
+	sender := event.CosmosSender
 	recipient := []byte(event.EthereumReceiver.Hex())
 	token := []byte(event.TokenAddress.Hex())
 	amount := event.Amount.Bytes()
@@ -120,6 +121,8 @@ func ProphecyClaimToSignedOracleClaim(event events.NewProphecyClaimEvent, privat
 	if nil != err {
 		return nil, err
 	}
+
+	fmt.Printf("\nGenerateClaimHash Hash is %v", hash)
 	// Package the ProphecyID, Message, and Signature into an OracleClaim
 	oracleClaim := &OracleClaim{
 		ProphecyID: event.ProphecyID,

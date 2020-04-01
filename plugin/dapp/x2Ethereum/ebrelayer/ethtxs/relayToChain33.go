@@ -1,4 +1,4 @@
-package txs
+package ethtxs
 
 // ------------------------------------------------------------
 //	Relay : Builds and encodes EthBridgeClaim Msgs with the

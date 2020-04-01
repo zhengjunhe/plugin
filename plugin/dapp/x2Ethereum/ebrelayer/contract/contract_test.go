@@ -8,11 +8,15 @@ import (
 
 // TestLoadABI : test that contract containing named event is successfully loaded
 func TestLoadABI(t *testing.T) {
-
-	const AbiPath = "/src/github.com/cosmos/peggy/cmd/ebrelayer/contract/abi/BridgeBank.abi"
-
 	//Get the ABI ready
 	abi := LoadABI(true)
 
-	require.NotNil(t, abi.Events["LogLock"])
+    event := "LogNewProphecyClaim"
+	//fmt.Fprintln(os.Stdout, "events is", abi.Events)
+	if _, ok := abi.Events["hh"]; !ok {
+		t.Fatalf("event:%s doesn't existed", event)
+		//panic("not exist")
+	}
+
+	require.NotNil(t, abi.Events["hh"])
 }

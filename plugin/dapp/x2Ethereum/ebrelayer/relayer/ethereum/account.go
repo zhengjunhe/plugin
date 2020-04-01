@@ -15,9 +15,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
-	"golang.org/x/crypto/ripemd160"
 	"github.com/mr-tron/base58/base58"
 	"github.com/pborman/uuid"
+	"golang.org/x/crypto/ripemd160"
 	"io"
 )
 
@@ -132,9 +132,7 @@ func (ethRelayer *EthereumRelayer) RestorePrivateKeys(passPhase string) (err err
 	}
 
 	return nil
-
 }
-
 
 func (ethRelayer *EthereumRelayer) StoreAccountWithNewPassphase(newPassphrase, oldPassphrase string) error {
 	accountInfo, err := ethRelayer.db.Get(ethAccountKey)
@@ -180,6 +178,33 @@ func (ethRelayer *EthereumRelayer) ImportChain33PrivateKey(passphrase, privateKe
 	}
 	encodedInfo := chain33Types.Encode(account)
 	return ethRelayer.db.SetSync(chain33AccountKey, encodedInfo)
+}
+
+func (ethRelayer *EthereumRelayer) ImportEthValidatorPrivateKey(passphrase, privateKeyStr string) error {
+	privateKeySli, err := chain33Common.FromHex(privateKeyStr)
+	if nil != err {
+		return err
+	}
+	privateKeyECDSA, err := crypto.ToECDSA(privateKeySli)
+	if nil != err {
+		errInfo := fmt.Sprintf("Failed to ToECDSA due to:%s", err.Error())
+		relayerLog.Info("RestorePrivateKeys", "Failed to ToECDSA:", err.Error())
+		return errors.New(errInfo)
+	}
+	ethRelayer.rwLock.Lock()
+	ethRelayer.privateKey4Ethereum = privateKeyECDSA
+	ethRelayer.rwLock.Unlock()
+	if nil != ethRelayer.privateKey4Chain33 {
+		ethRelayer.unlockchan <- start
+	}
+
+	Encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySli)
+	ethAccount := &x2ethTypes.Account4Relayer{
+		Privkey: Encryptered,
+		Addr:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey).String(),
+	}
+	encodedInfo := chain33Types.Encode(ethAccount)
+	return ethRelayer.db.SetSync(ethAccountKey, encodedInfo)
 }
 
 //checksum: first four bytes of double-SHA256.
@@ -241,7 +266,7 @@ func newKeyAndStore(db dbm.DB, rand io.Reader, passphrase string) (privateKey *e
 		Addr:    key.Address.Hex(),
 	}
 	encodedInfo := chain33Types.Encode(ethAccount)
-	db.SetSync(ethAccountKey, encodedInfo)
+	_ = db.SetSync(ethAccountKey, encodedInfo)
 
 	privateKeyStr = chain33Common.ToHex(privateKeyBytes)
 	addr = ethAccount.Addr

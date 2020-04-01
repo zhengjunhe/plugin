@@ -1,4 +1,4 @@
-package txs
+package ethtxs
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	bridgeRegistry "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/generated/bridgeregistry"
+	bridgeRegistry "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
     ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 

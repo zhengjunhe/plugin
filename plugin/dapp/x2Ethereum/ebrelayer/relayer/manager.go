@@ -225,6 +225,23 @@ func (manager *RelayerManager) ImportChain33PrivateKey4EthRelayer(privateKey str
 	return nil
 }
 
+//为ethrelayer导入chain33私钥，为向chain33发送交易时进行签名使用
+func (manager *RelayerManager) ImportEthValidatorPrivateKey(privateKey string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	if err := manager.ethRelayer.ImportEthValidatorPrivateKey(manager.passphase, privateKey); nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk:true,
+		Msg:"Succeed to import ethereum private key for validator",
+	}
+	return nil
+}
+
 //显示在chain33中以验证人validator身份进行登录的地址
 func (manager *RelayerManager) ShowChain33RelayerValidator(param interface{}, result *interface{}) error {
 	manager.mtx.Lock()
