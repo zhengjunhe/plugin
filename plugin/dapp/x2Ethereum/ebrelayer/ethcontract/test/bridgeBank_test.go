@@ -133,7 +133,13 @@ func TestBrigeTokenCreat(t *testing.T) {
 	}
 }
 
-//Bridge token minting (for locked Cosmos assets)
+//测试在chain33上锁定资产,然后在以太坊上铸币
+//发行token="BTY"
+//NewProphecyClaim
+//铸币NewOracleClaim,
+//ProcessBridgeProphecy
+//铸币成功
+//Bridge token minting (for locked chain33 assets)
 func TestBrigeTokenMint(t *testing.T) {
 	ctx := context.Background()
 	println("TEST:BridgeToken creation (Cosmos assets)")
@@ -312,4 +318,135 @@ func TestBrigeTokenMint(t *testing.T) {
 	require.Nil(t, err)
 	t.Logf("The ethMessagePack is:%s", common.Bytes2Hex(ethMessagePack[:]))
 
+}
+
+//测试在chain33上锁定资产,然后在以太坊上铸币
+//发行token="BTY"
+//NewProphecyClaim
+//铸币NewOracleClaim,
+//ProcessBridgeProphecy
+//铸币成功
+//Bridge deposit locking (deposit erc20/eth assets)
+func TestBridgeDepositLock(t *testing.T) {
+	ctx := context.Background()
+	println("TEST:Bridge deposit locking (Erc20/Eth assets)")
+	//1st部署相关合约
+	backend, para := setup.PrepareTestEnv()
+	sim := backend.(*backends.SimulatedBackend)
+
+	balance, _ := sim.BalanceAt(ctx, para.Deployer, nil)
+	fmt.Println("deployer addr,", para.Deployer.String(), "balance =", balance.String())
+
+	/////////////////////////EstimateGas///////////////////////////
+	callMsg := ethereum.CallMsg{
+		From: para.Deployer,
+		Data: common.FromHex(generated.BridgeBankBin),
+	}
+
+	gas, err := sim.EstimateGas(ctx, callMsg)
+	if nil != err {
+		panic("failed to estimate gas due to:" + err.Error())
+	}
+	fmt.Printf("\nThe estimated gas=%d", gas)
+	////////////////////////////////////////////////////
+
+	x2EthContracts, x2EthDeployInfo, err := ethtxs.DeployAndInit(backend, para)
+	if nil != err {
+		t.Fatalf("DeployAndInit failed due to:%s", err.Error())
+	}
+	sim.Commit()
+
+	//创建token
+	operatorAuth, err := ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+	symbol := "USDT"
+	bridgeTokenAddr, _, bridgeTokenInstance, err := generated.DeployBridgeToken(operatorAuth, backend, symbol)
+	require.Nil(t, err)
+	sim.Commit()
+	t.Logf("The new creaded symbol:%s, address:%s", symbol, bridgeTokenAddr.String())
+
+
+	//创建实例
+	//为userOne铸币
+	//userOne为bridgebank允许allowance设置数额
+	userOne := para.InitValidators[0]
+	callopts := &bind.CallOpts{
+		Pending: true,
+		From:    userOne,
+		Context: ctx,
+	}
+	symQuery, err := bridgeTokenInstance.Symbol(callopts)
+	require.Equal(t, symQuery, symbol)
+	t.Logf("symQuery = %s", symQuery)
+
+	//isMiner, err := bridgeTokenInstance.IsMinter(callopts, x2EthDeployInfo.BridgeBank.Address)
+	//require.Nil(t, err)
+	//t.Logf("\nIsMinter for addr:%s, result:%v", x2EthDeployInfo.BridgeBank.Address.String(), isMiner)
+	//require.Equal(t, isMiner, true)
+	isMiner, err := bridgeTokenInstance.IsMinter(callopts, para.Operator)
+	require.Nil(t, err)
+	require.Equal(t, isMiner, true)
+
+
+	operatorAuth, err = ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+
+	mintAmount := int64(1000)
+	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+	_ , err = bridgeTokenInstance.Mint(operatorAuth, userOne,  big.NewInt(mintAmount))
+	require.Nil(t, err)
+	sim.Commit()
+	userOneAuth, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	allowAmount := int64(100)
+	_, err = bridgeTokenInstance.Approve(userOneAuth, x2EthDeployInfo.BridgeBank.Address, big.NewInt(allowAmount))
+	require.Nil(t, err)
+	sim.Commit()
+
+
+	userOneBalance , err := bridgeTokenInstance.BalanceOf(callopts, userOne)
+	require.Nil(t, err)
+	t.Logf("userOneBalance:%d", userOneBalance.Int64())
+	require.Equal(t, userOneBalance.Int64(), mintAmount)
+
+	//***测试子项目:should allow users to lock ERC20 tokens
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+
+	//lock 100
+	lockAmount := big.NewInt(100)
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, bridgeTokenAddr, lockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+
+	//balance减少到900
+	userOneBalance , err = bridgeTokenInstance.BalanceOf(callopts, userOne)
+	require.Nil(t, err)
+	expectAmount := int64(900)
+	require.Equal(t, userOneBalance.Int64(), expectAmount)
+	t.Logf("userOneBalance changes to:%d", userOneBalance.Int64())
+
+	//bridgebank增加了100
+	bridgeBankBalance , err := bridgeTokenInstance.BalanceOf(callopts, x2EthDeployInfo.BridgeBank.Address)
+	require.Nil(t, err)
+	expectAmount = int64(100)
+	require.Equal(t, bridgeBankBalance.Int64(), expectAmount)
+	t.Logf("bridgeBankBalance changes to:%d", bridgeBankBalance.Int64())
+
+	//***测试子项目:should allow users to lock Ethereum
+	bridgeBankBalance , err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
+	require.Nil(t, err)
+	t.Logf("origin eth bridgeBankBalance is:%d", bridgeBankBalance.Int64())
+
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	ethAmount := big.NewInt(50)
+	userOneAuth.Value = ethAmount
+
+	//lock 50 eth
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, common.Address{}, ethAmount)
+	require.Nil(t, err)
+	sim.Commit()
+
+	bridgeBankBalance , err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
+	require.Nil(t, err)
+	require.Equal(t, bridgeBankBalance.Int64(), ethAmount.Int64())
+	t.Logf("eth bridgeBankBalance changes to:%d", bridgeBankBalance.Int64())
 }

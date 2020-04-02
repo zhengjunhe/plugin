@@ -15,9 +15,9 @@ default: build
 build:
 	@abigen --sol $(SRC_CONTRACT)/BridgeRegistry.sol --pkg $(PACKAGE) --out $(GO_OUT)/BridgeRegistry.go
 	@abigen --sol $(SRC_CONTRACT)/BridgeBank/BridgeBank.sol --pkg $(PACKAGE) --out $(GO_OUT)/BridgeBank.go
-	#@abigen --sol $(SRC_CONTRACT)/CosmosBridge.sol --pkg $(PACKAGE) --out $(GO_OUT)/CosmosBridge.go
-	#@abigen --sol $(SRC_CONTRACT)/Oracle.sol --pkg $(PACKAGE) --out $(GO_OUT)/Oracle.go
-	#@abigen --sol $(SRC_CONTRACT)/Valset.sol --pkg $(PACKAGE) --out $(GO_OUT)/Valset.go
+#@abigen --sol $(SRC_CONTRACT)/CosmosBridge.sol --pkg $(PACKAGE) --out $(GO_OUT)/CosmosBridge.go
+#@abigen --sol $(SRC_CONTRACT)/Oracle.sol --pkg $(PACKAGE) --out $(GO_OUT)/Oracle.go
+#@abigen --sol $(SRC_CONTRACT)/Valset.sol --pkg $(PACKAGE) --out $(GO_OUT)/Valset.go
 clean:
 	@rm -fr $(GO_OUT)/*
 
