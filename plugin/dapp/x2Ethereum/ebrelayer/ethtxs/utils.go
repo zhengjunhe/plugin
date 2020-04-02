@@ -2,7 +2,6 @@ package ethtxs
 
 import (
 	"context"
-	"fmt"
 	"crypto/ecdsa"
 	"errors"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -32,24 +31,9 @@ func SignClaim4Eth(hash common.Hash, privateKey *ecdsa.PrivateKey) ([]byte, erro
 	return signature, nil
 }
 
-func concatByteSlices(arrays ...[]byte) []byte {
-	var result []byte
-
-	for _, b := range arrays {
-		result = append(result, b...)
-	}
-
-	return result
-}
-
 func prefixMessage(message common.Hash, key *ecdsa.PrivateKey) ([]byte, []byte) {
-	prefixHash := concatByteSlices(
-		[]byte(fmt.Sprintf("\x19Ethereum Signed Message:\n%v", len(message))),
-		message[:],
-	)
-	prefixed := solsha3.SoliditySHA3(prefixHash)
+	prefixed := solsha3.SoliditySHA3WithPrefix(message[:])
 	sig, err := secp256k1.Sign(prefixed, math.PaddedBigBytes(key.D, 32))
-
 	if err != nil {
 		panic(err)
 	}
