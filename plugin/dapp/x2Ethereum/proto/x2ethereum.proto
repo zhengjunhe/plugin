@@ -56,16 +56,13 @@ message OracleClaimContent {
 
 // MsgBurn defines a message for burning coins and triggering a related event
 message Chain33ToEth {
-    int64 EthereumChainID = 1;
-    string TokenContract = 2;
-    string Chain33Sender = 3;
-    string EthereumReceiver = 4;
-    uint64 Amount = 5;
+    string TokenContract = 1;
+    string Chain33Sender = 2;
+    string EthereumReceiver = 3;
+    uint64 Amount = 4;
+    string EthSymbol = 5;
     string localCoinSymbol = 6;
     string localCoinExec = 7;
-    string EthSymbol = 8;
-    int64 Nonce = 9;
-    string BridgeContractAddress = 10;
 }
 
 // 回执接口定义
@@ -88,18 +85,11 @@ message ReceiptEth2Chain33 {
 }
 
 message ReceiptChain33ToEth {
-    int64 EthereumChainID = 1;
-    string TokenContract = 2;
-    string Chain33Sender = 3;
-    string EthereumReceiver = 4;
-    uint64 Amount = 5;
-    string localCoinSymbol = 6;
-    string localCoinExec = 7;
-    bytes xTxHash = 8;
-    uint64 xHeight = 9;
-    string EthSymbol = 10;
-    int64 Nonce = 11;
-    string BridgeContractAddress = 12;
+    string TokenContract = 1;
+    string Chain33Sender = 2;
+    string EthereumReceiver = 3;
+    uint64 Amount = 4;
+    string EthSymbol = 5;
 }
 
 message ReceiptValidator {

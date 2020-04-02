@@ -339,18 +339,11 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 	}
 
 	execlog := &chain33types.ReceiptLog{Ty: types2.TyChain33ToEthLog, Log: chain33types.Encode(&types2.ReceiptChain33ToEth{
-		EthereumChainID:       msgLock.EthereumChainID,
-		TokenContract:         msgLock.TokenContract,
-		Chain33Sender:         msgLock.Chain33Sender,
-		EthereumReceiver:      msgLock.EthereumReceiver,
-		Amount:                msgLock.Amount,
-		LocalCoinSymbol:       msgLock.LocalCoinSymbol,
-		LocalCoinExec:         msgLock.LocalCoinExec,
-		XTxHash:               a.txhash,
-		XHeight:               uint64(a.height),
-		EthSymbol:             msgLock.EthSymbol,
-		Nonce:                 msgLock.Nonce,
-		BridgeContractAddress: msgLock.BridgeContractAddress,
+		TokenContract:    msgLock.TokenContract,
+		Chain33Sender:    msgLock.Chain33Sender,
+		EthereumReceiver: msgLock.EthereumReceiver,
+		Amount:           msgLock.Amount,
+		EthSymbol:        msgLock.EthSymbol,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -400,18 +393,11 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 	}
 
 	execlog := &chain33types.ReceiptLog{Ty: types2.TyWithdrawChain33Log, Log: chain33types.Encode(&types2.ReceiptChain33ToEth{
-		EthereumChainID:       msgBurn.EthereumChainID,
-		TokenContract:         msgBurn.TokenContract,
-		Chain33Sender:         msgBurn.Chain33Sender,
-		EthereumReceiver:      msgBurn.EthereumReceiver,
-		Amount:                msgBurn.Amount,
-		LocalCoinSymbol:       msgBurn.LocalCoinSymbol,
-		LocalCoinExec:         msgBurn.LocalCoinExec,
-		XTxHash:               a.txhash,
-		XHeight:               uint64(a.height),
-		EthSymbol:             msgBurn.EthSymbol,
-		Nonce:                 msgBurn.Nonce,
-		BridgeContractAddress: msgBurn.BridgeContractAddress,
+		TokenContract:    msgBurn.TokenContract,
+		Chain33Sender:    msgBurn.Chain33Sender,
+		EthereumReceiver: msgBurn.EthereumReceiver,
+		Amount:           msgBurn.Amount,
+		EthSymbol:        msgBurn.EthSymbol,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
