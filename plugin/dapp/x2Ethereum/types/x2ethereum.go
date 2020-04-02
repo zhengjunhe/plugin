@@ -85,3 +85,36 @@ func (x *x2ethereumType) GetTypeMap() map[string]int32 {
 func (x *x2ethereumType) GetLogMap() map[int64]*types.LogInfo {
 	return logMap
 }
+
+// ActionName get PrivacyType action name
+func (x x2ethereumType) ActionName(tx *types.Transaction) string {
+	tlog.Info("ActionName", "ActionName", string(tx.Payload))
+	var action X2EthereumAction
+	err := types.Decode(tx.Payload, &action)
+	if err != nil {
+		return "unknown-x2ethereum-err"
+	}
+	return action.GetActionName()
+}
+
+// GetActionName get action name
+func (action *X2EthereumAction) GetActionName() string {
+	if action.Ty == TyEth2Chain33Action && action.GetEth2Chain33() != nil {
+		return "Eth2Chain33"
+	} else if action.Ty == TyWithdrawEthAction && action.GetWithdrawEth() != nil {
+		return "WithdrawEth"
+	} else if action.Ty == TyWithdrawChain33Action && action.GetWithdrawChain33() != nil {
+		return "WithdrawChain33"
+	} else if action.Ty == TyChain33ToEthAction && action.GetChain33ToEth() != nil {
+		return "Chain33ToEth"
+	} else if action.Ty == TyAddValidatorAction && action.GetAddValidator() != nil {
+		return "AddValidator"
+	} else if action.Ty == TyRemoveValidatorAction && action.GetRemoveValidator() != nil {
+		return "RemoveValidator"
+	} else if action.Ty == TyModifyPowerAction && action.GetModifyPower() != nil {
+		return "ModifyPower"
+	} else if action.Ty == TySetConsensusThresholdAction && action.GetSetConsensusThreshold() != nil {
+		return "SetConsensusThreshold"
+	}
+	return "unknown-x2ethereum"
+}

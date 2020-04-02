@@ -172,6 +172,7 @@ message ReceiptQueryConsensusThreshold {
 
 message QuerySymbolAssetsParams {
     string tokenSymbol = 1;
+    int64 direction = 2;
 }
 
 message ReceiptQuerySymbolAssets {

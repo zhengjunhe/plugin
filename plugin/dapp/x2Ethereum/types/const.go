@@ -9,7 +9,7 @@ var (
 	LastTotalPowerKey         = []byte("prefix_for_LastTotalPower")
 	ValidatorMapsKey          = []byte("prefix_for_ValidatorMaps")
 	ConsensusThresholdKey     = []byte("prefix_for_ConsensusThreshold")
-	TokenSymbolTotalAmountKey = []byte("prefix_for_TokenSymbolTotalAmount")
+	TokenSymbolTotalAmountKey = []byte("prefix_for_TokenSymbolTotalAmount-")
 )
 
 // log for x2ethereum
@@ -53,6 +53,13 @@ const (
 const ModuleName = "ETH"
 
 const DefaultConsensusNeeded = 0.7
+
+const (
+	DirEth2Chain33  = "eth2chain33"
+	DirChain33ToEth = "chain33toeth"
+)
+
+var DirectionType = [3]string{"", DirEth2Chain33, DirChain33ToEth}
 
 // query function name
 const (

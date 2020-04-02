@@ -154,15 +154,20 @@ func querySymbolTotalAmountCmd() *cobra.Command {
 
 	cmd.Flags().StringP("symbol", "s", "", "token symbol")
 	_ = cmd.MarkFlagRequired("symbol")
+
+	cmd.Flags().Int64P("direction", "d", 0, "eth2chain33 = 1,chain33toeth = 2")
+	_ = cmd.MarkFlagRequired("direction")
 	return cmd
 }
 
 func querySymbolTotalAmount(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	symbol, _ := cmd.Flags().GetString("symbol")
+	direction, _ := cmd.Flags().GetInt64("direction")
 
 	get := &types2.QuerySymbolAssetsParams{
 		TokenSymbol: symbol,
+		Direction:   direction,
 	}
 	payLoad, err := types.PBToJSON(get)
 	if err != nil {

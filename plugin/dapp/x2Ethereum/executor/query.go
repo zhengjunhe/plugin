@@ -119,14 +119,14 @@ func (x *x2ethereum) Query_GetConsensusThreshold(in *types2.QueryConsensusThresh
 
 func (x *x2ethereum) Query_GetSymbolTotalAmount(in *types2.QuerySymbolAssetsParams) (types.Message, error) {
 	symbolAmount := &types2.ReceiptQuerySymbolAssets{}
-	symbolAmountKey := types2.CalTokenSymbolTotalAmountPrefix(in.TokenSymbol)
+	symbolAmountKey := types2.CalTokenSymbolTotalAmountPrefix(in.TokenSymbol, types2.DirectionType[in.Direction])
 
-	consensusTempBytes, err := x.GetStateDB().Get(symbolAmountKey)
+	totalAmountBytes, err := x.GetStateDB().Get(symbolAmountKey)
 	if err != nil {
 		elog.Error("Query_GetSymbolTotalAmount", "GetSymbolTotalAmount Err", err)
 		return nil, err
 	}
-	err = json.Unmarshal(consensusTempBytes, &symbolAmount)
+	err = json.Unmarshal(totalAmountBytes, &symbolAmount)
 	if err != nil {
 		return nil, types.ErrUnmarshal
 	}

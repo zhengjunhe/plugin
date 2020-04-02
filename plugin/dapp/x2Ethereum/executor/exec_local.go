@@ -16,13 +16,13 @@ func (s *x2ethereum) ExecLocal_Eth2Chain33(payload *x2ethereumtypes.Eth2Chain33,
 	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (s *x2ethereum) ExecLocal_WithdrawEth(payload *x2ethereumtypes.X2EthereumAction_WithdrawEth, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_WithdrawEth(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
 	return s.addAutoRollBack(tx, dbSet.KV), nil
 }
 
-func (s *x2ethereum) ExecLocal_WithdrawChain33(payload *x2ethereumtypes.X2EthereumAction_WithdrawChain33, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
+func (s *x2ethereum) ExecLocal_WithdrawChain33(payload *x2ethereumtypes.Chain33ToEth, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code
 	return s.addAutoRollBack(tx, dbSet.KV), nil

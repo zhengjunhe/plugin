@@ -154,7 +154,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 
 		// 记录该token的总量
 		var resAmount uint64
-		amount, err := a.getTotalAmountByTokenSymbol(msgEthBridgeClaim.LocalCoinSymbol)
+		amount, err := a.getTotalAmountByTokenSymbol(msgEthBridgeClaim.LocalCoinSymbol, types2.DirEth2Chain33)
 		if err != nil {
 			if err != chain33types.ErrNotFound {
 				return nil, err
@@ -169,7 +169,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 			TotalAmount: resAmount,
 		}
 		symbolAssetsBytes, _ := json.Marshal(symbolAssets)
-		receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgEthBridgeClaim.LocalCoinSymbol), Value: symbolAssetsBytes})
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgEthBridgeClaim.LocalCoinSymbol, types2.DirEth2Chain33), Value: symbolAssetsBytes})
 
 		assetsLogs := &chain33types.ReceiptLog{
 			Ty: types2.TySymbolAssetsLog,
@@ -278,7 +278,7 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 
 		// 记录该token的总量
 		var resAmount uint64
-		amount, err := a.getTotalAmountByTokenSymbol(msgWithdrawEth.LocalCoinSymbol)
+		amount, err := a.getTotalAmountByTokenSymbol(msgWithdrawEth.LocalCoinSymbol, types2.DirEth2Chain33)
 		if err != nil {
 			return nil, err
 		} else {
@@ -289,7 +289,7 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 			TotalAmount: resAmount,
 		}
 		symbolAssetsBytes, _ := json.Marshal(symbolAssets)
-		receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgWithdrawEth.LocalCoinSymbol), Value: symbolAssetsBytes})
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgWithdrawEth.LocalCoinSymbol, types2.DirEth2Chain33), Value: symbolAssetsBytes})
 
 		assetsLogs := &chain33types.ReceiptLog{
 			Ty: types2.TySymbolAssetsLog,
@@ -362,12 +362,12 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 
 	// 记录锁定总资产
 	var resAmount uint64
-	amount, err := a.getTotalAmountByTokenSymbol(msgLock.LocalCoinSymbol)
+	amount, err := a.getTotalAmountByTokenSymbol(msgLock.LocalCoinSymbol, types2.DirChain33ToEth)
 	if err != nil {
 		if err != chain33types.ErrNotFound {
 			return nil, err
 		} else {
-			resAmount = amount
+			resAmount = msgLock.Amount
 		}
 	} else {
 		resAmount = amount + msgLock.Amount
@@ -377,7 +377,7 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 		TotalAmount: resAmount,
 	}
 	symbolAssetsBytes, _ := json.Marshal(symbolAssets)
-	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgLock.LocalCoinSymbol), Value: symbolAssetsBytes})
+	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgLock.LocalCoinSymbol, types2.DirChain33ToEth), Value: symbolAssetsBytes})
 
 	assetsLogs := &chain33types.ReceiptLog{
 		Ty: types2.TySymbolAssetsLog,
@@ -421,8 +421,10 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalWithdrawChain33Prefix(), Value: msgBurnBytes})
 	// 记录锁定总资产
+	// todo
+	// 存 0 的时候读出来是null?
 	var resAmount uint64
-	amount, err := a.getTotalAmountByTokenSymbol(msgBurn.LocalCoinSymbol)
+	amount, err := a.getTotalAmountByTokenSymbol(msgBurn.LocalCoinSymbol, types2.DirChain33ToEth)
 	if err != nil {
 		return nil, err
 	} else {
@@ -433,7 +435,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 		TotalAmount: resAmount,
 	}
 	symbolAssetsBytes, _ := json.Marshal(symbolAssets)
-	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgBurn.LocalCoinSymbol), Value: symbolAssetsBytes})
+	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalTokenSymbolTotalAmountPrefix(msgBurn.LocalCoinSymbol, types2.DirChain33ToEth), Value: symbolAssetsBytes})
 
 	assetsLogs := &chain33types.ReceiptLog{
 		Ty: types2.TySymbolAssetsLog,
@@ -537,8 +539,8 @@ func (a *action) procMsgSetConsensusThreshold(msgSetConsensusThreshold *types2.M
 	return receipt, nil
 }
 
-func (a *action) getTotalAmountByTokenSymbol(symbol string) (uint64, error) {
-	res, err := a.db.Get(types2.CalTokenSymbolTotalAmountPrefix(symbol))
+func (a *action) getTotalAmountByTokenSymbol(symbol, direction string) (uint64, error) {
+	res, err := a.db.Get(types2.CalTokenSymbolTotalAmountPrefix(symbol, direction))
 	if err != nil {
 		return 0, err
 	}

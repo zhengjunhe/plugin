@@ -198,11 +198,11 @@ func (k Keeper) ProcessModifyValidator(address string, power int64) (*types2.Rec
 
 	elog.Info("ProcessModifyValidator", "pre validatorMaps", validatorMaps, "Modify Address", address, "Modify power", power)
 	var totalPower int64
-	for _, p := range validatorMaps {
+	for index, p := range validatorMaps {
 		if address != p.Address {
 			totalPower += p.Power
 		} else {
-			p.Power = power
+			validatorMaps[index].Power = power
 			exist = true
 			totalPower += power
 		}
