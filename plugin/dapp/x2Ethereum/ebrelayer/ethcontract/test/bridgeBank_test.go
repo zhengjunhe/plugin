@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	"math/big"
-	"time"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/test/setup"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/stretchr/testify/require"
+	"math/big"
 	"testing"
+	"time"
 )
 
 type LogNewBridgeToken struct {
@@ -320,12 +320,7 @@ func TestBrigeTokenMint(t *testing.T) {
 
 }
 
-//测试在chain33上锁定资产,然后在以太坊上铸币
-//发行token="BTY"
-//NewProphecyClaim
-//铸币NewOracleClaim,
-//ProcessBridgeProphecy
-//铸币成功
+//测试在以太坊上lock数字资产,包括Eth和Erc20
 //Bridge deposit locking (deposit erc20/eth assets)
 func TestBridgeDepositLock(t *testing.T) {
 	ctx := context.Background()
@@ -364,7 +359,6 @@ func TestBridgeDepositLock(t *testing.T) {
 	sim.Commit()
 	t.Logf("The new creaded symbol:%s, address:%s", symbol, bridgeTokenAddr.String())
 
-
 	//创建实例
 	//为userOne铸币
 	//userOne为bridgebank允许allowance设置数额
@@ -386,12 +380,11 @@ func TestBridgeDepositLock(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, isMiner, true)
 
-
 	operatorAuth, err = ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
 
 	mintAmount := int64(1000)
 	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
-	_ , err = bridgeTokenInstance.Mint(operatorAuth, userOne,  big.NewInt(mintAmount))
+	_, err = bridgeTokenInstance.Mint(operatorAuth, userOne, big.NewInt(mintAmount))
 	require.Nil(t, err)
 	sim.Commit()
 	userOneAuth, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
@@ -400,8 +393,7 @@ func TestBridgeDepositLock(t *testing.T) {
 	require.Nil(t, err)
 	sim.Commit()
 
-
-	userOneBalance , err := bridgeTokenInstance.BalanceOf(callopts, userOne)
+	userOneBalance, err := bridgeTokenInstance.BalanceOf(callopts, userOne)
 	require.Nil(t, err)
 	t.Logf("userOneBalance:%d", userOneBalance.Int64())
 	require.Equal(t, userOneBalance.Int64(), mintAmount)
@@ -417,21 +409,21 @@ func TestBridgeDepositLock(t *testing.T) {
 	sim.Commit()
 
 	//balance减少到900
-	userOneBalance , err = bridgeTokenInstance.BalanceOf(callopts, userOne)
+	userOneBalance, err = bridgeTokenInstance.BalanceOf(callopts, userOne)
 	require.Nil(t, err)
 	expectAmount := int64(900)
 	require.Equal(t, userOneBalance.Int64(), expectAmount)
 	t.Logf("userOneBalance changes to:%d", userOneBalance.Int64())
 
 	//bridgebank增加了100
-	bridgeBankBalance , err := bridgeTokenInstance.BalanceOf(callopts, x2EthDeployInfo.BridgeBank.Address)
+	bridgeBankBalance, err := bridgeTokenInstance.BalanceOf(callopts, x2EthDeployInfo.BridgeBank.Address)
 	require.Nil(t, err)
 	expectAmount = int64(100)
 	require.Equal(t, bridgeBankBalance.Int64(), expectAmount)
 	t.Logf("bridgeBankBalance changes to:%d", bridgeBankBalance.Int64())
 
 	//***测试子项目:should allow users to lock Ethereum
-	bridgeBankBalance , err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
+	bridgeBankBalance, err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
 	require.Nil(t, err)
 	t.Logf("origin eth bridgeBankBalance is:%d", bridgeBankBalance.Int64())
 
@@ -445,8 +437,788 @@ func TestBridgeDepositLock(t *testing.T) {
 	require.Nil(t, err)
 	sim.Commit()
 
-	bridgeBankBalance , err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
+	bridgeBankBalance, err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
 	require.Nil(t, err)
 	require.Equal(t, bridgeBankBalance.Int64(), ethAmount.Int64())
 	t.Logf("eth bridgeBankBalance changes to:%d", bridgeBankBalance.Int64())
 }
+
+//测试在以太坊上unlock数字资产,包括Eth和Erc20
+//Ethereum/ERC20 token unlocking (for burned chain33 assets)
+func TestBridgeBankUnlock(t *testing.T) {
+	ctx := context.Background()
+	println("TEST:Ethereum/ERC20 token unlocking (for burned chain33 assets)")
+	//1st部署相关合约
+	backend, para := setup.PrepareTestEnv()
+	sim := backend.(*backends.SimulatedBackend)
+
+	balance, _ := sim.BalanceAt(ctx, para.Deployer, nil)
+	fmt.Println("deployer addr,", para.Deployer.String(), "balance =", balance.String())
+
+	/////////////////////////EstimateGas///////////////////////////
+	callMsg := ethereum.CallMsg{
+		From: para.Deployer,
+		Data: common.FromHex(generated.BridgeBankBin),
+	}
+
+	gas, err := sim.EstimateGas(ctx, callMsg)
+	if nil != err {
+		panic("failed to estimate gas due to:" + err.Error())
+	}
+	fmt.Printf("\nThe estimated gas=%d", gas)
+	////////////////////////////////////////////////////
+
+	x2EthContracts, x2EthDeployInfo, err := ethtxs.DeployAndInit(backend, para)
+	if nil != err {
+		t.Fatalf("DeployAndInit failed due to:%s", err.Error())
+	}
+	sim.Commit()
+
+	//1.lockEth资产
+	ethAddr := common.Address{}
+	ethToken, err := generated.NewBridgeToken(ethAddr, backend)
+	userOneAuth, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	userOneAuth.Value = big.NewInt(300)
+	_, err = ethToken.Transfer(userOneAuth, x2EthDeployInfo.BridgeBank.Address, userOneAuth.Value)
+	sim.Commit()
+
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	ethLockAmount := big.NewInt(150)
+	userOneAuth.Value = ethLockAmount
+
+	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+	//lock 150 eth
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, common.Address{}, ethLockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+
+	//2.lockErc20资产
+	//创建token
+	operatorAuth, err := ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+	symbol_usdt := "USDT"
+	bridgeTokenAddr, _, bridgeTokenInstance, err := generated.DeployBridgeToken(operatorAuth, backend, symbol_usdt)
+	require.Nil(t, err)
+	sim.Commit()
+	t.Logf("The new creaded symbol_usdt:%s, address:%s", symbol_usdt, bridgeTokenAddr.String())
+
+	//创建实例
+	//为userOne铸币
+	//userOne为bridgebank允许allowance设置数额
+	userOne := para.InitValidators[0]
+	callopts := &bind.CallOpts{
+		Pending: true,
+		From:    userOne,
+		Context: ctx,
+	}
+	symQuery, err := bridgeTokenInstance.Symbol(callopts)
+	require.Equal(t, symQuery, symbol_usdt)
+	t.Logf("symQuery = %s", symQuery)
+
+	//isMiner, err := bridgeTokenInstance.IsMinter(callopts, x2EthDeployInfo.BridgeBank.Address)
+	//require.Nil(t, err)
+	//t.Logf("\nIsMinter for addr:%s, result:%v", x2EthDeployInfo.BridgeBank.Address.String(), isMiner)
+	//require.Equal(t, isMiner, true)
+	isMiner, err := bridgeTokenInstance.IsMinter(callopts, para.Operator)
+	require.Nil(t, err)
+	require.Equal(t, isMiner, true)
+
+	operatorAuth, err = ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+
+	mintAmount := int64(1000)
+	_, err = bridgeTokenInstance.Mint(operatorAuth, userOne, big.NewInt(mintAmount))
+	require.Nil(t, err)
+	sim.Commit()
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	allowAmount := int64(100)
+	_, err = bridgeTokenInstance.Approve(userOneAuth, x2EthDeployInfo.BridgeBank.Address, big.NewInt(allowAmount))
+	require.Nil(t, err)
+	sim.Commit()
+
+	userOneBalance, err := bridgeTokenInstance.BalanceOf(callopts, userOne)
+	require.Nil(t, err)
+	t.Logf("userOneBalance:%d", userOneBalance.Int64())
+	require.Equal(t, userOneBalance.Int64(), mintAmount)
+
+	//***测试子项目:should allow users to lock ERC20 tokens
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+
+	//lock 100
+	lockAmount := big.NewInt(100)
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, bridgeTokenAddr, lockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+	////////////////////////////////////////
+	///////////////准备阶段结束///////////////
+	////////////////////////////////////////
+
+	////////////////////////////////////////
+	///////////////开始测试//////////////////
+	///3.should unlock Ethereum upon the processing of a burn prophecy///
+	////////////////////////////////////////
+	////////////////////订阅LogNewProphecyClaim/////////////////
+	//：订阅事件LogNewProphecyClaim
+	eventName := "LogNewProphecyClaim"
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
+	query := ethereum.FilterQuery{
+		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+	}
+	// We will check logs for new events
+	newProphecyClaimlogs := make(chan types.Log)
+	// Filter by contract and event, write results to logs
+	newProphecyClaimSub, err := sim.SubscribeFilterLogs(ctx, query, newProphecyClaimlogs)
+	require.Nil(t, err)
+
+	//提交NewProphecyClaim
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	newProphecyAmount := int64(150)
+	ethReceivent := para.InitValidators[2]
+	ethSym := string("eth")
+	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+		userOneAuth,
+		CLAIM_TYPE_BURN,
+		chain33Sender,
+		ethReceivent,
+		ethAddr,
+		ethSym,
+		big.NewInt(newProphecyAmount))
+	sim.Commit()
+	require.Nil(t, err)
+
+	//接收并处理NewProphecyClaim
+	newProphecyClaimEvent := &events.NewProphecyClaimEvent{}
+	timer := time.NewTimer(5 * time.Second)
+	select {
+	case <-timer.C:
+		t.Fatal("timeout for NewProphecyClaimEvent")
+	// Handle any errors
+	case err := <-newProphecyClaimSub.Err():
+		t.Fatalf("sub error:%s", err.Error())
+	// vLog is raw event data
+	case vLog := <-newProphecyClaimlogs:
+		// Check if the event is a 'LogLock' event
+		if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
+			t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s", eventName,
+				vLog.BlockNumber, vLog.TxHash.Hex())
+
+			err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
+			require.Nil(t, err)
+			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+			require.Equal(t, ethSym, newProphecyClaimEvent.Symbol)
+			require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
+			break
+		}
+	}
+
+	///////////newOracleClaim///////////////////////////
+	authOracle, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	OracleClaim, err := ethtxs.ProphecyClaimToSignedOracleClaim(*newProphecyClaimEvent, para.ValidatorPriKey[0])
+	require.Nil(t, err)
+
+	_, err = x2EthContracts.Oracle.NewOracleClaim(authOracle, newProphecyClaimEvent.ProphecyID, OracleClaim.Message, OracleClaim.Signature)
+	require.Nil(t, err)
+
+	userEthbalance, _ := sim.BalanceAt(ctx, ethReceivent, nil)
+	t.Logf("userEthbalance for addr:%s balance=%d", ethReceivent.String(), userEthbalance.Int64())
+
+	////////////////should mint bridge tokens upon the successful processing of a burn prophecy claim
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	_, err = x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, newProphecyClaimEvent.ProphecyID)
+	require.Nil(t, err)
+	sim.Commit()
+	userEthbalanceAfter, _ := sim.BalanceAt(ctx, ethReceivent, nil)
+	t.Logf("userEthbalance after ProcessBridgeProphecy for addr:%s balance=%d", ethReceivent.String(), userEthbalanceAfter.Int64())
+	require.Equal(t, userEthbalance.Int64()+newProphecyAmount, userEthbalanceAfter.Int64())
+
+	//////////////////////////////////////////////////////////////////
+	///////should unlock and transfer ERC20 tokens upon the processing of a burn prophecy//////
+	//////////////////////////////////////////////////////////////////
+	//提交NewProphecyClaim
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	newProphecyAmount = int64(100)
+	ethReceivent = para.InitValidators[2]
+	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+		userOneAuth,
+		CLAIM_TYPE_BURN,
+		chain33Sender,
+		ethReceivent,
+		bridgeTokenAddr,
+		symbol_usdt,
+		big.NewInt(newProphecyAmount))
+	sim.Commit()
+	require.Nil(t, err)
+
+	//接收并处理NewProphecyClaim
+	timer.Reset(5*time.Second)
+	for {
+		select {
+		case <-timer.C:
+			t.Fatal("timeout for NewProphecyClaimEvent")
+		// Handle any errors
+		case err := <-newProphecyClaimSub.Err():
+			goto latter
+			t.Fatalf("sub error:%s", err.Error())
+		// vLog is raw event data
+		case vLog := <-newProphecyClaimlogs:
+			// Check if the event is a 'LogLock' event
+			if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
+				t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s", eventName,
+					vLog.BlockNumber, vLog.TxHash.Hex())
+
+				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
+				require.Nil(t, err)
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("symbol:%s, amount:%d", newProphecyClaimEvent.Symbol, newProphecyClaimEvent.Amount.Int64())
+				require.Equal(t, symbol_usdt, newProphecyClaimEvent.Symbol)
+				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
+				goto latter
+			}
+		}
+	}
+latter:
+
+	///////////newOracleClaim///////////////////////////
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	OracleClaim, err = ethtxs.ProphecyClaimToSignedOracleClaim(*newProphecyClaimEvent, para.ValidatorPriKey[0])
+	require.Nil(t, err)
+
+	_, err = x2EthContracts.Oracle.NewOracleClaim(authOracle, newProphecyClaimEvent.ProphecyID, OracleClaim.Message, OracleClaim.Signature)
+	require.Nil(t, err)
+
+	userUSDTbalance, err := bridgeTokenInstance.BalanceOf(callopts, ethReceivent)
+	t.Logf("userEthbalance for addr:%s balance=%d", ethReceivent.String(), userUSDTbalance.Int64())
+
+	////////////////should mint bridge tokens upon the successful processing of a burn prophecy claim
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	_, err = x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, newProphecyClaimEvent.ProphecyID)
+	require.Nil(t, err)
+	sim.Commit()
+	userUSDTbalanceAfter, err := bridgeTokenInstance.BalanceOf(callopts, ethReceivent)
+	t.Logf("userEthbalance after ProcessBridgeProphecy for addr:%s symbol:%s, balance=%d", ethReceivent.String(), newProphecyClaimEvent.Symbol, userUSDTbalanceAfter.Int64())
+	require.Equal(t, userUSDTbalance.Int64()+newProphecyAmount, userUSDTbalanceAfter.Int64())
+}
+
+//测试在以太坊上多次unlock数字资产,包括Eth和Erc20
+//Ethereum/ERC20 token second unlocking (for burned chain33 assets)
+func TestBridgeBankSecondUnlockEth(t *testing.T) {
+	ctx := context.Background()
+	println("TEST:to be unlocked incrementally by successive burn prophecies (for burned chain33 assets)")
+	//1st部署相关合约
+	backend, para := setup.PrepareTestEnv()
+	sim := backend.(*backends.SimulatedBackend)
+
+	balance, _ := sim.BalanceAt(ctx, para.Deployer, nil)
+	fmt.Println("deployer addr,", para.Deployer.String(), "balance =", balance.String())
+
+	/////////////////////////EstimateGas///////////////////////////
+	callMsg := ethereum.CallMsg{
+		From: para.Deployer,
+		Data: common.FromHex(generated.BridgeBankBin),
+	}
+
+	gas, err := sim.EstimateGas(ctx, callMsg)
+	if nil != err {
+		panic("failed to estimate gas due to:" + err.Error())
+	}
+	fmt.Printf("\nThe estimated gas=%d", gas)
+	////////////////////////////////////////////////////
+
+	x2EthContracts, x2EthDeployInfo, err := ethtxs.DeployAndInit(backend, para)
+	if nil != err {
+		t.Fatalf("DeployAndInit failed due to:%s", err.Error())
+	}
+	sim.Commit()
+
+	//1.lockEth资产
+	ethAddr := common.Address{}
+	ethToken, err := generated.NewBridgeToken(ethAddr, backend)
+	userOneAuth, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	userOneAuth.Value = big.NewInt(300)
+	_, err = ethToken.Transfer(userOneAuth, x2EthDeployInfo.BridgeBank.Address, userOneAuth.Value)
+	sim.Commit()
+
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	ethLockAmount := big.NewInt(150)
+	userOneAuth.Value = ethLockAmount
+
+	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+	//lock 150 eth
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, common.Address{}, ethLockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+
+	//2.lockErc20资产
+	//创建token
+	operatorAuth, err := ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+	symbol_usdt := "USDT"
+	bridgeTokenAddr, _, bridgeTokenInstance, err := generated.DeployBridgeToken(operatorAuth, backend, symbol_usdt)
+	require.Nil(t, err)
+	sim.Commit()
+	t.Logf("The new creaded symbol_usdt:%s, address:%s", symbol_usdt, bridgeTokenAddr.String())
+
+	//创建实例
+	//为userOne铸币
+	//userOne为bridgebank允许allowance设置数额
+	userOne := para.InitValidators[0]
+	callopts := &bind.CallOpts{
+		Pending: true,
+		From:    userOne,
+		Context: ctx,
+	}
+	symQuery, err := bridgeTokenInstance.Symbol(callopts)
+	require.Equal(t, symQuery, symbol_usdt)
+	t.Logf("symQuery = %s", symQuery)
+
+	//isMiner, err := bridgeTokenInstance.IsMinter(callopts, x2EthDeployInfo.BridgeBank.Address)
+	//require.Nil(t, err)
+	//t.Logf("\nIsMinter for addr:%s, result:%v", x2EthDeployInfo.BridgeBank.Address.String(), isMiner)
+	//require.Equal(t, isMiner, true)
+	isMiner, err := bridgeTokenInstance.IsMinter(callopts, para.Operator)
+	require.Nil(t, err)
+	require.Equal(t, isMiner, true)
+
+	operatorAuth, err = ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+
+	mintAmount := int64(1000)
+	_, err = bridgeTokenInstance.Mint(operatorAuth, userOne, big.NewInt(mintAmount))
+	require.Nil(t, err)
+	sim.Commit()
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	allowAmount := int64(100)
+	_, err = bridgeTokenInstance.Approve(userOneAuth, x2EthDeployInfo.BridgeBank.Address, big.NewInt(allowAmount))
+	require.Nil(t, err)
+	sim.Commit()
+
+	userOneBalance, err := bridgeTokenInstance.BalanceOf(callopts, userOne)
+	require.Nil(t, err)
+	t.Logf("userOneBalance:%d", userOneBalance.Int64())
+	require.Equal(t, userOneBalance.Int64(), mintAmount)
+
+	//***测试子项目:should allow users to lock ERC20 tokens
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+
+	//lock 100
+	lockAmount := big.NewInt(100)
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, bridgeTokenAddr, lockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+	////////////////////////////////////////
+	///////////////准备阶段结束///////////////
+	////////////////////////////////////////
+
+	////////////////////////////////////////
+	///////////////开始测试//////////////////
+	///3.should unlock Ethereum upon the processing of a burn prophecy///
+	////////////////////////////////////////
+	////////////////////订阅LogNewProphecyClaim/////////////////
+	//：订阅事件LogNewProphecyClaim
+	eventName := "LogNewProphecyClaim"
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
+	query := ethereum.FilterQuery{
+		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+	}
+	// We will check logs for new events
+	newProphecyClaimlogs := make(chan types.Log)
+	// Filter by contract and event, write results to logs
+	newProphecyClaimSub, err := sim.SubscribeFilterLogs(ctx, query, newProphecyClaimlogs)
+	require.Nil(t, err)
+
+	//提交NewProphecyClaim
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	newProphecyAmount := int64(44)
+	ethReceivent := para.InitValidators[2]
+	ethSym := string("eth")
+	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+		userOneAuth,
+		CLAIM_TYPE_BURN,
+		chain33Sender,
+		ethReceivent,
+		ethAddr,
+		ethSym,
+		big.NewInt(newProphecyAmount))
+	sim.Commit()
+	require.Nil(t, err)
+
+	//接收并处理NewProphecyClaim
+	newProphecyClaimEvent := &events.NewProphecyClaimEvent{}
+	timer := time.NewTimer(5 * time.Second)
+	select {
+	case <-timer.C:
+		t.Fatal("timeout for NewProphecyClaimEvent")
+	// Handle any errors
+	case err := <-newProphecyClaimSub.Err():
+		t.Fatalf("sub error:%s", err.Error())
+	// vLog is raw event data
+	case vLog := <-newProphecyClaimlogs:
+		// Check if the event is a 'LogLock' event
+		if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
+			err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
+			require.Nil(t, err)
+			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+			t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s, symbol:%s", eventName,
+				vLog.BlockNumber, vLog.TxHash.Hex(), newProphecyClaimEvent.Symbol)
+			require.Equal(t, ethSym, newProphecyClaimEvent.Symbol)
+			require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
+			break
+		}
+	}
+
+	///////////newOracleClaim///////////////////////////
+	authOracle, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	OracleClaim, err := ethtxs.ProphecyClaimToSignedOracleClaim(*newProphecyClaimEvent, para.ValidatorPriKey[0])
+	require.Nil(t, err)
+
+	_, err = x2EthContracts.Oracle.NewOracleClaim(authOracle, newProphecyClaimEvent.ProphecyID, OracleClaim.Message, OracleClaim.Signature)
+	require.Nil(t, err)
+
+	userEthbalance, _ := sim.BalanceAt(ctx, ethReceivent, nil)
+	t.Logf("userEthbalance for addr:%s balance=%d", ethReceivent.String(), userEthbalance.Int64())
+
+	////////////////should mint bridge tokens upon the successful processing of a burn prophecy claim
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	_, err = x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, newProphecyClaimEvent.ProphecyID)
+	require.Nil(t, err)
+	sim.Commit()
+	userEthbalanceAfter, _ := sim.BalanceAt(ctx, ethReceivent, nil)
+	t.Logf("userEthbalance after ProcessBridgeProphecy for addr:%s balance=%d", ethReceivent.String(), userEthbalanceAfter.Int64())
+	require.Equal(t, userEthbalance.Int64()+newProphecyAmount, userEthbalanceAfter.Int64())
+
+	//第二次提交NewProphecyClaim
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	newProphecyAmountSecond := int64(33)
+	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+		userOneAuth,
+		CLAIM_TYPE_BURN,
+		chain33Sender,
+		ethReceivent,
+		ethAddr,
+		ethSym,
+		big.NewInt(newProphecyAmountSecond))
+	sim.Commit()
+	require.Nil(t, err)
+
+	//接收并处理NewProphecyClaim
+	for {
+		select {
+		case <-timer.C:
+			t.Fatal("timeout for NewProphecyClaimEvent")
+		// Handle any errors
+		case err := <-newProphecyClaimSub.Err():
+			t.Fatalf("sub error:%s", err.Error())
+		// vLog is raw event data
+		case vLog := <-newProphecyClaimlogs:
+			// Check if the event is a 'LogLock' event
+			if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
+				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
+				require.Nil(t, err)
+				t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s, symbol:%s", eventName,
+					vLog.BlockNumber, vLog.TxHash.Hex(), newProphecyClaimEvent.Symbol)
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				require.Equal(t, ethSym, newProphecyClaimEvent.Symbol)
+				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmountSecond)
+				goto latter
+			}
+		}
+	}
+
+	latter:
+	///////////newOracleClaim///////////////////////////
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	OracleClaim, err = ethtxs.ProphecyClaimToSignedOracleClaim(*newProphecyClaimEvent, para.ValidatorPriKey[0])
+	require.Nil(t, err)
+
+	_, err = x2EthContracts.Oracle.NewOracleClaim(authOracle, newProphecyClaimEvent.ProphecyID, OracleClaim.Message, OracleClaim.Signature)
+	require.Nil(t, err)
+
+	userEthbalance, _ = sim.BalanceAt(ctx, ethReceivent, nil)
+	t.Logf("userEthbalance for addr:%s balance=%d", ethReceivent.String(), userEthbalance.Int64())
+
+	////////////////should mint bridge tokens upon the successful processing of a burn prophecy claim
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	_, err = x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, newProphecyClaimEvent.ProphecyID)
+	require.Nil(t, err)
+	sim.Commit()
+	userEthbalanceAfter, _ = sim.BalanceAt(ctx, ethReceivent, nil)
+	t.Logf("userEthbalance after ProcessBridgeProphecy for addr:%s balance=%d", ethReceivent.String(), userEthbalanceAfter.Int64())
+	require.Equal(t, userEthbalance.Int64()+newProphecyAmountSecond, userEthbalanceAfter.Int64())
+}
+
+//测试在以太坊上多次unlock数字资产Erc20
+//Ethereum/ERC20 token unlocking (for burned chain33 assets)
+func TestBridgeBankSedondUnlockErc20(t *testing.T) {
+	ctx := context.Background()
+	println("TEST:ERC20 to be unlocked incrementally by successive burn prophecies (for burned chain33 assets))")
+	//1st部署相关合约
+	backend, para := setup.PrepareTestEnv()
+	sim := backend.(*backends.SimulatedBackend)
+
+	balance, _ := sim.BalanceAt(ctx, para.Deployer, nil)
+	fmt.Println("deployer addr,", para.Deployer.String(), "balance =", balance.String())
+
+	/////////////////////////EstimateGas///////////////////////////
+	callMsg := ethereum.CallMsg{
+		From: para.Deployer,
+		Data: common.FromHex(generated.BridgeBankBin),
+	}
+
+	gas, err := sim.EstimateGas(ctx, callMsg)
+	if nil != err {
+		panic("failed to estimate gas due to:" + err.Error())
+	}
+	fmt.Printf("\nThe estimated gas=%d", gas)
+	////////////////////////////////////////////////////
+
+	x2EthContracts, x2EthDeployInfo, err := ethtxs.DeployAndInit(backend, para)
+	if nil != err {
+		t.Fatalf("DeployAndInit failed due to:%s", err.Error())
+	}
+	sim.Commit()
+
+	//1.lockEth资产
+	ethAddr := common.Address{}
+	ethToken, err := generated.NewBridgeToken(ethAddr, backend)
+	userOneAuth, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	userOneAuth.Value = big.NewInt(300)
+	_, err = ethToken.Transfer(userOneAuth, x2EthDeployInfo.BridgeBank.Address, userOneAuth.Value)
+	sim.Commit()
+
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	ethLockAmount := big.NewInt(150)
+	userOneAuth.Value = ethLockAmount
+
+	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+	//lock 150 eth
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, common.Address{}, ethLockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+
+	//2.lockErc20资产
+	//创建token
+	operatorAuth, err := ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+	symbol_usdt := "USDT"
+	bridgeTokenAddr, _, bridgeTokenInstance, err := generated.DeployBridgeToken(operatorAuth, backend, symbol_usdt)
+	require.Nil(t, err)
+	sim.Commit()
+	t.Logf("The new creaded symbol_usdt:%s, address:%s", symbol_usdt, bridgeTokenAddr.String())
+
+	//创建实例
+	//为userOne铸币
+	//userOne为bridgebank允许allowance设置数额
+	userOne := para.InitValidators[0]
+	callopts := &bind.CallOpts{
+		Pending: true,
+		From:    userOne,
+		Context: ctx,
+	}
+	symQuery, err := bridgeTokenInstance.Symbol(callopts)
+	require.Equal(t, symQuery, symbol_usdt)
+	t.Logf("symQuery = %s", symQuery)
+	isMiner, err := bridgeTokenInstance.IsMinter(callopts, para.Operator)
+	require.Nil(t, err)
+	require.Equal(t, isMiner, true)
+
+	operatorAuth, err = ethtxs.PrepareAuth(backend, para.PrivateKey, para.Operator)
+
+	mintAmount := int64(1000)
+	_, err = bridgeTokenInstance.Mint(operatorAuth, userOne, big.NewInt(mintAmount))
+	require.Nil(t, err)
+	sim.Commit()
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	allowAmount := int64(100)
+	_, err = bridgeTokenInstance.Approve(userOneAuth, x2EthDeployInfo.BridgeBank.Address, big.NewInt(allowAmount))
+	require.Nil(t, err)
+	sim.Commit()
+
+	userOneBalance, err := bridgeTokenInstance.BalanceOf(callopts, userOne)
+	require.Nil(t, err)
+	t.Logf("userOneBalance:%d", userOneBalance.Int64())
+	require.Equal(t, userOneBalance.Int64(), mintAmount)
+
+	//***测试子项目:should allow users to lock ERC20 tokens
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+
+	//lock 100
+	lockAmount := big.NewInt(100)
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, bridgeTokenAddr, lockAmount)
+	require.Nil(t, err)
+	sim.Commit()
+	////////////////////////////////////////
+	///////////////准备阶段结束///////////////
+	////////////////////////////////////////
+
+	////////////////////////////////////////
+	///////////////开始测试//////////////////
+	///3.should unlock Ethereum upon the processing of a burn prophecy///
+	////////////////////////////////////////
+	////////////////////订阅LogNewProphecyClaim/////////////////
+	//：订阅事件LogNewProphecyClaim
+	eventName := "LogNewProphecyClaim"
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
+	query := ethereum.FilterQuery{
+		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+	}
+	// We will check logs for new events
+	newProphecyClaimlogs := make(chan types.Log)
+	// Filter by contract and event, write results to logs
+	newProphecyClaimSub, err := sim.SubscribeFilterLogs(ctx, query, newProphecyClaimlogs)
+	require.Nil(t, err)
+
+	//提交NewProphecyClaim
+
+	//////////////////////////////////////////////////////////////////
+	///////should unlock and transfer ERC20 tokens upon the processing of a burn prophecy//////
+	//////////////////////////////////////////////////////////////////
+	//提交NewProphecyClaim
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	newProphecyAmount := int64(33)
+	ethReceivent := para.InitValidators[2]
+	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+		userOneAuth,
+		CLAIM_TYPE_BURN,
+		chain33Sender,
+		ethReceivent,
+		bridgeTokenAddr,
+		symbol_usdt,
+		big.NewInt(newProphecyAmount))
+	sim.Commit()
+	require.Nil(t, err)
+
+	//接收并处理NewProphecyClaim
+	newProphecyClaimEvent := &events.NewProphecyClaimEvent{}
+	timer := time.NewTimer(5*time.Second)
+	for {
+		select {
+		case <-timer.C:
+			t.Fatal("timeout for NewProphecyClaimEvent")
+		// Handle any errors
+		case err := <-newProphecyClaimSub.Err():
+			goto latter
+			t.Fatalf("sub error:%s", err.Error())
+		// vLog is raw event data
+		case vLog := <-newProphecyClaimlogs:
+			// Check if the event is a 'LogLock' event
+			if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
+				t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s", eventName,
+					vLog.BlockNumber, vLog.TxHash.Hex())
+
+				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
+				require.Nil(t, err)
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("symbol:%s, amount:%d", newProphecyClaimEvent.Symbol, newProphecyClaimEvent.Amount.Int64())
+				require.Equal(t, symbol_usdt, newProphecyClaimEvent.Symbol)
+				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
+				goto latter
+			}
+		}
+	}
+latter:
+
+	///////////newOracleClaim///////////////////////////
+	authOracle, err := ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	OracleClaim, err := ethtxs.ProphecyClaimToSignedOracleClaim(*newProphecyClaimEvent, para.ValidatorPriKey[0])
+	require.Nil(t, err)
+
+	_, err = x2EthContracts.Oracle.NewOracleClaim(authOracle, newProphecyClaimEvent.ProphecyID, OracleClaim.Message, OracleClaim.Signature)
+	require.Nil(t, err)
+
+	userUSDTbalance, err := bridgeTokenInstance.BalanceOf(callopts, ethReceivent)
+	t.Logf("userEthbalance for addr:%s balance=%d", ethReceivent.String(), userUSDTbalance.Int64())
+
+	////////////////should mint bridge tokens upon the successful processing of a burn prophecy claim
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	_, err = x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, newProphecyClaimEvent.ProphecyID)
+	require.Nil(t, err)
+	sim.Commit()
+	userUSDTbalanceAfter, err := bridgeTokenInstance.BalanceOf(callopts, ethReceivent)
+	t.Logf("userEthbalance after ProcessBridgeProphecy for addr:%s symbol:%s, balance=%d", ethReceivent.String(), newProphecyClaimEvent.Symbol, userUSDTbalanceAfter.Int64())
+	require.Equal(t, userUSDTbalance.Int64()+newProphecyAmount, userUSDTbalanceAfter.Int64())
+
+	//再次提交NewProphecyClaim
+	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	newProphecyAmountSecond := int64(66)
+	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+		userOneAuth,
+		CLAIM_TYPE_BURN,
+		chain33Sender,
+		ethReceivent,
+		bridgeTokenAddr,
+		symbol_usdt,
+		big.NewInt(newProphecyAmountSecond))
+	sim.Commit()
+	require.Nil(t, err)
+
+	//接收并处理NewProphecyClaim
+	for {
+		select {
+		case <-timer.C:
+			t.Fatal("timeout for NewProphecyClaimEvent")
+		// Handle any errors
+		case err := <-newProphecyClaimSub.Err():
+			goto latter
+			t.Fatalf("sub error:%s", err.Error())
+		// vLog is raw event data
+		case vLog := <-newProphecyClaimlogs:
+			// Check if the event is a 'LogLock' event
+			if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
+				t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s", eventName,
+					vLog.BlockNumber, vLog.TxHash.Hex())
+
+				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
+				require.Nil(t, err)
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("symbol:%s, amount:%d", newProphecyClaimEvent.Symbol, newProphecyClaimEvent.Amount.Int64())
+				require.Equal(t, symbol_usdt, newProphecyClaimEvent.Symbol)
+				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmountSecond)
+				goto latter2
+			}
+		}
+	}
+latter2:
+
+	///////////newOracleClaim///////////////////////////
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	OracleClaim, err = ethtxs.ProphecyClaimToSignedOracleClaim(*newProphecyClaimEvent, para.ValidatorPriKey[0])
+	require.Nil(t, err)
+
+	_, err = x2EthContracts.Oracle.NewOracleClaim(authOracle, newProphecyClaimEvent.ProphecyID, OracleClaim.Message, OracleClaim.Signature)
+	require.Nil(t, err)
+
+	userUSDTbalance, err = bridgeTokenInstance.BalanceOf(callopts, ethReceivent)
+	t.Logf("userEthbalance for addr:%s balance=%d", ethReceivent.String(), userUSDTbalance.Int64())
+
+	////////////////should mint bridge tokens upon the successful processing of a burn prophecy claim
+	authOracle, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
+	require.Nil(t, err)
+	_, err = x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, newProphecyClaimEvent.ProphecyID)
+	require.Nil(t, err)
+	sim.Commit()
+	userUSDTbalanceAfter, err = bridgeTokenInstance.BalanceOf(callopts, ethReceivent)
+	t.Logf("userEthbalance after ProcessBridgeProphecy for addr:%s symbol:%s, balance=%d", ethReceivent.String(), newProphecyClaimEvent.Symbol, userUSDTbalanceAfter.Int64())
+	require.Equal(t, userUSDTbalance.Int64()+newProphecyAmountSecond, userUSDTbalanceAfter.Int64())
+}
+
