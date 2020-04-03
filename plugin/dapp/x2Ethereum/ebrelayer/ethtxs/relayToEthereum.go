@@ -11,7 +11,7 @@ import (
 
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	cosmosBridge "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
+	chain33Bridge "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	oracle "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
@@ -26,7 +26,7 @@ const (
 	GasLimit4Deploy = uint64(0) //此处需要设置为0,让交易自行估计,否则将会导致部署失败,TODO:其他解决途径后续调研解决
 )
 
-// RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to CosmosBridge contract on the Ethereum network
+// RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to Chain33Bridge contract on the Ethereum network
 func RelayProphecyClaimToEthereum(provider string, sender, contractAddress common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
 	// Initialize client service, validator's tx auth, and target contract address
 	client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
@@ -34,15 +34,15 @@ func RelayProphecyClaimToEthereum(provider string, sender, contractAddress commo
 		return "", err
 	}
 
-	// Initialize CosmosBridge instance
-	cosmosBridgeInstance, err := cosmosBridge.NewCosmosBridge(*target, client)
+	// Initialize Chain33Bridge instance
+	chain33BridgeInstance, err := chain33Bridge.NewChain33Bridge(*target, client)
 	if err != nil {
-		txslog.Error("RelayProphecyClaimToEthereum", "NewCosmosBridge failed due to:", err.Error())
+		txslog.Error("RelayProphecyClaimToEthereum", "NewChain33Bridge failed due to:", err.Error())
 		return "", err
 	}
 
 	// Send transaction
-	tx, err := cosmosBridgeInstance.NewProphecyClaim(auth, uint8(claim.ClaimType), claim.CosmosSender, claim.EthereumReceiver, claim.TokenContractAddress, claim.Symbol, claim.Amount)
+	tx, err := chain33BridgeInstance.NewProphecyClaim(auth, uint8(claim.ClaimType), claim.Chain33Sender, claim.EthereumReceiver, claim.TokenContractAddress, claim.Symbol, claim.Amount)
 	if err != nil {
 		txslog.Error("RelayProphecyClaimToEthereum", "NewProphecyClaim failed due to:", err.Error())
 		return "", err
@@ -109,9 +109,9 @@ func initRelayConfig(provider string, sender, registry common.Address, event eve
 
 	var targetContract ContractRegistry
 	switch event {
-	// ProphecyClaims are sent to the CosmosBridge contract
+	// ProphecyClaims are sent to the Chain33Bridge contract
 	case events.MsgBurn, events.MsgLock:
-		targetContract = CosmosBridge
+		targetContract = Chain33Bridge
 	// OracleClaims are sent to the Oracle contract
 	case events.LogNewProphecyClaim:
 		targetContract = Oracle

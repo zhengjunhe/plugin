@@ -28,27 +28,27 @@ var (
 )
 
 // BridgeRegistryABI is the input ABI used to generate the binding from.
-const BridgeRegistryABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"bridgeBank\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"oracle\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"valset\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"cosmosBridge\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_cosmosBridge\",\"type\":\"address\"},{\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"name\":\"_oracle\",\"type\":\"address\"},{\"name\":\"_valset\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_cosmosBridge\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_oracle\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_valset\",\"type\":\"address\"}],\"name\":\"LogContractsRegistered\",\"type\":\"event\"}]"
+const BridgeRegistryABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"bridgeBank\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"oracle\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"valset\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"chain33Bridge\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_chain33Bridge\",\"type\":\"address\"},{\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"name\":\"_oracle\",\"type\":\"address\"},{\"name\":\"_valset\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_chain33Bridge\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_oracle\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_valset\",\"type\":\"address\"}],\"name\":\"LogContractsRegistered\",\"type\":\"event\"}]"
 
 // BridgeRegistryFuncSigs maps the 4-byte function signature to its string representation.
 var BridgeRegistryFuncSigs = map[string]string{
 	"0e41f373": "bridgeBank()",
-	"b0e9ef71": "cosmosBridge()",
+	"eb355352": "chain33Bridge()",
 	"7dc0d1d0": "oracle()",
 	"7f54af0c": "valset()",
 }
 
 // BridgeRegistryBin is the compiled bytecode used for deploying new contracts.
-var BridgeRegistryBin = "0x608060405234801561001057600080fd5b5060405160808061027b8339810180604052608081101561003057600080fd5b50805160208083015160408085015160609586015160008054600160a060020a03808916600160a060020a0319928316179283905560018054828916908416179081905560028054838816908516179081905560038054848816951694909417938490558751948316855290821698840198909852968716828601529095169685019690965290519394919390927f039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a919081900360800190a15050505061017f806100fc6000396000f3fe6080604052600436106100615763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416630e41f37381146100665780637dc0d1d0146100a45780637f54af0c146100b9578063b0e9ef71146100ce575b600080fd5b34801561007257600080fd5b5061007b6100e3565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b3480156100b057600080fd5b5061007b6100ff565b3480156100c557600080fd5b5061007b61011b565b3480156100da57600080fd5b5061007b610137565b60015473ffffffffffffffffffffffffffffffffffffffff1681565b60025473ffffffffffffffffffffffffffffffffffffffff1681565b60035473ffffffffffffffffffffffffffffffffffffffff1681565b60005473ffffffffffffffffffffffffffffffffffffffff168156fea165627a7a72305820291b56bb7f6a16ed518a0a1bf7d7ce9abe4797fbbe08446f38fcd224d3aaec9c0029"
+var BridgeRegistryBin = "0x608060405234801561001057600080fd5b5060405160808061027b8339810180604052608081101561003057600080fd5b50805160208083015160408085015160609586015160008054600160a060020a03808916600160a060020a0319928316179283905560018054828916908416179081905560028054838816908516179081905560038054848816951694909417938490558751948316855290821698840198909852968716828601529095169685019690965290519394919390927f039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a919081900360800190a15050505061017f806100fc6000396000f3fe6080604052600436106100615763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416630e41f37381146100665780637dc0d1d0146100a45780637f54af0c146100b9578063eb355352146100ce575b600080fd5b34801561007257600080fd5b5061007b6100e3565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b3480156100b057600080fd5b5061007b6100ff565b3480156100c557600080fd5b5061007b61011b565b3480156100da57600080fd5b5061007b610137565b60015473ffffffffffffffffffffffffffffffffffffffff1681565b60025473ffffffffffffffffffffffffffffffffffffffff1681565b60035473ffffffffffffffffffffffffffffffffffffffff1681565b60005473ffffffffffffffffffffffffffffffffffffffff168156fea165627a7a7230582045fe784d649b3aedfab8d948d046dbc905d6a1c8348e7ba42c7365f4f2322fed0029"
 
 // DeployBridgeRegistry deploys a new Ethereum contract, binding an instance of BridgeRegistry to it.
-func DeployBridgeRegistry(auth *bind.TransactOpts, backend bind.ContractBackend, _cosmosBridge common.Address, _bridgeBank common.Address, _oracle common.Address, _valset common.Address) (common.Address, *types.Transaction, *BridgeRegistry, error) {
+func DeployBridgeRegistry(auth *bind.TransactOpts, backend bind.ContractBackend, _chain33Bridge common.Address, _bridgeBank common.Address, _oracle common.Address, _valset common.Address) (common.Address, *types.Transaction, *BridgeRegistry, error) {
 	parsed, err := abi.JSON(strings.NewReader(BridgeRegistryABI))
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(BridgeRegistryBin), backend, _cosmosBridge, _bridgeBank, _oracle, _valset)
+	address, tx, contract, err := bind.DeployContract(auth, parsed, common.FromHex(BridgeRegistryBin), backend, _chain33Bridge, _bridgeBank, _oracle, _valset)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
@@ -223,30 +223,30 @@ func (_BridgeRegistry *BridgeRegistryCallerSession) BridgeBank() (common.Address
 	return _BridgeRegistry.Contract.BridgeBank(&_BridgeRegistry.CallOpts)
 }
 
-// CosmosBridge is a free data retrieval call binding the contract method 0xb0e9ef71.
+// Chain33Bridge is a free data retrieval call binding the contract method 0xeb355352.
 //
-// Solidity: function cosmosBridge() constant returns(address)
-func (_BridgeRegistry *BridgeRegistryCaller) CosmosBridge(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function chain33Bridge() constant returns(address)
+func (_BridgeRegistry *BridgeRegistryCaller) Chain33Bridge(opts *bind.CallOpts) (common.Address, error) {
 	var (
 		ret0 = new(common.Address)
 	)
 	out := ret0
-	err := _BridgeRegistry.contract.Call(opts, out, "cosmosBridge")
+	err := _BridgeRegistry.contract.Call(opts, out, "chain33Bridge")
 	return *ret0, err
 }
 
-// CosmosBridge is a free data retrieval call binding the contract method 0xb0e9ef71.
+// Chain33Bridge is a free data retrieval call binding the contract method 0xeb355352.
 //
-// Solidity: function cosmosBridge() constant returns(address)
-func (_BridgeRegistry *BridgeRegistrySession) CosmosBridge() (common.Address, error) {
-	return _BridgeRegistry.Contract.CosmosBridge(&_BridgeRegistry.CallOpts)
+// Solidity: function chain33Bridge() constant returns(address)
+func (_BridgeRegistry *BridgeRegistrySession) Chain33Bridge() (common.Address, error) {
+	return _BridgeRegistry.Contract.Chain33Bridge(&_BridgeRegistry.CallOpts)
 }
 
-// CosmosBridge is a free data retrieval call binding the contract method 0xb0e9ef71.
+// Chain33Bridge is a free data retrieval call binding the contract method 0xeb355352.
 //
-// Solidity: function cosmosBridge() constant returns(address)
-func (_BridgeRegistry *BridgeRegistryCallerSession) CosmosBridge() (common.Address, error) {
-	return _BridgeRegistry.Contract.CosmosBridge(&_BridgeRegistry.CallOpts)
+// Solidity: function chain33Bridge() constant returns(address)
+func (_BridgeRegistry *BridgeRegistryCallerSession) Chain33Bridge() (common.Address, error) {
+	return _BridgeRegistry.Contract.Chain33Bridge(&_BridgeRegistry.CallOpts)
 }
 
 // Oracle is a free data retrieval call binding the contract method 0x7dc0d1d0.
@@ -370,16 +370,16 @@ func (it *BridgeRegistryLogContractsRegisteredIterator) Close() error {
 
 // BridgeRegistryLogContractsRegistered represents a LogContractsRegistered event raised by the BridgeRegistry contract.
 type BridgeRegistryLogContractsRegistered struct {
-	CosmosBridge common.Address
-	BridgeBank   common.Address
-	Oracle       common.Address
-	Valset       common.Address
-	Raw          types.Log // Blockchain specific contextual infos
+	Chain33Bridge common.Address
+	BridgeBank    common.Address
+	Oracle        common.Address
+	Valset        common.Address
+	Raw           types.Log // Blockchain specific contextual infos
 }
 
 // FilterLogContractsRegistered is a free log retrieval operation binding the contract event 0x039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a.
 //
-// Solidity: event LogContractsRegistered(address _cosmosBridge, address _bridgeBank, address _oracle, address _valset)
+// Solidity: event LogContractsRegistered(address _chain33Bridge, address _bridgeBank, address _oracle, address _valset)
 func (_BridgeRegistry *BridgeRegistryFilterer) FilterLogContractsRegistered(opts *bind.FilterOpts) (*BridgeRegistryLogContractsRegisteredIterator, error) {
 
 	logs, sub, err := _BridgeRegistry.contract.FilterLogs(opts, "LogContractsRegistered")
@@ -391,7 +391,7 @@ func (_BridgeRegistry *BridgeRegistryFilterer) FilterLogContractsRegistered(opts
 
 // WatchLogContractsRegistered is a free log subscription operation binding the contract event 0x039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a.
 //
-// Solidity: event LogContractsRegistered(address _cosmosBridge, address _bridgeBank, address _oracle, address _valset)
+// Solidity: event LogContractsRegistered(address _chain33Bridge, address _bridgeBank, address _oracle, address _valset)
 func (_BridgeRegistry *BridgeRegistryFilterer) WatchLogContractsRegistered(opts *bind.WatchOpts, sink chan<- *BridgeRegistryLogContractsRegistered) (event.Subscription, error) {
 
 	logs, sub, err := _BridgeRegistry.contract.WatchLogs(opts, "LogContractsRegistered")
@@ -428,7 +428,7 @@ func (_BridgeRegistry *BridgeRegistryFilterer) WatchLogContractsRegistered(opts 
 
 // ParseLogContractsRegistered is a log parse operation binding the contract event 0x039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a.
 //
-// Solidity: event LogContractsRegistered(address _cosmosBridge, address _bridgeBank, address _oracle, address _valset)
+// Solidity: event LogContractsRegistered(address _chain33Bridge, address _bridgeBank, address _oracle, address _valset)
 func (_BridgeRegistry *BridgeRegistryFilterer) ParseLogContractsRegistered(log types.Log) (*BridgeRegistryLogContractsRegistered, error) {
 	event := new(BridgeRegistryLogContractsRegistered)
 	if err := _BridgeRegistry.contract.UnpackLog(event, "LogContractsRegistered", log); err != nil {

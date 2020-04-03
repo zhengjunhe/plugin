@@ -1,26 +1,26 @@
 pragma solidity ^0.5.0;
 
-import "./CosmosBank.sol";
+import "./Chain33Bank.sol";
 import "./EthereumBank.sol";
 import "../Oracle.sol";
-import "../CosmosBridge.sol";
+import "../Chain33Bridge.sol";
 
 /**
  * @title BridgeBank
  * @dev Bank contract which coordinates asset-related functionality.
- *      CosmosBank manages the minting and burning of tokens which
- *      represent Cosmos based assets, while EthereumBank manages
+ *      Chain33Bank manages the minting and burning of tokens which
+ *      represent Chain33 based assets, while EthereumBank manages
  *      the locking and unlocking of Ethereum and ERC20 token assets
  *      based on Ethereum.
  **/
 
-contract BridgeBank is CosmosBank, EthereumBank {
+contract BridgeBank is Chain33Bank, EthereumBank {
 
     using SafeMath for uint256;
     
     address public operator;
     Oracle public oracle;
-    CosmosBridge public cosmosBridge;
+    Chain33Bridge public chain33Bridge;
 
     /*
     * @dev: Constructor, sets operator
@@ -28,13 +28,13 @@ contract BridgeBank is CosmosBank, EthereumBank {
     constructor (
         address _operatorAddress,
         address _oracleAddress,
-        address _cosmosBridgeAddress
+        address _chain33BridgeAddress
     )
         public
     {
         operator = _operatorAddress;
         oracle = Oracle(_oracleAddress);
-        cosmosBridge = CosmosBridge(_cosmosBridgeAddress);
+        chain33Bridge = Chain33Bridge(_chain33BridgeAddress);
     }
 
     /*
@@ -61,13 +61,13 @@ contract BridgeBank is CosmosBank, EthereumBank {
     }
 
     /*
-    * @dev: Modifier to restrict access to the cosmos bridge
+    * @dev: Modifier to restrict access to the chain33 bridge
     */
-    modifier onlyCosmosBridge()
+    modifier onlyChain33Bridge()
     {
         require(
-            msg.sender == address(cosmosBridge),
-            "Access restricted to the cosmos bridge"
+            msg.sender == address(chain33Bridge),
+            "Access restricted to the chain33 bridge"
         );
         _;
     }
@@ -97,24 +97,24 @@ contract BridgeBank is CosmosBank, EthereumBank {
     /*
      * @dev: Mints new BankTokens
      *
-     * @param _cosmosSender: The sender's Cosmos address in bytes.
+     * @param _chain33Sender: The sender's Chain33 address in bytes.
      * @param _ethereumRecipient: The intended recipient's Ethereum address.
-     * @param _cosmosTokenAddress: The currency type
+     * @param _chain33TokenAddress: The currency type
      * @param _symbol: comsos token symbol
      * @param _amount: number of comsos tokens to be minted
      */
      function mintBridgeTokens(
-        bytes memory _cosmosSender,
+        bytes memory _chain33Sender,
         address payable _intendedRecipient,
         address _bridgeTokenAddress,
         string memory _symbol,
         uint256 _amount
     )
         public
-        onlyCosmosBridge
+        onlyChain33Bridge
     {
         return mintNewBridgeTokens(
-            _cosmosSender,
+            _chain33Sender,
             _intendedRecipient,
             _bridgeTokenAddress,
             _symbol,
@@ -187,7 +187,7 @@ contract BridgeBank is CosmosBank, EthereumBank {
         uint256 _amount
     )
         public
-        onlyCosmosBridge
+        onlyChain33Bridge
         hasLockedFunds(
             _token,
             _amount
@@ -211,34 +211,34 @@ contract BridgeBank is CosmosBank, EthereumBank {
     * @param _id: The item in question.
     * @return: Boolean indicating the lock status.
     */
-    function getCosmosDepositStatus(
+    function getChain33DepositStatus(
         bytes32 _id
     )
         public
         view
         returns(bool)
     {
-        return isLockedCosmosDeposit(_id);
+        return isLockedChain33Deposit(_id);
     }
 
     /*
-    * @dev: Allows access to a Cosmos deposit's information via its unique identifier.
+    * @dev: Allows access to a Chain33 deposit's information via its unique identifier.
     *
     * @param _id: The deposit to be viewed.
     * @return: Original sender's Ethereum address.
-    * @return: Intended Cosmos recipient's address in bytes.
+    * @return: Intended Chain33 recipient's address in bytes.
     * @return: The lock deposit's currency, denoted by a token address.
     * @return: The amount locked in the deposit.
     * @return: The deposit's unique nonce.
     */
-    function viewCosmosDeposit(
+    function viewChain33Deposit(
         bytes32 _id
     )
         public
         view
         returns(bytes memory, address payable, address, uint256)
     {
-        return getCosmosDeposit(_id);
+        return getChain33Deposit(_id);
     }
 
 }

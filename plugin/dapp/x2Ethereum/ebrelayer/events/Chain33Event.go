@@ -27,7 +27,7 @@ func NewChain33Msg(
 	tokenContractAddress common.Address,
 ) Chain33Msg {
 	// Package data into a Chain33Msg
-	cosmosMsg := Chain33Msg{
+	chain33Msg := Chain33Msg{
 		ClaimType:            claimType,
 		Chain33Sender:        chain33Sender,
 		EthereumReceiver:     ethereumReceiver,
@@ -36,20 +36,20 @@ func NewChain33Msg(
 		TokenContractAddress: tokenContractAddress,
 	}
 
-	PrintCosmosMsg(cosmosMsg)
+	PrintChain33Msg(chain33Msg)
 
-	return cosmosMsg
+	return chain33Msg
 }
 
-// PrintCosmosMsg : prints a Chain33Msg struct's information
-func PrintCosmosMsg(event Chain33Msg) {
+// PrintChain33Msg : prints a Chain33Msg struct's information
+func PrintChain33Msg(event Chain33Msg) {
 	claimType := event.ClaimType.String()
-	cosmosSender := string(event.Chain33Sender)
+	chain33Sender := string(event.Chain33Sender)
 	ethereumReceiver := event.EthereumReceiver.Hex()
 	tokenContractAddress := event.TokenContractAddress.Hex()
 	symbol := event.Symbol
 	amount := event.Amount
 
-	fmt.Printf("\nClaim Type: %v\nCosmos Sender: %v\nEthereum Recipient: %v\nToken Address: %v\nSymbol: %v\nAmount: %v\n",
-		claimType, cosmosSender, ethereumReceiver, tokenContractAddress, symbol, amount)
+	fmt.Printf("\nClaim Type: %v\nChain33 Sender: %v\nEthereum Recipient: %v\nToken Address: %v\nSymbol: %v\nAmount: %v\n",
+		claimType, chain33Sender, ethereumReceiver, tokenContractAddress, symbol, amount)
 }

@@ -31,7 +31,7 @@ type LockEvent struct {
 type NewProphecyClaimEvent struct {
 	ProphecyID       *big.Int
 	ClaimType        uint8
-	CosmosSender    []byte
+	Chain33Sender    []byte
 	EthereumReceiver common.Address
 	ValidatorAddress common.Address
 	TokenAddress     common.Address
@@ -103,7 +103,7 @@ func printProphecyClaimEvent(event NewProphecyClaimEvent) string {
 	// Convert the variables into a printable format
 	id := event.ProphecyID
 	claimType := event.ClaimType
-	sender := string(event.CosmosSender)
+	sender := string(event.Chain33Sender)
 	recipient := event.EthereumReceiver.Hex()
 	symbol := event.Symbol
 	token := event.TokenAddress.Hex()

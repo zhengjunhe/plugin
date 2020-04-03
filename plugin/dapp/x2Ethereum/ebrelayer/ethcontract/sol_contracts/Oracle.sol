@@ -2,7 +2,7 @@ pragma solidity ^0.5.0;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Valset.sol";
-import "./CosmosBridge.sol";
+import "./Chain33Bridge.sol";
 
 contract Oracle {
 
@@ -11,7 +11,7 @@ contract Oracle {
     /*
     * @dev: Public variable declarations
     */
-    CosmosBridge public cosmosBridge;
+    Chain33Bridge public chain33Bridge;
     Valset public valset;
     address public operator;
 
@@ -68,7 +68,7 @@ contract Oracle {
     )
     {
         require(
-            cosmosBridge.isProphecyClaimActive(
+            chain33Bridge.isProphecyClaimActive(
                 _prophecyID
             ) == true,
             "The prophecy must be pending for this operation"
@@ -82,12 +82,12 @@ contract Oracle {
     constructor(
         address _operator,
         address _valset,
-        address _cosmosBridge
+        address _chain33Bridge
     )
         public
     {
         operator = _operator;
-        cosmosBridge = CosmosBridge(_cosmosBridge);
+        chain33Bridge = Chain33Bridge(_chain33Bridge);
         valset = Valset(_valset);
     }
 
@@ -181,7 +181,7 @@ contract Oracle {
         returns(bool, uint256, uint256)
     {
         require(
-            cosmosBridge.isProphecyClaimActive(
+            chain33Bridge.isProphecyClaimActive(
                 _prophecyID
             ) == true,
             "Can only check active prophecies"
@@ -236,14 +236,14 @@ contract Oracle {
     /*
     * @dev: completeProphecy
     *       Completes a prophecy by completing the corresponding BridgeClaim
-    *       on the CosmosBridge.
+    *       on the Chain33Bridge.
     */
     function completeProphecy(
         uint256 _prophecyID
     )
         internal
     {
-        cosmosBridge.completeProphecyClaim(
+        chain33Bridge.completeProphecyClaim(
             _prophecyID
         );
     }

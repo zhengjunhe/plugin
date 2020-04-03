@@ -8,8 +8,8 @@ import (
 
 const (
 	BridgeBankABI = "BridgeBankABI"
-	CosmosBankABI = "CosmosBankABI"
-	CosmosBridgeABI = "CosmosBridgeABI"
+	Chain33BankABI = "Chain33BankABI"
+	Chain33BridgeABI = "Chain33BridgeABI"
 	EthereumBankABI = "EthereumBankABI"
 )
 
@@ -18,10 +18,10 @@ func LoadABI(contractName string) abi.ABI {
 	switch contractName {
 	case BridgeBankABI:
 		abiJson = generated.BridgeBankABI
-	case CosmosBankABI:
-		abiJson = generated.CosmosBankABI
-	case CosmosBridgeABI:
-		abiJson = generated.CosmosBridgeABI
+	case Chain33BankABI:
+		abiJson = generated.Chain33BankABI
+	case Chain33BridgeABI:
+		abiJson = generated.Chain33BridgeABI
 	case EthereumBankABI:
 		abiJson = generated.EthereumBankABI
 	default:

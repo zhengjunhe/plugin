@@ -28,10 +28,10 @@ const (
 	CLAIM_TYPE_LOCK = uint8(2)
 )
 
-//"BridgeToken creation (Cosmos assets)"
+//"BridgeToken creation (Chain33 assets)"
 func TestBrigeTokenCreat(t *testing.T) {
 	ctx := context.Background()
-	println("TEST:BridgeToken creation (Cosmos assets)")
+	println("TEST:BridgeToken creation (Chain33 assets)")
 	//1st部署相关合约
 	backend, para := setup.PrepareTestEnv()
 	sim := backend.(*backends.SimulatedBackend)
@@ -142,7 +142,7 @@ func TestBrigeTokenCreat(t *testing.T) {
 //Bridge token minting (for locked chain33 assets)
 func TestBrigeTokenMint(t *testing.T) {
 	ctx := context.Background()
-	println("TEST:BridgeToken creation (Cosmos assets)")
+	println("TEST:BridgeToken creation (Chain33 assets)")
 	//1st部署相关合约
 	backend, para := setup.PrepareTestEnv()
 	sim := backend.(*backends.SimulatedBackend)
@@ -230,10 +230,10 @@ func TestBrigeTokenMint(t *testing.T) {
 	////////////////////订阅LogNewProphecyClaim/////////////////
 	//：订阅事件LogNewProphecyClaim
 	eventName = "LogNewProphecyClaim"
-	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
 	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
 	query = ethereum.FilterQuery{
-		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+		Addresses: []common.Address{x2EthDeployInfo.Chain33Bridge.Address},
 	}
 	// We will check logs for new events
 	newProphecyClaimlogs := make(chan types.Log)
@@ -250,7 +250,7 @@ func TestBrigeTokenMint(t *testing.T) {
 	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
 	amount := int64(99)
 	ethReceiver := para.InitValidators[2]
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(authVali, CLAIM_TYPE_LOCK, chain33Sender, ethReceiver, logEvent.Token, logEvent.Symbol, big.NewInt(amount))
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(authVali, CLAIM_TYPE_LOCK, chain33Sender, ethReceiver, logEvent.Token, logEvent.Symbol, big.NewInt(amount))
 	sim.Commit()
 	require.Nil(t, err)
 
@@ -271,7 +271,7 @@ func TestBrigeTokenMint(t *testing.T) {
 
 			err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
 			require.Nil(t, err)
-			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 			require.Equal(t, symbol, newProphecyClaimEvent.Symbol)
 			require.Equal(t, newProphecyClaimEvent.Amount.Int64(), amount)
 			break
@@ -560,10 +560,10 @@ func TestBridgeBankUnlock(t *testing.T) {
 	////////////////////订阅LogNewProphecyClaim/////////////////
 	//：订阅事件LogNewProphecyClaim
 	eventName := "LogNewProphecyClaim"
-	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
 	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+		Addresses: []common.Address{x2EthDeployInfo.Chain33Bridge.Address},
 	}
 	// We will check logs for new events
 	newProphecyClaimlogs := make(chan types.Log)
@@ -577,7 +577,7 @@ func TestBridgeBankUnlock(t *testing.T) {
 	newProphecyAmount := int64(150)
 	ethReceivent := para.InitValidators[2]
 	ethSym := string("eth")
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
 		CLAIM_TYPE_BURN,
 		chain33Sender,
@@ -606,7 +606,7 @@ func TestBridgeBankUnlock(t *testing.T) {
 
 			err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
 			require.Nil(t, err)
-			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 			require.Equal(t, ethSym, newProphecyClaimEvent.Symbol)
 			require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
 			break
@@ -643,7 +643,7 @@ func TestBridgeBankUnlock(t *testing.T) {
 	require.Nil(t, err)
 	newProphecyAmount = int64(100)
 	ethReceivent = para.InitValidators[2]
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
 		CLAIM_TYPE_BURN,
 		chain33Sender,
@@ -673,7 +673,7 @@ func TestBridgeBankUnlock(t *testing.T) {
 
 				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
 				require.Nil(t, err)
-				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 				t.Logf("symbol:%s, amount:%d", newProphecyClaimEvent.Symbol, newProphecyClaimEvent.Amount.Int64())
 				require.Equal(t, symbol_usdt, newProphecyClaimEvent.Symbol)
 				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
@@ -823,10 +823,10 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 	////////////////////订阅LogNewProphecyClaim/////////////////
 	//：订阅事件LogNewProphecyClaim
 	eventName := "LogNewProphecyClaim"
-	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
 	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+		Addresses: []common.Address{x2EthDeployInfo.Chain33Bridge.Address},
 	}
 	// We will check logs for new events
 	newProphecyClaimlogs := make(chan types.Log)
@@ -840,7 +840,7 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 	newProphecyAmount := int64(44)
 	ethReceivent := para.InitValidators[2]
 	ethSym := string("eth")
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
 		CLAIM_TYPE_BURN,
 		chain33Sender,
@@ -866,7 +866,7 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 		if vLog.Topics[0].Hex() == logNewProphecyClaimSig {
 			err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
 			require.Nil(t, err)
-			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+			t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 			t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s, symbol:%s", eventName,
 				vLog.BlockNumber, vLog.TxHash.Hex(), newProphecyClaimEvent.Symbol)
 			require.Equal(t, ethSym, newProphecyClaimEvent.Symbol)
@@ -901,7 +901,7 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
 	require.Nil(t, err)
 	newProphecyAmountSecond := int64(33)
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
 		CLAIM_TYPE_BURN,
 		chain33Sender,
@@ -928,7 +928,7 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 				require.Nil(t, err)
 				t.Logf("Witnessed new logNewProphecyClaim event:%s, Block number:%d, Tx hash:%s, symbol:%s", eventName,
 					vLog.BlockNumber, vLog.TxHash.Hex(), newProphecyClaimEvent.Symbol)
-				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 				require.Equal(t, ethSym, newProphecyClaimEvent.Symbol)
 				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmountSecond)
 				goto latter
@@ -1072,10 +1072,10 @@ func TestBridgeBankSedondUnlockErc20(t *testing.T) {
 	////////////////////订阅LogNewProphecyClaim/////////////////
 	//：订阅事件LogNewProphecyClaim
 	eventName := "LogNewProphecyClaim"
-	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.CosmosBridgeABI)
+	cosmosBridgeABI := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
 	logNewProphecyClaimSig := cosmosBridgeABI.Events[eventName].ID().Hex()
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{x2EthDeployInfo.CosmosBridge.Address},
+		Addresses: []common.Address{x2EthDeployInfo.Chain33Bridge.Address},
 	}
 	// We will check logs for new events
 	newProphecyClaimlogs := make(chan types.Log)
@@ -1093,7 +1093,7 @@ func TestBridgeBankSedondUnlockErc20(t *testing.T) {
 	require.Nil(t, err)
 	newProphecyAmount := int64(33)
 	ethReceivent := para.InitValidators[2]
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
 		CLAIM_TYPE_BURN,
 		chain33Sender,
@@ -1124,7 +1124,7 @@ func TestBridgeBankSedondUnlockErc20(t *testing.T) {
 
 				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
 				require.Nil(t, err)
-				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 				t.Logf("symbol:%s, amount:%d", newProphecyClaimEvent.Symbol, newProphecyClaimEvent.Amount.Int64())
 				require.Equal(t, symbol_usdt, newProphecyClaimEvent.Symbol)
 				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmount)
@@ -1160,7 +1160,7 @@ latter:
 	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
 	require.Nil(t, err)
 	newProphecyAmountSecond := int64(66)
-	_, err = x2EthContracts.CosmosBridge.NewProphecyClaim(
+	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
 		CLAIM_TYPE_BURN,
 		chain33Sender,
@@ -1189,7 +1189,7 @@ latter:
 
 				err = cosmosBridgeABI.Unpack(newProphecyClaimEvent, eventName, vLog.Data)
 				require.Nil(t, err)
-				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.CosmosSender))
+				t.Logf("chain33Sender:%s", string(newProphecyClaimEvent.Chain33Sender))
 				t.Logf("symbol:%s, amount:%d", newProphecyClaimEvent.Symbol, newProphecyClaimEvent.Amount.Int64())
 				require.Equal(t, symbol_usdt, newProphecyClaimEvent.Symbol)
 				require.Equal(t, newProphecyClaimEvent.Amount.Int64(), newProphecyAmountSecond)

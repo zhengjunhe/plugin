@@ -26,7 +26,7 @@ type DeployResult struct {
 type X2EthContracts struct {
 	BridgeRegistry *generated.BridgeRegistry
 	BridgeBank     *generated.BridgeBank
-	CosmosBridge   *generated.CosmosBridge
+	Chain33Bridge   *generated.Chain33Bridge
 	Valset         *generated.Valset
 	Oracle         *generated.Oracle
 }
@@ -34,7 +34,7 @@ type X2EthContracts struct {
 type X2EthDeployInfo struct {
 	BridgeRegistry *DeployResult
 	BridgeBank     *DeployResult
-	CosmosBridge   *DeployResult
+	Chain33Bridge   *DeployResult
 	Valset         *DeployResult
 	Oracle         *DeployResult
 }
@@ -70,15 +70,15 @@ func DeployValset(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, de
 	return valset, deployResult, nil
 }
 
-//DeployCosmosBridge: 部署CosmosBridge
-func DeployCosmosBridge(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer common.Address, operator, valset common.Address) (*generated.CosmosBridge, *DeployResult, error) {
+//DeployChain33Bridge: 部署Chain33Bridge
+func DeployChain33Bridge(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer common.Address, operator, valset common.Address) (*generated.Chain33Bridge, *DeployResult, error) {
 	auth, err := PrepareAuth(backend, privateKey, deployer)
 	if nil != err {
 		return nil, nil, err
 	}
 
 	//部署合约
-	addr, tx, cosmosBridge, err := generated.DeployCosmosBridge(auth, backend, operator, valset)
+	addr, tx, chain33Bridge, err := generated.DeployChain33Bridge(auth, backend, operator, valset)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -87,18 +87,18 @@ func DeployCosmosBridge(backend bind.ContractBackend, privateKey *ecdsa.PrivateK
 		Address: addr,
 		TxHash:  tx.Hash().String(),
 	}
-	return cosmosBridge, deployResult, nil
+	return chain33Bridge, deployResult, nil
 }
 
 //DeployOracle: 部署Oracle
-func DeployOracle(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer, operator, valset, cosmosBridge common.Address) (*generated.Oracle, *DeployResult, error) {
+func DeployOracle(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer, operator, valset, chain33Bridge common.Address) (*generated.Oracle, *DeployResult, error) {
 	auth, err := PrepareAuth(backend, privateKey, deployer)
 	if nil != err {
 		return nil, nil, err
 	}
 
 	//部署合约
-	addr, tx, oracle, err := generated.DeployOracle(auth, backend, operator, valset, cosmosBridge)
+	addr, tx, oracle, err := generated.DeployOracle(auth, backend, operator, valset, chain33Bridge)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -111,14 +111,14 @@ func DeployOracle(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, de
 }
 
 //DeployBridgeBank: 部署BridgeBank
-func DeployBridgeBank(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer, operator, oracle, cosmosBridge common.Address) (*generated.BridgeBank, *DeployResult, error) {
+func DeployBridgeBank(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer, operator, oracle, chain33Bridge common.Address) (*generated.BridgeBank, *DeployResult, error) {
 	auth, err := PrepareAuth(backend, privateKey, deployer)
 	if nil != err {
 		return nil, nil, err
 	}
 
 	//部署合约
-	addr, tx, bridgeBank, err := generated.DeployBridgeBank(auth, backend, operator, oracle, cosmosBridge)
+	addr, tx, bridgeBank, err := generated.DeployBridgeBank(auth, backend, operator, oracle, chain33Bridge)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -131,14 +131,14 @@ func DeployBridgeBank(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey
 }
 
 //DeployBridgeRegistry: 部署BridgeRegistry
-func DeployBridgeRegistry(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer, cosmosBridgeAddr, bridgeBankAddr, oracleAddr, valsetAddr common.Address) (*generated.BridgeRegistry, *DeployResult, error) {
+func DeployBridgeRegistry(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer, chain33BridgeAddr, bridgeBankAddr, oracleAddr, valsetAddr common.Address) (*generated.BridgeRegistry, *DeployResult, error) {
 	auth, err := PrepareAuth(backend, privateKey, deployer)
 	if nil != err {
 		return nil, nil, err
 	}
 
 	//部署合约
-	addr, tx, bridgeRegistry, err := generated.DeployBridgeRegistry(auth, backend, cosmosBridgeAddr, bridgeBankAddr, oracleAddr, valsetAddr)
+	addr, tx, bridgeRegistry, err := generated.DeployBridgeRegistry(auth, backend, chain33BridgeAddr, bridgeBankAddr, oracleAddr, valsetAddr)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -168,16 +168,16 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 		sim.Commit()
 	}
 
-	x2EthContracts.CosmosBridge, deployInfo.CosmosBridge, err = DeployCosmosBridge(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address)
+	x2EthContracts.Chain33Bridge, deployInfo.Chain33Bridge, err = DeployChain33Bridge(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address)
 	if nil != err {
-		deployLog.Error("DeployAndInit", "failed to DeployCosmosBridge due to:", err.Error())
+		deployLog.Error("DeployAndInit", "failed to DeployChain33Bridge due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
 	}
 
-	x2EthContracts.Oracle, deployInfo.Oracle, err = DeployOracle(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address, deployInfo.CosmosBridge.Address)
+	x2EthContracts.Oracle, deployInfo.Oracle, err = DeployOracle(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address, deployInfo.Chain33Bridge.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployOracle due to:", err.Error())
 		return nil, nil, err
@@ -191,7 +191,7 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 	fmt.Println("*****deployer addr,", para.Deployer.String(), "before DeployBridgeBank balance=", balance.String())
 	/////////////////////////////////////
 
-	x2EthContracts.BridgeBank, deployInfo.BridgeBank, err = DeployBridgeBank(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Oracle.Address, deployInfo.CosmosBridge.Address)
+	x2EthContracts.BridgeBank, deployInfo.BridgeBank, err = DeployBridgeBank(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Oracle.Address, deployInfo.Chain33Bridge.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployBridgeBank due to:", err.Error())
 		return nil, nil, err
@@ -205,7 +205,7 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 		return nil, nil, err
 	}
 
-	_, err = x2EthContracts.CosmosBridge.SetBridgeBank(auth, deployInfo.BridgeBank.Address)
+	_, err = x2EthContracts.Chain33Bridge.SetBridgeBank(auth, deployInfo.BridgeBank.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to SetBridgeBank due to:", err.Error())
 		return nil, nil, err
@@ -218,7 +218,7 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 	if nil != err {
 		return nil, nil, err
 	}
-	_, err = x2EthContracts.CosmosBridge.SetOracle(auth, deployInfo.Oracle.Address)
+	_, err = x2EthContracts.Chain33Bridge.SetOracle(auth, deployInfo.Oracle.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to SetOracle due to:", err.Error())
 		return nil, nil, err
@@ -227,7 +227,7 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 		sim.Commit()
 	}
 
-	x2EthContracts.BridgeRegistry, deployInfo.BridgeRegistry, err = DeployBridgeRegistry(backend, para.PrivateKey, para.Deployer, deployInfo.CosmosBridge.Address, deployInfo.BridgeBank.Address, deployInfo.Oracle.Address, deployInfo.Valset.Address)
+	x2EthContracts.BridgeRegistry, deployInfo.BridgeRegistry, err = DeployBridgeRegistry(backend, para.PrivateKey, para.Deployer, deployInfo.Chain33Bridge.Address, deployInfo.BridgeBank.Address, deployInfo.Oracle.Address, deployInfo.Valset.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployBridgeBank due to:", err.Error())
 		return nil, nil, err

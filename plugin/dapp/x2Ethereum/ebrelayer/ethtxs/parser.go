@@ -53,10 +53,10 @@ func LogLockToEthBridgeClaim(valAddr []byte, event *events.LockEvent) (ebrelayer
 	return witnessClaim, nil
 }
 
-// BurnLockTxReceiptToChain33Msg : parses data from a Burn/Lock event witnessed on chain33 into a CosmosMsg struct
+// BurnLockTxReceiptToChain33Msg : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
 func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types.ReceiptData) events.Chain33Msg {
 	// Set up variables
-	var cosmosSender []byte
+	var chain33Sender []byte
 	var ethereumReceiver, tokenContractAddress common.Address
 	var symbol string
 	var amount *big.Int
@@ -72,11 +72,11 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 
 		}
 
-		// Set variable based on value of CosmosMsgAttributeKey
+		// Set variable based on value of Chain33MsgAttributeKey
 		//switch key {
-		//case events.CosmosSender.String():
-		//	// Parse sender's Cosmos address
-		//	cosmosSender = []byte(val)
+		//case events.Chain33Sender.String():
+		//	// Parse sender's Chain33 address
+		//	chain33Sender = []byte(val)
 		//case events.EthereumReceiver.String():
 		//	// Confirm recipient is valid Ethereum address
 		//	if !common.IsHexAddress(val) {
@@ -97,15 +97,15 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 		//}
 	}
 
-	// Package the event data into a CosmosMsg
-	return events.NewChain33Msg(claimType, cosmosSender, ethereumReceiver, symbol, amount, tokenContractAddress)
+	// Package the event data into a Chain33Msg
+	return events.NewChain33Msg(claimType, chain33Sender, ethereumReceiver, symbol, amount, tokenContractAddress)
 }
 
 // ProphecyClaimToSignedOracleClaim : packages and signs a prophecy claim's data, returning a new oracle claim
 func ProphecyClaimToSignedOracleClaim(event events.NewProphecyClaimEvent, privateKey *ecdsa.PrivateKey) (*OracleClaim, error) {
 	// Parse relevant data into type byte[]
 	prophecyID := event.ProphecyID.Bytes()
-	sender := event.CosmosSender
+	sender := event.Chain33Sender
 	recipient := []byte(event.EthereumReceiver.Hex())
 	token := []byte(event.TokenAddress.Hex())
 	amount := event.Amount.Bytes()
@@ -129,10 +129,10 @@ func ProphecyClaimToSignedOracleClaim(event events.NewProphecyClaimEvent, privat
 	return oracleClaim, nil
 }
 
-// Chain33MsgToProphecyClaim : parses event data from a CosmosMsg, packaging it as a ProphecyClaim
+// Chain33MsgToProphecyClaim : parses event data from a Chain33Msg, packaging it as a ProphecyClaim
 func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
 	claimType := event.ClaimType
-	cosmosSender := event.Chain33Sender
+	chain33Sender := event.Chain33Sender
 	ethereumReceiver := event.EthereumReceiver
 	tokenContractAddress := event.TokenContractAddress
 	symbol := strings.ToLower(event.Symbol)
@@ -140,7 +140,7 @@ func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
 
 	prophecyClaim := ProphecyClaim{
 		ClaimType:            claimType,
-		CosmosSender:         cosmosSender,
+		Chain33Sender:         chain33Sender,
 		EthereumReceiver:     ethereumReceiver,
 		TokenContractAddress: tokenContractAddress,
 		Symbol:               symbol,

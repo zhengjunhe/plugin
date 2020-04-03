@@ -4,21 +4,21 @@ import "../../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./BridgeToken.sol";
 
 /**
- * @title CosmosBank
+ * @title Chain33Bank
  * @dev Manages the deployment and minting of ERC20 compatible BridgeTokens
- *      which represent assets based on the Cosmos blockchain.
+ *      which represent assets based on the Chain33 blockchain.
  **/
 
-contract CosmosBank {
+contract Chain33Bank {
 
     using SafeMath for uint256;
 
     uint256 public bridgeTokenCount;
     mapping(address => bool) public bridgeTokenWhitelist;
-    mapping(bytes32 => CosmosDeposit) cosmosDeposits;
+    mapping(bytes32 => Chain33Deposit) chain33Deposits;
 
-    struct CosmosDeposit {
-        bytes cosmosSender;
+    struct Chain33Deposit {
+        bytes chain33Sender;
         address payable ethereumRecipient;
         address bridgeTokenAddress;
         uint256 amount;
@@ -48,16 +48,16 @@ contract CosmosBank {
     }
 
     /*
-    * @dev: Creates a new CosmosDeposit with a unique ID
+    * @dev: Creates a new Chain33Deposit with a unique ID
     *
-    * @param _cosmosSender: The sender's Cosmos address in bytes.
+    * @param _chain33Sender: The sender's Chain33 address in bytes.
     * @param _ethereumRecipient: The intended recipient's Ethereum address.
     * @param _token: The currency type
     * @param _amount: The amount in the deposit.
-    * @return: The newly created CosmosDeposit's unique id.
+    * @return: The newly created Chain33Deposit's unique id.
     */
-    function newCosmosDeposit(
-        bytes memory _cosmosSender,
+    function newChain33Deposit(
+        bytes memory _chain33Sender,
         address payable _ethereumRecipient,
         address _token,
         uint256 _amount
@@ -67,15 +67,15 @@ contract CosmosBank {
     {
         bytes32 depositID = keccak256(
             abi.encodePacked(
-                _cosmosSender,
+                _chain33Sender,
                 _ethereumRecipient,
                 _token,
                 _amount
             )
         );
 
-        cosmosDeposits[depositID] = CosmosDeposit(
-            _cosmosSender,
+        chain33Deposits[depositID] = Chain33Deposit(
+            _chain33Sender,
             _ethereumRecipient,
             _token,
             _amount,
@@ -114,16 +114,16 @@ contract CosmosBank {
     }
 
     /*
-     * @dev: Mints new cosmos tokens
+     * @dev: Mints new chain33 tokens
      *
-     * @param _cosmosSender: The sender's Cosmos address in bytes.
+     * @param _chain33Sender: The sender's Chain33 address in bytes.
      * @param _ethereumRecipient: The intended recipient's Ethereum address.
-     * @param _cosmosTokenAddress: The currency type
+     * @param _chain33TokenAddress: The currency type
      * @param _symbol: comsos token symbol
      * @param _amount: number of comsos tokens to be minted
 \    */
      function mintNewBridgeTokens(
-        bytes memory _cosmosSender,
+        bytes memory _chain33Sender,
         address payable _intendedRecipient,
         address _bridgeTokenAddress,
         string memory _symbol,
@@ -146,8 +146,8 @@ contract CosmosBank {
             "Attempted mint of bridge tokens failed"
         );
 
-        newCosmosDeposit(
-            _cosmosSender,
+        newChain33Deposit(
+            _chain33Sender,
             _intendedRecipient,
             _bridgeTokenAddress,
             _amount
@@ -162,19 +162,19 @@ contract CosmosBank {
     }
 
     /*
-    * @dev: Checks if an individual CosmosDeposit exists.
+    * @dev: Checks if an individual Chain33Deposit exists.
     *
-    * @param _id: The unique CosmosDeposit's id.
-    * @return: Boolean indicating if the CosmosDeposit exists in memory.
+    * @param _id: The unique Chain33Deposit's id.
+    * @return: Boolean indicating if the Chain33Deposit exists in memory.
     */
-    function isLockedCosmosDeposit(
+    function isLockedChain33Deposit(
         bytes32 _id
     )
         internal
         view
         returns(bool)
     {
-        return(cosmosDeposits[_id].locked);
+        return(chain33Deposits[_id].locked);
     }
 
   /*
@@ -187,17 +187,17 @@ contract CosmosBank {
     * @return: Amount of ethereum/erc20 in the item.
     * @return: Unique nonce of the item.
     */
-    function getCosmosDeposit(
+    function getChain33Deposit(
         bytes32 _id
     )
         internal
         view
         returns(bytes memory, address payable, address, uint256)
     {
-        CosmosDeposit memory deposit = cosmosDeposits[_id];
+        Chain33Deposit memory deposit = chain33Deposits[_id];
 
         return(
-            deposit.cosmosSender,
+            deposit.chain33Sender,
             deposit.ethereumRecipient,
             deposit.bridgeTokenAddress,
             deposit.amount

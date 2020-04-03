@@ -9,11 +9,11 @@ type Event int
 var eventsLog = log.New("module", "ethereum_relayer")
 
 const (
-	// Unsupported : unsupported Cosmos or Ethereum event
+	// Unsupported : unsupported Chain33 or Ethereum event
 	Unsupported Event = iota
-	// MsgBurn : Cosmos event 'Chain33Msg' type MsgBurn
+	// MsgBurn : Chain33 event 'Chain33Msg' type MsgBurn
 	MsgBurn
-	// MsgLock :  Cosmos event 'Chain33Msg' type MsgLock
+	// MsgLock :  Chain33 event 'Chain33Msg' type MsgLock
 	MsgLock
 	// LogLock : Ethereum event 'LockEvent'
 	LogLock
@@ -26,14 +26,14 @@ func (d Event) String() string {
 	return [...]string{"unsupported", "burn", "lock", "LogLock", "LogNewProphecyClaim"}[d]
 }
 
-// CosmosMsgAttributeKey : enum containing supported attribute keys
-type CosmosMsgAttributeKey int
+// Chain33MsgAttributeKey : enum containing supported attribute keys
+type Chain33MsgAttributeKey int
 
 const (
 	// UnsupportedAttributeKey : unsupported attribute key
-	UnsupportedAttributeKey CosmosMsgAttributeKey = iota
-	// Chain33Sender : sender's address on Cosmos network
-	CosmosSender
+	UnsupportedAttributeKey Chain33MsgAttributeKey = iota
+	// Chain33Sender : sender's address on Chain33 network
+	Chain33Sender
 	// EthereumReceiver : receiver's address on Ethereum network
 	EthereumReceiver
 	// Coin : coin type
@@ -43,6 +43,6 @@ const (
 )
 
 // String : returns the event type as a string
-func (d CosmosMsgAttributeKey) String() string {
-	return [...]string{"unsupported", "cosmos_sender", "ethereum_receiver", "amount", "token_contract_address"}[d]
+func (d Chain33MsgAttributeKey) String() string {
+	return [...]string{"unsupported", "chain33_sender", "ethereum_receiver", "amount", "token_contract_address"}[d]
 }

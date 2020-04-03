@@ -4,7 +4,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Valset.sol";
 import "./BridgeBank/BridgeBank.sol";
 
-contract CosmosBridge {
+contract Chain33Bridge {
 
     using SafeMath for uint256;
 
@@ -36,7 +36,7 @@ contract CosmosBridge {
 
     struct ProphecyClaim {
         ClaimType claimType;
-        bytes cosmosSender;
+        bytes chain33Sender;
         address payable ethereumReceiver;
         address originalValidator;
         address tokenAddress;
@@ -59,7 +59,7 @@ contract CosmosBridge {
     event LogNewProphecyClaim(
         uint256 _prophecyID,
         ClaimType _claimType,
-        bytes _cosmosSender,
+        bytes _chain33Sender,
         address payable _ethereumReceiver,
         address _validatorAddress,
         address _tokenAddress,
@@ -178,7 +178,7 @@ contract CosmosBridge {
     */
     function newProphecyClaim(
         ClaimType _claimType,
-        bytes memory _cosmosSender,
+        bytes memory _chain33Sender,
         address payable _ethereumReceiver,
         address _tokenAddress,
         string memory _symbol,
@@ -207,7 +207,7 @@ contract CosmosBridge {
         // Create the new ProphecyClaim
         ProphecyClaim memory prophecyClaim = ProphecyClaim(
             claimType,
-            _cosmosSender,
+            _chain33Sender,
             _ethereumReceiver,
             originalValidator,
             _tokenAddress,
@@ -222,7 +222,7 @@ contract CosmosBridge {
         emit LogNewProphecyClaim(
             prophecyClaimCount,
             claimType,
-            _cosmosSender,
+            _chain33Sender,
             _ethereumReceiver,
             originalValidator,
             _tokenAddress,
@@ -275,7 +275,7 @@ contract CosmosBridge {
         ProphecyClaim memory prophecyClaim = prophecyClaims[_prophecyID];
 
         bridgeBank.mintBridgeTokens(
-            prophecyClaim.cosmosSender,
+            prophecyClaim.chain33Sender,
             prophecyClaim.ethereumReceiver,
             prophecyClaim.tokenAddress,
             prophecyClaim.symbol,

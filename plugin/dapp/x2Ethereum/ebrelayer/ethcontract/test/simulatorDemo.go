@@ -57,10 +57,10 @@ func main() {
 	fmt.Println("balance before:", balance.String())
 
 	// Print the current (non existent) and pending name of the contract
-	cosmosBridgeAddrRetrive, _ := bridgeRegistry.CosmosBridge(nil)
+	cosmosBridgeAddrRetrive, _ := bridgeRegistry.Chain33Bridge(nil)
 	fmt.Println("Pre-mining cosmosBridgeAddr:", cosmosBridgeAddrRetrive.String())
 
-	cosmosBridgeAddrRetrive, _ = bridgeRegistry.CosmosBridge(&bind.CallOpts{Pending: true})
+	cosmosBridgeAddrRetrive, _ = bridgeRegistry.Chain33Bridge(&bind.CallOpts{Pending: true})
 	fmt.Println("Pre-mining pending cosmosBridgeAddr:", cosmosBridgeAddrRetrive.String())
 
 	balance , _ = sim.BalanceAt(ctx, addr, nil)
@@ -71,13 +71,13 @@ func main() {
 	balance , _ = sim.BalanceAt(ctx, addr, nil)
 	fmt.Println("balance after:", balance.String())
 
-	cosmosBridgeAddrRetrive, _ = bridgeRegistry.CosmosBridge(nil)
+	cosmosBridgeAddrRetrive, _ = bridgeRegistry.Chain33Bridge(nil)
 	fmt.Println("Post-mining cosmosBridgeAddr:", cosmosBridgeAddrRetrive.String())
 
-	cosmosBridgeAddrRetrive, _ = bridgeRegistry.CosmosBridge(&bind.CallOpts{Pending: true})
+	cosmosBridgeAddrRetrive, _ = bridgeRegistry.Chain33Bridge(&bind.CallOpts{Pending: true})
 	fmt.Println("Post-mining pending cosmosBridgeAddr:", cosmosBridgeAddrRetrive.String())
 
-	cosmosBridgeAddrRetrive, _ = bridgeRegistry.CosmosBridge(nil)
+	cosmosBridgeAddrRetrive, _ = bridgeRegistry.Chain33Bridge(nil)
 	fmt.Println("Post-mining cosmosBridgeAddr:", cosmosBridgeAddrRetrive.String())
 
 	balance , _ = sim.BalanceAt(ctx, addr, nil)

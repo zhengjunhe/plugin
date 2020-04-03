@@ -2,33 +2,33 @@ pragma solidity ^0.5.0;
 
 contract BridgeRegistry {
 
-    address public cosmosBridge;
+    address public chain33Bridge;
     address public bridgeBank;
     address public oracle;
     address public valset;
 
     event LogContractsRegistered(
-        address _cosmosBridge,
+        address _chain33Bridge,
         address _bridgeBank,
         address _oracle,
         address _valset
     );
     
     constructor(
-        address _cosmosBridge,
+        address _chain33Bridge,
         address _bridgeBank,
         address _oracle,
         address _valset
     )
         public
     {
-        cosmosBridge = _cosmosBridge;
+        chain33Bridge = _chain33Bridge;
         bridgeBank = _bridgeBank;
         oracle = _oracle;
         valset = _valset;
 
         emit LogContractsRegistered(
-            cosmosBridge,
+            chain33Bridge,
             bridgeBank,
             oracle,
             valset

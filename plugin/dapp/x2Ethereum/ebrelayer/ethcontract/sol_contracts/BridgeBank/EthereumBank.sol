@@ -89,7 +89,7 @@ contract EthereumBank {
     * @dev: Creates a new Ethereum deposit with a unique id.
     *
     * @param _sender: The sender's ethereum address.
-    * @param _recipient: The intended recipient's cosmos address.
+    * @param _recipient: The intended recipient's chain33 address.
     * @param _token: The currency type, either erc20 or ethereum.
     * @param _amount: The amount of erc20 tokens/ ethereum (in wei) to be itemized.
     */

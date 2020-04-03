@@ -23,7 +23,7 @@ type OracleClaim struct {
 // ProphecyClaim : contains data required to make an ProphecyClaim
 type ProphecyClaim struct {
 	ClaimType            events.Event
-	CosmosSender         []byte
+	Chain33Sender         []byte
 	EthereumReceiver     common.Address
 	TokenContractAddress common.Address
 	Symbol               string

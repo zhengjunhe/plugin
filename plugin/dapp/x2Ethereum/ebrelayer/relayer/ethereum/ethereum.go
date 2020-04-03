@@ -6,7 +6,7 @@ package ethereum
 //      Initializes the relayer service, which parses,
 //      encodes, and packages named events on an Ethereum
 //      Smart Contract for validator's to sign and send
-//      to the Cosmos bridge.
+//      to the Chain33 bridge.
 // -----------------------------------------------------
 
 import (
@@ -29,7 +29,6 @@ import (
 	chain33Crypto "github.com/33cn/chain33/common/crypto"
 	dbm "github.com/33cn/chain33/common/db"
 	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/contract"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
@@ -54,15 +53,15 @@ type EthereumRelayer struct {
 	//bridgeBankAbi        *abi.ABI
 	client               *ethclient.Client
 	bridgeBankAddr       common.Address
-	cosmosBridgeAddr     common.Address
+	chain33BridgeAddr     common.Address
 	bridgeBankSub        ethereum.Subscription
-	cosmosBridgeSub      ethereum.Subscription
+	chain33BridgeSub      ethereum.Subscription
 	bridgeBankLog        chan types.Log
-	cosmosBridgeLog      chan types.Log
+	chain33BridgeLog      chan types.Log
 	bridgeBankEventSig   string
-	cosmosBridgeEventSig string
+	chain33BridgeEventSig string
 	bridgeBankAbi   abi.ABI
-	cosmosBridgeAbi   abi.ABI
+	chain33BridgeAbi   abi.ABI
 }
 
 var (
@@ -139,7 +138,7 @@ func (ethRelayer *EthereumRelayer) proc() {
 		panic(errinfo)
 	}
 
-	//向cosmosBridge订阅事件
+	//向chain33Bridge订阅事件
 	ethRelayer.subscribeEvent(false)
 	//向bridgeBank订阅事件
 	ethRelayer.subscribeEvent(true)
@@ -149,8 +148,8 @@ func (ethRelayer *EthereumRelayer) proc() {
 		// Handle any errors
 		case err := <-ethRelayer.bridgeBankSub.Err():
 			panic("bridgeBankSub"+ err.Error())
-		case err := <-ethRelayer.cosmosBridgeSub.Err():
-			panic("cosmosBridgeSub"+ err.Error())
+		case err := <-ethRelayer.chain33BridgeSub.Err():
+			panic("chain33BridgeSub"+ err.Error())
 		// vLog is raw event data
 		case vLog := <-ethRelayer.bridgeBankLog:
 			_, _ = fmt.Fprintln(os.Stdout, "^_^ ^_^ Received bridgeBankLog")
@@ -165,18 +164,18 @@ func (ethRelayer *EthereumRelayer) proc() {
 					panic(errinfo)
 				}
 			}
-		case vLog := <-ethRelayer.cosmosBridgeLog:
-			_, _ = fmt.Fprintln(os.Stdout, "^_^ ^_^ Received cosmosBridgeLog", "total topic number", len(vLog.Topics),
+		case vLog := <-ethRelayer.chain33BridgeLog:
+			_, _ = fmt.Fprintln(os.Stdout, "^_^ ^_^ Received chain33BridgeLog", "total topic number", len(vLog.Topics),
 				"topic", vLog.Topics[0].Hex())
 			for i := 0; i < len(vLog.Topics); i ++ {
 				_, _ = fmt.Fprintln(os.Stdout, "topic:", i, "topic=", vLog.Topics[i].Hex())
 			}
 			// Check if the event is a 'LogLock' event
-			if vLog.Topics[0].Hex() == ethRelayer.cosmosBridgeEventSig {
+			if vLog.Topics[0].Hex() == ethRelayer.chain33BridgeEventSig {
 				eventName := events.LogNewProphecyClaim.String()
 				relayerLog.Info("EthereumRelayer proc", "Witnessed new event:", eventName,
 					"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
-				err := ethRelayer.handleLogNewProphecyClaimEvent(ethRelayer.cosmosBridgeAbi, eventName, vLog)
+				err := ethRelayer.handleLogNewProphecyClaimEvent(ethRelayer.chain33BridgeAbi, eventName, vLog)
 				if err != nil {
 					errinfo := fmt.Sprintf("Failed to handleLogNewProphecyClaimEvent due to:%s", err.Error())
 					panic(errinfo)
@@ -189,17 +188,19 @@ func (ethRelayer *EthereumRelayer) proc() {
 func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
 	var eventName string
 	var target ethtxs.ContractRegistry
-	contactAbi := contract.LoadABI(makeClaims)
+
 
 	switch makeClaims {
 	case true:
 		eventName = events.LogNewProphecyClaim.String()
+		contactAbi := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
 		// Load unique event signature from the named event contained within the contract's ABI
-		ethRelayer.cosmosBridgeEventSig = contactAbi.Events[eventName].ID().Hex()
-		ethRelayer.cosmosBridgeAbi = contactAbi
-		target = ethtxs.CosmosBridge
+		ethRelayer.chain33BridgeEventSig = contactAbi.Events[eventName].ID().Hex()
+		ethRelayer.chain33BridgeAbi = contactAbi
+		target = ethtxs.Chain33Bridge
 	case false:
 		eventName = events.LogLock.String()
+		contactAbi := ethtxs.LoadABI(ethtxs.BridgeBankABI)
 		ethRelayer.bridgeBankEventSig = contactAbi.Events[eventName].ID().Hex()
 		ethRelayer.bridgeBankAbi = contactAbi
 		target = ethtxs.BridgeBank
@@ -207,16 +208,16 @@ func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
 
 	client := ethRelayer.client
 	sender := ethRelayer.ethValidator
-	// Get the specific contract's address (CosmosBridge or BridgeBank)
+	// Get the specific contract's address (Chain33Bridge or BridgeBank)
 	targetAddress, err := ethtxs.GetAddressFromBridgeRegistry(client, sender, ethRelayer.registryAddress, target)
 	if err != nil {
 		errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
 		panic(errinfo)
 	}
 	if makeClaims {
-		ethRelayer.cosmosBridgeAddr = *targetAddress
-		_, _ = fmt.Fprintln(os.Stdout, "Succeed to get cosmosBridge addr:", targetAddress.String(),
-			"event signature", ethRelayer.cosmosBridgeEventSig)
+		ethRelayer.chain33BridgeAddr = *targetAddress
+		_, _ = fmt.Fprintln(os.Stdout, "Succeed to get chain33Bridge addr:", targetAddress.String(),
+			"event signature", ethRelayer.chain33BridgeEventSig)
 	} else {
 		ethRelayer.bridgeBankAddr = *targetAddress
 		_, _ = fmt.Fprintln(os.Stdout, "Succeed to get BridgeBank addr:", targetAddress.String(),
@@ -238,8 +239,8 @@ func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
 	relayerLog.Info("EthereumRelayer proc", "Subscribed to contract at address:", targetAddress.Hex())
 
 	if makeClaims {
-		ethRelayer.cosmosBridgeLog = logs
-		ethRelayer.cosmosBridgeSub = sub
+		ethRelayer.chain33BridgeLog = logs
+		ethRelayer.chain33BridgeSub = sub
 		return
 	}
 
