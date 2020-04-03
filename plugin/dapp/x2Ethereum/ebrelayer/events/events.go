@@ -3,6 +3,7 @@ package events
 import (
 	log "github.com/33cn/chain33/common/log/log15"
 )
+
 // Event : enum containing supported contract events
 type Event int
 
@@ -23,7 +24,7 @@ const (
 
 // String : returns the event type as a string
 func (d Event) String() string {
-	return [...]string{"unsupported", "burn", "lock", "LogLock", "LogNewProphecyClaim"}[d]
+	return [...]string{"unknown-x2ethereum", "WithdrawChain33", "Chain33ToEth", "LogLock", "LogNewProphecyClaim"}[d]
 }
 
 // CosmosMsgAttributeKey : enum containing supported attribute keys

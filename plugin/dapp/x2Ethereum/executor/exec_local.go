@@ -10,6 +10,9 @@ import (
  * 非关键数据，本地存储(localDB), 用于辅助查询，效率高
  */
 
+// todo
+// 将锁定和销毁分开存储
+
 func (s *x2ethereum) ExecLocal_Eth2Chain33(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	dbSet := &types.LocalDBSet{}
 	//implement code

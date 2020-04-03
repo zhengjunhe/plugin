@@ -71,6 +71,10 @@ func NewType(cfg *types.Chain33Config) *x2ethereumType {
 	return c
 }
 
+func (x *x2ethereumType) GetName() string {
+	return X2ethereumX
+}
+
 // GetPayload 获取合约action结构
 func (x *x2ethereumType) GetPayload() types.Message {
 	return &X2EthereumAction{}
@@ -87,7 +91,7 @@ func (x *x2ethereumType) GetLogMap() map[int64]*types.LogInfo {
 }
 
 // ActionName get PrivacyType action name
-func (x x2ethereumType) ActionName(tx *types.Transaction) string {
+func (x *x2ethereumType) ActionName(tx *types.Transaction) string {
 	tlog.Info("ActionName", "ActionName", string(tx.Payload))
 	var action X2EthereumAction
 	err := types.Decode(tx.Payload, &action)

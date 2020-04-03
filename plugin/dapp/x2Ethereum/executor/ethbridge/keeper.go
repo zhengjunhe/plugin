@@ -56,7 +56,7 @@ func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol strin
 		}
 		r, err := accDB.ExecDeposit(receiverAddress, execAddr, int64(oracleClaim.Amount))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		receipt.KV = append(receipt.KV, r.KV...)
 		receipt.Logs = append(receipt.Logs, r.Logs...)
@@ -79,7 +79,7 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 	if oracleClaim.ClaimType == common.BurnText {
 		receipt, err = accDB.ExecWithdraw(execAddr, senderAddr, int64(oracleClaim.Amount))
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		r, err := accDB.Burn(execAddr, int64(oracleClaim.Amount))
 		if err != nil {
@@ -94,9 +94,9 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 
 // ProcessBurn processes the burn of bridged coins from the given sender
 func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
-	receipt, err := accDB.ExecActive(address, execAddr, amount)
+	receipt, err := accDB.ExecActive(address, execAddr, amount*1e8)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return receipt, nil
 }

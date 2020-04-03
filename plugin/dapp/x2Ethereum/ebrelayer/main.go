@@ -1,21 +1,21 @@
 package main
 
 import (
-	"io"
 	"context"
 	"flag"
 	"fmt"
-	"github.com/btcsuite/btcd/limits"
-	"github.com/prometheus/common/log"
-	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	dbm "github.com/33cn/chain33/common/db"
 	logf "github.com/33cn/chain33/common/log"
+	"github.com/33cn/chain33/common/log/log15"
 	chain33Types "github.com/33cn/chain33/types"
-	tml "github.com/BurntSushi/toml"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer"
 	chain33Relayer "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33"
 	ethRelayer "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/ethereum"
-	relayer "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/common/log/log15"
+	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	tml "github.com/BurntSushi/toml"
+	"github.com/btcsuite/btcd/limits"
+	"github.com/prometheus/common/log"
+	"io"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -28,10 +28,10 @@ import (
 )
 
 var (
-	configPath = flag.String("f", "", "configfile")
-	versionCmd = flag.Bool("s", false, "version")
+	configPath     = flag.String("f", "", "configfile")
+	versionCmd     = flag.Bool("s", false, "version")
 	IPWhiteListMap = make(map[string]bool)
-	mainlog = log15.New("relayer manager", "main")
+	mainlog        = log15.New("relayer manager", "main")
 )
 
 func main() {
@@ -71,7 +71,7 @@ func main() {
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
 	chain33RelayerService := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, db, ctx)
-    ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry)
+	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry)
 	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
 
 	log.Info("cfg.JrpcBindAddr = ", cfg.JrpcBindAddr)
@@ -176,7 +176,7 @@ func startRpcServer(address string, api interface{}) {
 		panic(err)
 	}
 	srv := &RPCServer{rpc.NewServer()}
-	srv.Server.Register(api)
+	_ = srv.Server.Register(api)
 	srv.HandleHTTP(rpc.DefaultRPCPath, rpc.DefaultDebugPath)
 	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
@@ -190,5 +190,5 @@ func startRpcServer(address string, api interface{}) {
 			}
 		}
 	})
-	http.Serve(listener, handler)
+	_ = http.Serve(listener, handler)
 }
