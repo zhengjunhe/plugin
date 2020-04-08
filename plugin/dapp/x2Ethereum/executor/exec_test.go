@@ -308,6 +308,7 @@ func (x *suiteX2Ethereum) Test_4_Eth2Chain33() {
 	receipt, err = x.action.procWithdrawEth(payload)
 	x.Equal(types.ErrNoBalance, err)
 
+	payload.ClaimType = common2.LockText
 	payload.Amount = 1
 	payload.Nonce = 3
 	payload.ValidatorAddress = addValidator1
@@ -321,7 +322,7 @@ func (x *suiteX2Ethereum) Test_4_Eth2Chain33() {
 	msg, err = x.x2eth.Query_GetEthProphecy(&types2.QueryEthProphecyParams{ID: "030x7B95B6EC7EbD73572298cEf32Bb54FA408207359"})
 	x.NoError(err)
 	reply = msg.(*types2.ReceiptEthProphecy)
-	// x.Equal(reply.Status.Text, types2.EthBridgeStatus_SuccessStatusText)
+	x.Equal(reply.Status.Text, types2.EthBridgeStatus_SuccessStatusText)
 }
 
 func (x *suiteX2Ethereum) Test_5_Chain33ToEth() {
