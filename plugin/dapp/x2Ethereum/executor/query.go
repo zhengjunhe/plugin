@@ -133,12 +133,18 @@ func (x *x2ethereum) Query_GetSymbolTotalAmount(in *types2.QuerySymbolAssetsPara
 	return symbolAmount, nil
 }
 
-func stringArray2StringMap(in map[string][]string) map[string]*types2.StringMap {
-	res := make(map[string]*types2.StringMap, len(in))
-	for key, value := range in {
-		sm := new(types2.StringMap)
-		sm.Validators = value
-		res[key] = sm
+func (x *x2ethereum) Query_GetSymbolTotalAmountByTxType(in *types2.QuerySymbolAssetsByTxTypeParams) (types.Message, error) {
+	symbolAmount := &types2.ReceiptQuerySymbolAssetsByTxType{}
+	symbolAmountKey := types2.CalTokenSymbolTotalLockOrBurnAmount(in.TokenSymbol, types2.DirectionType[in.Direction], in.TxType)
+
+	totalAmountBytes, err := x.GetLocalDB().Get(symbolAmountKey)
+	if err != nil {
+		elog.Error("Query_GetSymbolTotalAmountByTxType", "GetSymbolTotalAmountByTxType Err", err)
+		return nil, err
 	}
-	return res
+	err = json.Unmarshal(totalAmountBytes, &symbolAmount)
+	if err != nil {
+		return nil, types.ErrUnmarshal
+	}
+	return symbolAmount, nil
 }

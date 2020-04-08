@@ -170,6 +170,19 @@ message ReceiptQuerySymbolAssets {
     uint64 totalAmount = 2;
 }
 
+message QuerySymbolAssetsByTxTypeParams {
+    string tokenSymbol = 1;
+    int64 direction = 2;
+    string txType = 3;
+}
+
+message ReceiptQuerySymbolAssetsByTxType {
+    string tokenSymbol = 1;
+    uint64 totalAmount = 2;
+    string txType = 3;
+    int64 direction = 4;
+}
+
 service x2ethereum {
 
 }

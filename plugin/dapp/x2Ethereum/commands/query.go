@@ -23,6 +23,7 @@ func queryCmd() *cobra.Command {
 		queryConsensusCmd(),
 		queryTotalPowerCmd(),
 		querySymbolTotalAmountCmd(),
+		querySymbolTotalAmountByTxTypeCmd(),
 	)
 	return cmd
 }
@@ -182,6 +183,58 @@ func querySymbolTotalAmount(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQuerySymbolAssets{}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx.Run()
+}
+
+func querySymbolTotalAmountByTxTypeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lockburnasset",
+		Short: "query current symbol total amount by tx type lock or withdraw",
+		Run:   querySymbolTotalAmountByTxType,
+	}
+
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+
+	cmd.Flags().Int64P("direction", "d", 0, "eth2chain33 = 1,chain33toeth = 2")
+	_ = cmd.MarkFlagRequired("direction")
+
+	cmd.Flags().Int64P("txtype", "t", 0, "lock = 1,withdraw = 2")
+	_ = cmd.MarkFlagRequired("txtype")
+	return cmd
+}
+
+func querySymbolTotalAmountByTxType(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	direction, _ := cmd.Flags().GetInt64("direction")
+	txType, _ := cmd.Flags().GetInt64("txtype")
+
+	var txTypeStr string
+	if txType == 1 {
+		txTypeStr = "lock"
+	} else if txType == 2 {
+		txTypeStr = "withdraw"
+	}
+	get := &types2.QuerySymbolAssetsByTxTypeParams{
+		TokenSymbol: symbol,
+		Direction:   direction,
+		TxType:      txTypeStr,
+	}
+	payLoad, err := types.PBToJSON(get)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "ErrPbToJson:"+err.Error())
+		return
+	}
+
+	query := rpctypes.Query4Jrpc{
+		Execer:   types2.X2ethereumX,
+		FuncName: types2.FuncQuerySymbolTotalAmountByTxType,
+		Payload:  payLoad,
+	}
+
+	channel := &types2.ReceiptQuerySymbolAssetsByTxType{}
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
 	ctx.Run()
 }
