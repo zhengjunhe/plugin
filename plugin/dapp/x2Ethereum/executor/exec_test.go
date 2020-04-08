@@ -40,7 +40,8 @@ var (
 	addValidator2         = "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 	privFrom              = getprivkey("4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01") // 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 
-	sdb, _ = db.NewGoMemDB("x2EthereumTestDb", "test", 128)
+	sdb  *db.GoMemDB
+	kvdb db.KVDB
 )
 
 func getprivkey(key string) crypto.PrivKey {
@@ -76,6 +77,7 @@ func TestRunSuiteX2Ethereum(t *testing.T) {
 func SetDb(receipt *chain33types.Receipt) {
 	for _, kv := range receipt.KV {
 		_ = sdb.Set(kv.Key, kv.Value)
+		_ = kvdb.Set(kv.Key, kv.Value)
 	}
 }
 
@@ -85,11 +87,12 @@ func (x *suiteX2Ethereum) SetupSuite() {
 		drivers.DriverBase{},
 	}
 
-	_, _, kvdb := util.CreateTestDB()
+	_, _, kvdb = util.CreateTestDB()
 	x2eth.SetLocalDB(kvdb)
 	api := new(apimock.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(chainTestCfg, nil)
 	x2eth.SetAPI(api)
+	sdb, _ = db.NewGoMemDB("x2EthereumTestDb", "test", 128)
 	x2eth.SetStateDB(sdb)
 	x2eth.SetExecutorType(types.LoadExecutorType(driverName))
 	x2eth.SetEnv(10, 100, 1)
@@ -261,6 +264,14 @@ func (x *suiteX2Ethereum) Test_4_Eth2Chain33() {
 	reply := msg.(*types2.ReceiptEthProphecy)
 	x.Equal(reply.Status.Text, types2.EthBridgeStatus_SuccessStatusText)
 
+	//params := &types2.QuerySymbolAssetsByTxTypeParams{
+	//	TokenSymbol: symbol,
+	//	Direction:   1,
+	//	TxType:      "lock",
+	//}
+	//msg, err = x.x2eth.Query_GetSymbolTotalAmountByTxType(params)
+	//fmt.Println("++++++++++", err, msg)
+
 	payload.ClaimType = common2.BurnText
 	payload.Amount = 3
 	payload.Nonce = 1
@@ -291,10 +302,26 @@ func (x *suiteX2Ethereum) Test_4_Eth2Chain33() {
 
 	payload.Amount = 10
 	payload.Nonce = 2
+	payload.ValidatorAddress = addValidator1
 	receipt, err = x.action.procWithdrawEth(payload)
 	payload.ValidatorAddress = addValidator2
 	receipt, err = x.action.procWithdrawEth(payload)
 	x.Equal(types.ErrNoBalance, err)
+
+	payload.Amount = 1
+	payload.Nonce = 3
+	payload.ValidatorAddress = addValidator1
+	receipt, err = x.action.procMsgEth2Chain33(payload)
+	SetDb(receipt)
+
+	payload.ValidatorAddress = addValidator2
+	receipt, err = x.action.procMsgEth2Chain33(payload)
+	SetDb(receipt)
+
+	msg, err = x.x2eth.Query_GetEthProphecy(&types2.QueryEthProphecyParams{ID: "030x7B95B6EC7EbD73572298cEf32Bb54FA408207359"})
+	x.NoError(err)
+	reply = msg.(*types2.ReceiptEthProphecy)
+	// x.Equal(reply.Status.Text, types2.EthBridgeStatus_SuccessStatusText)
 }
 
 func (x *suiteX2Ethereum) Test_5_Chain33ToEth() {
