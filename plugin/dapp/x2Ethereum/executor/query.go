@@ -142,7 +142,7 @@ func (x *x2ethereum) Query_GetSymbolTotalAmountByTxType(in *types2.QuerySymbolAs
 		elog.Error("Query_GetSymbolTotalAmountByTxType", "GetSymbolTotalAmountByTxType Err", err)
 		return nil, err
 	}
-	err = json.Unmarshal(totalAmountBytes, &symbolAmount)
+	err = types.Decode(totalAmountBytes, symbolAmount)
 	if err != nil {
 		return nil, types.ErrUnmarshal
 	}
