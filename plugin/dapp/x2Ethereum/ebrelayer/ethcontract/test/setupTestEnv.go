@@ -35,12 +35,12 @@ func PrepareTestEnv() (bind.ContractBackend, *ethtxs.DeployPara) {
 	InitPowers := []*big.Int{big.NewInt(80), big.NewInt(10), big.NewInt(10)}
 
 	para := &ethtxs.DeployPara{
-		PrivateKey:     genesiskey,
-		Deployer:       genesisAddr,
-		Operator:       genesisAddr,
-		InitValidators: InitValidators,
-		ValidatorPriKey:ValidatorPriKey,
-		InitPowers:     InitPowers,
+		DeployPrivateKey: genesiskey,
+		Deployer:         genesisAddr,
+		Operator:         genesisAddr,
+		InitValidators:   InitValidators,
+		ValidatorPriKey:  ValidatorPriKey,
+		InitPowers:       InitPowers,
 	}
 
 	return sim, para

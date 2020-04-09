@@ -39,6 +39,11 @@ type NewProphecyClaimEvent struct {
 	Amount           *big.Int
 }
 
+type LogNewBridgeToken struct {
+	Token  common.Address
+	Symbol string
+}
+
 // UnpackLogLock : Handles new LogLock events
 func UnpackLogLock(clientChainID *big.Int, contractAddress string, contractAbi abi.ABI, eventName string, eventData []byte) (lockEvent *LockEvent, err error) {
 	event := &LockEvent{}

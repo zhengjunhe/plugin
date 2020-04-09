@@ -2,8 +2,8 @@
 title="x2Ethereum_relayer"
 #用于cli向该relayer进行配置
 JrpcBindAddr="localhost:9901"
-EthProvider="ws://127.0.0.1:9545/"
-BridgeRegistry="0xFAF73E53b3E61BcF1374952AE0bf70b855b44F41"
+EthProvider="ws://127.0.0.1:7545/"
+#BridgeRegistry=""
 
 [SyncTxConfig]
 chain33Host="http://172.18.0.4:8801"
@@ -22,6 +22,16 @@ fetchHeightPeriodMs=5000
 startSyncHeight=0
 startSyncSequence=0
 startSyncHash=""
+
+[deploy]
+#合约部署人员私钥，用于部署合约时签名使用
+operatorAddr="0xFfE5123Cf006E6b6CF1Cf008fDa6D06820decF73"
+#合约部署人员私钥，用于部署合约时签名使用
+deployerPrivateKey="0x1c4f2cbeeef81ab2f28b5a0815d42f1b4868e51ff68a6d27d388c3ff85384a92"
+#验证人地址，至少配置３个以上，即大于等于３个
+validatorsAddr=["0xFfE5123Cf006E6b6CF1Cf008fDa6D06820decF73", "0xEFDF20eBB7E28e2a5D7e5b194a6c68d378D6b7Bf", "0x88Bb3c565379E2F2a358ac5751A67AF54a3382fC"]
+#验证人权重
+initPowers=[80, 10, 10]
 
 [log]
 # 日志级别，支持debug(dbug)/info/warn/error(eror)/crit
@@ -43,4 +53,3 @@ compress = true
 callerFile = false
 # 是否打印调用方法
 callerFunction = false
-

@@ -13,6 +13,8 @@ var (
 
 	chain33ToEthTxHashPrefix = "chain33ToEthTxHash"
 	chain33ToEthTxTotalAmount = []byte("chain33ToEthTxTotalAmount")
+
+	bridgeRegistryAddrPrefix = []byte("x2EthBridgeRegistryAddr")
 )
 
 func calcRelay2Chain33Txhash(txindex int64) []byte {
@@ -21,6 +23,18 @@ func calcRelay2Chain33Txhash(txindex int64) []byte {
 
 func calcRelay2EthTxhash(txindex int64) []byte {
 	return []byte(fmt.Sprintf("%s-%012d", chain33ToEthTxHashPrefix, txindex))
+}
+
+func (ethRelayer *EthereumRelayer) setBridgeRegistryAddr(bridgeRegistryAddr string) error {
+	return ethRelayer.db.Set(bridgeRegistryAddrPrefix, []byte(bridgeRegistryAddr))
+}
+
+func (ethRelayer *EthereumRelayer) getBridgeRegistryAddr() (string, error) {
+	addr, err := ethRelayer.db.Get(bridgeRegistryAddrPrefix)
+	if nil != err {
+		return "", err
+	}
+	return string(addr), nil
 }
 
 func (ethRelayer *EthereumRelayer) updateTotalTxAmount2chain33(total int64) error {

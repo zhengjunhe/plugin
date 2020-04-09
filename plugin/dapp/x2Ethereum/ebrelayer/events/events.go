@@ -21,6 +21,11 @@ const (
 	LogNewProphecyClaim
 )
 
+const (
+	CLAIM_TYPE_BURN = uint8(1)
+	CLAIM_TYPE_LOCK = uint8(2)
+)
+
 // String : returns the event type as a string
 func (d Event) String() string {
 	return [...]string{"unsupported", "burn", "lock", "LogLock", "LogNewProphecyClaim"}[d]

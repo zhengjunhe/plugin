@@ -57,3 +57,16 @@ message RelayerRunStatus {
     int32 status = 1;
     string details = 2;
 }
+
+message NewProphecyClaim {
+    uint32 claimType = 1;
+    string chain33Sender = 2;
+    string tokenAddr = 3;
+    string symbol = 4;
+}
+
+message BalanceAddr  {
+    string owner      = 1;
+    string tokenAddr  = 2;
+}
+

@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"time"
 
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
@@ -22,11 +25,10 @@ type DeployResult struct {
 	TxHash  string
 }
 
-
 type X2EthContracts struct {
 	BridgeRegistry *generated.BridgeRegistry
 	BridgeBank     *generated.BridgeBank
-	Chain33Bridge   *generated.Chain33Bridge
+	Chain33Bridge  *generated.Chain33Bridge
 	Valset         *generated.Valset
 	Oracle         *generated.Oracle
 }
@@ -34,20 +36,19 @@ type X2EthContracts struct {
 type X2EthDeployInfo struct {
 	BridgeRegistry *DeployResult
 	BridgeBank     *DeployResult
-	Chain33Bridge   *DeployResult
+	Chain33Bridge  *DeployResult
 	Valset         *DeployResult
 	Oracle         *DeployResult
 }
 
 type DeployPara struct {
-	PrivateKey *ecdsa.PrivateKey
-	Deployer common.Address
-	Operator common.Address
-	InitValidators []common.Address
-	ValidatorPriKey []*ecdsa.PrivateKey
-	InitPowers []*big.Int
+	DeployPrivateKey *ecdsa.PrivateKey
+	Deployer         common.Address
+	Operator         common.Address
+	InitValidators   []common.Address
+	ValidatorPriKey  []*ecdsa.PrivateKey
+	InitPowers       []*big.Int
 }
-
 
 //DeployValset: 部署Valset
 func DeployValset(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer common.Address, operator common.Address, initValidators []common.Address, initPowers []*big.Int) (*generated.Valset, *DeployResult, error) {
@@ -150,61 +151,205 @@ func DeployBridgeRegistry(backend bind.ContractBackend, privateKey *ecdsa.Privat
 	return bridgeRegistry, deployResult, nil
 }
 
-func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContracts, *X2EthDeployInfo, error){
+func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContracts, *X2EthDeployInfo, error) {
 	x2EthContracts := &X2EthContracts{}
 	deployInfo := &X2EthDeployInfo{}
 	var err error
 
 	/////////////////////////////////////
-	ctx := context.Background()
 	sim, isSim := backend.(*backends.SimulatedBackend)
+	if isSim {
+		fmt.Print("Use the simulator")
+	} else {
+		fmt.Print("Use the actual Ethereum")
 
-	x2EthContracts.Valset, deployInfo.Valset, err = DeployValset(backend, para.PrivateKey, para.Deployer, para.Operator, para.InitValidators, para.InitPowers)
+	}
+
+	x2EthContracts.Valset, deployInfo.Valset, err = DeployValset(backend, para.DeployPrivateKey, para.Deployer, para.Operator, para.InitValidators, para.InitPowers)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployValset due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("\nDeployValset tx hash:", deployInfo.Valset.TxHash)
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("DeployValset timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.Valset.TxHash))
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for DeployValset tx")
+					continue
+				} else if err != nil {
+					panic("DeployValset failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				operator, err := x2EthContracts.Valset.Operator(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if operator.String() != para.Operator.String() {
+					fmt.Printf("operator queried from valset is:%s, and setted is:%s", operator.String(), para.Operator.String())
+					panic("operator query is not same as setted ")
+				}
+				goto deployChain33Bridge
+			}
+		}
 	}
 
-	x2EthContracts.Chain33Bridge, deployInfo.Chain33Bridge, err = DeployChain33Bridge(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address)
+deployChain33Bridge:
+	x2EthContracts.Chain33Bridge, deployInfo.Chain33Bridge, err = DeployChain33Bridge(backend, para.DeployPrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployChain33Bridge due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("DeployChain33Bridge tx hash:", deployInfo.Chain33Bridge.TxHash)
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("DeployChain33Bridge timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.Chain33Bridge.TxHash))
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for DeployChain33Bridge tx")
+					continue
+				} else if err != nil {
+					panic("DeployChain33Bridge failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				operator, err := x2EthContracts.Chain33Bridge.Operator(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if operator.String() != para.Operator.String() {
+					fmt.Printf("operator queried from valset is:%s, and setted is:%s", operator.String(), para.Operator.String())
+					panic("operator query is not same as setted ")
+				}
+				goto deployOracle
+			}
+		}
 	}
 
-	x2EthContracts.Oracle, deployInfo.Oracle, err = DeployOracle(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address, deployInfo.Chain33Bridge.Address)
+deployOracle:
+	x2EthContracts.Oracle, deployInfo.Oracle, err = DeployOracle(backend, para.DeployPrivateKey, para.Deployer, para.Operator, deployInfo.Valset.Address, deployInfo.Chain33Bridge.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployOracle due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("DeployOracle tx hash:", deployInfo.Oracle.TxHash)
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("DeployOracle timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.Oracle.TxHash))
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for DeployOracle tx")
+					continue
+				} else if err != nil {
+					panic("DeployOracle failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				operator, err := x2EthContracts.Oracle.Operator(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if operator.String() != para.Operator.String() {
+					fmt.Printf("operator queried from valset is:%s, and setted is:%s", operator.String(), para.Operator.String())
+					panic("operator query is not same as setted ")
+				}
+				goto deployBridgeBank
+			}
+		}
 	}
-
-
-	balance , _ := sim.BalanceAt(ctx, para.Deployer, nil)
-	fmt.Println("*****deployer addr,", para.Deployer.String(), "before DeployBridgeBank balance=", balance.String())
 	/////////////////////////////////////
-
-	x2EthContracts.BridgeBank, deployInfo.BridgeBank, err = DeployBridgeBank(backend, para.PrivateKey, para.Deployer, para.Operator, deployInfo.Oracle.Address, deployInfo.Chain33Bridge.Address)
+deployBridgeBank:
+	x2EthContracts.BridgeBank, deployInfo.BridgeBank, err = DeployBridgeBank(backend, para.DeployPrivateKey, para.Deployer, para.Operator, deployInfo.Oracle.Address, deployInfo.Chain33Bridge.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployBridgeBank due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("DeployBridgeBank tx hash:", deployInfo.BridgeBank.TxHash)
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("DeployBridgeBank timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.BridgeBank.TxHash))
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for DeployOracle tx")
+					continue
+				} else if err != nil {
+					panic("DeployBridgeBank failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				operator, err := x2EthContracts.BridgeBank.Operator(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if operator.String() != para.Operator.String() {
+					fmt.Printf("operator queried from valset is:%s, and setted is:%s", operator.String(), para.Operator.String())
+					panic("operator query is not same as setted ")
+				}
+				goto settingBridgeBank
+			}
+		}
 	}
 
-	auth, err := PrepareAuth(backend, para.PrivateKey, para.Deployer)
+settingBridgeBank:
+	////////////////////////
+	auth, err := PrepareAuth(backend, para.DeployPrivateKey, para.Deployer)
 	if nil != err {
 		return nil, nil, err
 	}
-
 	_, err = x2EthContracts.Chain33Bridge.SetBridgeBank(auth, deployInfo.BridgeBank.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to SetBridgeBank due to:", err.Error())
@@ -214,7 +359,7 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 		sim.Commit()
 	}
 
-	auth, err = PrepareAuth(backend, para.PrivateKey, para.Deployer)
+	auth, err = PrepareAuth(backend, para.DeployPrivateKey, para.Deployer)
 	if nil != err {
 		return nil, nil, err
 	}
@@ -227,16 +372,50 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 		sim.Commit()
 	}
 
-	x2EthContracts.BridgeRegistry, deployInfo.BridgeRegistry, err = DeployBridgeRegistry(backend, para.PrivateKey, para.Deployer, deployInfo.Chain33Bridge.Address, deployInfo.BridgeBank.Address, deployInfo.Oracle.Address, deployInfo.Valset.Address)
+	x2EthContracts.BridgeRegistry, deployInfo.BridgeRegistry, err = DeployBridgeRegistry(backend, para.DeployPrivateKey, para.Deployer, deployInfo.Chain33Bridge.Address, deployInfo.BridgeBank.Address, deployInfo.Oracle.Address, deployInfo.Valset.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployBridgeBank due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("DeployBridgeRegistry tx hash:", deployInfo.BridgeRegistry.TxHash)
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("DeployBridgeRegistry timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.BridgeRegistry.TxHash))
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for DeployOracle tx")
+					continue
+				} else if err != nil {
+					panic("DeployBridgeRegistry failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				oracleAddr, err := x2EthContracts.BridgeRegistry.Oracle(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if oracleAddr.String() != deployInfo.Oracle.Address.String() {
+					fmt.Printf("oracleAddr queried from BridgeRegistry is:%s, and setted is:%s", oracleAddr.String(), deployInfo.Oracle.Address.String())
+					panic("oracleAddr query is not same as setted ")
+				}
+				goto finished
+			}
+		}
 	}
+finished:
 
 	return x2EthContracts, deployInfo, nil
 }
-
-

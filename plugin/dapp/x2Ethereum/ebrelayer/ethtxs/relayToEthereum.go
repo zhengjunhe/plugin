@@ -73,9 +73,14 @@ func RelayOracleClaimToEthereum(provider string, sender, contractAddress common.
 		txslog.Error("RelayOracleClaimToEthereum", "NewOracleClaim failed due to:", err.Error())
 		return "", err
 	}
-
 	txhash = tx.Hash().Hex()
 	txslog.Info("RelayOracleClaimToEthereum", "NewOracleClaim tx hash:", txhash)
+	err = waitEthTxFinished(client, tx.Hash())
+	if nil != err {
+		return txhash, err
+	}
+
+
 	return txhash, nil
 }
 

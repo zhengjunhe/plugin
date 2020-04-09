@@ -4,9 +4,13 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/ethclient"
 	solsha3 "github.com/miguelmota/go-solidity-sha3"
 	"math/big"
+	"time"
 
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,6 +18,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+)
+
+const (
+	PendingDuration4TxExeuction = 300
 )
 
 // GenerateClaimHash : Generates an OracleClaim hash from a ProphecyClaim's event data
@@ -88,4 +96,25 @@ func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, tra
 	auth.GasPrice = gasPrice
 
 	return auth, nil
+}
+
+func waitEthTxFinished(client *ethclient.Client, txhash common.Hash) error {
+    fmt.Printf("\nWait for tx %s to be finished", txhash.String())
+	timeout := time.NewTimer(PendingDuration4TxExeuction * time.Second)
+	oneSecondtimeout := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			return errors.New("Eth tx timeout")
+		case <-oneSecondtimeout.C:
+			_, err := client.TransactionReceipt(context.Background(), txhash)
+			if err == ethereum.NotFound {
+				continue
+			} else if err != nil {
+				return err
+			}
+			fmt.Printf("\ntx %s succeeds to execute", txhash.String())
+			return nil
+		}
+	}
 }

@@ -37,6 +37,7 @@ message RelayerConfig {
   string jrpcBindAddr = 4; // Jrpc服务地址
   string ethProvider  = 5;
   string bridgeRegistry = 6;
+  Deploy Deploy = 7;
 }
 
 message SyncTxReceiptConfig {
@@ -47,4 +48,15 @@ message SyncTxReceiptConfig {
   int64 startSyncHeight     = 5;
   int64 startSyncSequence   = 6;
   string startSyncHash      = 7;
+}
+
+message Deploy {
+  //操作管理员地址
+  string operatorAddr = 1;
+  //合约部署人员私钥，用于部署合约时签名使用
+  string deployerPrivateKey = 2;
+  //验证人地址
+  repeated string validatorsAddr  = 3;
+  //验证人权重
+  repeated int64 initPowers = 4;
 }

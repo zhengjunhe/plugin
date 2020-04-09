@@ -5,11 +5,11 @@ import (
 	"fmt"
 	dbm "github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/common/log/log15"
+	rpctypes "github.com/33cn/chain33/rpc/types"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
-	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"sync"
 	"sync/atomic"
@@ -20,20 +20,21 @@ var (
 )
 
 const (
-	Locked   = int32(1)
-	Unlocked = int32(99)
+	Locked        = int32(1)
+	Unlocked      = int32(99)
 	EncryptEnable = int64(1)
 )
 
 type RelayerManager struct {
 	chain33Relayer *chain33.Chain33Relayer
-	ethRelayer *ethereum.EthereumRelayer
-	store *Store
-	isLocked     int32
-	mtx          sync.Mutex
-	encryptFlag   int64
-	passphase     string
+	ethRelayer     *ethereum.EthereumRelayer
+	store          *Store
+	isLocked       int32
+	mtx            sync.Mutex
+	encryptFlag    int64
+	passphase      string
 }
+
 //实现记录
 //1.验证人的私钥需要通过cli命令行进行导入，且chain33和ethereum两种不同的验证人需要分别导入
 //2.显示或者重新替换原有的私钥首先需要通过passpin进行unlock的操作
@@ -118,8 +119,8 @@ func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqSetPass
 	atomic.StoreInt64(&manager.encryptFlag, EncryptEnable)
 
 	*result = rpctypes.Reply{
-		IsOk:true,
-		Msg:"Succeed to set passphase",
+		IsOk: true,
+		Msg:  "Succeed to set passphase",
 	}
 	return nil
 }
@@ -164,8 +165,8 @@ func (manager *RelayerManager) Lock(param interface{}, result *interface{}) erro
 	}
 	manager.isLocked = Locked
 	*result = rpctypes.Reply{
-		IsOk:true,
-		Msg:"Succeed to lock",
+		IsOk: true,
+		Msg:  "Succeed to lock",
 	}
 	return nil
 }
@@ -185,8 +186,8 @@ func (manager *RelayerManager) ImportChain33RelayerPrivateKey(importKeyReq relay
 	}
 
 	*result = rpctypes.Reply{
-		IsOk:true,
-		Msg:"Succeed to import private key for chain33 relayer",
+		IsOk: true,
+		Msg:  "Succeed to import private key for chain33 relayer",
 	}
 	return nil
 }
@@ -219,8 +220,8 @@ func (manager *RelayerManager) ImportChain33PrivateKey4EthRelayer(privateKey str
 		return err
 	}
 	*result = rpctypes.Reply{
-		IsOk:true,
-		Msg:"Succeed to import chain33 private key for ethereum relayer",
+		IsOk: true,
+		Msg:  "Succeed to import chain33 private key for ethereum relayer",
 	}
 	return nil
 }
@@ -236,8 +237,8 @@ func (manager *RelayerManager) ImportEthValidatorPrivateKey(privateKey string, r
 		return err
 	}
 	*result = rpctypes.Reply{
-		IsOk:true,
-		Msg:"Succeed to import ethereum private key for validator",
+		IsOk: true,
+		Msg:  "Succeed to import ethereum private key for validator",
 	}
 	return nil
 }
@@ -254,6 +255,7 @@ func (manager *RelayerManager) ShowChain33RelayerValidator(param interface{}, re
 
 	return nil
 }
+
 //显示在Ethereum中以验证人validator身份进行登录的地址
 func (manager *RelayerManager) ShowEthRelayerValidator(param interface{}, result *interface{}) error {
 	manager.mtx.Lock()
@@ -288,6 +290,91 @@ func (manager *RelayerManager) ShowOperator(param interface{}, result *interface
 		return err
 	}
 	*result = operator
+	return nil
+}
+
+func (manager *RelayerManager) DeployContrcts(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	bridgeRegistry, err := manager.ethRelayer.DeployContrcts()
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("Contract BridgeRegistry's address is:%s", bridgeRegistry),
+	}
+	return nil
+}
+
+
+
+func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	tokenAddr, err := manager.ethRelayer.CreateBridgeToken(symbol)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("Token address:%s", tokenAddr),
+	}
+	return nil
+}
+
+func (manager *RelayerManager) MakeNewProphecyClaim(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	newProphecyClaim := param.(relayerTypes.NewProphecyClaim)
+	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(uint8(newProphecyClaim.ClaimType), newProphecyClaim.Chain33Sender, newProphecyClaim.TokenAddr, newProphecyClaim.Symbol)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("Tx:%s", txhash),
+	}
+	return nil
+}
+
+func (manager *RelayerManager) ProcessProphecyClaim(prophecyID int64, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.ProcessProphecyClaim(prophecyID)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("Tx:%s", txhash),
+	}
+	return nil
+}
+
+func (manager *RelayerManager) GetBalance(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	balanceAddr := param.(relayerTypes.BalanceAddr)
+	balance, err := manager.ethRelayer.GetBalance(balanceAddr.TokenAddr, balanceAddr.Owner)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("balance:%d", balance),
+	}
+	return nil
+}
+
+func (manager *RelayerManager) ShowTxReceipt(txhash string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	receipt, err := manager.ethRelayer.ShowTxReceipt(txhash)
+	if nil != err {
+		return err
+	}
+	*result = *receipt
 	return nil
 }
 

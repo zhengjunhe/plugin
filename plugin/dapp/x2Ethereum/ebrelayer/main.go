@@ -68,10 +68,11 @@ func main() {
 	//创建blockchain服务，用于接收chain33的区块推送，过滤转发，以及转发闪电钱包的相关交易
 	var wg sync.WaitGroup
 	log.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
+	log.Info("deploy info:", "OperatorAddr", cfg.Deploy.OperatorAddr)
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
 	chain33RelayerService := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, db, ctx)
-    ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry)
+    ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy)
 	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
 
 	log.Info("cfg.JrpcBindAddr = ", cfg.JrpcBindAddr)
