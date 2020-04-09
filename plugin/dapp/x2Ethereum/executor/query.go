@@ -119,26 +119,32 @@ func (x *x2ethereum) Query_GetConsensusThreshold(in *types2.QueryConsensusThresh
 
 func (x *x2ethereum) Query_GetSymbolTotalAmount(in *types2.QuerySymbolAssetsParams) (types.Message, error) {
 	symbolAmount := &types2.ReceiptQuerySymbolAssets{}
-	symbolAmountKey := types2.CalTokenSymbolTotalAmountPrefix(in.TokenSymbol)
+	symbolAmountKey := types2.CalTokenSymbolTotalAmountPrefix(in.TokenSymbol, types2.DirectionType[in.Direction])
 
-	consensusTempBytes, err := x.GetStateDB().Get(symbolAmountKey)
+	totalAmountBytes, err := x.GetStateDB().Get(symbolAmountKey)
 	if err != nil {
 		elog.Error("Query_GetSymbolTotalAmount", "GetSymbolTotalAmount Err", err)
 		return nil, err
 	}
-	err = json.Unmarshal(consensusTempBytes, &symbolAmount)
+	err = json.Unmarshal(totalAmountBytes, &symbolAmount)
 	if err != nil {
 		return nil, types.ErrUnmarshal
 	}
 	return symbolAmount, nil
 }
 
-func stringArray2StringMap(in map[string][]string) map[string]*types2.StringMap {
-	res := make(map[string]*types2.StringMap, len(in))
-	for key, value := range in {
-		sm := new(types2.StringMap)
-		sm.Validators = value
-		res[key] = sm
+func (x *x2ethereum) Query_GetSymbolTotalAmountByTxType(in *types2.QuerySymbolAssetsByTxTypeParams) (types.Message, error) {
+	symbolAmount := &types2.ReceiptQuerySymbolAssetsByTxType{}
+	symbolAmountKey := types2.CalTokenSymbolTotalLockOrBurnAmount(in.TokenSymbol, types2.DirectionType[in.Direction], in.TxType)
+
+	totalAmountBytes, err := x.GetLocalDB().Get(symbolAmountKey)
+	if err != nil {
+		elog.Error("Query_GetSymbolTotalAmountByTxType", "GetSymbolTotalAmountByTxType Err", err)
+		return nil, err
 	}
-	return res
+	err = types.Decode(totalAmountBytes, symbolAmount)
+	if err != nil {
+		return nil, types.ErrUnmarshal
+	}
+	return symbolAmount, nil
 }

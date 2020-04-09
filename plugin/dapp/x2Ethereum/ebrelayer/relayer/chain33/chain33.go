@@ -15,6 +15,7 @@ import (
 	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	ethCommon "github.com/ethereum/go-ethereum/common"
 	"os"
 	"sync"
@@ -98,9 +99,9 @@ func (chain33Relayer *Chain33Relayer) GetRunningStatus() (relayerRunStatus *ebTy
 }
 
 func (chain33Relayer *Chain33Relayer) syncProc(syncCfg *ebTypes.SyncTxReceiptConfig) {
-	fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Chain33 relayer")
+	_, _ = fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Chain33 relayer")
 	<-chain33Relayer.unlock
-	fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
+	_, _ = fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
 
 	syncChan := make(chan int64, 10)
 	chain33Relayer.syncTxReceipts = syncTx.StartSyncTxReceipt(syncCfg, syncChan, chain33Relayer.db)
@@ -157,8 +158,10 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 				relayerLog.Debug("onNewHeightProc, the tx is not x2ethereum", "Execer", string(tx.Execer), "height:", TxReceipts.Height)
 				continue
 			}
-			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "action", tx.ActionName(), "fromAddr", tx.From())
-			actionName := tx.ActionName()
+			var ss types.X2EthereumAction
+			_ = chain33Types.Decode(tx.Payload, &ss)
+			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx", ss.GetActionName(), "action", tx.ActionName(), "fromAddr", tx.From(), "Name", tx)
+			actionName := ss.GetActionName()
 			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				actionEvent := getOracleClaimType(actionName)
 				if err := chain33Relayer.handleBurnLockMsg(actionEvent, TxReceipts.ReceiptData[i]); nil != err {

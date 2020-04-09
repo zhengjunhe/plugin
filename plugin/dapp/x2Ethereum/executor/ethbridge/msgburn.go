@@ -15,7 +15,6 @@ type Msg_Burn struct {
 	Amount           uint64            `json:"amount" yaml:"amount"`
 }
 
-// NewMsgBurn is a constructor function for MsgBurn
 func NewMsgBurn(ethereumChainID int64, tokenContract string, chain33Sender string, ethereumReceiver string, amount uint64) Msg_Burn {
 	return Msg_Burn{
 		EthereumChainID:  ethereumChainID,
@@ -46,7 +45,7 @@ func (msg Msg_Burn) ValidateBasic() error {
 		return types.ErrInvalidEthAddress
 	}
 
-	if AddressIsEmpty(msg.Chain33Sender) {
+	if common.AddressIsEmpty(msg.Chain33Sender) {
 		return types.ErrInvalidAddress
 	}
 
@@ -59,13 +58,4 @@ func (msg Msg_Burn) ValidateBasic() error {
 	}
 
 	return nil
-}
-
-func AddressIsEmpty(address string) bool {
-	if address == "" {
-		return true
-	}
-
-	var aa2 string
-	return address == aa2
 }

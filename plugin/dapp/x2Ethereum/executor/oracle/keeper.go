@@ -16,8 +16,9 @@ var (
 )
 
 type Keeper struct {
-	db                 dbm.KV
-	ConsensusThreshold float64 // The minimum % of stake needed to sign claims in order for consensus to occur
+	db dbm.KV
+	// 通过审核的最低阈值
+	ConsensusThreshold float64
 }
 
 func NewKeeper(db dbm.KV, ConsensusThreshold float64) Keeper {
@@ -191,8 +192,14 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 		}
 		prophecy = NewProphecy(claim.ID)
 	} else {
+		for _, vc := range prophecy.ValidatorClaims {
+			if vc.Claim != claim.Content {
+				prophecy.Status.Text = StatusText(types.EthBridgeStatus_FailedStatusText)
+				return Status{}, types.ErrClaimInconsist
+			}
+		}
 		if claimContent.ClaimType == common.LockText {
-			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_SuccessStatusText) {
+			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_SuccessStatusText) || prophecy.Status.Text == StatusText(types.EthBridgeStatus_FailedStatusText) {
 				return Status{}, types.ErrProphecyFinalized
 			}
 			for _, vc := range prophecy.ValidatorClaims {
@@ -201,7 +208,7 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 				}
 			}
 		} else if claimContent.ClaimType == common.BurnText {
-			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_WithdrawedStatusText) {
+			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_WithdrawedStatusText) || prophecy.Status.Text == StatusText(types.EthBridgeStatus_FailedStatusText) {
 				return Status{}, types.ErrProphecyFinalized
 			}
 		}
@@ -311,10 +318,6 @@ func (k *Keeper) GetValidatorArray() ([]types.MsgValidator, error) {
 		return nil, types2.ErrUnmarshal
 	}
 	return validatorArrays, nil
-}
-
-func RemoveAddrFromValidatorMap(validatorMap []types.MsgValidator, index int) []types.MsgValidator {
-	return append(validatorMap[:index], validatorMap[index+1:]...)
 }
 
 func (k *Keeper) SetConsensusThreshold(ConsensusThreshold float64) {

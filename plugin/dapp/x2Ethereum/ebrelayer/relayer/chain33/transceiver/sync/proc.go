@@ -6,8 +6,8 @@ import (
 	"sync/atomic"
 
 	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/pkg/errors"
 )
 
@@ -18,10 +18,10 @@ const (
 )
 
 var (
-	syncLastHeight  = []byte("syncLastHeight:")
-	txReceiptPrefix = []byte("txReceiptPrefix:")
-	lastSequences   = []byte("lastSequences:")
-	lastSyncHeight  = []byte("lastSyncHeight:")
+	syncLastHeight   = []byte("syncLastHeight:")
+	txReceiptPrefix  = []byte("txReceiptPrefix:")
+	lastSequences    = []byte("lastSequences:")
+	lastSyncHeight   = []byte("lastSyncHeight:")
 	seqOperationType = []string{"SeqTypeAdd", "SeqTypeDel"}
 )
 
@@ -72,7 +72,7 @@ func (syncTx *SyncTxReceipts) initSyncReceiptDataBase() {
 		return
 	}
 	txsPerBlock := &types.TxReceipts4SubscribePerBlk{
-		Height:0,
+		Height: 0,
 	}
 	syncTx.setTxReceiptsPerBlock(txsPerBlock)
 }
@@ -86,6 +86,7 @@ func (syncTx *SyncTxReceipts) SaveAndSyncTxs2Relayer() {
 	for {
 		select {
 		case txReceipts := <-txReceiptCh:
+			log.Info("to deal request", "seq", txReceipts.TxReceipts[0].SeqNum, "count", len(txReceipts.TxReceipts))
 			if len(txReceipts.TxReceipts) > 0 {
 				log.Info("to deal request", "seq", txReceipts.TxReceipts[0].SeqNum, "count", len(txReceipts.TxReceipts))
 			}
@@ -174,7 +175,7 @@ func (syncTx *SyncTxReceipts) setTxReceiptsPerBlock(txReceipts *types.TxReceipts
 	key := txReceiptsKey4Height(txReceipts.Height)
 	value := types.Encode(txReceipts)
 	if err := syncTx.db.Set(key, value); nil != err {
-		panic("setTxReceiptsPerBlock failed due to:"+err.Error())
+		panic("setTxReceiptsPerBlock failed due to:" + err.Error())
 	}
 }
 
@@ -228,7 +229,7 @@ func parseTxReceipts(txReceipts *types.TxReceipts4Subscribe) (count int, start i
 			start = txReceipts.TxReceipts[i].SeqNum
 		}
 		log.Debug("parseTxReceipts get one block's tx with receipts", "seq", txReceipts.TxReceipts[i].SeqNum,
-			"height", txReceipts.TxReceipts[i].Height, "seqOpType", seqOperationType[txReceipts.TxReceipts[i].AddDelType - 1])
+			"height", txReceipts.TxReceipts[i].Height, "seqOpType", seqOperationType[txReceipts.TxReceipts[i].AddDelType-1])
 
 	}
 	if len(txsWithReceipt) != count {

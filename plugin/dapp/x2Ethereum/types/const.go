@@ -1,15 +1,16 @@
 package types
 
 var (
-	ProphecyKey               = []byte("prefix_for_Prophecy")
-	Eth2Chain33Key            = []byte("prefix_for_Eth2Chain33")
-	WithdrawEthKey            = []byte("prefix_for_WithdrawEth")
-	Chain33ToEthKey           = []byte("prefix_for_Chain33ToEth")
-	WithdrawChain33Key        = []byte("prefix_for_WithdrawChain33")
-	LastTotalPowerKey         = []byte("prefix_for_LastTotalPower")
-	ValidatorMapsKey          = []byte("prefix_for_ValidatorMaps")
-	ConsensusThresholdKey     = []byte("prefix_for_ConsensusThreshold")
-	TokenSymbolTotalAmountKey = []byte("prefix_for_TokenSymbolTotalAmount")
+	ProphecyKey                         = []byte("prefix_for_Prophecy")
+	Eth2Chain33Key                      = []byte("prefix_for_Eth2Chain33")
+	WithdrawEthKey                      = []byte("prefix_for_WithdrawEth")
+	Chain33ToEthKey                     = []byte("prefix_for_Chain33ToEth")
+	WithdrawChain33Key                  = []byte("prefix_for_WithdrawChain33")
+	LastTotalPowerKey                   = []byte("prefix_for_LastTotalPower")
+	ValidatorMapsKey                    = []byte("prefix_for_ValidatorMaps")
+	ConsensusThresholdKey               = []byte("prefix_for_ConsensusThreshold")
+	TokenSymbolTotalAmountKey           = []byte("prefix_for_TokenSymbolTotalAmount-")
+	TokenSymbolTotalLockOrBurnAmountKey = []byte("prefix_for_TokenSymbolTotalLockOrBurnAmount-")
 )
 
 // log for x2ethereum
@@ -54,13 +55,21 @@ const ModuleName = "ETH"
 
 const DefaultConsensusNeeded = 0.7
 
+const (
+	DirEth2Chain33  = "eth2chain33"
+	DirChain33ToEth = "chain33toeth"
+)
+
+var DirectionType = [3]string{"", DirEth2Chain33, DirChain33ToEth}
+
 // query function name
 const (
-	FuncQueryEthProphecy        = "GetEthProphecy"
-	FuncQueryValidators         = "GetValidators"
-	FuncQueryTotalPower         = "GetTotalPower"
-	FuncQueryConsensusThreshold = "GetConsensusThreshold"
-	FuncQuerySymbolTotalAmount  = "GetSymbolTotalAmount"
+	FuncQueryEthProphecy               = "GetEthProphecy"
+	FuncQueryValidators                = "GetValidators"
+	FuncQueryTotalPower                = "GetTotalPower"
+	FuncQueryConsensusThreshold        = "GetConsensusThreshold"
+	FuncQuerySymbolTotalAmount         = "GetSymbolTotalAmount"
+	FuncQuerySymbolTotalAmountByTxType = "GetSymbolTotalAmountByTxType"
 )
 
 //设置合约管理员地址

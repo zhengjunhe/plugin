@@ -1,30 +1,35 @@
 package common
 
 import (
-	"encoding/json"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestBytesToFloat64(t *testing.T) {
-	var validatorMaps []types.MsgValidator
-	validatorMaps = append(validatorMaps, types.MsgValidator{
-		Address: "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv",
-		Power:   7,
-	})
-	validatorMaps = append(validatorMaps, types.MsgValidator{
-		Address: "1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi",
-		Power:   6,
-	})
-	validatorMaps = append(validatorMaps, types.MsgValidator{
-		Address: "3333333333333333333333333",
-		Power:   8,
-	})
-	RemoveAddrFromValidatorMap(validatorMaps, 1)
-	vv, _ := json.Marshal(validatorMaps)
-	println(string(vv))
+var (
+	num      = 10
+	numBytes = []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x24, 0x40}
+)
+
+func TestFloat64ToBytes(t *testing.T) {
+	nb := Float64ToBytes(float64(num))
+	assert.Equal(t, numBytes, nb)
 }
 
-func RemoveAddrFromValidatorMap(validatorMap []types.MsgValidator, index int) []types.MsgValidator {
-	return append(validatorMap[:index], validatorMap[index+1:]...)
+func TestBytesToFloat64(t *testing.T) {
+	n := BytesToFloat64(numBytes)
+	assert.Equal(t, num, n)
+}
+
+func TestAddressIsEmpty(t *testing.T) {
+	flg := AddressIsEmpty("")
+	assert.Equal(t, true, flg)
+}
+
+func TestAddToStringMap(t *testing.T) {
+	in := new(types.StringMap)
+	res := AddToStringMap(in, "validator")
+	assert.Equal(t, &types.StringMap{
+		Validators: []string{"validator"},
+	}, res)
 }

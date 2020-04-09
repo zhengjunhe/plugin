@@ -184,11 +184,8 @@ func CreateRawWithdrawChain33TxCmd() *cobra.Command {
 }
 
 func addChain33ToEthFlags(cmd *cobra.Command) {
-	cmd.Flags().Int64("ethid", 0, "the ethereum chain ID which send asset to chain33")
-	_ = cmd.MarkFlagRequired("ethid")
-
-	cmd.Flags().StringP("contract", "b", "", "token contract address")
-	_ = cmd.MarkFlagRequired("contract")
+	cmd.Flags().StringP("tcontract", "q", "", "token contract address")
+	_ = cmd.MarkFlagRequired("tcontract")
 
 	cmd.Flags().StringP("csymbol", "t", "", "token symbol in chain33")
 	_ = cmd.MarkFlagRequired("csymbol")
@@ -210,18 +207,16 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 }
 
 func burn(cmd *cobra.Command, args []string) {
-	ethid, _ := cmd.Flags().GetInt64("ethid")
-	contract, _ := cmd.Flags().GetString("contract")
 	csymbol, _ := cmd.Flags().GetString("csymbol")
 	cexec, _ := cmd.Flags().GetString("cexec")
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetUint64("amount")
 	esymbol, _ := cmd.Flags().GetString("esymbol")
+	tcontract, _ := cmd.Flags().GetString("tcontract")
 
 	params := &types3.Chain33ToEth{
-		EthereumChainID:  ethid,
-		TokenContract:    contract,
+		TokenContract:    tcontract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
 		Amount:           amount,
@@ -251,8 +246,7 @@ func CreateRawChain33ToEthTxCmd() *cobra.Command {
 }
 
 func lock(cmd *cobra.Command, args []string) {
-	ethid, _ := cmd.Flags().GetInt64("ethid")
-	contract, _ := cmd.Flags().GetString("contract")
+	contract, _ := cmd.Flags().GetString("tcontract")
 	csymbol, _ := cmd.Flags().GetString("csymbol")
 	cexec, _ := cmd.Flags().GetString("cexec")
 	sender, _ := cmd.Flags().GetString("sender")
@@ -261,7 +255,6 @@ func lock(cmd *cobra.Command, args []string) {
 	esymbol, _ := cmd.Flags().GetString("esymbol")
 
 	params := &types3.Chain33ToEth{
-		EthereumChainID:  ethid,
 		TokenContract:    contract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,

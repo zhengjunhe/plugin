@@ -14,9 +14,9 @@ import (
 	dbm "github.com/33cn/chain33/common/db"
 	l "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/rpc/jsonclient"
+	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
-	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/rs/cors"
 )
 
@@ -56,7 +56,7 @@ func startHTTPService(url string, clientHost string) {
 			client := strings.Split(r.RemoteAddr, ":")[0]
 			if !checkClient(client, clientHost) {
 				log.Error("HandlerFunc", "client", r.RemoteAddr, "expect", clientHost)
-				w.Write([]byte(`{"errcode":"-1","result":null,"msg":"reject"}`))
+				_, _ = w.Write([]byte(`{"errcode":"-1","result":null,"msg":"reject"}`))
 				// unbind 逻辑有问题， 需要的外部处理
 				//  切换外部服务时， 可能换 name
 				// 收到一个不是client 的请求，很有可能是以前注册过的， 取消掉
@@ -79,9 +79,9 @@ func startHTTPService(url string, clientHost string) {
 
 					err = handleRequest(body)
 					if err == nil {
-						w.Write([]byte("OK"))
+						_, _ = w.Write([]byte("OK"))
 					} else {
-						w.Write([]byte(err.Error()))
+						_, _ = w.Write([]byte(err.Error()))
 					}
 				}
 			}
@@ -90,7 +90,7 @@ func startHTTPService(url string, clientHost string) {
 	co := cors.New(cors.Options{})
 	handler = co.Handler(handler)
 
-	http.Serve(listen, handler)
+	_ = http.Serve(listen, handler)
 }
 
 func handleRequest(body []byte) error {
@@ -123,13 +123,13 @@ func checkClient(addr string, expectClient string) bool {
 //如果已经注册，则继续推送
 func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 	params := types.SubscribeTxReceipt{
-		Name:   cfg.PushName,
-		URL:    cfg.PushHost,
-		Encode: "proto",
-		LastSequence:cfg.StartSyncSequence,
-		LastHeight:cfg.StartSyncHeight,
-		LastBlockHash:cfg.StartSyncHash,
-		Contract:"ticket",
+		Name:          cfg.PushName,
+		URL:           cfg.PushHost,
+		Encode:        "proto",
+		LastSequence:  cfg.StartSyncSequence,
+		LastHeight:    cfg.StartSyncHeight,
+		LastBlockHash: cfg.StartSyncHash,
+		Contract:      "x2ethereum",
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(cfg.Chain33Host, "Chain33.AddSubscribeTxReceipt", params, &res)

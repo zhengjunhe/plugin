@@ -14,6 +14,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -21,7 +22,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -349,7 +349,6 @@ func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
 		ethRelayer.chain33BridgeSub = sub
 		return
 	}
-
 	ethRelayer.bridgeBankLog = logs
 	ethRelayer.bridgeBankSub = sub
 }

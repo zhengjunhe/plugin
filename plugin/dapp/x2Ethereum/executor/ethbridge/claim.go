@@ -15,7 +15,6 @@ var (
 	elog = log.New("module", "ethbridge")
 )
 
-// NewEthBridgeClaim is a constructor function for NewEthBridgeClaim
 func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount uint64, claimType int64) types.Eth2Chain33 {
 	return types.Eth2Chain33{
 		EthereumChainID:       ethereumChainID,
@@ -33,7 +32,6 @@ func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64
 	}
 }
 
-// NewOracleClaimContent is a constructor function for OracleClaim
 func NewOracleClaimContent(chain33Receiver string, amount uint64, claimType int64) types.OracleClaimContent {
 	return types.OracleClaimContent{
 		Chain33Receiver: chain33Receiver,
@@ -42,7 +40,6 @@ func NewOracleClaimContent(chain33Receiver string, amount uint64, claimType int6
 	}
 }
 
-// NewClaim returns a new Claim
 func NewClaim(id string, validatorAddress string, content string) types.OracleClaim {
 	return types.OracleClaim{
 		ID:               id,
@@ -51,10 +48,7 @@ func NewClaim(id string, validatorAddress string, content string) types.OracleCl
 	}
 }
 
-// CreateOracleClaimFromEthClaim converts a specific ethereum bridge claim to a general oracle claim to be used by
-// the oracle module. The oracle module expects every claim for a particular prophecy to have the same id, so this id
-// must be created in a deterministic way that all validators can follow. For this, we use the Nonce an Ethereum Sender provided,
-// as all validators will see this same data from the smart contract.
+//通过ethchain33结构构造一个OracleClaim结构，包括生成唯一的ID
 func CreateOracleClaimFromEthClaim(ethClaim types.Eth2Chain33) (types.OracleClaim, error) {
 	if ethClaim.ClaimType != common.LockText && ethClaim.ClaimType != common.BurnText {
 		return types.OracleClaim{}, types.ErrInvalidClaimType
@@ -70,7 +64,7 @@ func CreateOracleClaimFromEthClaim(ethClaim types.Eth2Chain33) (types.OracleClai
 	return claim, nil
 }
 
-// CreateEthClaimFromOracleString converts a string from any generic claim from the oracle module into an ethereum bridge specific claim.
+// 通过oracleclaim反向构造ethchain33结构
 func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContract string, ethereumAddress string, validator string, oracleClaimString string) (types.Eth2Chain33, error) {
 	oracleClaim, err := CreateOracleClaimFromOracleString(oracleClaimString)
 	if err != nil {
@@ -94,8 +88,6 @@ func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string
 	), nil
 }
 
-// CreateOracleClaimFromOracleString converts a JSON string into an OracleClaimContent struct used by this module. In general, it is
-// expected that the oracle module will store claims in this JSON format and so this should be used to convert oracle claims.
 func CreateOracleClaimFromOracleString(oracleClaimString string) (types.OracleClaimContent, error) {
 	var oracleClaimContent types.OracleClaimContent
 

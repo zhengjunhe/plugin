@@ -47,7 +47,7 @@ func (msg MsgLock) ValidateBasic() error {
 		return types.ErrInvalidEthAddress
 	}
 
-	if AddressIsEmpty(msg.Chain33Sender) {
+	if common.AddressIsEmpty(msg.Chain33Sender) {
 		return types.ErrInvalidAddress
 	}
 

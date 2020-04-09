@@ -11,6 +11,7 @@ package ethtxs
 
 import (
 	"crypto/ecdsa"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"math/big"
 	"regexp"
 	"strings"
@@ -66,8 +67,20 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 		// Get (key, value) for each attribute
 
 		switch log.Ty {
-		case 1:
+		case types.TyChain33ToEthLog:
+		case types.TyWithdrawChain33Log:
+
 			txslog.Debug("BurnLockTxReceiptToChain33Msg", "value", string(log.Log))
+			var chain33ToEth types.ReceiptChain33ToEth
+			err := chain33Types.Decode(log.Log, &chain33ToEth)
+			if err != nil {
+				return events.Chain33Msg{}
+			}
+			chain33Sender = []byte(chain33ToEth.Chain33Sender)
+			ethereumReceiver = common.HexToAddress(chain33ToEth.EthereumReceiver)
+			tokenContractAddress = common.HexToAddress(chain33ToEth.TokenContract)
+			symbol = chain33ToEth.EthSymbol
+			amount = big.NewInt(int64(chain33ToEth.Amount))
 		default:
 
 		}

@@ -6,11 +6,11 @@ EthProvider="ws://127.0.0.1:7545/"
 #BridgeRegistry=""
 
 [SyncTxConfig]
-chain33Host="http://172.18.0.4:8801"
-pushHost="http://192.168.101.13:20000"
+chain33Host="http://192.168.64.4:8801"
+pushHost="http://192.168.3.156:20000"
 pushName="x2ethereum"
 pushBind="0.0.0.0:20000"
-maturityDegree=12
+maturityDegree=0
 dbdriver="leveldb"
 dbPath="datadir"
 dbCache=64

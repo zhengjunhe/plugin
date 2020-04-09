@@ -1,7 +1,5 @@
 package types
 
-import "strings"
-
 /*
  * 用户合约存取kv数据时，key值前缀需要满足一定规范
  * 即key = keyPrefix + userKey
@@ -47,10 +45,10 @@ func CalConsensusThresholdPrefix() []byte {
 	return []byte(KeyPrefixStateDB + string(ConsensusThresholdKey))
 }
 
-func CalTokenSymbolTotalAmountPrefix(symbol string) []byte {
-	return []byte(KeyPrefixStateDB + string(TokenSymbolTotalAmountKey) + symbol)
+func CalTokenSymbolTotalAmountPrefix(symbol, direction string) []byte {
+	return []byte(KeyPrefixStateDB + string(TokenSymbolTotalAmountKey) + direction + "-" + symbol)
 }
 
-func CalTokenSymbol(symbol string) string {
-	return strings.ToUpper(KeyPrefixStateDB + symbol)
+func CalTokenSymbolTotalLockOrBurnAmount(symbol, direction, txType string) []byte {
+	return []byte(KeyPrefixLocalDB + string(TokenSymbolTotalLockOrBurnAmountKey) + direction + "-" + txType + "-" + symbol)
 }
