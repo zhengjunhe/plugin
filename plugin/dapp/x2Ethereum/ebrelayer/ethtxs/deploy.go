@@ -162,7 +162,6 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 		fmt.Print("Use the simulator")
 	} else {
 		fmt.Print("Use the actual Ethereum")
-
 	}
 
 	x2EthContracts.Valset, deployInfo.Valset, err = DeployValset(backend, para.DeployPrivateKey, para.Deployer, para.Operator, para.InitValidators, para.InitPowers)

@@ -355,8 +355,7 @@ func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
 }
 
 func (ethRelayer *EthereumRelayer) IsValidatorActive(addr string) (bool, error) {
-
-	return true, nil
+	return ethtxs.IsActiveValidator(common.HexToAddress(addr), ethRelayer.x2EthContracts.Valset)
 }
 
 func (ethRelayer *EthereumRelayer) ShowOperator() (string, error) {

@@ -569,7 +569,7 @@ func TestBridgeBankUnlock(t *testing.T) {
 	ethSym := string("eth")
 	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
-		CLAIM_TYPE_BURN,
+		events.CLAIM_TYPE_BURN,
 		chain33Sender,
 		ethReceivent,
 		ethAddr,
@@ -635,7 +635,7 @@ func TestBridgeBankUnlock(t *testing.T) {
 	ethReceivent = para.InitValidators[2]
 	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
-		CLAIM_TYPE_BURN,
+		events.CLAIM_TYPE_BURN,
 		chain33Sender,
 		ethReceivent,
 		bridgeTokenAddr,
@@ -832,7 +832,7 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 	ethSym := string("eth")
 	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
-		CLAIM_TYPE_BURN,
+		events.CLAIM_TYPE_BURN,
 		chain33Sender,
 		ethReceivent,
 		ethAddr,
@@ -893,7 +893,7 @@ func TestBridgeBankSecondUnlockEth(t *testing.T) {
 	newProphecyAmountSecond := int64(33)
 	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
-		CLAIM_TYPE_BURN,
+		events.CLAIM_TYPE_BURN,
 		chain33Sender,
 		ethReceivent,
 		ethAddr,
@@ -1085,7 +1085,7 @@ func TestBridgeBankSedondUnlockErc20(t *testing.T) {
 	ethReceivent := para.InitValidators[2]
 	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
-		CLAIM_TYPE_BURN,
+		events.CLAIM_TYPE_BURN,
 		chain33Sender,
 		ethReceivent,
 		bridgeTokenAddr,
@@ -1152,7 +1152,7 @@ latter:
 	newProphecyAmountSecond := int64(66)
 	_, err = x2EthContracts.Chain33Bridge.NewProphecyClaim(
 		userOneAuth,
-		CLAIM_TYPE_BURN,
+		events.CLAIM_TYPE_BURN,
 		chain33Sender,
 		ethReceivent,
 		bridgeTokenAddr,
