@@ -64,8 +64,6 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 
 	// Iterate over attributes
 	for _, log := range receipt.Logs {
-		// Get (key, value) for each attribute
-
 		switch log.Ty {
 		case types.TyChain33ToEthLog:
 		case types.TyWithdrawChain33Log:
@@ -82,32 +80,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 			symbol = chain33ToEth.EthSymbol
 			amount = big.NewInt(int64(chain33ToEth.Amount))
 		default:
-
 		}
-
-		// Set variable based on value of Chain33MsgAttributeKey
-		//switch key {
-		//case events.Chain33Sender.String():
-		//	// Parse sender's Chain33 address
-		//	chain33Sender = []byte(val)
-		//case events.EthereumReceiver.String():
-		//	// Confirm recipient is valid Ethereum address
-		//	if !common.IsHexAddress(val) {
-		//		log.Fatal("Invalid recipient address:", val)
-		//	}
-		//	// Parse recipient's Ethereum address
-		//	ethereumReceiver = common.HexToAddress(val)
-		//case events.Coin.String():
-		//	// Parse symbol and amount from coin string
-		//	symbol, amount = getSymbolAmountFromCoin(val)
-		//case events.TokenContractAddress.String():
-		//	// Confirm token contract address is valid Ethereum address
-		//	if !common.IsHexAddress(val) {
-		//		log.Fatal("Invalid token address:", val)
-		//	}
-		//	// Parse token contract address
-		//	tokenContractAddress = common.HexToAddress(val)
-		//}
 	}
 
 	// Package the event data into a Chain33Msg

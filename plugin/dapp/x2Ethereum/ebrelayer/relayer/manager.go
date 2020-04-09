@@ -323,10 +323,9 @@ func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interfac
 	return nil
 }
 
-func (manager *RelayerManager) MakeNewProphecyClaim(param interface{}, result *interface{}) error {
+func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerTypes.NewProphecyClaim, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
-	newProphecyClaim := param.(relayerTypes.NewProphecyClaim)
 	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(uint8(newProphecyClaim.ClaimType), newProphecyClaim.Chain33Sender, newProphecyClaim.TokenAddr, newProphecyClaim.Symbol)
 	if nil != err {
 		return err

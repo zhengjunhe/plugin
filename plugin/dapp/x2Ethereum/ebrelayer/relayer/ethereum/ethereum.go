@@ -159,6 +159,7 @@ func (ethRelayer *EthereumRelayer) DeployContrcts() (bridgeRegistry string, err 
 		Deployer:         deployerAddr,
 		Operator:         deployerAddr,
 		InitValidators:   validators,
+		ValidatorPriKey:  []*ecdsa.PrivateKey{deployPrivateKey},
 		InitPowers:       initPowers,
 	}
 

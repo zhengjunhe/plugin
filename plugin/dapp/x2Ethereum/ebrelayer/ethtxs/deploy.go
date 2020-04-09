@@ -184,7 +184,7 @@ func DeployAndInit(backend bind.ContractBackend, para *DeployPara) (*X2EthContra
 			case <-oneSecondtimeout.C:
 				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.Valset.TxHash))
 				if err == ethereum.NotFound {
-					fmt.Println("\n No receipt received for DeployValset tx")
+					fmt.Println("\n No receipt received yet for DeployValset tx and continue to wait")
 					continue
 				} else if err != nil {
 					panic("DeployValset failed due to" + err.Error())
@@ -229,7 +229,7 @@ deployChain33Bridge:
 			case <-oneSecondtimeout.C:
 				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.Chain33Bridge.TxHash))
 				if err == ethereum.NotFound {
-					fmt.Println("\n No receipt received for DeployChain33Bridge tx")
+					fmt.Println("\n No receipt received for DeployChain33Bridge tx and continue to wait")
 					continue
 				} else if err != nil {
 					panic("DeployChain33Bridge failed due to" + err.Error())
@@ -274,7 +274,7 @@ deployOracle:
 			case <-oneSecondtimeout.C:
 				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.Oracle.TxHash))
 				if err == ethereum.NotFound {
-					fmt.Println("\n No receipt received for DeployOracle tx")
+					fmt.Println("\n No receipt received for DeployOracle tx and continue to wait")
 					continue
 				} else if err != nil {
 					panic("DeployOracle failed due to" + err.Error())
@@ -319,7 +319,7 @@ deployBridgeBank:
 			case <-oneSecondtimeout.C:
 				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.BridgeBank.TxHash))
 				if err == ethereum.NotFound {
-					fmt.Println("\n No receipt received for DeployOracle tx")
+					fmt.Println("\n No receipt received for DeployOracle tx and continue to wait")
 					continue
 				} else if err != nil {
 					panic("DeployBridgeBank failed due to" + err.Error())
@@ -391,7 +391,7 @@ settingBridgeBank:
 			case <-oneSecondtimeout.C:
 				_, err := client.TransactionReceipt(context.Background(), common.HexToHash(deployInfo.BridgeRegistry.TxHash))
 				if err == ethereum.NotFound {
-					fmt.Println("\n No receipt received for DeployOracle tx")
+					fmt.Println("\n No receipt received for DeployOracle tx and continue to wait")
 					continue
 				} else if err != nil {
 					panic("DeployBridgeRegistry failed due to" + err.Error())

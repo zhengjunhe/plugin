@@ -312,7 +312,7 @@ func MakeNewProphecyClaimFlags(cmd *cobra.Command) {
 func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	claimType, _ := cmd.Flags().GetUint32("claim")
-	if claimType != uint32(1) || claimType != uint32(2) {
+	if claimType != uint32(1) && claimType != uint32(2) {
 		fmt.Println("Wrong claim type")
 		return
 	}
