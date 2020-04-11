@@ -50,7 +50,6 @@ type EthereumRelayer struct {
 	rpcURL2Chain33       string
 	unlockchan           chan int
 	status               int32
-	//bridgeBankAbi        *abi.ABI
 	client                *ethclient.Client
 	bridgeBankAddr        common.Address
 	chain33BridgeAddr     common.Address
@@ -76,18 +75,23 @@ func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAd
 	relayer := &EthereumRelayer{
 		provider:           provider,
 		db:                 db,
-		unlockchan:         make(chan int),
+		unlockchan:         make(chan int, 2),
 		rpcURL2Chain33:     rpcURL2Chain33,
 		status:             ebTypes.StatusPending,
 		bridgeRegistryAddr: common.HexToAddress(registryAddress),
 		deployInfo:         deploy,
 	}
 
+
 	registrAddrInDB, err := relayer.getBridgeRegistryAddr()
-	if nil == err && registrAddrInDB != registryAddress {
+	//如果输入的registry地址非空，且和数据库保存地址不一致，则直接使用输入注册地址
+	if registryAddress != "" && nil == err && registrAddrInDB != registryAddress {
 		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB,
 			"but now setting to", registryAddress)
 		_ = relayer.setBridgeRegistryAddr(registryAddress)
+	} else if registryAddress == "" && registrAddrInDB != ""{
+		//输入地址为空，且数据库中保存地址不为空，则直接使用数据库中的地址
+		relayer.bridgeRegistryAddr = common.HexToAddress(registrAddrInDB)
 	}
 
 	go relayer.proc()
@@ -120,6 +124,42 @@ func (ethRelayer *EthereumRelayer) GetRunningStatus() (relayerRunStatus *ebTypes
 	}
 	relayerRunStatus.Details = "Running"
 	return
+}
+
+func (ethRelayer *EthereumRelayer) recoverDeployPara() (err error) {
+	if nil == ethRelayer.deployInfo {
+		return errors.New("No deploy info configured yet")
+	}
+	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(ethRelayer.deployInfo.DeployerPrivateKey))
+	if nil != err {
+		return err
+	}
+	if len(ethRelayer.deployInfo.ValidatorsAddr) != len(ethRelayer.deployInfo.InitPowers) {
+		return errors.New("Not same number for validator address and power")
+	}
+	if len(ethRelayer.deployInfo.ValidatorsAddr) < 3 {
+		return errors.New("The number of validator must be not less than 3")
+	}
+
+	var validators []common.Address
+	var initPowers []*big.Int
+
+	for i, addr := range ethRelayer.deployInfo.ValidatorsAddr {
+		validators = append(validators, common.HexToAddress(addr))
+		initPowers = append(initPowers, big.NewInt(ethRelayer.deployInfo.InitPowers[i]))
+	}
+	deployerAddr := crypto.PubkeyToAddress(deployPrivateKey.PublicKey)
+	para := &ethtxs.DeployPara{
+		DeployPrivateKey: deployPrivateKey,
+		Deployer:         deployerAddr,
+		Operator:         deployerAddr,
+		InitValidators:   validators,
+		ValidatorPriKey:  []*ecdsa.PrivateKey{deployPrivateKey},
+		InitPowers:       initPowers,
+	}
+	ethRelayer.deployPara = para
+
+	return nil
 }
 
 //部署以太坊合约
@@ -186,7 +226,17 @@ func (ethRelayer *EthereumRelayer) GetBalance(tokenAddr, owner string) (int64, e
 }
 
 func (ethRelayer *EthereumRelayer) ProcessProphecyClaim(prophecyID int64) (string, error) {
+	//if active, _ := ethRelayer.IsProphecyPending(prophecyID); !active {
+	//	fmt.Printf("\n\n****prophecyID %d is not active\n", prophecyID)
+	//	return "", errors.New("prophecyID is not active")
+	//}
+	//fmt.Printf("\n\n****prophecyID %dis active\n", prophecyID)
+
 	return ethtxs.ProcessProphecyClaim(ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthContracts, prophecyID)
+}
+
+func (ethRelayer *EthereumRelayer) IsProphecyPending(prophecyID int64) (bool, error) {
+	return ethtxs.IsProphecyPending(prophecyID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Oracle)
 }
 
 func (ethRelayer *EthereumRelayer) MakeNewProphecyClaim(claimType uint8, chain33Sender, tokenAddr, symbol string) (string, error) {
@@ -228,13 +278,24 @@ func (ethRelayer *EthereumRelayer) proc() {
 	_, _ = fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Ethereum relayer")
 	nilAddr := common.Address{}
 	if nilAddr != ethRelayer.bridgeRegistryAddr {
+		fmt.Printf("\nThe bridgeRegistryAddr is:%s, and going to recover corresponding solidity contract handler", ethRelayer.bridgeRegistryAddr.String())
+		ethRelayer.x2EthContracts, ethRelayer.x2EthDeployInfo, err = ethtxs.RecoverContractHandler(client, ethRelayer.bridgeRegistryAddr, ethRelayer.bridgeRegistryAddr )
+		if nil != err {
+			panic("Failed to recover corresponding solidity contract handler due to:"+ err.Error())
+		}
+		fmt.Printf("\n^-^ ^-^ Succeed to recover corresponding solidity contract handler")
+		if nil != ethRelayer.recoverDeployPara() {
+			panic("Failed to recoverDeployPara")
+		}
 		ethRelayer.unlockchan <- start
 	}
 
 	for {
 		select {
 		case <-ethRelayer.unlockchan:
+			fmt.Printf("\nreceived ethRelayer.unlockchan")
 			if nil != ethRelayer.privateKey4Ethereum && nil != ethRelayer.privateKey4Chain33 && nilAddr != ethRelayer.bridgeRegistryAddr {
+				fmt.Printf("\nGoing to subscribeEvent")
 				ethRelayer.ethValidator, err = ethtxs.LoadSender(ethRelayer.privateKey4Ethereum)
 				if nil != err {
 					errinfo := fmt.Sprintf("Failed to load validator for ethereum due to:%s", err.Error())

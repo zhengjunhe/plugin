@@ -71,9 +71,7 @@ func UnpackLogLock(clientChainID *big.Int, contractAddress string, contractAbi a
 }
 
 // UnpackLogNewProphecyClaim : Handles new LogNewProphecyClaim events
-func UnpackLogNewProphecyClaim(contractAbi abi.ABI, eventName string, eventData []byte) (newProphecyClaimEvent NewProphecyClaimEvent, err error) {
-	event := NewProphecyClaimEvent{}
-
+func UnpackLogNewProphecyClaim(contractAbi abi.ABI, eventName string, eventData []byte) (event NewProphecyClaimEvent, err error) {
 	// Parse the event's attributes as Ethereum network variables
 	err = contractAbi.Unpack(&event, eventName, eventData)
 	if err != nil {
@@ -82,7 +80,8 @@ func UnpackLogNewProphecyClaim(contractAbi abi.ABI, eventName string, eventData 
 		return
 	}
 
-	eventsLog.Info("UnpackLogNewProphecyClaim", "event detailed info:", printProphecyClaimEvent(event))
+	info2print := printProphecyClaimEvent(event)
+	eventsLog.Info("UnpackLogNewProphecyClaim", "event detailed info:", info2print)
 	return
 }
 
@@ -108,14 +107,17 @@ func printProphecyClaimEvent(event NewProphecyClaimEvent) string {
 	// Convert the variables into a printable format
 	id := event.ProphecyID
 	claimType := event.ClaimType
-	sender := string(event.Chain33Sender)
+	sender := common.Bytes2Hex(event.Chain33Sender)
 	recipient := event.EthereumReceiver.Hex()
 	symbol := event.Symbol
 	token := event.TokenAddress.Hex()
 	amount := event.Amount
 	validator := event.ValidatorAddress.Hex()
 
+	fmt.Printf("\nProphecy ID: %v\nClaim Type: %v\nSender: %s\nRecipient %v\nSymbol %v\nToken %v\nAmount: %v\nValidator: %v\n\n",
+		id, claimType, sender, recipient, symbol, token, amount, validator)
+
 	// Print the event's information
-	return fmt.Sprintf("\nProphecy ID: %v\nClaim Type: %v\nSender: %v\nRecipient %v\nSymbol %v\nToken %v\nAmount: %v\nValidator: %v\n\n",
+	return fmt.Sprintf("\nProphecy ID: %v\nClaim Type: %v\nSender: %s\nRecipient %v\nSymbol %v\nToken %v\nAmount: %v\nValidator: %v\n\n",
 		id, claimType, sender, recipient, symbol, token, amount, validator)
 }

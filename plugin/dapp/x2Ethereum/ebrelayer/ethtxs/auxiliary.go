@@ -6,8 +6,8 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
 )
@@ -88,7 +88,7 @@ func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara
 //chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
 /////////////////NewProphecyClaim////////////////
 func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *ethclient.Client, para *DeployPara, x2EthContracts *X2EthContracts) (string, error) {
-    authVali, err := PrepareAuth(client, para.ValidatorPriKey[0], para.InitValidators[0])
+	authVali, err := PrepareAuth(client, para.ValidatorPriKey[0], para.InitValidators[0])
 	if nil != err {
 		return "", err
 	}
@@ -111,11 +111,11 @@ func ProcessProphecyClaim(client *ethclient.Client, para *DeployPara, x2EthContr
 	if nil != err {
 		return "", err
 	}
-
 	tx, err := x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, big.NewInt(prophecyID))
 	if nil != err {
 		return "", err
 	}
+
 	err = waitEthTxFinished(client, tx.Hash())
 	if nil != err {
 		return tx.Hash().String(), err
@@ -134,5 +134,8 @@ func GetBalance(client *ethclient.Client, tokenAddr, owner common.Address) (int6
 		Context: context.Background(),
 	}
 	balance, err := bridgeToken.BalanceOf(opts, owner)
-	return balance.Int64(), err
+	if nil != err {
+		return 0, err
+	}
+	return balance.Int64(), nil
 }

@@ -25,11 +25,11 @@ startSyncHash=""
 
 [deploy]
 #合约部署人员私钥，用于部署合约时签名使用
-operatorAddr="0xFfE5123Cf006E6b6CF1Cf008fDa6D06820decF73"
+operatorAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 #合约部署人员私钥，用于部署合约时签名使用
-deployerPrivateKey="0x1c4f2cbeeef81ab2f28b5a0815d42f1b4868e51ff68a6d27d388c3ff85384a92"
+deployerPrivateKey="0x8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 #验证人地址，至少配置３个以上，即大于等于３个
-validatorsAddr=["0xFfE5123Cf006E6b6CF1Cf008fDa6D06820decF73", "0xEFDF20eBB7E28e2a5D7e5b194a6c68d378D6b7Bf", "0x88Bb3c565379E2F2a358ac5751A67AF54a3382fC"]
+validatorsAddr=["0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a", "0x92c8b16afd6d423652559c6e266cbe1c29bfd84f", "0x0df9a824699bc5878232c9e612fe1a5346a5a368"]
 #验证人权重
 initPowers=[80, 10, 10]
 

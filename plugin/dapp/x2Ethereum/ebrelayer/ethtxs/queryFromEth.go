@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
+	"math/big"
 )
 
 func GetOperator(client *ethclient.Client, sender, bridgeBank common.Address) (common.Address, error) {
@@ -49,4 +50,22 @@ func IsActiveValidator(validator common.Address, valset *generated.Valset) (bool
 
 	return isActiveValidator, nil
 }
+
+func IsProphecyPending(id int64, validator common.Address, chain33Bridge *generated.Oracle) (bool, error) {
+	opts := &bind.CallOpts{
+		Pending:     true,
+		From:        validator,
+		Context:     context.Background(),
+	}
+
+	// Initialize BridgeRegistry instance
+	active, err := chain33Bridge.IsProphecyClaimActive(opts, big.NewInt(id))
+	if err != nil {
+		txslog.Error("IsActiveValidatorFromChain33Bridge", "Failed to query IsActiveValidator due to:", err.Error())
+		return false, err
+	}
+	return active, nil
+}
+
+
 

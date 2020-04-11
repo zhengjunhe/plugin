@@ -88,7 +88,6 @@ func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, tra
 		txslog.Error("PrepareAuth", "Failed to SuggestGasPrice due to:", err.Error())
 		return nil, errors.New("Failed to get suggest gas price")
 	}
-
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0) // in wei

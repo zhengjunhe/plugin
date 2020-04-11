@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	txslog = log15.New("relayer txs", "txs")
+	txslog = log15.New("ethereum relayer", "ethtxs")
 )
 
 const (
@@ -79,7 +79,6 @@ func RelayOracleClaimToEthereum(provider string, sender, contractAddress common.
 	if nil != err {
 		return txhash, err
 	}
-
 
 	return txhash, nil
 }

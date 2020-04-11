@@ -307,8 +307,6 @@ func (manager *RelayerManager) DeployContrcts(param interface{}, result *interfa
 	return nil
 }
 
-
-
 func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -351,10 +349,22 @@ func (manager *RelayerManager) ProcessProphecyClaim(prophecyID int64, result *in
 	return nil
 }
 
-func (manager *RelayerManager) GetBalance(param interface{}, result *interface{}) error {
+func (manager *RelayerManager) IsProphecyPending(prophecyID int64, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
-	balanceAddr := param.(relayerTypes.BalanceAddr)
+	active, err := manager.ethRelayer.IsProphecyPending(prophecyID)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: active,
+	}
+	return nil
+}
+
+func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
 	balance, err := manager.ethRelayer.GetBalance(balanceAddr.TokenAddr, balanceAddr.Owner)
 	if nil != err {
 		return err

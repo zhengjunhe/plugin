@@ -34,6 +34,7 @@ func EthereumRelayerCmd() *cobra.Command {
 		MakeNewProphecyClaimCmd(),
 		ProcessProphecyClaimCmd(),
 		GetBalanceCmd(),
+		IsProphecyPendingCmd(),
 
 	)
 
@@ -348,7 +349,7 @@ func ProcessProphecyClaimFlags(cmd *cobra.Command) {
 
 func ProcessProphecyClaim(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	prophecyID, _ := cmd.Flags().GetUint32("prophecyID")
+	prophecyID, _ := cmd.Flags().GetInt64("prophecyID")
 	para := prophecyID
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ProcessProphecyClaim", para, &res)
@@ -384,3 +385,28 @@ func GetBalance(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.GetBalance", para, &res)
 	ctx.Run()
 }
+
+func IsProphecyPendingCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "ispending",
+		Short: "check whether the Prophecy is pending or not",
+		Run:   IsProphecyPending,
+	}
+	IsProphecyPendingFlags(cmd)
+	return cmd
+}
+
+func IsProphecyPendingFlags(cmd *cobra.Command) {
+	cmd.Flags().Int64P("id", "i", int64(0), "prophecy id")
+	_ = cmd.MarkFlagRequired("id")
+}
+
+func IsProphecyPending(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	id, _ := cmd.Flags().GetInt64("id")
+	para := id
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.IsProphecyPending", para, &res)
+	ctx.Run()
+}
+

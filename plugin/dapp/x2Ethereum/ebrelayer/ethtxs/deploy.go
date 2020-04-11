@@ -218,7 +218,8 @@ deployChain33Bridge:
 		sim.Commit()
 	} else {
 		client := backend.(*ethclient.Client)
-		fmt.Println("DeployChain33Bridge tx hash:", deployInfo.Chain33Bridge.TxHash)
+		fmt.Printf("\n\nGoing to DeployChain33Bridge with valset address:%s", deployInfo.Valset.Address.String())
+		fmt.Println("\nDeployChain33Bridge tx hash:", deployInfo.Chain33Bridge.TxHash)
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(5 * time.Second)
 		for {
@@ -349,28 +350,100 @@ settingBridgeBank:
 	if nil != err {
 		return nil, nil, err
 	}
-	_, err = x2EthContracts.Chain33Bridge.SetBridgeBank(auth, deployInfo.BridgeBank.Address)
+	setBridgeBankTx, err := x2EthContracts.Chain33Bridge.SetBridgeBank(auth, deployInfo.BridgeBank.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to SetBridgeBank due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("setBridgeBankTx tx hash:", setBridgeBankTx.Hash().String())
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("setBridgeBankTx timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), setBridgeBankTx.Hash())
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for setBridgeBankTx tx and continue to wait")
+					continue
+				} else if err != nil {
+					panic("setBridgeBankTx failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				yes, err := x2EthContracts.Chain33Bridge.HasBridgeBank(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if !yes {
+					fmt.Printf("BridgeBank doesn't exist")
+					panic("BridgeBank doesn't exist")
+				}
+				goto setOracle
+			}
+		}
 	}
 
+setOracle:
 	auth, err = PrepareAuth(backend, para.DeployPrivateKey, para.Deployer)
 	if nil != err {
 		return nil, nil, err
 	}
-	_, err = x2EthContracts.Chain33Bridge.SetOracle(auth, deployInfo.Oracle.Address)
+	setOracleTx, err := x2EthContracts.Chain33Bridge.SetOracle(auth, deployInfo.Oracle.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to SetOracle due to:", err.Error())
 		return nil, nil, err
 	}
 	if isSim {
 		sim.Commit()
+	} else {
+		client := backend.(*ethclient.Client)
+		fmt.Println("setOracleTx tx hash:", setOracleTx.Hash().String())
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("setBridgeBankTx timeout")
+			case <-oneSecondtimeout.C:
+				_, err := client.TransactionReceipt(context.Background(), setOracleTx.Hash())
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received for setOracleTx tx and continue to wait")
+					continue
+				} else if err != nil {
+					panic("setOracleTx failed due to" + err.Error())
+				}
+
+				callopts := &bind.CallOpts{
+					Pending: true,
+					From:    para.Deployer,
+					Context: context.Background(),
+				}
+				yes, err := x2EthContracts.Chain33Bridge.HasOracle(callopts)
+				if nil != err {
+					panic(err.Error())
+				}
+
+				if !yes {
+					fmt.Printf("oracle doesn't exist")
+					panic("oracle doesn't exist")
+				}
+				goto deployBridgeRegistry
+			}
+		}
 	}
 
+deployBridgeRegistry:
 	x2EthContracts.BridgeRegistry, deployInfo.BridgeRegistry, err = DeployBridgeRegistry(backend, para.DeployPrivateKey, para.Deployer, deployInfo.Chain33Bridge.Address, deployInfo.BridgeBank.Address, deployInfo.Oracle.Address, deployInfo.Valset.Address)
 	if nil != err {
 		deployLog.Error("DeployAndInit", "failed to DeployBridgeBank due to:", err.Error())
