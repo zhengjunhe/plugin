@@ -51,7 +51,7 @@ func IsActiveValidator(validator common.Address, valset *generated.Valset) (bool
 	return isActiveValidator, nil
 }
 
-func IsProphecyPending(id int64, validator common.Address, chain33Bridge *generated.Oracle) (bool, error) {
+func IsProphecyPending(id int64, validator common.Address, chain33Bridge *generated.Chain33Bridge) (bool, error) {
 	opts := &bind.CallOpts{
 		Pending:     true,
 		From:        validator,

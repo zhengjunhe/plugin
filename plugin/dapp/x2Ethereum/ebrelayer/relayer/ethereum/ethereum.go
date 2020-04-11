@@ -236,7 +236,7 @@ func (ethRelayer *EthereumRelayer) ProcessProphecyClaim(prophecyID int64) (strin
 }
 
 func (ethRelayer *EthereumRelayer) IsProphecyPending(prophecyID int64) (bool, error) {
-	return ethtxs.IsProphecyPending(prophecyID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Oracle)
+	return ethtxs.IsProphecyPending(prophecyID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Chain33Bridge)
 }
 
 func (ethRelayer *EthereumRelayer) MakeNewProphecyClaim(claimType uint8, chain33Sender, tokenAddr, symbol string) (string, error) {
