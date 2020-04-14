@@ -10,11 +10,11 @@ InitAndDeploy() {
         exit 1
   fi
   result=$(${CLI} relayer unlock -p 123456hzj)
-  result=$(${CLI} relayer ethereum deploy | jq .isOK)
-  if [[ ${result} != "true" ]]; then
-        echo "failed to deploy"
-        exit 1
-  fi
+#  result=$(${CLI} relayer ethereum deploy | jq .isOK)
+#  if [[ ${result} != "true" ]]; then
+#        echo "failed to deploy"
+#        exit 1
+#  fi
   result=$(${CLI} relayer ethereum import_chain33privatekey -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944 | jq .isOK)
   if [[ ${result} != "true" ]]; then
         echo "failed to import_chain33privatekey"
@@ -25,7 +25,7 @@ InitAndDeploy() {
         echo "failed to import_ethprivatekey"
         exit 1
   fi
-  result=$(${CLI} relayer chain33 import_privatekey -k 0x14bceae318540a06a068fa5764e6c4704c2630ac9fe58b5ccf575817c3cb7510 | jq .isOK)
+  result=$(${CLI} relayer chain33 import_privatekey -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f | jq .isOK)
   if [[ ${result} != "true" ]]; then
         echo "failed to import_chain33privatekey"
         exit 1

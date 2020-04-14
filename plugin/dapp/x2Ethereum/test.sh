@@ -20,7 +20,7 @@ BtyTokenContractAddr="0xbAf2646b8DaD8776fc74Bf4C8d59E6fB3720eddf"
 
 block_wait() {
     if [[ $# -lt 1 ]]; then
-        echo "wrong block_wait  parameter"
+        echo "wrong #block_waitparameter"
         exit 1
     fi
     cur_height=$(${CLI} block last_header | jq ".height")
@@ -69,7 +69,7 @@ check_Number() {
 
 # SetConsensusThreshold
 hash=`${CLI} send x2ethereum setconsensus -p 80 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+#block_wait2
 check_tx 2 ${hash}
 
 # query ConsensusThreshold
@@ -78,7 +78,7 @@ check_Number 80 ${nowConsensus}
 
 # add a validator
 hash=`${CLI} send x2ethereum add -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+#block_wait2
 check_tx 2 ${hash}
 
 # query Validators
@@ -88,7 +88,7 @@ check_Number 7 ${totalPower}
 
 # add a validator again
 hash=`${CLI} send x2ethereum add -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+#block_wait2
 check_tx 2 ${hash}
 
 # query Validators
@@ -98,7 +98,7 @@ check_Number 13 ${totalPower}
 
 # remove a validator
 hash=`${CLI} send x2ethereum remove -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+#block_wait2
 check_tx 2 ${hash}
 
 # query Validators
@@ -108,7 +108,7 @@ check_Number 7 ${totalPower}
 
 # add a validator again
 hash=`${CLI} send x2ethereum add -a 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+#block_wait2
 check_tx 2 ${hash}
 
 # query Validators
@@ -119,89 +119,83 @@ check_Number 13 ${totalPower}
 totalPower=`${CLI} send x2ethereum query totalpower -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g'`
 check_Number 13 ${totalPower}
 
+##############################################################
+######################## 测试交易 #############################
+##############################################################
+
+# ethereum -> chain33
+
 # send a eth2chain33 tx
-hash=`${CLI} send x2ethereum create --amount 10 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 0 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum create --amount 10 -b ${ETHContractAddr} -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 0 -r ${BtyReceiever} -s ${Ethsender} -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
 
 # send a eth2chain33 tx again
-hash=`${CLI} send x2ethereum create --amount 10 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 0 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum create --amount 10 -b ${ETHContractAddr} -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 0 -r ${BtyReceiever} -s ${Ethsender} -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
 
 # query prophecy
 ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
 Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 
-Amount=`${CLI} send x2ethereum query symbolamount -s eth -d 1 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
-check_Number 10 ${Amount}
+# TODO
+# 后续可以做一笔转账
 
-# send a withdrawEth tx
-hash=`${CLI} send x2ethereum withdraweth --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t eth -g eth --ethid 0 --nonce 1 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+# send a burn tx
+hash=`${CLI} send x2ethereum burn --amount 4 -e x2ethereum -t eth -g eth  -r ${Ethsender} -s ${BtyReceiever} -q 0x0000000000000000000000000000000000000000 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
-
-# send a withdrawEth tx again
-hash=`${CLI} send x2ethereum withdraweth --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t eth -g eth --ethid 0 --nonce 1 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
-check_tx 2 ${hash}
-
-# query prophecy
-ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
-Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-
-Amount=`${CLI} send x2ethereum query symbolamount -s eth -d 1 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
-check_Number 5 ${Amount}
 
 # send a eth2chain33 tx
-hash=`${CLI} send x2ethereum create --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 2 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum create --amount 5 -b ${ETHContractAddr} -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 1 -r ${BtyReceiever} -s ${Ethsender} -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
 
 # send a eth2chain33 tx again
-hash=`${CLI} send x2ethereum create --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 2 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum create --amount 5 -b ${ETHContractAddr} -e x2ethereum --claimtype 0 -t eth -g eth --ethid 0 --nonce 1 -r ${BtyReceiever} -s ${Ethsender} -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
 
 # query prophecy
 ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
 Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 
-Amount=`${CLI} send x2ethereum query symbolamount -s eth -d 1 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
-check_Number 10 ${Amount}
+# chain33 -> ethereum
 
 # send bty to mavl-x2ethereum-bty-12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 ${CLI} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 
 # send a chain33eth tx
-hash=`${CLI} send x2ethereum lock --amount 5 -e x2ethereum -t bty  -g bty -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0xbAf2646b8DaD8776fc74Bf4C8d59E6fB3720eddf -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum lock --amount 5 -e x2ethereum -t bty  -g bty -r ${Ethsender} -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q ${BtyTokenContractAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
-
-Amount=`${CLI} send x2ethereum query symbolamount -s bty -d 2 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
-check_Number 5 ${Amount}
-
-# send a chain33eth tx
-hash=`${CLI} send x2ethereum burn --amount 4 -e x2ethereum -t bty -g bty  -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0xbAf2646b8DaD8776fc74Bf4C8d59E6fB3720eddf -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
-check_tx 2 ${hash}
-
-Amount=`${CLI} send x2ethereum query symbolamount -s bty -d 2 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
-check_Number 1 ${Amount}
 
 # send a withdrawEth tx
-hash=`${CLI} send x2ethereum withdraweth --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t eth -g eth --ethid 0 --nonce 3 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum withdraweth --amount 2 -b ${ETHContractAddr} -e x2ethereum --claimtype 1 -t bty -g eth --ethid 0 --nonce 2 -r ${BtyReceiever} -s ${Ethsender} -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
 
 # send a withdrawEth tx again
-hash=`${CLI} send x2ethereum withdraweth --amount 5 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t eth -g eth --ethid 0 --nonce 3 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
-block_wait  2
+hash=`${CLI} send x2ethereum withdraweth --amount 2 -b ${ETHContractAddr} -e x2ethereum --claimtype 1 -t bty -g eth --ethid 0 --nonce 2 -r ${BtyReceiever} -s ${Ethsender} -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
 check_tx 2 ${hash}
 
 # query prophecy
 ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
 Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 
-Amount=`${CLI} send x2ethereum query symbolamount -s eth -d 1 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq '.totalAmount' | sed 's/\"//g'`
-check_Number 5 ${Amount}
+
+# send a withdrawEth tx
+hash=`${CLI} send x2ethereum withdraweth --amount 2 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t bty -g eth --ethid 0 --nonce 3 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
+check_tx 2 ${hash}
+
+# send a withdrawEth tx again
+hash=`${CLI} send x2ethereum withdraweth --amount 2 -b 0xC4cE93a5699c68241fc2fB503Fb0f21724A624BB -e x2ethereum --claimtype 1 -t bty -g eth --ethid 0 --nonce 3 -r 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -s 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -q 0x0000000000000000000000000000000000000000 -v 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+#block_wait2
+check_tx 2 ${hash}
+
+# query prophecy
+ProphecyID=`${CLI} tx query -s ${hash}  | jq '.receipt.logs[].log | select((.ProphecyID !="") and (.ProphecyID !=null)) | .ProphecyID' | sed 's/\"//g'`
+Prophecy=`${CLI} send x2ethereum query prophecy -i ${ProphecyID} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`

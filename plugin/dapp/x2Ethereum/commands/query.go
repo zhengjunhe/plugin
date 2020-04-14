@@ -22,7 +22,6 @@ func queryCmd() *cobra.Command {
 		queryValidatorsCmd(),
 		queryConsensusCmd(),
 		queryTotalPowerCmd(),
-		querySymbolTotalAmountCmd(),
 		querySymbolTotalAmountByTxTypeCmd(),
 	)
 	return cmd
@@ -142,47 +141,6 @@ func queryTotalPower(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQueryTotalPower{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
-	ctx.Run()
-}
-
-func querySymbolTotalAmountCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "symbolamount",
-		Short: "query current symbol total amount",
-		Run:   querySymbolTotalAmount,
-	}
-
-	cmd.Flags().StringP("symbol", "s", "", "token symbol")
-	_ = cmd.MarkFlagRequired("symbol")
-
-	cmd.Flags().Int64P("direction", "d", 0, "eth2chain33 = 1,chain33toeth = 2")
-	_ = cmd.MarkFlagRequired("direction")
-	return cmd
-}
-
-func querySymbolTotalAmount(cmd *cobra.Command, args []string) {
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	symbol, _ := cmd.Flags().GetString("symbol")
-	direction, _ := cmd.Flags().GetInt64("direction")
-
-	get := &types2.QuerySymbolAssetsParams{
-		TokenSymbol: symbol,
-		Direction:   direction,
-	}
-	payLoad, err := types.PBToJSON(get)
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "ErrPbToJson:"+err.Error())
-		return
-	}
-
-	query := rpctypes.Query4Jrpc{
-		Execer:   types2.X2ethereumX,
-		FuncName: types2.FuncQuerySymbolTotalAmount,
-		Payload:  payLoad,
-	}
-
-	channel := &types2.ReceiptQuerySymbolAssets{}
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
 	ctx.Run()
 }
