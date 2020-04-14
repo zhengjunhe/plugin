@@ -25,12 +25,12 @@ var (
 	syncTxReceipts *SyncTxReceipts
 )
 
-func StartSyncTxReceipt(cfg *relayerTypes.SyncTxReceiptConfig, syncChan chan<- int64, db dbm.DB) *SyncTxReceipts {
+func StartSyncTxReceipt(cfg *relayerTypes.SyncTxReceiptConfig, db dbm.DB) *SyncTxReceipts {
 	log.Debug("StartSyncTxReceipt, load config", "para:", cfg)
 	log.Debug("SyncTxReceipts started ")
 
 	bindOrResumePush(cfg)
-	syncTxReceipts = NewSyncTxReceipts(db, syncChan)
+	syncTxReceipts = NewSyncTxReceipts(db)
 	go syncTxReceipts.SaveAndSyncTxs2Relayer()
 	go startHTTPService(cfg.PushBind, "*")
 	return syncTxReceipts
@@ -106,8 +106,8 @@ func handleRequest(body []byte) error {
 		return err
 	}
 
-	err = pushTxReceipts(&req)
 	log.Info("response", "err", err)
+	err = pushTxReceipts(&req)
 	return err
 }
 

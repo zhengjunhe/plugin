@@ -2,6 +2,12 @@
 set -x
 CLI="/opt/src/github.com/33cn/plugin/cli/chain33-cli"
 
+ETHContractAddr="0x40BFE5eD039A9a2Eb42ece2E2CA431bFa7Cf4c42"
+BTYContractAddr="0x40BFE5eD039A9a2Eb42ece2E2CA431bFa7Cf4c42"
+Ethsender="0xcbfddc6ae318970ba3feeb0541624f95822e413a"
+BtyReceiever="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
+BtyTokenContractAddr="0xbAf2646b8DaD8776fc74Bf4C8d59E6fB3720eddf"
+
 # 测试流程
 #
 # bankAddr = 1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi
@@ -168,7 +174,7 @@ check_Number 10 ${Amount}
 ${CLI} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 
 # send a chain33eth tx
-hash=`${CLI} send x2ethereum lock --amount 5 -e x2ethereum -t bty  -g eth -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0x0000000000000000000000000000000000000000 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+hash=`${CLI} send x2ethereum lock --amount 5 -e x2ethereum -t bty  -g bty -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0xbAf2646b8DaD8776fc74Bf4C8d59E6fB3720eddf -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 block_wait  2
 check_tx 2 ${hash}
 
@@ -176,7 +182,7 @@ Amount=`${CLI} send x2ethereum query symbolamount -s bty -d 2 -k 12qyocayNF7Lv6C
 check_Number 5 ${Amount}
 
 # send a chain33eth tx
-hash=`${CLI} send x2ethereum burn --amount 4 -e x2ethereum -t bty -g eth  -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0x0000000000000000000000000000000000000000 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
+hash=`${CLI} send x2ethereum burn --amount 4 -e x2ethereum -t bty -g bty  -r 0x7B95B6EC7EbD73572298cEf32Bb54FA408207359 -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q 0xbAf2646b8DaD8776fc74Bf4C8d59E6fB3720eddf -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 block_wait  2
 check_tx 2 ${hash}
 
