@@ -49,6 +49,10 @@ func RelayProphecyClaimToEthereum(provider string, sender, contractAddress commo
 	}
 	txhash = tx.Hash().Hex()
 	txslog.Info("RelayProphecyClaimToEthereum", "NewProphecyClaim tx hash:", txhash)
+	err = waitEthTxFinished(client, tx.Hash())
+	if nil != err {
+		return txhash, err
+	}
 	return
 }
 
