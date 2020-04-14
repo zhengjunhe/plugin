@@ -10,9 +10,9 @@ import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	chain33Types "github.com/33cn/chain33/types"
+	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	syncTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33/transceiver/sync"
-	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
@@ -39,7 +39,7 @@ type Chain33Relayer struct {
 	passphase            string
 	privateKey4Ethereum  *ecdsa.PrivateKey
 	ethSender            ethCommon.Address
-	contractAddress      ethCommon.Address
+	registryAddr         ethCommon.Address
 	totalTx4Chain33ToEth int64
 	ctx                  context.Context
 	wg                   sync.WaitGroup
@@ -49,13 +49,14 @@ type Chain33Relayer struct {
 }
 
 // StartChain33Relayer : initializes a relayer which witnesses events on the chain33 network and relays them to Ethereum
-func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, db dbm.DB, ctx context.Context) *Chain33Relayer {
+func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr string, db dbm.DB, ctx context.Context) *Chain33Relayer {
 	relayer := &Chain33Relayer{
 		rpcLaddr:            syncTxConfig.Chain33Host,
 		fetchHeightPeriodMs: syncTxConfig.FetchHeightPeriodMs,
 		unlock:              make(chan int),
 		db:                  db,
 		ctx:                 ctx,
+		registryAddr:        ethCommon.HexToAddress(registryAddr),
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -201,7 +202,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 
 	// TODO: Need some sort of delay on this so validators aren't all submitting at the same time
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, chain33Relayer.contractAddress, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum)
+	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, chain33Relayer.registryAddr, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)
