@@ -125,7 +125,7 @@ func TestBrigeTokenCreat(t *testing.T) {
 
 //测试在chain33上锁定资产,然后在以太坊上铸币
 //发行token="BTY"
-//NewProphecyClaim
+//NewProphecyClaim lock
 //铸币NewOracleClaim,
 //ProcessBridgeProphecy
 //铸币成功
@@ -412,7 +412,7 @@ func TestBridgeDepositLock(t *testing.T) {
 	require.Equal(t, bridgeBankBalance.Int64(), expectAmount)
 	t.Logf("bridgeBankBalance changes to:%d", bridgeBankBalance.Int64())
 
-	//***测试子项目:should allow users to lock Ethereum
+	//***测试子项目:锁定ETH，should allow users to lock Ethereum
 	bridgeBankBalance, err = sim.BalanceAt(ctx, x2EthDeployInfo.BridgeBank.Address, nil)
 	require.Nil(t, err)
 	t.Logf("origin eth bridgeBankBalance is:%d", bridgeBankBalance.Int64())
@@ -433,7 +433,9 @@ func TestBridgeDepositLock(t *testing.T) {
 	t.Logf("eth bridgeBankBalance changes to:%d", bridgeBankBalance.Int64())
 }
 
-//测试在以太坊上unlock数字资产,包括Eth和Erc20
+//测试在以太坊上unlock数字资产,包括Eth和Erc20,
+//即从chain33取回在eth上发行的的ETH或ERC20数字资产，之前通过lock操作发送到了chain33
+//现在则通过NewProphecyClaim 的burn操作将数字资产取回
 //Ethereum/ERC20 token unlocking (for burned chain33 assets)
 func TestBridgeBankUnlock(t *testing.T) {
 	ctx := context.Background()
@@ -471,6 +473,9 @@ func TestBridgeBankUnlock(t *testing.T) {
 	userOneAuth.Value = big.NewInt(300)
 	_, err = ethToken.Transfer(userOneAuth, x2EthDeployInfo.BridgeBank.Address, userOneAuth.Value)
 	sim.Commit()
+	//ToDO://///////////////////////////////////////////////
+	////////????####To check the balance by hzj/////////////
+	////////////////////////////////////////////////////////
 
 	userOneAuth, err = ethtxs.PrepareAuth(backend, para.ValidatorPriKey[0], para.InitValidators[0])
 	require.Nil(t, err)
@@ -696,7 +701,7 @@ latter:
 	require.Equal(t, userUSDTbalance.Int64()+newProphecyAmount, userUSDTbalanceAfter.Int64())
 }
 
-//测试在以太坊上多次unlock数字资产,包括Eth和Erc20
+//测试在以太坊上多次unlock数字资产Eth
 //Ethereum/ERC20 token second unlocking (for burned chain33 assets)
 func TestBridgeBankSecondUnlockEth(t *testing.T) {
 	ctx := context.Background()

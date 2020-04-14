@@ -119,8 +119,8 @@ contract Chain33Bank {
      * @param _chain33Sender: The sender's Chain33 address in bytes.
      * @param _ethereumRecipient: The intended recipient's Ethereum address.
      * @param _chain33TokenAddress: The currency type
-     * @param _symbol: comsos token symbol
-     * @param _amount: number of comsos tokens to be minted
+     * @param _symbol: chain33 token symbol
+     * @param _amount: number of chain33 tokens to be minted
 \    */
      function mintNewBridgeTokens(
         bytes memory _chain33Sender,

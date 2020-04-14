@@ -67,5 +67,33 @@ func IsProphecyPending(id int64, validator common.Address, chain33Bridge *genera
 	return active, nil
 }
 
+func GetBalance(client *ethclient.Client, tokenAddr, owner string) (int64, error) {
+	//查询ERC20余额
+	if tokenAddr != "" {
+		bridgeToken, err := generated.NewBridgeToken(common.HexToAddress(tokenAddr), client)
+		if nil != err {
+			return 0, err
+		}
+		ownerAddr := common.HexToAddress(owner)
+		opts := &bind.CallOpts{
+			Pending: true,
+			From:    ownerAddr,
+			Context: context.Background(),
+		}
+		balance, err := bridgeToken.BalanceOf(opts, ownerAddr)
+		if nil != err {
+			return 0, err
+		}
+		return balance.Int64(), nil
+	}
+
+	//查询ETH余额
+	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(owner), nil)
+	if nil != err {
+		return 0, err
+	}
+	return balance.Int64(), nil
+}
+
 
 

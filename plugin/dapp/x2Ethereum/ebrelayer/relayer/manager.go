@@ -7,6 +7,8 @@ import (
 	"github.com/33cn/chain33/common/log/log15"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	chain33Types "github.com/33cn/chain33/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
@@ -321,10 +323,78 @@ func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interfac
 	return nil
 }
 
+func (manager *RelayerManager) CreateERC20Token(symbol string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	tokenAddr, err := manager.ethRelayer.CreateERC20Token(symbol)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("Token address:%s", tokenAddr),
+	}
+	return nil
+}
+
+func (manager *RelayerManager) MintErc20(mintToken relayerTypes.MintToken, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.MintERC20Token(mintToken.TokenAddr, mintToken.Owner, mintToken.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:txhash,
+	}
+	return nil
+}
+
+func (manager *RelayerManager) ApproveAllowance(approveAllowance relayerTypes.ApproveAllowance, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.ApproveAllowance(approveAllowance.OwnerKey, approveAllowance.TokenAddr, approveAllowance.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:txhash,
+	}
+	return nil
+}
+
+func (manager *RelayerManager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.LockEthErc20Asset(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:txhash,
+	}
+	return nil
+}
+
 func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerTypes.NewProphecyClaim, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
-	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(uint8(newProphecyClaim.ClaimType), newProphecyClaim.Chain33Sender, newProphecyClaim.TokenAddr, newProphecyClaim.Symbol)
+	var tokenAddress common.Address
+	if "" != newProphecyClaim.TokenAddr {
+		tokenAddress = common.HexToAddress(newProphecyClaim.TokenAddr)
+	}
+	newProphecyClaimPara := &ethtxs.NewProphecyClaimPara{
+		ClaimType:uint8(newProphecyClaim.ClaimType),
+		Chain33Sender:[]byte(newProphecyClaim.Chain33Sender),
+		TokenAddr:tokenAddress,
+		EthReceiver:common.HexToAddress(newProphecyClaim.EthReceiver),
+		Symbol:newProphecyClaim.Symbol,
+		Amount:newProphecyClaim.Amount,
+	}
+	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(newProphecyClaimPara)
 	if nil != err {
 		return err
 	}
@@ -372,6 +442,20 @@ func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, 
 	*result = rpctypes.Reply{
 		IsOk: true,
 		Msg:  fmt.Sprintf("balance:%d", balance),
+	}
+	return nil
+}
+
+func (manager *RelayerManager) ShowBridgeBankAddr(para interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	addr, err := manager.ethRelayer.ShowBridgeBankAddr()
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  addr,
 	}
 	return nil
 }

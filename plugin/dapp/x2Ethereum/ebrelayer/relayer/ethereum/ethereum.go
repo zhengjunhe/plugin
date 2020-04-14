@@ -222,16 +222,20 @@ func (ethRelayer *EthereumRelayer) DeployContrcts() (bridgeRegistry string, err 
 
 //GetBalance：获取某一个币种的余额
 func (ethRelayer *EthereumRelayer) GetBalance(tokenAddr, owner string) (int64, error) {
-	return ethtxs.GetBalance(ethRelayer.client, common.HexToAddress(tokenAddr), common.HexToAddress(owner))
+	return ethtxs.GetBalance(ethRelayer.client, tokenAddr, owner)
 }
 
-func (ethRelayer *EthereumRelayer) ProcessProphecyClaim(prophecyID int64) (string, error) {
-	//if active, _ := ethRelayer.IsProphecyPending(prophecyID); !active {
-	//	fmt.Printf("\n\n****prophecyID %d is not active\n", prophecyID)
-	//	return "", errors.New("prophecyID is not active")
-	//}
-	//fmt.Printf("\n\n****prophecyID %dis active\n", prophecyID)
+func (ethRelayer *EthereumRelayer) ShowBridgeBankAddr() (string, error) {
+	if nil == ethRelayer.x2EthDeployInfo {
+		return "", errors.New("The relayer is not started yes")
+	}
 
+	return ethRelayer.x2EthDeployInfo.BridgeBank.Address.String(), nil
+}
+
+
+
+func (ethRelayer *EthereumRelayer) ProcessProphecyClaim(prophecyID int64) (string, error) {
 	return ethtxs.ProcessProphecyClaim(ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthContracts, prophecyID)
 }
 
@@ -239,18 +243,28 @@ func (ethRelayer *EthereumRelayer) IsProphecyPending(prophecyID int64) (bool, er
 	return ethtxs.IsProphecyPending(prophecyID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Chain33Bridge)
 }
 
-func (ethRelayer *EthereumRelayer) MakeNewProphecyClaim(claimType uint8, chain33Sender, tokenAddr, symbol string) (string, error) {
-	newProphecyClaimPara := &ethtxs.NewProphecyClaimPara{
-		ClaimType:claimType,
-		Chain33Sender:common.FromHex(chain33Sender),
-		TokenAddr:common.HexToAddress(tokenAddr),
-		Symbol:symbol,
-	}
+func (ethRelayer *EthereumRelayer) MakeNewProphecyClaim(newProphecyClaimPara *ethtxs.NewProphecyClaimPara) (string, error) {
 	return ethtxs.MakeNewProphecyClaim(newProphecyClaimPara, ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthContracts)
 }
 
 func (ethRelayer *EthereumRelayer) CreateBridgeToken(symbol string) (string, error) {
 	return ethtxs.CreateBridgeToken(symbol, ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
+}
+
+func (ethRelayer *EthereumRelayer) CreateERC20Token(symbol string) (string, error) {
+	return ethtxs.CreateERC20Token(symbol, ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
+}
+
+func (ethRelayer *EthereumRelayer) MintERC20Token(tokenAddr, ownerAddr string, amount int64) (string, error) {
+	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, amount, ethRelayer.client, ethRelayer.deployPara)
+}
+
+func (ethRelayer *EthereumRelayer) ApproveAllowance(ownerPrivateKey, tokenAddr string, amount int64) (string, error) {
+	return ethtxs.ApproveAllowance(ownerPrivateKey, tokenAddr, ethRelayer.x2EthDeployInfo.BridgeBank.Address, amount, ethRelayer.client)
+}
+
+func (ethRelayer *EthereumRelayer) LockEthErc20Asset(ownerPrivateKey, tokenAddr string, amount int64, chain33Receiver string) (string, error) {
+	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, chain33Receiver, amount, ethRelayer.client, ethRelayer.x2EthContracts.BridgeBank)
 }
 
 func (ethRelayer *EthereumRelayer) ShowTxReceipt(hash string) (*types.Receipt, error) {

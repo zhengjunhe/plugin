@@ -31,11 +31,15 @@ func EthereumRelayerCmd() *cobra.Command {
 		ShowTxReceiptCmd(),
 		//////auxiliary///////
 		CreateBridgeTokenCmd(),
+		CreateEthereumTokenCmd(),
 		MakeNewProphecyClaimCmd(),
 		ProcessProphecyClaimCmd(),
 		GetBalanceCmd(),
 		IsProphecyPendingCmd(),
-
+		MintErc20Cmd(),
+		ApproveCmd(),
+		LockEthErc20AssetCmd(),
+		ShowBridgeBankAddrCmd(),
 	)
 
 	return cmd
@@ -267,8 +271,8 @@ func ShowTxReceipt(cmd *cobra.Command, args []string) {
 
 func CreateBridgeTokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "token",
-		Short: "create new token on Ethereum",
+		Use:   "token4chain33",
+		Short: "create new token as chain33 asset on Ethereum",
 		Run:   CreateBridgeToken,
 	}
 	CreateBridgeTokenFlags(cmd)
@@ -289,6 +293,151 @@ func CreateBridgeToken(cmd *cobra.Command, args []string) {
 	ctx.Run()
 }
 
+func CreateEthereumTokenCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "token4erc20",
+		Short: "create new erc20 asset on Ethereum",
+		Run:   CreateEthereumTokenToken,
+	}
+	CreateEthereumTokenFlags(cmd)
+	return cmd
+}
+
+func CreateEthereumTokenFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+}
+
+func CreateEthereumTokenToken(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	token, _ := cmd.Flags().GetString("symbol")
+	para := token
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.CreateERC20Token", para, &res)
+	ctx.Run()
+}
+
+func MintErc20Cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mint",
+		Short: "mint erc20 asset on Ethereum, but only for operator",
+		Run:   MintErc20,
+	}
+	MintErc20Flags(cmd)
+	return cmd
+}
+
+func MintErc20Flags(cmd *cobra.Command) {
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("owner", "o", "", "owner address")
+	_ = cmd.MarkFlagRequired("owner")
+	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
+func MintErc20(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	owner, _ := cmd.Flags().GetString("owner")
+	amount, _ := cmd.Flags().GetInt64("amount")
+	para := ebTypes.MintToken{
+		Owner:owner,
+		TokenAddr:tokenAddr,
+		Amount:amount,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.MintErc20", para, &res)
+	ctx.Run()
+}
+
+func ApproveCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "approve",
+		Short: "approve the allowance to bridgebank by the owner",
+		Run:   ApproveAllowance,
+	}
+	ApproveAllowanceFlags(cmd)
+	return cmd
+}
+
+func ApproveAllowanceFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "owner private key")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
+func ApproveAllowance(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetInt64("amount")
+	para := ebTypes.ApproveAllowance{
+		OwnerKey:key,
+		TokenAddr:tokenAddr,
+		Amount:amount,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ApproveAllowance", para, &res)
+	ctx.Run()
+}
+
+func LockEthErc20AssetCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lock",
+		Short: "lock eth or erc20 and cross-chain transfer to chain33",
+		Run:   LockEthErc20Asset,
+	}
+	LockEthErc20AssetFlags(cmd)
+	return cmd
+}
+
+func LockEthErc20AssetFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "owner private key")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("token", "t", "", "token address, optional, nil for ETH")
+	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
+	cmd.Flags().StringP("receiver", "r", "", "chain33 receiver address")
+	_ = cmd.MarkFlagRequired("receiver")
+}
+
+func LockEthErc20Asset(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetInt64("amount")
+	receiver, _ := cmd.Flags().GetString("receiver")
+	para := ebTypes.LockEthErc20{
+		OwnerKey:key,
+		TokenAddr:tokenAddr,
+		Amount:amount,
+		Chain33Receiver:receiver,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.LockEthErc20Asset", para, &res)
+	ctx.Run()
+}
+
+func ShowBridgeBankAddrCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridgeBankAddr",
+		Short: "show the address of Contract BridgeBank",
+		Run:   ShowBridgeBankAddr,
+	}
+	return cmd
+}
+
+func ShowBridgeBankAddr(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowBridgeBankAddr", nil, &res)
+	ctx.Run()
+}
+
 func MakeNewProphecyClaimCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "prophecy",
@@ -302,12 +451,16 @@ func MakeNewProphecyClaimCmd() *cobra.Command {
 func MakeNewProphecyClaimFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint32P("claim", "c", uint32(1), "claim type, 1 denote burn, and 2 denotes lock")
 	_ = cmd.MarkFlagRequired("claim")
-	cmd.Flags().StringP("chain33Sender", "t", "", "Chain33Sender")
+	cmd.Flags().StringP("chain33Sender", "a", "", "Chain33Sender")
 	_ = cmd.MarkFlagRequired("chain33Sender")
-	cmd.Flags().StringP("address", "a", "", "token address")
-	_ = cmd.MarkFlagRequired("address")
+	cmd.Flags().StringP("token", "t", "", "token address,optional, nil for ETH")
 	cmd.Flags().StringP("symbol", "s", "", "token symbol")
 	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().StringP("ethReceiver", "r", "", "eth Receiver")
+	_ = cmd.MarkFlagRequired("ethReceiver")
+	cmd.Flags().Int64P("amount", "m", 0, "amount")
+	_ = cmd.MarkFlagRequired("amount")
+
 }
 
 func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
@@ -318,13 +471,17 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 		return
 	}
 	chain33Sender, _ := cmd.Flags().GetString("chain33Sender")
-	tokenAddr, _ := cmd.Flags().GetString("address")
+	tokenAddr, _ := cmd.Flags().GetString("token")
 	symbol, _ := cmd.Flags().GetString("symbol")
+	ethReceiver, _ := cmd.Flags().GetString("ethReceiver")
+	amount, _ := cmd.Flags().GetInt64("amount")
 	para := ebTypes.NewProphecyClaim{
 		ClaimType:claimType,
 		Chain33Sender:chain33Sender,
 		TokenAddr:tokenAddr,
 		Symbol:symbol,
+		EthReceiver:ethReceiver,
+		Amount:amount,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.MakeNewProphecyClaim", para, &res)
@@ -359,7 +516,7 @@ func ProcessProphecyClaim(cmd *cobra.Command, args []string) {
 func GetBalanceCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "balance",
-		Short: "get balance for addr of token",
+		Short: "get owner's balance for ETH or ERC20",
 		Run:   GetBalance,
 	}
 	GetBalanceFlags(cmd)
@@ -369,8 +526,7 @@ func GetBalanceCmd() *cobra.Command {
 func GetBalanceFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("owner", "o", "", "owner address")
 	_ = cmd.MarkFlagRequired("owner")
-	cmd.Flags().StringP("tokenAddr", "a", "", "token address")
-	_ = cmd.MarkFlagRequired("tokenAddr")
+	cmd.Flags().StringP("tokenAddr", "a", "", "token address, optional, nil for Eth")
 }
 
 func GetBalance(cmd *cobra.Command, args []string) {
