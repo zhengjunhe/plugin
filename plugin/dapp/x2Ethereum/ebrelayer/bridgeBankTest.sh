@@ -19,7 +19,7 @@ InitAndDeploy() {
     result=$(${CLI} relayer ethereum import_chain33privatekey -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944)
     cli_ret "${result}" "import_chain33privatekey"
 
-    result=$(${CLI} relayer ethereum import_ethprivatekey -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230)
+    result=$(${CLI} relayer ethereum import_ethprivatekey -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f)
     cli_ret "${result}" "import_ethprivatekey"
 
     result=$(${CLI} relayer chain33 import_privatekey -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f)
@@ -40,13 +40,13 @@ TestETH2Chain33WithErc20Assets() {
     result=$(${CLI} relayer ethereum mint -m 1000 -o 0x0c05ba5c230fdaa503b53702af1962e08d0c60bf -t "${tokenAddr}")
     cli_ret "${result}" "mint"
 
-    result=$(${CLI} relayer ethereum balance -o 0x0c05ba5c230fdaa503b53702af1962e08d0c60bf -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o 0x0c05ba5c230fdaa503b53702af1962e08d0c60bf -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "1000"
 
     result=$(${CLI} relayer ethereum bridgeBankAddr)
     bridgeBankAddr=$(cli_ret "${result}" "bridgeBankAddr" ".addr")
 
-    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
     # ETH 2 chain33 lock 前先审批一下
@@ -58,10 +58,10 @@ TestETH2Chain33WithErc20Assets() {
     result=$(${CLI} relayer ethereum lock -m 100 -k 9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08 -r 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -t "${tokenAddr}")
     cli_ret "${result}" "lock"
 
-    result=$(${CLI} relayer ethereum balance -o 0x0c05ba5c230fdaa503b53702af1962e08d0c60bf -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o 0x0c05ba5c230fdaa503b53702af1962e08d0c60bf -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "900"
 
-    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "100"
 
     # ETH 2 chain33 withdraw 40
@@ -73,10 +73,10 @@ TestETH2Chain33WithErc20Assets() {
     cli_ret "${result}" "process -i ${prophecyID}"
     prophecyID=${prophecyID}+1
 
-    result=$(${CLI} relayer ethereum balance -o 0xa4ea64a583f6e51c3799335b28a8f0529570a635 -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o 0xa4ea64a583f6e51c3799335b28a8f0529570a635 -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "40"
 
-    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "60"
 
     # ETH 2 chain33 withdraw 60
@@ -87,10 +87,10 @@ TestETH2Chain33WithErc20Assets() {
     cli_ret "${result}" "process -i ${prophecyID}"
     prophecyID=${prophecyID}+1
 
-    result=$(${CLI} relayer ethereum balance -o 0xa4ea64a583f6e51c3799335b28a8f0529570a635 -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o 0xa4ea64a583f6e51c3799335b28a8f0529570a635 -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "100"
 
-    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -a "${tokenAddr}")
+    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
     echo "Succeed to TestETH2Chain33WithErc20Assets"
