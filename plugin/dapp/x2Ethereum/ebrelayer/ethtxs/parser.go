@@ -85,10 +85,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 
 	// Iterate over attributes
 	for _, log := range receipt.Logs {
-		switch log.Ty {
-		case types.TyChain33ToEthLog:
-		case types.TyWithdrawChain33Log:
-
+		if log.Ty == types.TyChain33ToEthLog || log.Ty == types.TyWithdrawChain33Log {
 			txslog.Debug("BurnLockTxReceiptToChain33Msg", "value", string(log.Log))
 			var chain33ToEth types.ReceiptChain33ToEth
 			err := chain33Types.Decode(log.Log, &chain33ToEth)
@@ -100,7 +97,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 			tokenContractAddress = common.HexToAddress(chain33ToEth.TokenContract)
 			symbol = chain33ToEth.EthSymbol
 			amount = big.NewInt(int64(chain33ToEth.Amount))
-		default:
+			txslog.Info("BurnLockTxReceiptToChain33Msg", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount)
 		}
 	}
 
@@ -147,7 +144,7 @@ func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
 
 	prophecyClaim := ProphecyClaim{
 		ClaimType:            claimType,
-		Chain33Sender:         chain33Sender,
+		Chain33Sender:        chain33Sender,
 		EthereumReceiver:     ethereumReceiver,
 		TokenContractAddress: tokenContractAddress,
 		Symbol:               symbol,

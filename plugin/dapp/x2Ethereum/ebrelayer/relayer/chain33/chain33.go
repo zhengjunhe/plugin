@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	dbm "github.com/33cn/chain33/common/db"
 	log "github.com/33cn/chain33/common/log/log15"
@@ -49,7 +50,7 @@ type Chain33Relayer struct {
 }
 
 // StartChain33Relayer : initializes a relayer which witnesses events on the chain33 network and relays them to Ethereum
-func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr string, db dbm.DB, ctx context.Context) *Chain33Relayer {
+func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr, provider string, db dbm.DB, ctx context.Context) *Chain33Relayer {
 	relayer := &Chain33Relayer{
 		rpcLaddr:            syncTxConfig.Chain33Host,
 		fetchHeightPeriodMs: syncTxConfig.FetchHeightPeriodMs,
@@ -57,6 +58,7 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr string
 		db:                  db,
 		ctx:                 ctx,
 		registryAddr:        ethCommon.HexToAddress(registryAddr),
+		web3Provider:        provider,
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -104,8 +106,7 @@ func (chain33Relayer *Chain33Relayer) syncProc(syncCfg *ebTypes.SyncTxReceiptCon
 	<-chain33Relayer.unlock
 	_, _ = fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
 
-	syncChan := make(chan int64, 10)
-	chain33Relayer.syncTxReceipts = syncTx.StartSyncTxReceipt(syncCfg, syncChan, chain33Relayer.db)
+	chain33Relayer.syncTxReceipts = syncTx.StartSyncTxReceipt(syncCfg, chain33Relayer.db)
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
 
 	timer := time.NewTicker(time.Duration(chain33Relayer.fetchHeightPeriodMs) * time.Millisecond)
@@ -161,7 +162,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 			}
 			var ss types.X2EthereumAction
 			_ = chain33Types.Decode(tx.Payload, &ss)
-			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx", ss.GetActionName(), "action", tx.ActionName(), "fromAddr", tx.From(), "Name", tx)
+			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx", ss.GetActionName(), "action", tx.ActionName(), "fromAddr", tx.From())
 			actionName := ss.GetActionName()
 			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				actionEvent := getOracleClaimType(actionName)
@@ -182,11 +183,11 @@ func getOracleClaimType(eventType string) events.Event {
 
 	switch eventType {
 	case events.MsgBurn.String():
-		claimType = events.MsgBurn
+		claimType = events.Event(events.CLAIM_TYPE_BURN)
 	case events.MsgLock.String():
-		claimType = events.MsgLock
+		claimType = events.Event(events.CLAIM_TYPE_LOCK)
 	default:
-		claimType = events.Unsupported
+		panic(errors.New("eventType invalid"))
 	}
 
 	return claimType

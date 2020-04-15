@@ -45,21 +45,19 @@ func pushTxReceipts(txReceipts *types.TxReceipts4Subscribe) error {
 }
 
 type SyncTxReceipts struct {
-	db              dbm.DB
-	seqNum          int64 //当前同步的序列号
-	height          int64 //当前区块高度
-	syncReceiptChan chan<- int64
-	quit            chan struct{}
+	db     dbm.DB
+	seqNum int64 //当前同步的序列号
+	height int64 //当前区块高度
+	quit   chan struct{}
 }
 
-func NewSyncTxReceipts(db dbm.DB, syncReceiptChan chan<- int64) *SyncTxReceipts {
+func NewSyncTxReceipts(db dbm.DB) *SyncTxReceipts {
 	sync := &SyncTxReceipts{
 		db: db,
 	}
 	sync.seqNum, _ = sync.loadBlockLastSequence()
 	sync.height, _ = sync.LoadLastBlockHeight()
 	sync.quit = make(chan struct{})
-	sync.syncReceiptChan = syncReceiptChan
 	sync.initSyncReceiptDataBase()
 
 	return sync
@@ -139,10 +137,10 @@ func (syncTx *SyncTxReceipts) dealTxReceipts(txReceipts *types.TxReceipts4Subscr
 			syncTx.setBlockHeight(height)
 		}
 	}
-	log.Debug("dealTxReceipts", "seqStart", start, "count", count, "maxBlockHeight", height)
-	syncTx.syncReceiptChan <- height
+	//syncTx.syncReceiptChan <- height
 	//发送回复，确认接收成功
 	resultCh <- nil
+	log.Debug("dealTxReceipts", "seqStart", start, "count", count, "maxBlockHeight", height)
 	return
 }
 

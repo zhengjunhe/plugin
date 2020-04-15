@@ -3,6 +3,7 @@ package ethbridge
 import (
 	"encoding/json"
 	"github.com/33cn/chain33/account"
+	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
@@ -77,16 +78,11 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 	senderAddr := oracleClaim.Chain33Receiver
 
 	if oracleClaim.ClaimType == common.BurnText {
-		receipt, err = accDB.ExecWithdraw(execAddr, senderAddr, int64(oracleClaim.Amount))
+		receipt, err = accDB.ExecTransfer(address.ExecAddress(tokenSymbol), senderAddr, execAddr, int64(oracleClaim.Amount))
 		if err != nil {
 			return nil, err
 		}
-		r, err := accDB.Burn(execAddr, int64(oracleClaim.Amount))
-		if err != nil {
-			return nil, err
-		}
-		receipt.KV = append(receipt.KV, r.KV...)
-		receipt.Logs = append(receipt.Logs, r.Logs...)
+
 		return receipt, nil
 	}
 	return nil, types.ErrInvalidClaimType
@@ -94,18 +90,25 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 
 // ProcessBurn processes the burn of bridged coins from the given sender
 func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
-	receipt, err := accDB.ExecActive(address, execAddr, amount*1e8)
+	receipt, err := accDB.ExecWithdraw(execAddr, address, amount)
 	if err != nil {
 		return nil, err
 	}
+
+	r, err := accDB.Burn(execAddr, amount)
+	if err != nil {
+		return nil, err
+	}
+	receipt.KV = append(receipt.KV, r.KV...)
+	receipt.Logs = append(receipt.Logs, r.Logs...)
 	return receipt, nil
 }
 
 // ProcessLock processes the lockup of cosmos coins from the given sender
 // accDB = mavl-coins-bty-addr
-func (k Keeper) ProcessLock(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
+func (k Keeper) ProcessLock(address, to, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
 	// 转到 mavl-coins-bty-execAddr:addr
-	receipt, err := accDB.ExecFrozen(address, execAddr, amount*1e8)
+	receipt, err := accDB.ExecTransfer(address, to, execAddr, amount*1e8)
 	if err != nil {
 		return nil, err
 	}

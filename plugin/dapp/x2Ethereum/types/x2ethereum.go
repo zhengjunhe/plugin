@@ -36,7 +36,6 @@ var (
 		TyRemoveValidatorLog:       {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogRemoveValidator"},
 		TyModifyPowerLog:           {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogModifyPower"},
 		TySetConsensusThresholdLog: {Ty: reflect.TypeOf(ReceiptSetConsensusThreshold{}), Name: "LogSetConsensusThreshold"},
-		TySymbolAssetsLog:          {Ty: reflect.TypeOf(ReceiptQuerySymbolAssets{}), Name: "LogSymbolAssets"},
 		TyProphecyLog:              {Ty: reflect.TypeOf(ReceiptEthProphecy{}), Name: "LogEthProphecy"},
 	}
 	tlog = log.New("module", "x2ethereum.types")
@@ -92,12 +91,12 @@ func (x *x2ethereumType) GetLogMap() map[int64]*types.LogInfo {
 
 // ActionName get PrivacyType action name
 func (x *x2ethereumType) ActionName(tx *types.Transaction) string {
-	tlog.Info("ActionName", "ActionName", string(tx.Payload))
 	var action X2EthereumAction
 	err := types.Decode(tx.Payload, &action)
 	if err != nil {
 		return "unknown-x2ethereum-err"
 	}
+	tlog.Info("ActionName", "ActionName", action.GetActionName())
 	return action.GetActionName()
 }
 

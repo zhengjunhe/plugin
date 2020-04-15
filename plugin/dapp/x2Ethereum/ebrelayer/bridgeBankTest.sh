@@ -21,9 +21,14 @@ InitAndDeploy() {
         echo "failed to import_chain33privatekey"
         exit 1
   fi
-  result=$(${CLI} relayer ethereum import_ethprivatekey -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 | jq .isOK)
+  result=$(${CLI} relayer ethereum import_ethprivatekey -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f | jq .isOK)
   if [[ ${result} != "true" ]]; then
         echo "failed to import_ethprivatekey"
+        exit 1
+  fi
+  result=$(${CLI} relayer chain33 import_privatekey -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f | jq .isOK)
+  if [[ ${result} != "true" ]]; then
+        echo "failed to import_chain33privatekey"
         exit 1
   fi
   echo "Succeed to InitAndDeploy"
