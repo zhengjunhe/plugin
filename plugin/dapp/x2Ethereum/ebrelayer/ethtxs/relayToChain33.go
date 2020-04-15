@@ -37,3 +37,22 @@ func RelayLockToChain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 	_, err := ctx.RunResult()
 	return txhash, err
 }
+
+func RelayBurnToChain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.EthBridgeClaim, rpcUrl string) (string, error) {
+	tx := &chain33Types.Transaction{}
+	//构建交易，验证人validator用来向chain33合约证明自己验证了该笔从以太坊向chain33跨链转账的交易
+	tx.Execer = []byte(claim.ChainName + "." +X2Eth)
+	tx.Sign(chain33Types.SECP256K1, privateKey)
+
+	txData := chain33Types.Encode(tx)
+	dataStr := common.ToHex(txData)
+	params := rpctypes.RawParm{
+		Token: "BTY",
+		Data:  dataStr,
+	}
+	var txhash string
+
+	ctx := jsonclient.NewRPCCtx(rpcUrl, "Chain33.SendTransaction", params, &txhash)
+	_, err := ctx.RunResult()
+	return txhash, err
+}

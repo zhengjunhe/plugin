@@ -97,8 +97,8 @@ func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, tra
 	return auth, nil
 }
 
-func waitEthTxFinished(client *ethclient.Client, txhash common.Hash) error {
-    fmt.Printf("\nWait for tx %s to be finished", txhash.String())
+func waitEthTxFinished(client *ethclient.Client, txhash common.Hash, txName string) error {
+	txslog.Info(txName, "Wait for tx to be finished executing with hash", txhash.String())
 	timeout := time.NewTimer(PendingDuration4TxExeuction * time.Second)
 	oneSecondtimeout := time.NewTicker(5 * time.Second)
 	for {

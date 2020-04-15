@@ -130,6 +130,19 @@ contract Oracle {
             validatorAddress,
             _signature
         );
+
+        (bool valid, uint256 weightedSignedPower, uint256 weightedTotalPower ) = getProphecyThreshold(_prophecyID);
+        if (true == valid)  {
+            // Update the BridgeClaim's status
+            completeProphecy(_prophecyID);
+
+            emit LogProphecyProcessed(
+                _prophecyID,
+                weightedSignedPower,
+                weightedTotalPower,
+                msg.sender
+            );
+        }
     }
 
     /*

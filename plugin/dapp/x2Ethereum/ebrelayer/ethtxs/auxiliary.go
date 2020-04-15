@@ -50,7 +50,7 @@ func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara
 	if nil != err {
 		return "", err
 	}
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "CreateBridgeToken")
 	if nil != err {
 		return "", err
 	}
@@ -91,7 +91,7 @@ func CreateERC20Token(symbol string, client *ethclient.Client, para *DeployPara,
 		return "", err
 	}
 
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "CreateERC20Token")
 	if nil != err {
 		return "", err
 	}
@@ -113,7 +113,7 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient
 		return "", err
 	}
 
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "MintERC20Token")
 	if nil != err {
 		return "", err
 	}
@@ -142,7 +142,49 @@ func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Ad
 		return "", err
 	}
 
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "ApproveAllowance")
+	if nil != err {
+		return "", err
+	}
+
+	return tx.Hash().String(), nil
+}
+
+func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount int64, bridgeBankIns *generated.BridgeBank, client *ethclient.Client,)  (string, error) {
+	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	ownerAddr := crypto.PubkeyToAddress(ownerPrivateKey.PublicKey)
+	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
+	if nil != err {
+		return "", err
+	}
+	tokenAddr := common.HexToAddress(tokenAddrstr)
+	tokenInstance, err := generated.NewBridgeToken(tokenAddr, client)
+	if nil != err {
+		return "", err
+	}
+	//chain33bank 是bridgeBank的基类，所以使用bridgeBank的地址
+	tx, err := tokenInstance.Approve(auth, bridgeBank, big.NewInt(amount))
+	if nil != err {
+		return "", err
+	}
+	err = waitEthTxFinished(client, tx.Hash(), "Approve")
+	if nil != err {
+		return "", err
+	}
+	txslog.Info("Burn","Approve tx with hash", tx.Hash().String())
+
+	auth, err = PrepareAuth(client, ownerPrivateKey, ownerAddr)
+	if nil != err {
+		return "", err
+	}
+	tx, err = bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, big.NewInt(amount))
+	if nil != err {
+		return "", err
+	}
+	err = waitEthTxFinished(client, tx.Hash(), "Burn")
 	if nil != err {
 		return "", err
 	}
@@ -174,7 +216,7 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 	if nil != err {
 		return "", err
 	}
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "LockEthErc20Asset")
 	if nil != err {
 		return "", err
 	}
@@ -197,7 +239,7 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 	if nil != err {
 		return "", err
 	}
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "MakeNewProphecyClaim")
 	if nil != err {
 		return "", err
 	}
@@ -214,7 +256,7 @@ func ProcessProphecyClaim(client *ethclient.Client, para *DeployPara, x2EthContr
 		return "", err
 	}
 
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "ProcessProphecyClaim")
 	if nil != err {
 		return tx.Hash().String(), err
 	}

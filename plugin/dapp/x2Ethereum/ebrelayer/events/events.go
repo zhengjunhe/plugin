@@ -18,6 +18,8 @@ const (
 	MsgLock
 	// LogLock : Ethereum event 'LockEvent'
 	LogLock
+	// LogChain33TokenBurn : Ethereum event 'LogChain33TokenBurn' in contract chain33Bank
+	LogChain33TokenBurn
 	// LogNewProphecyClaim : Ethereum event 'NewProphecyClaimEvent'
 	LogNewProphecyClaim
 )
@@ -29,7 +31,7 @@ const (
 
 // String : returns the event type as a string
 func (d Event) String() string {
-	return [...]string{"unknown-x2ethereum", "WithdrawChain33", "Chain33ToEth", "LogLock", "LogNewProphecyClaim"}[d]
+	return [...]string{"unknown-x2ethereum", "WithdrawChain33", "Chain33ToEth", "LogLock", "LogChain33TokenBurn", "LogNewProphecyClaim"}[d]
 }
 
 // Chain33MsgAttributeKey : enum containing supported attribute keys
