@@ -9,11 +9,8 @@ InitAndDeploy() {
         echo "failed to set_pwd"
         exit 1
   fi
-  result=$(${CLI} relayer unlock -p 123456hzj | jq .isOK)
-  if [[ ${result} != "true" ]]; then
-        echo "failed to unlock"
-        exit 1
-  fi
+  result=$(${CLI} relayer unlock -p 123456hzj)
+
   result=$(${CLI} relayer ethereum deploy | jq .isOK)
   if [[ ${result} != "true" ]]; then
         echo "failed to deploy"
@@ -87,8 +84,8 @@ checkProphecyIDActive() {
 
 
 main () {
-    #InitAndDeploy
-    TestBrigeTokenMint4Chain33Assets
+    InitAndDeploy
+    #TestBrigeTokenMint4Chain33Assets
 }
 
 main

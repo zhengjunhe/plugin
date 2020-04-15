@@ -118,7 +118,7 @@ func initCfg(path string) *relayerTypes.RelayerConfig {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
-	fmt.Println(cfg)
+	//fmt.Println(cfg)
 	return &cfg
 }
 

@@ -40,6 +40,8 @@ func EthereumRelayerCmd() *cobra.Command {
 		ApproveCmd(),
 		LockEthErc20AssetCmd(),
 		ShowBridgeBankAddrCmd(),
+		BurnCmd(),
+		StaticsCmd(),
 	)
 
 	return cmd
@@ -385,6 +387,44 @@ func ApproveAllowance(cmd *cobra.Command, args []string) {
 	ctx.Run()
 }
 
+func BurnCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "burn",
+		Short: "burn the asset to make it unlocked on chain33",
+		Run:   Burn,
+	}
+	BurnFlags(cmd)
+	return cmd
+}
+
+func BurnFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "owner private key")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("receiver", "r", "", "receiver address on chain33")
+	_ = cmd.MarkFlagRequired("receiver")
+	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
+func Burn(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetInt64("amount")
+	receiver, _ := cmd.Flags().GetString("receiver")
+	para := ebTypes.Burn{
+		OwnerKey:key,
+		TokenAddr:tokenAddr,
+		Amount:amount,
+		Chain33Receiver:receiver,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.Burn", para, &res)
+	ctx.Run()
+}
+
 func LockEthErc20AssetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lock",
@@ -437,6 +477,12 @@ func ShowBridgeBankAddr(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowBridgeBankAddr", nil, &res)
 	ctx.Run()
 }
+
+
+
+
+
+
 
 func MakeNewProphecyClaimCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -526,7 +572,7 @@ func GetBalanceCmd() *cobra.Command {
 func GetBalanceFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("owner", "o", "", "owner address")
 	_ = cmd.MarkFlagRequired("owner")
-	cmd.Flags().StringP("tokenAddr", "a", "", "token address, optional, nil for Eth")
+	cmd.Flags().StringP("tokenAddr", "t", "", "token address, optional, nil for Eth")
 }
 
 func GetBalance(cmd *cobra.Command, args []string) {

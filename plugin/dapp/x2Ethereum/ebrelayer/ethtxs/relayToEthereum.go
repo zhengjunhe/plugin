@@ -49,7 +49,7 @@ func RelayProphecyClaimToEthereum(provider string, sender, contractAddress commo
 	}
 	txhash = tx.Hash().Hex()
 	txslog.Info("RelayProphecyClaimToEthereum", "NewProphecyClaim tx hash:", txhash)
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "ProphecyClaimToEthereum")
 	if nil != err {
 		return txhash, err
 	}
@@ -79,7 +79,7 @@ func RelayOracleClaimToEthereum(provider string, sender, contractAddress common.
 	}
 	txhash = tx.Hash().Hex()
 	txslog.Info("RelayOracleClaimToEthereum", "NewOracleClaim tx hash:", txhash)
-	err = waitEthTxFinished(client, tx.Hash())
+	err = waitEthTxFinished(client, tx.Hash(), "RelayOracleClaimToEthereum")
 	if nil != err {
 		return txhash, err
 	}

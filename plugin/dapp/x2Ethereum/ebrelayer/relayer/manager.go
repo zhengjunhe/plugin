@@ -365,6 +365,20 @@ func (manager *RelayerManager) ApproveAllowance(approveAllowance relayerTypes.Ap
 	return nil
 }
 
+func (manager *RelayerManager) Burn(burn relayerTypes.Burn, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.Burn(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:txhash,
+	}
+	return nil
+}
+
 func (manager *RelayerManager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
