@@ -233,8 +233,6 @@ func (ethRelayer *EthereumRelayer) ShowBridgeBankAddr() (string, error) {
 	return ethRelayer.x2EthDeployInfo.BridgeBank.Address.String(), nil
 }
 
-
-
 func (ethRelayer *EthereumRelayer) ProcessProphecyClaim(prophecyID int64) (string, error) {
 	return ethtxs.ProcessProphecyClaim(ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthContracts, prophecyID)
 }

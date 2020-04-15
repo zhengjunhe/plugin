@@ -3,7 +3,7 @@ title="x2Ethereum_relayer"
 #用于cli向该relayer进行配置
 JrpcBindAddr="localhost:9901"
 EthProvider="ws://127.0.0.1:7545/"
-BridgeRegistry="0x40BFE5eD039A9a2Eb42ece2E2CA431bFa7Cf4c42"
+#BridgeRegistry="0x40BFE5eD039A9a2Eb42ece2E2CA431bFa7Cf4c42"
 
 [SyncTxConfig]
 chain33Host="http://192.168.64.2:8801"
