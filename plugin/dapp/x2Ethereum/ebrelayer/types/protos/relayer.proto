@@ -92,6 +92,16 @@ message LockEthErc20 {
     string chain33Receiver = 4;
 }
 
+message ReplyAddr {
+    bool isOK       =1;
+    string addr     =2;
+}
+
+message ReplyBalance {
+    bool isOK       =1;
+    string balance  =2;
+}
+
 message Burn {
     string ownerKey   = 1;
     string tokenAddr  = 2;

@@ -141,7 +141,7 @@ func showChain33Txs(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowEthRelayer2Chain33Txs", nil, &res)
 	if _, err := ctx.RunResult(); nil != err {
 		errInfo := err.Error()
-		fmt.Println("errinfo:"+errInfo)
+		fmt.Println("errinfo:" + errInfo)
 		return
 	}
 	for _, hash := range res.Txhash {
@@ -165,7 +165,7 @@ func showEthTxs(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowEthRelayer2Chain33Txs", nil, &res)
 	if _, err := ctx.RunResult(); nil != err {
 		errInfo := err.Error()
-		fmt.Println("errinfo:"+errInfo)
+		fmt.Println("errinfo:" + errInfo)
 		return
 	}
 	for _, hash := range res.Txhash {
@@ -314,7 +314,7 @@ func CreateEthereumTokenToken(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	token, _ := cmd.Flags().GetString("symbol")
 	para := token
-	var res rpctypes.Reply
+	var res ebTypes.ReplyAddr
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.CreateERC20Token", para, &res)
 	ctx.Run()
 }
@@ -344,9 +344,9 @@ func MintErc20(cmd *cobra.Command, args []string) {
 	owner, _ := cmd.Flags().GetString("owner")
 	amount, _ := cmd.Flags().GetInt64("amount")
 	para := ebTypes.MintToken{
-		Owner:owner,
-		TokenAddr:tokenAddr,
-		Amount:amount,
+		Owner:     owner,
+		TokenAddr: tokenAddr,
+		Amount:    amount,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.MintErc20", para, &res)
@@ -378,9 +378,9 @@ func ApproveAllowance(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	amount, _ := cmd.Flags().GetInt64("amount")
 	para := ebTypes.ApproveAllowance{
-		OwnerKey:key,
-		TokenAddr:tokenAddr,
-		Amount:amount,
+		OwnerKey:  key,
+		TokenAddr: tokenAddr,
+		Amount:    amount,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ApproveAllowance", para, &res)
@@ -452,10 +452,10 @@ func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetInt64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	para := ebTypes.LockEthErc20{
-		OwnerKey:key,
-		TokenAddr:tokenAddr,
-		Amount:amount,
-		Chain33Receiver:receiver,
+		OwnerKey:        key,
+		TokenAddr:       tokenAddr,
+		Amount:          amount,
+		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.LockEthErc20Asset", para, &res)
@@ -473,7 +473,7 @@ func ShowBridgeBankAddrCmd() *cobra.Command {
 
 func ShowBridgeBankAddr(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	var res rpctypes.Reply
+	var res ebTypes.ReplyAddr
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowBridgeBankAddr", nil, &res)
 	ctx.Run()
 }
@@ -522,18 +522,17 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 	ethReceiver, _ := cmd.Flags().GetString("ethReceiver")
 	amount, _ := cmd.Flags().GetInt64("amount")
 	para := ebTypes.NewProphecyClaim{
-		ClaimType:claimType,
-		Chain33Sender:chain33Sender,
-		TokenAddr:tokenAddr,
-		Symbol:symbol,
-		EthReceiver:ethReceiver,
-		Amount:amount,
+		ClaimType:     claimType,
+		Chain33Sender: chain33Sender,
+		TokenAddr:     tokenAddr,
+		Symbol:        symbol,
+		EthReceiver:   ethReceiver,
+		Amount:        amount,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.MakeNewProphecyClaim", para, &res)
 	ctx.Run()
 }
-
 
 func ProcessProphecyClaimCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -580,10 +579,10 @@ func GetBalance(cmd *cobra.Command, args []string) {
 	owner, _ := cmd.Flags().GetString("owner")
 	tokenAddr, _ := cmd.Flags().GetString("tokenAddr")
 	para := ebTypes.BalanceAddr{
-		Owner:                owner,
-		TokenAddr:            tokenAddr,
+		Owner:     owner,
+		TokenAddr: tokenAddr,
 	}
-	var res rpctypes.Reply
+	var res ebTypes.ReplyBalance
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.GetBalance", para, &res)
 	ctx.Run()
 }
@@ -611,4 +610,3 @@ func IsProphecyPending(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.IsProphecyPending", para, &res)
 	ctx.Run()
 }
-
