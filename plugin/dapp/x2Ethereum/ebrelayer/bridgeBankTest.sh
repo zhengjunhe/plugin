@@ -22,6 +22,9 @@ InitAndDeploy() {
     result=$(${CLI} relayer ethereum import_ethprivatekey -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230)
     cli_ret "${result}" "import_ethprivatekey"
 
+    result=$(${CLI} relayer chain33 import_privatekey -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f)
+    cli_ret "${result}" "import_privatekey"
+
     echo "Succeed to InitAndDeploy"
 }
 

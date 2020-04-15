@@ -16,6 +16,8 @@ contract Chain33Bank {
     uint256 public bridgeTokenCount;
     mapping(address => bool) public bridgeTokenWhitelist;
     mapping(bytes32 => Chain33Deposit) chain33Deposits;
+    mapping(bytes32 => Chain33Burn) chain33Burns;
+    mapping(address => DepositBurnCount) depositBurnCounts;
 
     struct Chain33Deposit {
         bytes chain33Sender;
@@ -23,6 +25,20 @@ contract Chain33Bank {
         address bridgeTokenAddress;
         uint256 amount;
         bool locked;
+        uint256 nonce;
+    }
+
+    struct DepositBurnCount {
+        uint256 depositCount;
+        uint256 burnCount;
+    }
+
+    struct Chain33Burn {
+        bytes chain33Sender;
+        address payable ethereumOwner;
+        address bridgeTokenAddress;
+        uint256 amount;
+        uint256 nonce;
     }
 
     /*
@@ -38,6 +54,15 @@ contract Chain33Bank {
         string _symbol,
         uint256 _amount,
         address _beneficiary
+    );
+
+    event LogChain33TokenBurn(
+        address _token,
+        string _symbol,
+        uint256 _amount,
+        address _ownerFrom,
+        bytes _chain33Receiver,
+        uint256 _nonce
     );
 
     /*
@@ -65,12 +90,17 @@ contract Chain33Bank {
         internal
         returns(bytes32)
     {
+        DepositBurnCount memory depositBurnCount = depositBurnCounts[_token];
+        depositBurnCount.depositCount = depositBurnCount.depositCount.add(1);
+        depositBurnCounts[_token] = depositBurnCount;
+
         bytes32 depositID = keccak256(
             abi.encodePacked(
                 _chain33Sender,
                 _ethereumRecipient,
                 _token,
-                _amount
+                _amount,
+                depositBurnCount.depositCount
             )
         );
 
@@ -79,11 +109,54 @@ contract Chain33Bank {
             _ethereumRecipient,
             _token,
             _amount,
-            true
+            true,
+            depositBurnCount.depositCount
         );
 
         return depositID;
     }
+
+    /*
+    * @dev: Creates a new Chain33Burn with a unique ID
+        *
+        * @param _chain33Sender: The sender's Chain33 address in bytes.
+        * @param _ethereumOwner: The owner's Ethereum address.
+        * @param _token: The token Address
+        * @param _amount: The amount to be burned.
+        * @param _nonce: The nonce indicates the burn count for this token
+        * @return: The newly created Chain33Burn's unique id.
+        */
+        function newChain33Burn(
+            bytes memory _chain33Sender,
+            address payable _ethereumOwner,
+            address _token,
+            uint256 _amount,
+            uint256 nonce
+        )
+            internal
+            returns(bytes32)
+        {
+            bytes32 burnID = keccak256(
+                abi.encodePacked(
+                    _chain33Sender,
+                    _ethereumOwner,
+                    _token,
+                    _amount,
+                    nonce
+                )
+            );
+
+            chain33Burns[burnID] = Chain33Burn(
+                _chain33Sender,
+                _ethereumOwner,
+                _token,
+                _amount,
+                nonce
+            );
+
+            return burnID;
+        }
+
 
     /*
      * @dev: Deploys a new BridgeToken contract
@@ -104,6 +177,10 @@ contract Chain33Bank {
         // Set address in tokens mapping
         address newBridgeTokenAddress = address(newBridgeToken);
         bridgeTokenWhitelist[newBridgeTokenAddress] = true;
+        depositBurnCounts[newBridgeTokenAddress] = DepositBurnCount(
+            uint256(0),
+            uint256(0)
+        );
 
         emit LogNewBridgeToken(
             newBridgeTokenAddress,
@@ -121,7 +198,7 @@ contract Chain33Bank {
      * @param _chain33TokenAddress: The currency type
      * @param _symbol: chain33 token symbol
      * @param _amount: number of chain33 tokens to be minted
-\    */
+     */
      function mintNewBridgeTokens(
         bytes memory _chain33Sender,
         address payable _intendedRecipient,
@@ -158,6 +235,58 @@ contract Chain33Bank {
             _symbol,
             _amount,
             _intendedRecipient
+        );
+    }
+
+    /*
+     * @dev: Burn chain33 tokens
+     *
+     * @param _from: The address to be burned from
+     * @param _chain33Receiver: The receiver's Chain33 address in bytes.
+     * @param _chain33TokenAddress: The token address of chain33 asset issued on ethereum
+     * @param _amount: number of chain33 tokens to be minted
+     */
+    function burnChain33Tokens(
+        address payable _from,
+        bytes memory _chain33Receiver,
+        address _chain33TokenAddress,
+        uint256 _amount
+    )
+        internal
+    {
+        // Must be whitelisted bridge token
+        require(
+            bridgeTokenWhitelist[_chain33TokenAddress],
+            "Token must be a whitelisted bridge token"
+        );
+
+        // burn bridge tokens
+        BridgeToken bridgeTokenInstance = BridgeToken(_chain33TokenAddress);
+        bridgeTokenInstance.burnFrom(_from, _amount);
+
+        DepositBurnCount memory depositBurnCount = depositBurnCounts[_chain33TokenAddress];
+        require(
+            depositBurnCount.burnCount + 1 > depositBurnCount.burnCount,
+            "burn nonce is not available"
+        );
+        depositBurnCount.burnCount = depositBurnCount.burnCount.add(1);
+        depositBurnCounts[_chain33TokenAddress] = depositBurnCount;
+
+        newChain33Burn(
+            _chain33Receiver,
+            _from,
+            _chain33TokenAddress,
+            _amount,
+            depositBurnCount.burnCount
+        );
+
+        emit LogChain33TokenBurn(
+            _chain33TokenAddress,
+            bridgeTokenInstance.symbol(),
+            _amount,
+            _from,
+            _chain33Receiver,
+            depositBurnCount.burnCount
         );
     }
 

@@ -173,5 +173,62 @@ func (m *ReplyBalance) Reset()         { *m = ReplyBalance{} }
 func (m *ReplyBalance) String() string { return proto.CompactTextString(m) }
 func (*ReplyBalance) ProtoMessage()    {}
 
+type Burn struct {
+	OwnerKey        string `protobuf:"bytes,1,opt,name=ownerKey" json:"ownerKey,omitempty"`
+	TokenAddr       string `protobuf:"bytes,2,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
+	Amount          int64  `protobuf:"varint,3,opt,name=amount" json:"amount,omitempty"`
+	Chain33Receiver string `protobuf:"bytes,4,opt,name=chain33Receiver" json:"chain33Receiver,omitempty"`
+}
+
+func (m *Burn) Reset()         { *m = Burn{} }
+func (m *Burn) String() string { return proto.CompactTextString(m) }
+func (*Burn) ProtoMessage()    {}
+
+type StaticsRequest struct {
+	Owner     string `protobuf:"bytes,1,opt,name=owner" json:"owner,omitempty"`
+	TokenAddr string `protobuf:"bytes,2,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
+}
+
+func (m *StaticsRequest) Reset()         { *m = StaticsRequest{} }
+func (m *StaticsRequest) String() string { return proto.CompactTextString(m) }
+func (*StaticsRequest) ProtoMessage()    {}
+
+type StaticsAll struct {
+}
+
+func (m *StaticsAll) Reset()         { *m = StaticsAll{} }
+func (m *StaticsAll) String() string { return proto.CompactTextString(m) }
+func (*StaticsAll) ProtoMessage()    {}
+
+type StaticsSingle struct {
+}
+
+func (m *StaticsSingle) Reset()         { *m = StaticsSingle{} }
+func (m *StaticsSingle) String() string { return proto.CompactTextString(m) }
+func (*StaticsSingle) ProtoMessage()    {}
+
+type StaticsResponse struct {
+	StaticsAll    *StaticsAll    `protobuf:"bytes,1,opt,name=staticsAll" json:"staticsAll,omitempty"`
+	StaticsSingle *StaticsSingle `protobuf:"bytes,2,opt,name=staticsSingle" json:"staticsSingle,omitempty"`
+}
+
+func (m *StaticsResponse) Reset()         { *m = StaticsResponse{} }
+func (m *StaticsResponse) String() string { return proto.CompactTextString(m) }
+func (*StaticsResponse) ProtoMessage()    {}
+
+func (m *StaticsResponse) GetStaticsAll() *StaticsAll {
+	if m != nil {
+		return m.StaticsAll
+	}
+	return nil
+}
+
+func (m *StaticsResponse) GetStaticsSingle() *StaticsSingle {
+	if m != nil {
+		return m.StaticsSingle
+	}
+	return nil
+}
+
 func init() {
 }

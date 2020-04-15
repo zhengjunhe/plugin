@@ -101,3 +101,27 @@ message ReplyBalance {
     bool isOK       =1;
     string balance  =2;
 }
+
+message Burn {
+    string ownerKey   = 1;
+    string tokenAddr  = 2;
+    int64 amount      = 3;
+    string chain33Receiver = 4;
+}
+
+message StaticsRequest {
+    string owner   = 1;
+    string tokenAddr  = 2;
+}
+
+message StaticsAll {
+}
+
+message StaticsSingle {
+}
+
+message StaticsResponse {
+    StaticsAll staticsAll   = 1;
+    StaticsSingle staticsSingle  = 2;
+}
+

@@ -54,6 +54,27 @@ func LogLockToEthBridgeClaim(valAddr []byte, event *events.LockEvent) (ebrelayer
 	return witnessClaim, nil
 }
 
+func LogBurnToEthBridgeClaim(valAddr []byte, event *events.BurnEvent) (ebrelayerTypes.EthBridgeClaim, error) {
+	witnessClaim := ebrelayerTypes.EthBridgeClaim{}
+	nonce := event.Nonce.Int64()
+
+	recipient := event.Chain33Receiver
+	if 0 == len(recipient) {
+		return witnessClaim, ebrelayerTypes.ErrEmptyAddress
+	}
+
+	// Package the information in a unique EthBridgeClaim
+	witnessClaim.Nonce = nonce
+	witnessClaim.EthereumSender = event.OwnerFrom.Bytes()
+	witnessClaim.ValidatorAddress = valAddr
+	witnessClaim.Chain33Receiver = recipient
+	witnessClaim.Amount = event.Amount.Int64()
+	//witnessClaim.ClaimType =
+	//witnessClaim.ChainName =
+
+	return witnessClaim, nil
+}
+
 // BurnLockTxReceiptToChain33Msg : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
 func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types.ReceiptData) events.Chain33Msg {
 	// Set up variables

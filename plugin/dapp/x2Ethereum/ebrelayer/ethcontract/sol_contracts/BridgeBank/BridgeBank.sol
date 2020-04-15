@@ -123,6 +123,28 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     }
 
     /*
+     * @dev: Burns bank tokens
+     *
+     * @param _chain33Receiver: The _chain33 receiver address in bytes.
+     * @param _chain33TokenAddress: The currency type
+     * @param _amount: number of chain33 tokens to be burned
+     */
+    function burnBridgeTokens(
+        bytes memory _chain33Receiver,
+        address _chain33TokenAddress,
+        uint256 _amount
+    )
+        public
+    {
+        return burnChain33Tokens(
+            msg.sender,
+            _chain33Receiver,
+            _chain33TokenAddress,
+             _amount
+        );
+    }
+
+    /*
     * @dev: Locks received Ethereum funds.
     *
     * @param _recipient: bytes representation of destination address.

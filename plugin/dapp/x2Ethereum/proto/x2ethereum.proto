@@ -160,16 +160,6 @@ message ReceiptQueryConsensusThreshold {
     int64 consensusThreshold = 1;
 }
 
-message QuerySymbolAssetsParams {
-    string tokenSymbol = 1;
-    int64 direction = 2;
-}
-
-message ReceiptQuerySymbolAssets {
-    string tokenSymbol = 1;
-    uint64 totalAmount = 2;
-}
-
 message QuerySymbolAssetsByTxTypeParams {
     string tokenSymbol = 1;
     int64 direction = 2;

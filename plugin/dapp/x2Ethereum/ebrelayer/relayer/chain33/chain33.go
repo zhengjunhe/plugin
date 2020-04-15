@@ -162,7 +162,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 			}
 			var ss types.X2EthereumAction
 			_ = chain33Types.Decode(tx.Payload, &ss)
-			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx", ss.GetActionName(), "action", tx.ActionName(), "fromAddr", tx.From(), "Name", tx)
+			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx", ss.GetActionName(), "action", tx.ActionName(), "fromAddr", tx.From())
 			actionName := ss.GetActionName()
 			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				actionEvent := getOracleClaimType(actionName)

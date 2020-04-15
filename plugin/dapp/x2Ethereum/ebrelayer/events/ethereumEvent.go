@@ -16,15 +16,22 @@ import (
 
 // LockEvent : struct which represents a LogLock event
 type LockEvent struct {
-	EthereumChainID       *big.Int
-	BridgeContractAddress common.Address
-	Id                    [32]byte
-	From                  common.Address
-	To                    []byte
-	Token                 common.Address
-	Symbol                string
-	Value                 *big.Int
-	Nonce                 *big.Int
+	From   common.Address
+	To     []byte
+	Token  common.Address
+	Symbol string
+	Value  *big.Int
+	Nonce  *big.Int
+}
+
+// BurnEvent : struct which represents a BurnEvent event
+type BurnEvent struct {
+	Token           common.Address
+	Symbol          string
+	Amount          *big.Int
+	OwnerFrom       common.Address
+	Chain33Receiver []byte
+	Nonce           *big.Int
 }
 
 // NewProphecyClaimEvent : struct which represents a LogNewProphecyClaim event
@@ -45,28 +52,34 @@ type LogNewBridgeToken struct {
 }
 
 // UnpackLogLock : Handles new LogLock events
-func UnpackLogLock(clientChainID *big.Int, contractAddress string, contractAbi abi.ABI, eventName string, eventData []byte) (lockEvent *LockEvent, err error) {
+func UnpackLogLock(contractAbi abi.ABI, eventName string, eventData []byte) (lockEvent *LockEvent, err error) {
 	event := &LockEvent{}
-
-	// Bridge contract address
-	if !common.IsHexAddress(contractAddress) {
-		eventsLog.Error("UnpackLogLock", "Only Ethereum contracts are currently supported. Invalid address: ", contractAddress)
-		return nil, ebrelayerTypes.ErrInvalidEthContractAddress
-	}
-	event.BridgeContractAddress = common.HexToAddress(contractAddress)
-
-	// Ethereum chain ID
-	event.EthereumChainID = clientChainID
-
 	// Parse the event's attributes as Ethereum network variables
-	err = contractAbi.Unpack(&event, eventName, eventData)
+	err = contractAbi.Unpack(event, eventName, eventData)
 	if err != nil {
 		eventsLog.Error("UnpackLogLock", "Failed to unpack abi due to:", err.Error())
 		return nil, ebrelayerTypes.ErrUnpack
 	}
-	info2Log := printLockEvent(event)
-	eventsLog.Error("UnpackLogLock","detail info of event:", info2Log)
 
+	eventsLog.Info("UnpackLogLock", "value", event.Value.String(), "symbol", event.Symbol,
+		"token addr", event.Token.Hex(), "sender", event.From.Hex(),
+		"recipient", string(event.To), "nonce", event.Nonce.String())
+
+	return event, nil
+}
+
+func UnpackLogBurn(contractAbi abi.ABI, eventName string, eventData []byte) (burnEvent *BurnEvent, err error) {
+	event := &BurnEvent{}
+	// Parse the event's attributes as Ethereum network variables
+	err = contractAbi.Unpack(event, eventName, eventData)
+	if err != nil {
+		eventsLog.Error("UnpackLogBurn", "Failed to unpack abi due to:", err.Error())
+		return nil, ebrelayerTypes.ErrUnpack
+	}
+
+	eventsLog.Info("UnpackLogBurn", "token addr", event.Token.Hex(), "symbol", event.Symbol,
+		"Amount", event.Amount.String(), "OwnerFrom",   event.OwnerFrom.String(),
+		"Chain33Receiver", string(event.Chain33Receiver), "nonce", event.Nonce.String())
 	return event, nil
 }
 
@@ -83,23 +96,6 @@ func UnpackLogNewProphecyClaim(contractAbi abi.ABI, eventName string, eventData 
 	info2print := printProphecyClaimEvent(event)
 	eventsLog.Info("UnpackLogNewProphecyClaim", "event detailed info:", info2print)
 	return
-}
-
-// printLockEvent : prints a LockEvent struct's information
-func printLockEvent(event *LockEvent) string {
-	// Convert the variables into a printable format
-	chainID := event.EthereumChainID
-	bridgeContractAddress := event.BridgeContractAddress.Hex()
-	value := event.Value
-	symbol := event.Symbol
-	token := event.Token.Hex()
-	sender := event.From.Hex()
-	recipient := string(event.To)
-	nonce := event.Nonce
-
-	// Print the event's information
-	return fmt.Sprintf("\nChain ID: %v\nBridge contract address: %v\nToken symbol: %v\nToken contract address: %v\nSender: %v\nRecipient: %v\nValue: %v\nNonce: %v\n\n",
-		chainID, bridgeContractAddress, symbol, token, sender, recipient, value, nonce)
 }
 
 // printProphecyClaimEvent : prints a NewProphecyClaimEvent struct's information

@@ -36,7 +36,6 @@ var (
 		TyRemoveValidatorLog:       {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogRemoveValidator"},
 		TyModifyPowerLog:           {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogModifyPower"},
 		TySetConsensusThresholdLog: {Ty: reflect.TypeOf(ReceiptSetConsensusThreshold{}), Name: "LogSetConsensusThreshold"},
-		TySymbolAssetsLog:          {Ty: reflect.TypeOf(ReceiptQuerySymbolAssets{}), Name: "LogSymbolAssets"},
 		TyProphecyLog:              {Ty: reflect.TypeOf(ReceiptEthProphecy{}), Name: "LogEthProphecy"},
 	}
 	tlog = log.New("module", "x2ethereum.types")
