@@ -290,7 +290,7 @@ func CreateBridgeToken(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	token, _ := cmd.Flags().GetString("symbol")
 	para := token
-	var res rpctypes.Reply
+	var res ebTypes.ReplyAddr
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.CreateBridgeToken", para, &res)
 	ctx.Run()
 }

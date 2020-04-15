@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
-	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -112,7 +111,7 @@ func waitEthTxFinished(client *ethclient.Client, txhash common.Hash, txName stri
 			} else if err != nil {
 				return err
 			}
-			fmt.Printf("\ntx %s succeeds to execute", txhash.String())
+			txslog.Info(txName, "Finished executing for tx", txhash.String())
 			return nil
 		}
 	}

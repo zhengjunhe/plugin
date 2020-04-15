@@ -6,7 +6,6 @@ package events
 // -----------------------------------------------------
 
 import (
-	"fmt"
 	"math/big"
 
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
@@ -78,29 +77,24 @@ func UnpackLogBurn(contractAbi abi.ABI, eventName string, eventData []byte) (bur
 	}
 
 	eventsLog.Info("UnpackLogBurn", "token addr", event.Token.Hex(), "symbol", event.Symbol,
-		"Amount", event.Amount.String(), "OwnerFrom",   event.OwnerFrom.String(),
+		"Amount", event.Amount.String(), "OwnerFrom", event.OwnerFrom.String(),
 		"Chain33Receiver", string(event.Chain33Receiver), "nonce", event.Nonce.String())
 	return event, nil
 }
 
 // UnpackLogNewProphecyClaim : Handles new LogNewProphecyClaim events
 func UnpackLogNewProphecyClaim(contractAbi abi.ABI, eventName string, eventData []byte) (event NewProphecyClaimEvent, err error) {
-	// Parse the event's attributes as Ethereum network variables
 	err = contractAbi.Unpack(&event, eventName, eventData)
 	if err != nil {
 		eventsLog.Error("UnpackLogNewProphecyClaim", "Failed to UnpackLogNewProphecyClaim due to:", err.Error(),
 			"eventName", eventName)
 		return
 	}
-
-	info2print := printProphecyClaimEvent(event)
-	eventsLog.Info("UnpackLogNewProphecyClaim", "event detailed info:", info2print)
+	printProphecyClaimEvent(event)
 	return
 }
 
-// printProphecyClaimEvent : prints a NewProphecyClaimEvent struct's information
-func printProphecyClaimEvent(event NewProphecyClaimEvent) string {
-	// Convert the variables into a printable format
+func printProphecyClaimEvent(event NewProphecyClaimEvent) {
 	id := event.ProphecyID
 	claimType := event.ClaimType
 	sender := common.Bytes2Hex(event.Chain33Sender)
@@ -110,10 +104,7 @@ func printProphecyClaimEvent(event NewProphecyClaimEvent) string {
 	amount := event.Amount
 	validator := event.ValidatorAddress.Hex()
 
-	fmt.Printf("\nProphecy ID: %v\nClaim Type: %v\nSender: %s\nRecipient %v\nSymbol %v\nToken %v\nAmount: %v\nValidator: %v\n\n",
-		id, claimType, sender, recipient, symbol, token, amount, validator)
-
-	// Print the event's information
-	return fmt.Sprintf("\nProphecy ID: %v\nClaim Type: %v\nSender: %s\nRecipient %v\nSymbol %v\nToken %v\nAmount: %v\nValidator: %v\n\n",
-		id, claimType, sender, recipient, symbol, token, amount, validator)
+	eventsLog.Info("ProphecyClaimEvent", "Prophecy ID", id, "Claim Type", claimType, "Sender", sender,
+		"Recipient", recipient, "Symbol", symbol, "Token", token, "Amount", amount, "Validator", validator)
+	return
 }
