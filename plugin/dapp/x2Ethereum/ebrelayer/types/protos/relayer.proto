@@ -91,3 +91,13 @@ message LockEthErc20 {
     //将lock住的资产跨链转移到chain33的该账户名下
     string chain33Receiver = 4;
 }
+
+message ReplyAddr {
+    bool isOK       =1;
+    string addr     =2;
+}
+
+message ReplyBalance {
+    bool isOK       =1;
+    string balance  =2;
+}

@@ -7,12 +7,12 @@ import (
 	"github.com/33cn/chain33/common/log/log15"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	chain33Types "github.com/33cn/chain33/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
+	"github.com/ethereum/go-ethereum/common"
 	"sync"
 	"sync/atomic"
 )
@@ -153,7 +153,11 @@ func (manager *RelayerManager) Unlock(passphase string, result *interface{}) err
 
 	manager.isLocked = Unlocked
 	manager.passphase = passphase
-	*result = "Succeed to unlock"
+
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  "Succeed to unlock",
+	}
 
 	return nil
 }
@@ -316,9 +320,9 @@ func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interfac
 	if nil != err {
 		return err
 	}
-	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  fmt.Sprintf("Token address:%s", tokenAddr),
+	*result = relayerTypes.ReplyAddr{
+		IsOK: true,
+		Addr: fmt.Sprintf("%s", tokenAddr),
 	}
 	return nil
 }
@@ -330,9 +334,9 @@ func (manager *RelayerManager) CreateERC20Token(symbol string, result *interface
 	if nil != err {
 		return err
 	}
-	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  fmt.Sprintf("Token address:%s", tokenAddr),
+	*result = relayerTypes.ReplyAddr{
+		IsOK: true,
+		Addr: fmt.Sprintf("%s", tokenAddr),
 	}
 	return nil
 }
@@ -346,7 +350,7 @@ func (manager *RelayerManager) MintErc20(mintToken relayerTypes.MintToken, resul
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:txhash,
+		Msg:  txhash,
 	}
 	return nil
 }
@@ -360,7 +364,7 @@ func (manager *RelayerManager) ApproveAllowance(approveAllowance relayerTypes.Ap
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:txhash,
+		Msg:  txhash,
 	}
 	return nil
 }
@@ -374,7 +378,7 @@ func (manager *RelayerManager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:txhash,
+		Msg:  txhash,
 	}
 	return nil
 }
@@ -387,12 +391,12 @@ func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerType
 		tokenAddress = common.HexToAddress(newProphecyClaim.TokenAddr)
 	}
 	newProphecyClaimPara := &ethtxs.NewProphecyClaimPara{
-		ClaimType:uint8(newProphecyClaim.ClaimType),
-		Chain33Sender:[]byte(newProphecyClaim.Chain33Sender),
-		TokenAddr:tokenAddress,
-		EthReceiver:common.HexToAddress(newProphecyClaim.EthReceiver),
-		Symbol:newProphecyClaim.Symbol,
-		Amount:newProphecyClaim.Amount,
+		ClaimType:     uint8(newProphecyClaim.ClaimType),
+		Chain33Sender: []byte(newProphecyClaim.Chain33Sender),
+		TokenAddr:     tokenAddress,
+		EthReceiver:   common.HexToAddress(newProphecyClaim.EthReceiver),
+		Symbol:        newProphecyClaim.Symbol,
+		Amount:        newProphecyClaim.Amount,
 	}
 	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(newProphecyClaimPara)
 	if nil != err {
@@ -439,9 +443,9 @@ func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, 
 	if nil != err {
 		return err
 	}
-	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  fmt.Sprintf("balance:%d", balance),
+	*result = relayerTypes.ReplyBalance{
+		IsOK:    true,
+		Balance: fmt.Sprintf("%d", balance),
 	}
 	return nil
 }
@@ -453,9 +457,9 @@ func (manager *RelayerManager) ShowBridgeBankAddr(para interface{}, result *inte
 	if nil != err {
 		return err
 	}
-	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  addr,
+	*result = relayerTypes.ReplyAddr{
+		IsOK: true,
+		Addr: addr,
 	}
 	return nil
 }

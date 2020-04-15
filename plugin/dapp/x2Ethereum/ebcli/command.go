@@ -99,7 +99,7 @@ func unLock(cmd *cobra.Command, args []string) {
 	pwd, _ := cmd.Flags().GetString("pwd")
 
 	params := pwd
-	var res string
+	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.Unlock", params, &res)
 	ctx.Run()
 }
