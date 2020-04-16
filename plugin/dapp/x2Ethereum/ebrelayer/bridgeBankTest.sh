@@ -77,9 +77,6 @@ TestETH2Chain33WithErc20Assets() {
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "60"
 
-    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
-    cli_ret "${result}" "balance" ".balance" "60"
-
     echo "Succeed to TestETH2Chain33WithErc20Assets"
 }
 
@@ -115,6 +112,9 @@ TestETH2Chain33WithEthAssets() {
         echo "wrong balance"
         exit 1
     fi
+
+    result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
+    cli_ret "${result}" "balance" ".balance" "50"
 
     echo "Succeed to TestETH2Chain33WithEthAssets"
 }
