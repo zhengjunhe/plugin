@@ -13,12 +13,12 @@ import (
 )
 
 type NewProphecyClaimPara struct {
-	ClaimType uint8
+	ClaimType     uint8
 	Chain33Sender []byte
-	TokenAddr common.Address
-	EthReceiver common.Address
-	Symbol string
-	Amount int64
+	TokenAddr     common.Address
+	EthReceiver   common.Address
+	Symbol        string
+	Amount        int64
 }
 
 func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara, x2EthDeployInfo *X2EthDeployInfo, x2EthContracts *X2EthContracts) (string, error) {
@@ -64,16 +64,16 @@ func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara
 	case vLog := <-logs:
 		// Check if the event is a 'LogLock' event
 		if vLog.Topics[0].Hex() == logNewBridgeTokenSig {
-			txslog.Debug("CreateBrigeToken","Witnessed new event", eventName, "Block number", vLog.BlockNumber)
+			txslog.Debug("CreateBrigeToken", "Witnessed new event", eventName, "Block number", vLog.BlockNumber)
 
 			err = bridgeBankABI.Unpack(logEvent, eventName, vLog.Data)
 			if nil != err {
 				return "", err
 			}
 			if symbol != logEvent.Symbol {
-				txslog.Error("CreateBrigeToken","symbol", symbol, "logEvent.Symbol", logEvent.Symbol)
+				txslog.Error("CreateBrigeToken", "symbol", symbol, "logEvent.Symbol", logEvent.Symbol)
 			}
-			txslog.Info("CreateBrigeToken","Witnessed new event", eventName, "Block number", vLog.BlockNumber, "token address", logEvent.Token.String())
+			txslog.Info("CreateBrigeToken", "Witnessed new event", eventName, "Block number", vLog.BlockNumber, "token address", logEvent.Token.String())
 			break
 		}
 	}
@@ -99,7 +99,7 @@ func CreateERC20Token(symbol string, client *ethclient.Client, para *DeployPara,
 	return tokenAddr.String(), nil
 }
 
-func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient.Client, para *DeployPara)  (string, error) {
+func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient.Client, para *DeployPara) (string, error) {
 	operatorAuth, err := PrepareAuth(client, para.DeployPrivateKey, para.Operator)
 	if nil != err {
 		return "", err
@@ -121,7 +121,7 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient
 	return tx.Hash().String(), nil
 }
 
-func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Address, amount int64, client *ethclient.Client,)  (string, error) {
+func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Address, amount int64, client *ethclient.Client) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -150,7 +150,7 @@ func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Ad
 	return tx.Hash().String(), nil
 }
 
-func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount int64, bridgeBankIns *generated.BridgeBank, client *ethclient.Client,)  (string, error) {
+func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount int64, bridgeBankIns *generated.BridgeBank, client *ethclient.Client) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -174,7 +174,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 	if nil != err {
 		return "", err
 	}
-	txslog.Info("Burn","Approve tx with hash", tx.Hash().String())
+	txslog.Info("Burn", "Approve tx with hash", tx.Hash().String())
 
 	auth, err = PrepareAuth(client, ownerPrivateKey, ownerAddr)
 	if nil != err {
@@ -192,7 +192,35 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 	return tx.Hash().String(), nil
 }
 
-func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount int64, client *ethclient.Client, bridgeBank *generated.BridgeBank)  (string, error) {
+func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount int64, client *ethclient.Client) (string, error) {
+	tokenInstance, err := generated.NewBridgeToken(common.HexToAddress(tokenAddr), client)
+	if nil != err {
+		return "", err
+	}
+
+	fromPrivateKey, err := crypto.ToECDSA(common.FromHex(fromPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	fromAddr := crypto.PubkeyToAddress(fromPrivateKey.PublicKey)
+	auth, err := PrepareAuth(client, fromPrivateKey, fromAddr)
+	if nil != err {
+		return "", err
+	}
+
+	tx, err := tokenInstance.Transfer(auth, common.HexToAddress(toAddr), big.NewInt(amount))
+	if nil != err {
+		return "", err
+	}
+
+	err = waitEthTxFinished(client, tx.Hash(), "TransferFromToken")
+	if nil != err {
+		return "", err
+	}
+	return tx.Hash().String(), nil
+}
+
+func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount int64, client *ethclient.Client, bridgeBank *generated.BridgeBank) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -205,7 +233,7 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 	}
 	//ETH转账，空地址，且设置value
 	var tokenAddr common.Address
-    if "" == tokenAddrStr {
+	if "" == tokenAddrStr {
 		auth.Value = big.NewInt(amount)
 	}
 
@@ -262,5 +290,3 @@ func ProcessProphecyClaim(client *ethclient.Client, para *DeployPara, x2EthContr
 	}
 	return tx.Hash().String(), nil
 }
-
-

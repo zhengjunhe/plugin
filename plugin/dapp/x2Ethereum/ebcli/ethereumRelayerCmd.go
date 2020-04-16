@@ -42,6 +42,7 @@ func EthereumRelayerCmd() *cobra.Command {
 		ShowBridgeBankAddrCmd(),
 		BurnCmd(),
 		StaticsCmd(),
+		TransferTokenCmd(),
 	)
 
 	return cmd
@@ -415,10 +416,10 @@ func Burn(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetInt64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	para := ebTypes.Burn{
-		OwnerKey:key,
-		TokenAddr:tokenAddr,
-		Amount:amount,
-		Chain33Receiver:receiver,
+		OwnerKey:        key,
+		TokenAddr:       tokenAddr,
+		Amount:          amount,
+		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.Burn", para, &res)
@@ -477,12 +478,6 @@ func ShowBridgeBankAddr(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowBridgeBankAddr", nil, &res)
 	ctx.Run()
 }
-
-
-
-
-
-
 
 func MakeNewProphecyClaimCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -608,5 +603,44 @@ func IsProphecyPending(cmd *cobra.Command, args []string) {
 	para := id
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.IsProphecyPending", para, &res)
+	ctx.Run()
+}
+
+func TransferTokenCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer",
+		Short: "create a transfer transaction",
+		Run:   TransferToken,
+	}
+	TransferTokenFlags(cmd)
+	return cmd
+}
+
+func TransferTokenFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("from", "k", "", "from private key")
+	_ = cmd.MarkFlagRequired("from")
+	cmd.Flags().StringP("to", "r", "", "to address")
+	_ = cmd.MarkFlagRequired("to")
+	cmd.Flags().Int64P("amount", "m", 0, "amount")
+	_ = cmd.MarkFlagRequired("amount")
+
+}
+
+func TransferToken(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	from, _ := cmd.Flags().GetString("from")
+	to, _ := cmd.Flags().GetString("to")
+	amount, _ := cmd.Flags().GetInt64("amount")
+	para := ebTypes.TransferToken{
+		TokenAddr: tokenAddr,
+		FromKey:   from,
+		ToAddr:    to,
+		Amount:    amount,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.TransferToken", para, &res)
 	ctx.Run()
 }

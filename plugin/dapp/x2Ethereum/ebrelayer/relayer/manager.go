@@ -378,7 +378,7 @@ func (manager *RelayerManager) Burn(burn relayerTypes.Burn, result *interface{})
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:txhash,
+		Msg:  txhash,
 	}
 	return nil
 }
@@ -543,5 +543,19 @@ func (manager *RelayerManager) ShowTxsChain33ToEthTxLock(param interface{}, resu
 
 func (manager *RelayerManager) ShowTxsChain33ToEthTxBurn(param interface{}, result *interface{}) error {
 
+	return nil
+}
+
+func (manager *RelayerManager) TransferToken(transfer relayerTypes.TransferToken, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.TransferToken(transfer.TokenAddr, transfer.FromKey, transfer.ToAddr, transfer.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
 	return nil
 }

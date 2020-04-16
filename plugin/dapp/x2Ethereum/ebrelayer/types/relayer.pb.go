@@ -230,5 +230,16 @@ func (m *StaticsResponse) GetStaticsSingle() *StaticsSingle {
 	return nil
 }
 
+type TransferToken struct {
+	TokenAddr string `protobuf:"bytes,1,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
+	FromKey   string `protobuf:"bytes,2,opt,name=fromKey" json:"fromKey,omitempty"`
+	ToAddr    string `protobuf:"bytes,3,opt,name=toAddr" json:"toAddr,omitempty"`
+	Amount    int64  `protobuf:"varint,4,opt,name=amount" json:"amount,omitempty"`
+}
+
+func (m *TransferToken) Reset()         { *m = TransferToken{} }
+func (m *TransferToken) String() string { return proto.CompactTextString(m) }
+func (*TransferToken) ProtoMessage()    {}
+
 func init() {
 }

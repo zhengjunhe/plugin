@@ -39,9 +39,9 @@ type EthereumRelayer struct {
 	//validatorName        string
 	db dbm.DB
 	//passphase            string
-	rwLock               sync.RWMutex
-	validatorAddress     []byte
-	privateKey4Chain33   chain33Crypto.PrivKey
+	rwLock                 sync.RWMutex
+	validatorAddress       []byte
+	privateKey4Chain33     chain33Crypto.PrivKey
 	privateKey4Ethereum    *ecdsa.PrivateKey
 	ethValidator           common.Address
 	totalTx4Eth2Chain33    int64
@@ -82,14 +82,13 @@ func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAd
 		deployInfo:         deploy,
 	}
 
-
 	registrAddrInDB, err := relayer.getBridgeRegistryAddr()
 	//如果输入的registry地址非空，且和数据库保存地址不一致，则直接使用输入注册地址
 	if registryAddress != "" && nil == err && registrAddrInDB != registryAddress {
 		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB,
 			"but now setting to", registryAddress)
 		_ = relayer.setBridgeRegistryAddr(registryAddress)
-	} else if registryAddress == "" && registrAddrInDB != ""{
+	} else if registryAddress == "" && registrAddrInDB != "" {
 		//输入地址为空，且数据库中保存地址不为空，则直接使用数据库中的地址
 		relayer.bridgeRegistryAddr = common.HexToAddress(registrAddrInDB)
 	}
@@ -265,6 +264,10 @@ func (ethRelayer *EthereumRelayer) Burn(ownerPrivateKey, tokenAddr, chain33Recei
 	return ethtxs.Burn(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, amount, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.client)
 }
 
+func (ethRelayer *EthereumRelayer) TransferToken(tokenAddr, fromKey, toAddr string, amount int64) (string, error) {
+	return ethtxs.TransferToken(tokenAddr, fromKey, toAddr, amount, ethRelayer.client)
+}
+
 func (ethRelayer *EthereumRelayer) LockEthErc20Asset(ownerPrivateKey, tokenAddr string, amount int64, chain33Receiver string) (string, error) {
 	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, chain33Receiver, amount, ethRelayer.client, ethRelayer.x2EthContracts.BridgeBank)
 }
@@ -295,9 +298,9 @@ func (ethRelayer *EthereumRelayer) proc() {
 	nilAddr := common.Address{}
 	if nilAddr != ethRelayer.bridgeRegistryAddr {
 		relayerLog.Info("proc", "Going to recover corresponding solidity contract handler with bridgeRegistryAddr", ethRelayer.bridgeRegistryAddr.String())
-		ethRelayer.x2EthContracts, ethRelayer.x2EthDeployInfo, err = ethtxs.RecoverContractHandler(client, ethRelayer.bridgeRegistryAddr, ethRelayer.bridgeRegistryAddr )
+		ethRelayer.x2EthContracts, ethRelayer.x2EthDeployInfo, err = ethtxs.RecoverContractHandler(client, ethRelayer.bridgeRegistryAddr, ethRelayer.bridgeRegistryAddr)
 		if nil != err {
-			panic("Failed to recover corresponding solidity contract handler due to:"+ err.Error())
+			panic("Failed to recover corresponding solidity contract handler due to:" + err.Error())
 		}
 		relayerLog.Info("^-^ ^-^ Succeed to recover corresponding solidity contract handler")
 		if nil != ethRelayer.recoverDeployPara() {
@@ -345,7 +348,7 @@ latter:
 				err := ethRelayer.handleLogLockEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
 				if err != nil {
 					errinfo := fmt.Sprintf("Failed to handleLogLockEvent due to:%s", err.Error())
-					relayerLog.Info("EthereumRelayer proc","errinfo", errinfo)
+					relayerLog.Info("EthereumRelayer proc", "errinfo", errinfo)
 					//panic(errinfo)
 				}
 			} else if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventBurnSig {
@@ -356,7 +359,7 @@ latter:
 				err := ethRelayer.handleLogBurnEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
 				if err != nil {
 					errinfo := fmt.Sprintf("Failed to handleLogBurnEvent due to:%s", err.Error())
-					relayerLog.Info("EthereumRelayer proc","errinfo", errinfo)
+					relayerLog.Info("EthereumRelayer proc", "errinfo", errinfo)
 					//panic(errinfo)
 				}
 			}
@@ -559,8 +562,8 @@ func (ethRelayer *EthereumRelayer) handleLogNewProphecyClaimEvent(contractABI ab
 
 	// Initiate the relay
 	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.provider, ethRelayer.ethValidator, ethRelayer.bridgeRegistryAddr, events.LogNewProphecyClaim, oracleClaim, ethRelayer.privateKey4Ethereum)
-    if "" == txhash {
-    	return err
+	if "" == txhash {
+		return err
 	}
 
 	//保存交易hash，方便查询
