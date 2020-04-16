@@ -40,7 +40,6 @@ type EthereumRelayer struct {
 	db dbm.DB
 	//passphase            string
 	rwLock                 sync.RWMutex
-	validatorAddress       []byte
 	privateKey4Chain33     chain33Crypto.PrivKey
 	privateKey4Ethereum    *ecdsa.PrivateKey
 	ethValidator           common.Address
@@ -382,6 +381,23 @@ latter:
 	}
 }
 
+//func (ethRelayer *EthereumRelayer) filterLogEvents() {
+//	query := ethereum.FilterQuery{
+//		Addresses: []common.Address{ethRelayer.chain33BridgeAddr},
+//	}
+//	// Filter by contract and event, write results to logs
+//	logs, err := ethRelayer.client.FilterLogs(context.Background(), query)
+//	if err != nil {
+//		errinfo := fmt.Sprintf("Failed to filterLogEvents due to:%s", err.Error())
+//		panic(errinfo)
+//	}
+//
+//	//for _, log := range logs {
+//	//
+//	//}
+//
+//}
+
 func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
 	var eventName string
 	var target ethtxs.ContractRegistry
@@ -470,7 +486,6 @@ func (ethRelayer *EthereumRelayer) QueryTxhashRelay2Chain33() *ebTypes.Txhashes 
 
 // handleLogLockEvent : unpacks a LogLock event, converts it to a ProphecyClaim, and relays a tx to chain33
 func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, contractABI abi.ABI, eventName string, log types.Log) error {
-	validatorAddress := ethRelayer.validatorAddress
 	rpcURL := ethRelayer.rpcURL2Chain33
 
 	// Unpack the LogLock event using its unique event signature from the contract's ABI
@@ -482,13 +497,13 @@ func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, co
 	events.NewEventWrite(log.TxHash.Hex(), *event)
 
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(validatorAddress, event)
+	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String())
 	if err != nil {
 		return err
 	}
 
 	// Initiate the relay
-	txhash, err := ethtxs.RelayLockToChain33(ethRelayer.privateKey4Chain33, &prophecyClaim, rpcURL)
+	txhash, err := ethtxs.RelayLockToChain33(ethRelayer.privateKey4Chain33, prophecyClaim, rpcURL)
 	if err != nil {
 		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
 		return err
@@ -511,7 +526,6 @@ func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, co
 
 // handleLogBurnEvent : unpacks a burn event, converts it to a ProphecyClaim, and relays a tx to chain33
 func (ethRelayer *EthereumRelayer) handleLogBurnEvent(clientChainID *big.Int, contractABI abi.ABI, eventName string, log types.Log) error {
-	validatorAddress := ethRelayer.validatorAddress
 	rpcURL := ethRelayer.rpcURL2Chain33
 
 	event, err := events.UnpackLogBurn(contractABI, eventName, log.Data)
@@ -520,13 +534,13 @@ func (ethRelayer *EthereumRelayer) handleLogBurnEvent(clientChainID *big.Int, co
 	}
 
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(validatorAddress, event)
+	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String())
 	if err != nil {
 		return err
 	}
 
 	// Initiate the relay
-	txhash, err := ethtxs.RelayBurnToChain33(ethRelayer.privateKey4Chain33, &prophecyClaim, rpcURL)
+	txhash, err := ethtxs.RelayBurnToChain33(ethRelayer.privateKey4Chain33, prophecyClaim, rpcURL)
 	if err != nil {
 		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
 		return err

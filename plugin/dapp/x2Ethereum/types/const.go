@@ -58,6 +58,8 @@ const DefaultConsensusNeeded = 0.7
 const (
 	DirEth2Chain33  = "eth2chain33"
 	DirChain33ToEth = "chain33toeth"
+	LOCK_CLAIM = "lock"
+	BURN_CLAIM = "burn"
 )
 
 var DirectionType = [3]string{"", DirEth2Chain33, DirChain33ToEth}
@@ -74,3 +76,8 @@ const (
 
 //设置合约管理员地址
 const X2ethereumAdmin = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+
+const (
+	LOCK_CLAIM_TYPE = int32(1)
+	BURN_CLAIM_TYPE = int32(2)
+)

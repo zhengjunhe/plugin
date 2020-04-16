@@ -15,62 +15,57 @@ import (
 	"math/big"
 	"regexp"
 	"strings"
-
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 
 // LogLockToEthBridgeClaim : parses and packages a LockEvent struct with a validator address in an EthBridgeClaim msg
-func LogLockToEthBridgeClaim(valAddr []byte, event *events.LockEvent) (ebrelayerTypes.EthBridgeClaim, error) {
-	witnessClaim := ebrelayerTypes.EthBridgeClaim{}
-
-	// Nonce type casting (*big.Int -> int)
-	nonce := event.Nonce.Int64()
-
-	// Sender type casting (address.common -> string)
-	//sender := ebrelayerTypes.NewEthereumAddress(event.From.Hex())
-
+func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bridgeBrankAddr string) (*ebrelayerTypes.EthBridgeClaim, error) {
 	recipient := event.To
 	if 0 == len(recipient) {
-		return witnessClaim, ebrelayerTypes.ErrEmptyAddress
+		return nil, ebrelayerTypes.ErrEmptyAddress
 	}
-
 	// Symbol formatted to lowercase
 	symbol := strings.ToLower(event.Symbol)
 	if symbol == "eth" && event.Token != common.HexToAddress("0x0000000000000000000000000000000000000000") {
-		return witnessClaim, ebrelayerTypes.ErrAddress4Eth
+		return nil, ebrelayerTypes.ErrAddress4Eth
 	}
 
-	// Package the information in a unique EthBridgeClaim
-	witnessClaim.Nonce = nonce
-	witnessClaim.EthereumSender = event.From.Bytes()
-	witnessClaim.ValidatorAddress = valAddr
-	witnessClaim.Chain33Receiver = recipient
+	witnessClaim := &ebrelayerTypes.EthBridgeClaim{}
+	witnessClaim.EthereumChainID = ethereumChainID
+	witnessClaim.BridgeBrankAddr = bridgeBrankAddr
+	witnessClaim.Nonce = event.Nonce.Int64()
+	witnessClaim.TokenAddr = event.Token.String()
+	witnessClaim.Symbol = event.Symbol
+	witnessClaim.EthereumSender = event.From.String()
+	witnessClaim.Chain33Receiver = string(recipient)
 	witnessClaim.Amount = event.Value.Int64()
+
+	witnessClaim.ClaimType = types.LOCK_CLAIM_TYPE
+	witnessClaim.ChainName = types.LOCK_CLAIM
 
 	return witnessClaim, nil
 }
 
-func LogBurnToEthBridgeClaim(valAddr []byte, event *events.BurnEvent) (ebrelayerTypes.EthBridgeClaim, error) {
-	witnessClaim := ebrelayerTypes.EthBridgeClaim{}
-	nonce := event.Nonce.Int64()
-
+func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bridgeBrankAddr string) (*ebrelayerTypes.EthBridgeClaim, error) {
 	recipient := event.Chain33Receiver
 	if 0 == len(recipient) {
-		return witnessClaim, ebrelayerTypes.ErrEmptyAddress
+		return nil, ebrelayerTypes.ErrEmptyAddress
 	}
 
-	// Package the information in a unique EthBridgeClaim
-	witnessClaim.Nonce = nonce
-	witnessClaim.EthereumSender = event.OwnerFrom.Bytes()
-	witnessClaim.ValidatorAddress = valAddr
-	witnessClaim.Chain33Receiver = recipient
+	witnessClaim := &ebrelayerTypes.EthBridgeClaim{}
+	witnessClaim.EthereumChainID = ethereumChainID
+	witnessClaim.BridgeBrankAddr = bridgeBrankAddr
+	witnessClaim.Nonce = event.Nonce.Int64()
+	witnessClaim.TokenAddr = event.Token.String()
+	witnessClaim.Symbol = event.Symbol
+	witnessClaim.EthereumSender = event.OwnerFrom.String()
+	witnessClaim.Chain33Receiver = string(recipient)
 	witnessClaim.Amount = event.Amount.Int64()
-	//witnessClaim.ClaimType =
-	//witnessClaim.ChainName =
+	witnessClaim.ClaimType = types.BURN_CLAIM_TYPE
+	witnessClaim.ChainName = types.BURN_CLAIM
 
 	return witnessClaim, nil
 }
