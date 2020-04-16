@@ -36,14 +36,13 @@ message assetType {
 }
 
 message EthBridgeClaim {
-    int32 ethereumChainID = 1;
-    bytes bridgeContractAddress = 2;
+    int64 ethereumChainID = 1;
+    string bridgeBrankAddr = 2;
     int64 nonce = 3;
-    bytes tokenContractAddress = 4;
+    string tokenAddr = 4;
     string symbol        = 5;
-    bytes ethereumSender = 6;
-    bytes chain33Receiver = 7;
-    bytes ValidatorAddress = 8;
+    string ethereumSender = 6;
+    string chain33Receiver = 7;
     int64 amount = 9;
     int32 claimType = 10;
     string chainName = 11;
