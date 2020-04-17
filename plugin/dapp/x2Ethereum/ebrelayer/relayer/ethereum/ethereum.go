@@ -39,8 +39,8 @@ type EthereumRelayer struct {
 	//validatorName        string
 	db dbm.DB
 	//passphase            string
-	rwLock               sync.RWMutex
-	privateKey4Chain33   chain33Crypto.PrivKey
+	rwLock                 sync.RWMutex
+	privateKey4Chain33     chain33Crypto.PrivKey
 	privateKey4Ethereum    *ecdsa.PrivateKey
 	ethValidator           common.Address
 	totalTx4Eth2Chain33    int64
@@ -81,14 +81,13 @@ func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAd
 		deployInfo:         deploy,
 	}
 
-
 	registrAddrInDB, err := relayer.getBridgeRegistryAddr()
 	//如果输入的registry地址非空，且和数据库保存地址不一致，则直接使用输入注册地址
 	if registryAddress != "" && nil == err && registrAddrInDB != registryAddress {
 		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB,
 			"but now setting to", registryAddress)
 		_ = relayer.setBridgeRegistryAddr(registryAddress)
-	} else if registryAddress == "" && registrAddrInDB != ""{
+	} else if registryAddress == "" && registrAddrInDB != "" {
 		//输入地址为空，且数据库中保存地址不为空，则直接使用数据库中的地址
 		relayer.bridgeRegistryAddr = common.HexToAddress(registrAddrInDB)
 	}
@@ -294,9 +293,9 @@ func (ethRelayer *EthereumRelayer) proc() {
 	nilAddr := common.Address{}
 	if nilAddr != ethRelayer.bridgeRegistryAddr {
 		relayerLog.Info("proc", "Going to recover corresponding solidity contract handler with bridgeRegistryAddr", ethRelayer.bridgeRegistryAddr.String())
-		ethRelayer.x2EthContracts, ethRelayer.x2EthDeployInfo, err = ethtxs.RecoverContractHandler(client, ethRelayer.bridgeRegistryAddr, ethRelayer.bridgeRegistryAddr )
+		ethRelayer.x2EthContracts, ethRelayer.x2EthDeployInfo, err = ethtxs.RecoverContractHandler(client, ethRelayer.bridgeRegistryAddr, ethRelayer.bridgeRegistryAddr)
 		if nil != err {
-			panic("Failed to recover corresponding solidity contract handler due to:"+ err.Error())
+			panic("Failed to recover corresponding solidity contract handler due to:" + err.Error())
 		}
 		relayerLog.Info("^-^ ^-^ Succeed to recover corresponding solidity contract handler")
 		if nil != ethRelayer.recoverDeployPara() {
@@ -315,12 +314,15 @@ func (ethRelayer *EthereumRelayer) proc() {
 					errinfo := fmt.Sprintf("Failed to load validator for ethereum due to:%s", err.Error())
 					panic(errinfo)
 				}
+				relayerLog.Info("Ethereum relayer starts to run...")
+				ethRelayer.prePareSubscribeEvent()
+				ethRelayer.filterLogEvents(clientChainID)
 
 				//向chain33Bridge订阅事件
 				ethRelayer.subscribeEvent(false)
 				//向bridgeBank订阅事件
 				ethRelayer.subscribeEvent(true)
-				relayerLog.Info("Ethereum relayer starts to run...")
+				relayerLog.Info("Ethereum relayer starts to process online log event...")
 				goto latter
 			}
 		}
@@ -333,118 +335,230 @@ latter:
 			panic("bridgeBankSub" + err.Error())
 		case err := <-ethRelayer.chain33BridgeSub.Err():
 			panic("chain33BridgeSub" + err.Error())
-		// vLog is raw event data
 		case vLog := <-ethRelayer.bridgeBankLog:
-
-			//lock,用于捕捉 (ETH/ERC20----->chain33) 跨链转移
-			if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig {
-				eventName := events.LogLock.String()
-				relayerLog.Info("EthereumRelayer proc", "^_^ ^_^ Received bridgeBankLog for event", eventName,
-					"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
-				err := ethRelayer.handleLogLockEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
-				if err != nil {
-					errinfo := fmt.Sprintf("Failed to handleLogLockEvent due to:%s", err.Error())
-					relayerLog.Info("EthereumRelayer proc","errinfo", errinfo)
-					//panic(errinfo)
-				}
-			} else if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventBurnSig {
-				//burn,用于捕捉 (chain33 token----->chain33) 实现chain33资产withdraw操作，之后在chain33上实现unlock操作
-				eventName := events.LogChain33TokenBurn.String()
-				relayerLog.Info("EthereumRelayer proc", "^_^ ^_^ Received bridgeBankLog for event", eventName,
-					"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
-				err := ethRelayer.handleLogBurnEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
-				if err != nil {
-					errinfo := fmt.Sprintf("Failed to handleLogBurnEvent due to:%s", err.Error())
-					relayerLog.Info("EthereumRelayer proc","errinfo", errinfo)
-					//panic(errinfo)
-				}
-			}
+			ethRelayer.procBridgeBankLogs(vLog, clientChainID)
 		case vLog := <-ethRelayer.chain33BridgeLog:
-			relayerLog.Info("^_^ ^_^ Received chain33BridgeLog")
-			// 捕捉NewProphecyClaim(包括lock和burn)，
-			// NewProphecyClaim：lock 实现chain33 asset ------> ethereum(跨链转移操作)
-			// NewProphecyClaim：burn 实现ETH/ERC20 ------> ethereum(资产取回操作)
-			if vLog.Topics[0].Hex() == ethRelayer.chain33BridgeEventSig {
-				eventName := events.LogNewProphecyClaim.String()
-				relayerLog.Info("EthereumRelayer proc", "Witnessed new event:", eventName,
-					"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
-				err := ethRelayer.handleLogNewProphecyClaimEvent(ethRelayer.chain33BridgeAbi, eventName, vLog)
-				if err != nil {
-					errinfo := fmt.Sprintf("Failed to handleLogNewProphecyClaimEvent due to:%s", err.Error())
-					panic(errinfo)
-				}
-			}
+			ethRelayer.procChain33BridgeLogs(vLog)
 		}
 	}
 }
 
-
-
-//func (ethRelayer *EthereumRelayer) filterLogEvents() {
-//	query := ethereum.FilterQuery{
-//		Addresses: []common.Address{ethRelayer.chain33BridgeAddr},
-//	}
-//	// Filter by contract and event, write results to logs
-//	logs, err := ethRelayer.client.FilterLogs(context.Background(), query)
-//	if err != nil {
-//		errinfo := fmt.Sprintf("Failed to filterLogEvents due to:%s", err.Error())
-//		panic(errinfo)
-//	}
-//
-//	//for _, log := range logs {
-//	//
-//	//}
-//
-//}
-
-func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
-	var eventName string
-	var target ethtxs.ContractRegistry
-
-	switch makeClaims {
-	case true:
-		eventName = events.LogNewProphecyClaim.String()
-		contactAbi := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
-		// Load unique event signature from the named event contained within the contract's ABI
-		ethRelayer.chain33BridgeEventSig = contactAbi.Events[eventName].ID().Hex()
-		ethRelayer.chain33BridgeAbi = contactAbi
-		target = ethtxs.Chain33Bridge
-	case false:
-		contactAbi := ethtxs.LoadABI(ethtxs.BridgeBankABI)
-		ethRelayer.bridgeBankAbi = contactAbi
-		target = ethtxs.BridgeBank
-		eventName = events.LogLock.String()
-		ethRelayer.bridgeBankEventLockSig = contactAbi.Events[eventName].ID().Hex()
-		eventName = events.LogChain33TokenBurn.String()
-		ethRelayer.bridgeBankEventBurnSig = contactAbi.Events[eventName].ID().Hex()
+func (ethRelayer *EthereumRelayer) procBridgeBankLogs(vLog types.Log, clientChainID *big.Int) {
+	if ethRelayer.checkTxProcessed(vLog.TxHash.Bytes()) {
+		relayerLog.Info("procBridgeBankLogs", "Tx Processed with hash:", vLog.TxHash.Hex())
+		return
 	}
 
-	client := ethRelayer.client
-	sender := ethRelayer.ethValidator
-	// Get the specific contract's address (Chain33Bridge or BridgeBank)
-	targetAddress, err := ethtxs.GetAddressFromBridgeRegistry(client, sender, ethRelayer.bridgeRegistryAddr, target)
+	//lock,用于捕捉 (ETH/ERC20----->chain33) 跨链转移
+	if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig {
+		eventName := events.LogLock.String()
+		relayerLog.Info("EthereumRelayer proc", "^_^ ^_^ Received bridgeBankLog for event", eventName,
+			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
+		err := ethRelayer.handleLogLockEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
+		if err != nil {
+			errinfo := fmt.Sprintf("Failed to handleLogLockEvent due to:%s", err.Error())
+			relayerLog.Info("EthereumRelayer proc", "errinfo", errinfo)
+			//panic(errinfo)
+		}
+	} else if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventBurnSig {
+		//burn,用于捕捉 (chain33 token----->chain33) 实现chain33资产withdraw操作，之后在chain33上实现unlock操作
+		eventName := events.LogChain33TokenBurn.String()
+		relayerLog.Info("EthereumRelayer proc", "^_^ ^_^ Received bridgeBankLog for event", eventName,
+			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
+		err := ethRelayer.handleLogBurnEvent(clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
+		if err != nil {
+			errinfo := fmt.Sprintf("Failed to handleLogBurnEvent due to:%s", err.Error())
+			relayerLog.Info("EthereumRelayer proc", "errinfo", errinfo)
+			//panic(errinfo)
+		}
+	}
+
+	if err := ethRelayer.setTxProcessed(vLog.TxHash.Bytes()); nil != err {
+		panic(err.Error())
+	}
+
+	if err := ethRelayer.setHeight4BridgeBankLogAt(vLog.BlockNumber); nil != err {
+		panic(err.Error())
+	}
+}
+
+// 捕捉NewProphecyClaim(包括lock和burn)，
+// NewProphecyClaim：lock 实现chain33 asset ------> ethereum(跨链转移操作)
+// NewProphecyClaim：burn 实现ETH/ERC20 ------> ethereum(资产取回操作)
+func (ethRelayer *EthereumRelayer) procChain33BridgeLogs(vLog types.Log) {
+	if ethRelayer.checkTxProcessed(vLog.TxHash.Bytes()) {
+		relayerLog.Info("procChain33BridgeLogs", "Tx Processed with hash:", vLog.TxHash.Hex())
+		return
+	}
+	if vLog.Topics[0].Hex() == ethRelayer.chain33BridgeEventSig {
+		eventName := events.LogNewProphecyClaim.String()
+		relayerLog.Info("EthereumRelayer proc", "^_^ ^_^ Received chain33BridgeLog with new event:", eventName,
+			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
+		err := ethRelayer.handleLogNewProphecyClaimEvent(ethRelayer.chain33BridgeAbi, eventName, vLog)
+		if err != nil {
+			errinfo := fmt.Sprintf("Failed to handleLogNewProphecyClaimEvent due to:%s", err.Error())
+			panic(errinfo)
+		}
+	}
+
+	if err := ethRelayer.setTxProcessed(vLog.TxHash.Bytes()); nil != err {
+		panic(err.Error())
+	}
+
+	if err := ethRelayer.setHeight4chain33BridgeLogAt(vLog.BlockNumber); nil != err {
+		panic(err.Error())
+	}
+}
+
+type OfflineProc struct {
+}
+
+func (ethRelayer *EthereumRelayer) filterLogEvents(clientChainID *big.Int) {
+	//debug code
+	ethRelayer.setHeight4BridgeBankLogAt(0)
+	ethRelayer.setHeight4chain33BridgeLogAt(0)
+
+	deployHeight := int64(1)
+	height4BridgeBankLogAt := int64(ethRelayer.getHeight4BridgeBankLogAt())
+	height4chain33BridgeLogAt := int64(ethRelayer.getHeight4chain33BridgeLogAt())
+
+	if height4BridgeBankLogAt < deployHeight {
+		height4BridgeBankLogAt = deployHeight
+	}
+	if height4chain33BridgeLogAt < deployHeight {
+		height4chain33BridgeLogAt = deployHeight
+	}
+
+	header, err := ethRelayer.client.HeaderByNumber(context.Background(), nil)
 	if err != nil {
-		errinfo := fmt.Sprintf("Failed to GetAddressFromBridgeRegistry due to:%s", err.Error())
+		errinfo := fmt.Sprintf("Failed to get HeaderByNumbers due to:%s", err.Error())
 		panic(errinfo)
 	}
+	curHeight := int64(header.Number.Uint64())
+	relayerLog.Info("filterLogEvents", "curHeight:", curHeight)
+
+	if curHeight < height4BridgeBankLogAt && curHeight < height4chain33BridgeLogAt {
+		return
+	}
+
+	bridgeBankSig := make(map[string]bool)
+	bridgeBankSig[ethRelayer.bridgeBankEventLockSig] = true
+	bridgeBankSig[ethRelayer.bridgeBankEventBurnSig] = true
+	bridgeBankLog := make(chan types.Log)
+	done := make(chan int)
+	go ethRelayer.filterLogEventsProc(bridgeBankLog, done, "bridgeBank", curHeight, height4BridgeBankLogAt, ethRelayer.bridgeBankAddr, bridgeBankSig)
+
+	chain33BridgeSig := make(map[string]bool)
+	chain33BridgeSig[ethRelayer.chain33BridgeEventSig] = true
+	chain33BridgeLog := make(chan types.Log)
+	go ethRelayer.filterLogEventsProc(chain33BridgeLog, done, "chain33Bridge", curHeight, height4chain33BridgeLogAt, ethRelayer.chain33BridgeAddr, chain33BridgeSig)
+
+	doneCnt := 0
+	for {
+		select {
+		case vLog := <-bridgeBankLog:
+			ethRelayer.procBridgeBankLogs(vLog, clientChainID)
+		case vLog := <-chain33BridgeLog:
+			ethRelayer.procChain33BridgeLogs(vLog)
+		case <-done:
+			doneCnt++
+			if 2 == doneCnt {
+				relayerLog.Info("Finshed offline logs processed")
+				return
+			}
+		}
+	}
+	relayerLog.Info("Finshed offline logs processed")
+}
+
+func (ethRelayer *EthereumRelayer) filterLogEventsProc(logchan chan<- types.Log, done chan<- int, title string, curHeight, heightLogProcAt int64, contractAddr common.Address, eventSig map[string]bool) {
+	relayerLog.Info(title, "eventSig", eventSig)
+
+	startHeight := heightLogProcAt
+	batchCount := int64(10)
+	query := ethereum.FilterQuery{
+		Addresses: []common.Address{contractAddr},
+	}
+
+	for {
+		if batchCount < (curHeight - startHeight + 1) {
+			stopHeight := startHeight + batchCount - 1
+			query.FromBlock = big.NewInt(startHeight)
+			query.ToBlock = big.NewInt(stopHeight)
+		} else {
+			query.FromBlock = big.NewInt(startHeight)
+			query.ToBlock = big.NewInt(curHeight)
+		}
+
+		// Filter by contract and event, write results to logs
+		logs, err := ethRelayer.client.FilterLogs(context.Background(), query)
+		if err != nil {
+			errinfo := fmt.Sprintf("Failed to filterLogEvents due to:%s", err.Error())
+			panic(errinfo)
+		}
+
+		relayerLog.Info(title, "received logs", len(logs))
+		for _, log := range logs {
+			relayerLog.Info(title, "received log with topics", log.Topics[0].Hex(), "BlockNumber", log.BlockNumber)
+			if _, exist := eventSig[log.Topics[0].Hex()]; !exist {
+				continue
+			}
+			//if ethRelayer.checkTxProcessed(log.TxHash.Bytes()) {
+			//	relayerLog.Info("filterLogEvents", "get processed log with topic:", log.Topics[0].String(),
+			//		"BlockNumber", log.BlockNumber)
+			//	continue
+			//}
+			logchan <- log
+			relayerLog.Info(title, "get unprocessed log with topic:", log.Topics[0].String(),
+				"BlockNumber", log.BlockNumber)
+		}
+
+		if query.ToBlock.Int64() == curHeight {
+			relayerLog.Info(title,  "Finished FilterLogs to height", curHeight)
+			done <- 1
+			break
+		}
+		startHeight = query.ToBlock.Int64() + 1
+	}
+}
+
+func (ethRelayer *EthereumRelayer) prePareSubscribeEvent() {
+	var eventName string
+	//chain33Bridge处理
+	eventName = events.LogNewProphecyClaim.String()
+	contactAbi := ethtxs.LoadABI(ethtxs.Chain33BridgeABI)
+	ethRelayer.chain33BridgeEventSig = contactAbi.Events[eventName].ID().Hex()
+	ethRelayer.chain33BridgeAbi = contactAbi
+	ethRelayer.chain33BridgeAddr = ethRelayer.x2EthDeployInfo.Chain33Bridge.Address
+
+	//bridgeBank处理
+	contactAbi = ethtxs.LoadABI(ethtxs.BridgeBankABI)
+	ethRelayer.bridgeBankAbi = contactAbi
+	eventName = events.LogLock.String()
+	ethRelayer.bridgeBankEventLockSig = contactAbi.Events[eventName].ID().Hex()
+	eventName = events.LogChain33TokenBurn.String()
+	ethRelayer.bridgeBankEventBurnSig = contactAbi.Events[eventName].ID().Hex()
+    ethRelayer.bridgeBankAddr = ethRelayer.x2EthDeployInfo.BridgeBank.Address
+}
+
+func (ethRelayer *EthereumRelayer) subscribeEvent(makeClaims bool) {
+	var targetAddress common.Address
 	if makeClaims {
-		ethRelayer.chain33BridgeAddr = *targetAddress
-		relayerLog.Info("subscribeEvent", "Succeed to get chain33Bridge addr:", targetAddress.String(),
-			"event signature", ethRelayer.chain33BridgeEventSig)
+		targetAddress = ethRelayer.chain33BridgeAddr
+
 	} else {
-		ethRelayer.bridgeBankAddr = *targetAddress
-		relayerLog.Info("subscribeEvent", "Succeed to get BridgeBank addr:", targetAddress.String(),
-			"event signature", ethRelayer.bridgeBankEventLockSig)
+		targetAddress = ethRelayer.bridgeBankAddr
 	}
 
 	// We need the target address in bytes[] for the query
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{*targetAddress},
+		Addresses: []common.Address{targetAddress},
+		FromBlock: big.NewInt(int64(1)),
 	}
 	// We will check logs for new events
-	logs := make(chan types.Log)
+	logs := make(chan types.Log, 10)
 	// Filter by contract and event, write results to logs
-	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+	sub, err := ethRelayer.client.SubscribeFilterLogs(context.Background(), query, logs)
 	if err != nil {
 		errinfo := fmt.Sprintf("Failed to SubscribeFilterLogs due to:%s", err.Error())
 		panic(errinfo)
@@ -575,8 +689,8 @@ func (ethRelayer *EthereumRelayer) handleLogNewProphecyClaimEvent(contractABI ab
 
 	// Initiate the relay
 	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.provider, ethRelayer.ethValidator, ethRelayer.bridgeRegistryAddr, events.LogNewProphecyClaim, oracleClaim, ethRelayer.privateKey4Ethereum)
-    if "" == txhash {
-    	return err
+	if "" == txhash {
+		return err
 	}
 
 	//保存交易hash，方便查询

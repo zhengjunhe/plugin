@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync/atomic"
 	chain33Types "github.com/33cn/chain33/types"
+	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 )
 
@@ -15,6 +16,9 @@ var (
 	chain33ToEthTxTotalAmount = []byte("chain33ToEthTxTotalAmount")
 
 	bridgeRegistryAddrPrefix = []byte("x2EthBridgeRegistryAddr")
+
+	chain33BridgeLogProcessedAt = []byte("chain33BridgeLogProcessedAt")
+	bridgeBankLogProcessedAt = []byte("bridgeBankLogProcessedAt")
 )
 
 func calcRelay2Chain33Txhash(txindex int64) []byte {
@@ -65,4 +69,52 @@ func (ethRelayer *EthereumRelayer) setLastestRelay2EthTxhash(txhash string, txIn
 
 func (ethRelayer *EthereumRelayer) queryTxhashes(prefix []byte) []string {
 	return utils.QueryTxhashes(prefix, ethRelayer.db)
+}
+
+func (ethRelayer *EthereumRelayer) setHeight4chain33BridgeLogAt(height uint64) error {
+	return ethRelayer.setLogProcHeight(chain33BridgeLogProcessedAt, height)
+}
+
+func (ethRelayer *EthereumRelayer) getHeight4chain33BridgeLogAt() uint64 {
+	return ethRelayer.getLogProcHeight(chain33BridgeLogProcessedAt)
+}
+
+func (ethRelayer *EthereumRelayer) setHeight4BridgeBankLogAt(height uint64) error {
+	return ethRelayer.setLogProcHeight(bridgeBankLogProcessedAt, height)
+}
+
+func (ethRelayer *EthereumRelayer) getHeight4BridgeBankLogAt() uint64 {
+	return ethRelayer.getLogProcHeight(bridgeBankLogProcessedAt)
+}
+
+func (ethRelayer *EthereumRelayer) setLogProcHeight(key []byte, height uint64) error {
+	data := &ebTypes.Uint64{
+		Data:height,
+	}
+	return ethRelayer.db.Set(key, chain33Types.Encode(data))
+}
+
+func (ethRelayer *EthereumRelayer) getLogProcHeight(key []byte) uint64 {
+	value , err := ethRelayer.db.Get(key)
+	if nil != err {
+		return 0
+	}
+	var height ebTypes.Uint64
+	err = chain33Types.Decode(value, &height)
+	if nil != err {
+		return 0
+	}
+	return height.Data
+}
+
+func (ethRelayer *EthereumRelayer) setTxProcessed(txhash []byte) error {
+	return ethRelayer.db.Set(txhash, []byte("1"))
+}
+
+func (ethRelayer *EthereumRelayer) checkTxProcessed(txhash []byte) bool {
+	_, err := ethRelayer.db.Get(txhash)
+	if nil != err {
+		return false
+	}
+	return true
 }

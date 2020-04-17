@@ -124,3 +124,7 @@ message StaticsResponse {
     StaticsSingle staticsSingle  = 2;
 }
 
+message Uint64 {
+    uint64 data = 1;
+}
+
