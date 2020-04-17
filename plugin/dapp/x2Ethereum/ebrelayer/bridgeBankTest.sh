@@ -6,10 +6,13 @@ bridgeBankAddr=""
 chain33SenderAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 chain33SenderAddrKey="CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944"
 ethOperatorAddrKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
-ethReceiverAddr1="0xdb15E7327aDc83F2878624bBD6307f5Af1B477b4"
-ethReceiverAddrKey1="1385016736f7379884763f4a39811d1391fa156a7ca017be6afffa52bb327695"
-ethReceiverAddr2="0x9cBA1fF8D0b0c9Bc95d5762533F8CddBE795f687"
-ethReceiverAddrKey2="4ae589fe3837dcfc90d1c85b8423dc30841525cbebc41dfb537868b0f8376bbf"
+
+ethReceiverAddr1="0xa4ea64a583f6e51c3799335b28a8f0529570a635"
+ethReceiverAddrKey1="355b876d7cbcb930d5dfab767f66336ce327e082cbaa1877210c1bae89b1df71"
+
+ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
+ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
+
 ethReceiverAddr3="0x1919203bA8b325278d28Fb8fFeac49F2CD881A4e"
 ethReceiverAddrKey3="62ca4122aac0e6f35bed02fc15c7ddbdaa07f2f2a1821c8b8210b891051e3ee9"
 
@@ -28,6 +31,7 @@ InitAndDeploy() {
 
     result=$(${CLI} relayer ethereum import_ethprivatekey -k "${ethOperatorAddrKey}")
     cli_ret "${result}" "import_ethprivatekey"
+
 
     echo "Succeed to InitAndDeploy"
 }

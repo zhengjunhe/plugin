@@ -124,10 +124,15 @@ message StaticsResponse {
     StaticsSingle staticsSingle  = 2;
 }
 
+
 message TransferToken {
-    string tokenAddr =1;
-    string fromKey   =2;
-    string toAddr    =3;
-    int64  amount    =4;
+    string tokenAddr = 1;
+    string fromKey = 2;
+    string toAddr = 3;
+    int64 amount = 4;
+}
+
+message Uint64 {
+    uint64 data = 1;
 }
 
