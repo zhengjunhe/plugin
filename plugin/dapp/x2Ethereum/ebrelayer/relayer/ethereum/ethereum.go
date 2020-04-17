@@ -374,7 +374,7 @@ latter:
 				err := ethRelayer.handleLogNewProphecyClaimEvent(ethRelayer.chain33BridgeAbi, eventName, vLog)
 				if err != nil {
 					errinfo := fmt.Sprintf("Failed to handleLogNewProphecyClaimEvent due to:%s", err.Error())
-					panic(errinfo)
+					relayerLog.Error("EthereumRelayer proc", "NewProphecyClaim errinfo", errinfo)
 				}
 			}
 		}
