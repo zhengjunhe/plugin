@@ -170,6 +170,15 @@ message ReceiptQuerySymbolAssetsByTxType {
     int64 direction = 4;
 }
 
+message QueryRelayerBalance {
+    string tokenSymbol = 1;
+    string address = 2;
+}
+
+message ReceiptQueryRelayerBalance {
+    uint64 balance = 1;
+}
+
 service x2ethereum {
 
 }

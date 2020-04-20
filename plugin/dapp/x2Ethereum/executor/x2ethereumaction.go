@@ -6,7 +6,6 @@ import (
 	"github.com/33cn/chain33/client"
 	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/dapp"
 	chain33types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/ethbridge"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
@@ -85,7 +84,7 @@ func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action
 
 	elog.Info("newAction", "newAction", "done")
 	return &action{a.GetAPI(), a.GetCoinsAccount(), a.GetStateDB(), hash, fromaddr,
-		a.GetBlockTime(), a.GetHeight(), index, dapp.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(&oracleKeeper, a.GetStateDB())}
+		a.GetBlockTime(), a.GetHeight(), index, address.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(&oracleKeeper, a.GetStateDB())}
 }
 
 // ethereum ---> chain33

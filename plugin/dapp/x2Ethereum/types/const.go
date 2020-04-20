@@ -71,6 +71,7 @@ const (
 	FuncQueryTotalPower                = "GetTotalPower"
 	FuncQueryConsensusThreshold        = "GetConsensusThreshold"
 	FuncQuerySymbolTotalAmountByTxType = "GetSymbolTotalAmountByTxType"
+	FuncQueryRelayerBalance            = "GetRelayerBalance"
 )
 
 //设置合约管理员地址
