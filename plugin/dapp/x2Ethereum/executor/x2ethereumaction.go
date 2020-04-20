@@ -13,6 +13,7 @@ import (
 	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/pkg/errors"
 	"strconv"
+	"strings"
 )
 
 // stateDB存储KV:
@@ -89,8 +90,11 @@ func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action
 
 // ethereum ---> chain33
 // lock
+// todo
+// 铸币时可能会超出int64的范围，在这里根据维护的精度表全部统一修正为1e8
 func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain33types.Receipt, error) {
 	receipt := new(chain33types.Receipt)
+	ethBridgeClaim.LocalCoinSymbol = strings.ToLower(ethBridgeClaim.LocalCoinSymbol)
 	msgEthBridgeClaim := ethbridge.NewMsgCreateEthBridgeClaim(*ethBridgeClaim)
 	if err := msgEthBridgeClaim.ValidateBasic(); err != nil {
 		return nil, err
@@ -142,6 +146,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 	})})
 
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_SuccessStatusText) {
+		// mavl-x2ethereum-eth
 		accDB, err := account.NewAccountDB(a.api.GetConfig(), msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol, a.db)
 		if err != nil {
 			return nil, errors.Wrapf(err, "relay procMsgEth2Chain33,exec=%s,sym=%s", msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol)
@@ -173,7 +178,6 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 			ValidatorAddress:      msgEthBridgeClaim.ValidatorAddress,
 			Amount:                msgEthBridgeClaim.Amount,
 			ClaimType:             msgEthBridgeClaim.ClaimType,
-			EthSymbol:             msgEthBridgeClaim.EthSymbol,
 			XTxHash:               a.txhash,
 			XHeight:               uint64(a.height),
 			ProphecyID:            ID,
@@ -201,7 +205,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 		Chain33Sender:    msgBurn.Chain33Sender,
 		EthereumReceiver: msgBurn.EthereumReceiver,
 		Amount:           msgBurn.Amount,
-		EthSymbol:        msgBurn.EthSymbol,
+		EthSymbol:        msgBurn.LocalCoinSymbol,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -218,7 +222,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receipt, error) {
 	accDB := account.NewCoinsAccount(a.api.GetConfig())
 	accDB.SetDB(a.db)
-	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, address.ExecAddress(msgLock.EthSymbol), a.execaddr, int64(msgLock.Amount), accDB)
+	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, int64(msgLock.Amount), accDB)
 	if err != nil {
 		return nil, err
 	}
@@ -228,7 +232,7 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 		Chain33Sender:    msgLock.Chain33Sender,
 		EthereumReceiver: msgLock.EthereumReceiver,
 		Amount:           msgLock.Amount,
-		EthSymbol:        msgLock.EthSymbol,
+		EthSymbol:        msgLock.LocalCoinSymbol,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -245,6 +249,7 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 // ethereum -> chain33
 // burn
 func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types.Receipt, error) {
+	elog.Info("procWithdrawEth", "receive a procWithdrawEth tx", "start")
 	receipt := new(chain33types.Receipt)
 	msgWithdrawEth := ethbridge.NewMsgCreateEthBridgeClaim(*withdrawEth)
 	if err := msgWithdrawEth.ValidateBasic(); err != nil {
@@ -324,7 +329,6 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 			ValidatorAddress:      msgWithdrawEth.ValidatorAddress,
 			Amount:                msgWithdrawEth.Amount,
 			ClaimType:             msgWithdrawEth.ClaimType,
-			EthSymbol:             msgWithdrawEth.EthSymbol,
 			XTxHash:               a.txhash,
 			XHeight:               uint64(a.height),
 			ProphecyID:            ID,

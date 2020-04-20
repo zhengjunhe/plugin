@@ -405,7 +405,7 @@ func BurnFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("token")
 	cmd.Flags().StringP("receiver", "r", "", "receiver address on chain33")
 	_ = cmd.MarkFlagRequired("receiver")
-	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
 	_ = cmd.MarkFlagRequired("amount")
 }
 
@@ -413,12 +413,12 @@ func Burn(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	key, _ := cmd.Flags().GetString("key")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	para := ebTypes.Burn{
 		OwnerKey:        key,
 		TokenAddr:       tokenAddr,
-		Amount:          amount,
+		Amount:          int64(amount * 1e8),
 		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply
@@ -440,22 +440,24 @@ func LockEthErc20AssetFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("key", "k", "", "owner private key")
 	_ = cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("token", "t", "", "token address, optional, nil for ETH")
-	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
 	_ = cmd.MarkFlagRequired("amount")
 	cmd.Flags().StringP("receiver", "r", "", "chain33 receiver address")
 	_ = cmd.MarkFlagRequired("receiver")
 }
 
+// todo
+// get decimals by token contract address
 func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	key, _ := cmd.Flags().GetString("key")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	para := ebTypes.LockEthErc20{
 		OwnerKey:        key,
 		TokenAddr:       tokenAddr,
-		Amount:          amount,
+		Amount:          int64(amount * 1e18),
 		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply

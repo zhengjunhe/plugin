@@ -87,7 +87,7 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 				return nil, err
 			}
 
-			nb, err := x.GetLocalDB().Get(x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.EthSymbol, x2ethereumtypes.DirEth2Chain33, "lock"))
+			nb, err := x.GetLocalDB().Get(x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.LocalCoinSymbol, x2ethereumtypes.DirEth2Chain33, "lock"))
 			if err != nil && err != types.ErrNotFound {
 				return nil, err
 			}
@@ -97,13 +97,13 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 				return nil, err
 			}
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
-				TokenSymbol: receiptEth2Chain33.EthSymbol,
+				TokenSymbol: receiptEth2Chain33.LocalCoinSymbol,
 				TxType:      "lock",
 				TotalAmount: receiptEth2Chain33.Amount + now.TotalAmount,
 				Direction:   1,
 			})
 			dbSet.KV = append(dbSet.KV, &types.KeyValue{
-				Key:   x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.EthSymbol, x2ethereumtypes.DirEth2Chain33, "lock"),
+				Key:   x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.LocalCoinSymbol, x2ethereumtypes.DirEth2Chain33, "lock"),
 				Value: TokenAssetsByTxTypeBytes,
 			})
 		case x2ethereumtypes.TyWithdrawEthLog:
@@ -113,7 +113,7 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 				return nil, err
 			}
 
-			nb, err := x.GetLocalDB().Get(x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.EthSymbol, x2ethereumtypes.DirEth2Chain33, "withdraw"))
+			nb, err := x.GetLocalDB().Get(x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.LocalCoinSymbol, x2ethereumtypes.DirEth2Chain33, "withdraw"))
 			if err != nil && err != types.ErrNotFound {
 				return nil, err
 			}
@@ -123,13 +123,13 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 				return nil, err
 			}
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
-				TokenSymbol: receiptEth2Chain33.EthSymbol,
+				TokenSymbol: receiptEth2Chain33.LocalCoinSymbol,
 				TxType:      "withdraw",
 				TotalAmount: receiptEth2Chain33.Amount + now.TotalAmount,
 				Direction:   2,
 			})
 			dbSet.KV = append(dbSet.KV, &types.KeyValue{
-				Key:   x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.EthSymbol, x2ethereumtypes.DirEth2Chain33, "withdraw"),
+				Key:   x2ethereumtypes.CalTokenSymbolTotalLockOrBurnAmount(receiptEth2Chain33.LocalCoinSymbol, x2ethereumtypes.DirEth2Chain33, "withdraw"),
 				Value: TokenAssetsByTxTypeBytes,
 			})
 		case x2ethereumtypes.TyChain33ToEthLog:
@@ -149,7 +149,7 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 				return nil, err
 			}
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
-				TokenSymbol: "bty",
+				TokenSymbol: receiptChain33ToEth.EthSymbol,
 				TxType:      "lock",
 				TotalAmount: receiptChain33ToEth.Amount + now.TotalAmount,
 				Direction:   1,
@@ -175,7 +175,7 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 				return nil, err
 			}
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
-				TokenSymbol: "bty",
+				TokenSymbol: receiptChain33ToEth.EthSymbol,
 				TxType:      "withdraw",
 				TotalAmount: receiptChain33ToEth.Amount + now.TotalAmount,
 				Direction:   2,

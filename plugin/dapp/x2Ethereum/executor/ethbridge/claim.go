@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"strconv"
 )
@@ -15,12 +14,11 @@ var (
 	elog = log.New("module", "ethbridge")
 )
 
-func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount uint64, claimType int64) types.Eth2Chain33 {
+func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, localCoinSymbol, localCoinExec string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount uint64, claimType int64) types.Eth2Chain33 {
 	return types.Eth2Chain33{
 		EthereumChainID:       ethereumChainID,
 		BridgeContractAddress: bridgeContract,
 		Nonce:                 nonce,
-		EthSymbol:             ethSymbol,
 		TokenContractAddress:  tokenContact,
 		EthereumSender:        ethereumSender,
 		Chain33Receiver:       chain33Receiver,
@@ -50,7 +48,7 @@ func NewClaim(id string, validatorAddress string, content string) types.OracleCl
 
 //通过ethchain33结构构造一个OracleClaim结构，包括生成唯一的ID
 func CreateOracleClaimFromEthClaim(ethClaim types.Eth2Chain33) (types.OracleClaim, error) {
-	if ethClaim.ClaimType != common.LockText && ethClaim.ClaimType != common.BurnText {
+	if ethClaim.ClaimType != int64(types.LOCK_CLAIM_TYPE) && ethClaim.ClaimType != int64(types.BURN_CLAIM_TYPE) {
 		return types.OracleClaim{}, types.ErrInvalidClaimType
 	}
 	oracleID := strconv.Itoa(int(ethClaim.EthereumChainID)) + strconv.Itoa(int(ethClaim.Nonce)) + ethClaim.EthereumSender
@@ -65,7 +63,7 @@ func CreateOracleClaimFromEthClaim(ethClaim types.Eth2Chain33) (types.OracleClai
 }
 
 // 通过oracleclaim反向构造ethchain33结构
-func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string, nonce int64, ethSymbol, localCoinSymbol, localCoinExec string, tokenContract string, ethereumAddress string, validator string, oracleClaimString string) (types.Eth2Chain33, error) {
+func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string, nonce int64, localCoinSymbol, localCoinExec string, tokenContract string, ethereumAddress string, validator string, oracleClaimString string) (types.Eth2Chain33, error) {
 	oracleClaim, err := CreateOracleClaimFromOracleString(oracleClaimString)
 	if err != nil {
 		elog.Error("CreateEthClaimFromOracleString", "CreateOracleClaimFromOracleString error", err)
@@ -76,7 +74,6 @@ func CreateEthClaimFromOracleString(ethereumChainID int64, bridgeContract string
 		ethereumChainID,
 		bridgeContract,
 		nonce,
-		ethSymbol,
 		localCoinSymbol,
 		localCoinExec,
 		tokenContract,

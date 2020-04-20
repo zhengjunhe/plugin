@@ -44,7 +44,7 @@ func (msg MsgCreateEthBridgeClaim) ValidateBasic() error {
 	if !gethCommon.IsHexAddress(msg.BridgeContractAddress) {
 		return types.ErrInvalidEthAddress
 	}
-	if strings.ToLower(msg.EthSymbol) == "eth" && msg.TokenContractAddress != "0x0000000000000000000000000000000000000000" {
+	if strings.ToLower(msg.LocalCoinSymbol) == "eth" && msg.TokenContractAddress != "0x0000000000000000000000000000000000000000" {
 		return types.ErrInvalidEthSymbol
 	}
 	return nil

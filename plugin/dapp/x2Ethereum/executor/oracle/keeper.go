@@ -5,7 +5,6 @@ import (
 	dbm "github.com/33cn/chain33/common/db"
 	log "github.com/33cn/chain33/common/log/log15"
 	types2 "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"strings"
 )
@@ -198,7 +197,7 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 				return Status{}, types.ErrClaimInconsist
 			}
 		}
-		if claimContent.ClaimType == common.LockText {
+		if claimContent.ClaimType == int64(types.LOCK_CLAIM_TYPE) {
 			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_SuccessStatusText) || prophecy.Status.Text == StatusText(types.EthBridgeStatus_FailedStatusText) {
 				return Status{}, types.ErrProphecyFinalized
 			}
@@ -207,7 +206,7 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 					return Status{}, types.ErrDuplicateMessage
 				}
 			}
-		} else if claimContent.ClaimType == common.BurnText {
+		} else if claimContent.ClaimType == int64(types.BURN_CLAIM_TYPE) {
 			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_WithdrawedStatusText) || prophecy.Status.Text == StatusText(types.EthBridgeStatus_FailedStatusText) {
 				return Status{}, types.ErrProphecyFinalized
 			}
@@ -257,9 +256,9 @@ func (k *Keeper) processCompletion(prophecy *Prophecy, claimType int64) (Prophec
 	highestPossibleConsensusRatio := highestPossibleClaimPower / totalPower
 	olog.Info("processCompletion", "highestConsensusRatio", highestConsensusRatio, "ConsensusThreshold", k.ConsensusThreshold, "highestPossibleConsensusRatio", highestPossibleConsensusRatio)
 	if highestConsensusRatio >= k.ConsensusThreshold {
-		if claimType == common.LockText {
+		if claimType == int64(types.LOCK_CLAIM_TYPE) {
 			prophecy.Status.Text = StatusText(types.EthBridgeStatus_SuccessStatusText)
-		} else {
+		} else if claimType == int64(types.BURN_CLAIM_TYPE) {
 			prophecy.Status.Text = StatusText(types.EthBridgeStatus_WithdrawedStatusText)
 		}
 

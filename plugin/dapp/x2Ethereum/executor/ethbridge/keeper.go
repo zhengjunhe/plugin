@@ -6,7 +6,6 @@ import (
 	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
@@ -49,13 +48,15 @@ func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol strin
 
 	receiverAddress := oracleClaim.Chain33Receiver
 
-	if oracleClaim.ClaimType == common.LockText {
+	if oracleClaim.ClaimType == int64(types.LOCK_CLAIM_TYPE) {
 		//铸币到相关的tokenSymbolBank账户下
-		receipt, err = accDB.Mint(execAddr, int64(oracleClaim.Amount))
+		// todo
+		//在这里修正金额
+		receipt, err = accDB.Mint(execAddr, int64(oracleClaim.Amount/1e10))
 		if err != nil {
 			return nil, err
 		}
-		r, err := accDB.ExecDeposit(receiverAddress, execAddr, int64(oracleClaim.Amount))
+		r, err := accDB.ExecDeposit(receiverAddress, execAddr, int64(oracleClaim.Amount/1e10))
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +78,7 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 
 	senderAddr := oracleClaim.Chain33Receiver
 
-	if oracleClaim.ClaimType == common.BurnText {
+	if oracleClaim.ClaimType == int64(types.BURN_CLAIM_TYPE) {
 		receipt, err = accDB.ExecTransfer(address.ExecAddress(tokenSymbol), senderAddr, execAddr, int64(oracleClaim.Amount))
 		if err != nil {
 			return nil, err
@@ -108,7 +109,7 @@ func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *accou
 // accDB = mavl-coins-bty-addr
 func (k Keeper) ProcessLock(address, to, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
 	// 转到 mavl-coins-bty-execAddr:addr
-	receipt, err := accDB.ExecTransfer(address, to, execAddr, amount*1e8)
+	receipt, err := accDB.ExecTransfer(address, to, execAddr, amount)
 	if err != nil {
 		return nil, err
 	}

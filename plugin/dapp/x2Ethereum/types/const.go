@@ -58,8 +58,8 @@ const DefaultConsensusNeeded = 0.7
 const (
 	DirEth2Chain33  = "eth2chain33"
 	DirChain33ToEth = "chain33toeth"
-	LOCK_CLAIM = "lock"
-	BURN_CLAIM = "burn"
+	LOCK_CLAIM      = "lock"
+	BURN_CLAIM      = "burn"
 )
 
 var DirectionType = [3]string{"", DirEth2Chain33, DirChain33ToEth}
@@ -70,7 +70,6 @@ const (
 	FuncQueryValidators                = "GetValidators"
 	FuncQueryTotalPower                = "GetTotalPower"
 	FuncQueryConsensusThreshold        = "GetConsensusThreshold"
-	FuncQuerySymbolTotalAmount         = "GetSymbolTotalAmount"
 	FuncQuerySymbolTotalAmountByTxType = "GetSymbolTotalAmountByTxType"
 )
 

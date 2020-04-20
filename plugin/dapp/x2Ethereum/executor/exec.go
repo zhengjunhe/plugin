@@ -18,12 +18,19 @@ import (
 // 本端在验证该类型的请求合理后铸币，并生成相同数额的token
 func (x *x2ethereum) Exec_Eth2Chain33(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
+	if payload.ValidatorAddress == "" {
+		payload.ValidatorAddress = address.PubKeyToAddr(tx.Signature.Pubkey)
+	}
 	return action.procMsgEth2Chain33(payload)
 }
 
 // 将因ethereum端锁定的eth或者erc20而在chain33端生成的token返还
 func (x *x2ethereum) Exec_WithdrawEth(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
+	if payload.ValidatorAddress == "" {
+		payload.ValidatorAddress = address.PubKeyToAddr(tx.Signature.Pubkey)
+	}
+
 	return action.procWithdrawEth(payload)
 }
 

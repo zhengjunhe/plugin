@@ -2,7 +2,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"github.com/33cn/chain33/rpc/jsonclient"
 	types2 "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/types"
@@ -13,6 +12,9 @@ import (
 /*
  * 实现合约对应客户端
  */
+
+//TODO
+// 在本地维护一张不同token的unit表格
 
 // Cmd x2ethereum client command
 func Cmd() *cobra.Command {
@@ -75,14 +77,12 @@ func addEth2Chain33Flags(cmd *cobra.Command) {
 	cmd.Flags().StringP("validator", "v", "", "validator address")
 	_ = cmd.MarkFlagRequired("validator")
 
-	cmd.Flags().Uint64("amount", 0, "the amount of this contract want to lock")
+	cmd.Flags().Float64P("amount", "a", float64(0), "the amount of this contract want to lock")
 	_ = cmd.MarkFlagRequired("amount")
 
-	cmd.Flags().Int64("claimtype", 0, "the type of this claim,lock=0,burn=1")
+	cmd.Flags().Int64("claimtype", 0, "the type of this claim,lock=1,burn=2")
 	_ = cmd.MarkFlagRequired("claimtype")
 
-	cmd.Flags().StringP("esymbol", "g", "", "the symbol of ethereum side")
-	_ = cmd.MarkFlagRequired("esymbol")
 }
 
 func Eth2Chain33(cmd *cobra.Command, args []string) {
@@ -95,10 +95,11 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	validator, _ := cmd.Flags().GetString("validator")
-	amount, _ := cmd.Flags().GetUint64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	claimtype, _ := cmd.Flags().GetInt64("claimtype")
-	esymbol, _ := cmd.Flags().GetString("esymbol")
 
+	//todo
+	// 这边暂时默认是ethereum，即decimals为18
 	params := &types3.Eth2Chain33{
 		EthereumChainID:       ethid,
 		BridgeContractAddress: bcontract,
@@ -109,17 +110,13 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 		EthereumSender:        sender,
 		Chain33Receiver:       receiver,
 		ValidatorAddress:      validator,
-		Amount:                amount,
+		Amount:                uint64(amount * 1e18),
 		ClaimType:             claimtype,
-		EthSymbol:             esymbol,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "Eth2Chain33")
+	createTx(cmd, payLoad, types3.NameEth2Chain33Action)
 }
 
 // WithdrawEth
@@ -144,9 +141,8 @@ func WithdrawEth(cmd *cobra.Command, args []string) {
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	validator, _ := cmd.Flags().GetString("validator")
-	amount, _ := cmd.Flags().GetUint64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	claimtype, _ := cmd.Flags().GetInt64("claimtype")
-	esymbol, _ := cmd.Flags().GetString("esymbol")
 
 	params := &types3.Eth2Chain33{
 		EthereumChainID:       ethid,
@@ -158,17 +154,13 @@ func WithdrawEth(cmd *cobra.Command, args []string) {
 		EthereumSender:        sender,
 		Chain33Receiver:       receiver,
 		ValidatorAddress:      validator,
-		Amount:                amount,
+		Amount:                uint64(amount * 1e8),
 		ClaimType:             claimtype,
-		EthSymbol:             esymbol,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "WithdrawEth")
+	createTx(cmd, payLoad, types3.NameWithdrawEthAction)
 }
 
 // Burn
@@ -199,11 +191,9 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("receiver", "r", "", "ethereum receiver address")
 	_ = cmd.MarkFlagRequired("cExec")
 
-	cmd.Flags().Uint64("amount", 0, "the amount of this contract want to lock")
+	cmd.Flags().Float64P("amount", "a", float64(0), "the amount of this contract want to lock")
 	_ = cmd.MarkFlagRequired("amount")
 
-	cmd.Flags().StringP("esymbol", "g", "", "the symbol of ethereum side")
-	_ = cmd.MarkFlagRequired("esymbol")
 }
 
 func burn(cmd *cobra.Command, args []string) {
@@ -211,26 +201,21 @@ func burn(cmd *cobra.Command, args []string) {
 	cexec, _ := cmd.Flags().GetString("cexec")
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
-	amount, _ := cmd.Flags().GetUint64("amount")
-	esymbol, _ := cmd.Flags().GetString("esymbol")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	tcontract, _ := cmd.Flags().GetString("tcontract")
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    tcontract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
-		Amount:           amount,
+		Amount:           uint64(amount * 1e8),
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
-		EthSymbol:        esymbol,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "WithdrawChain33")
+	createTx(cmd, payLoad, types3.NameWithdrawChain33Action)
 }
 
 // Lock
@@ -251,25 +236,20 @@ func lock(cmd *cobra.Command, args []string) {
 	cexec, _ := cmd.Flags().GetString("cexec")
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
-	amount, _ := cmd.Flags().GetUint64("amount")
-	esymbol, _ := cmd.Flags().GetString("esymbol")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
-		Amount:           amount,
+		Amount:           uint64(amount * 1e8),
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
-		EthSymbol:        esymbol,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "Chain33ToEth")
+	createTx(cmd, payLoad, types3.NameChain33ToEthAction)
 }
 
 // AddValidator
@@ -300,12 +280,9 @@ func addValidator(cmd *cobra.Command, args []string) {
 		Power:   power,
 	}
 
-	payLoad, err := types.PBToJSON(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "AddValidator")
+	createTx(cmd, payLoad, types3.NameAddValidatorAction)
 }
 
 // RemoveValidator
@@ -327,12 +304,9 @@ func removeValidator(cmd *cobra.Command, args []string) {
 		Address: address,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "RemoveValidator")
+	createTx(cmd, payLoad, types3.NameRemoveValidatorAction)
 }
 
 // ModifyValidator
@@ -359,12 +333,9 @@ func modify(cmd *cobra.Command, args []string) {
 		Power:   power,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "ModifyPower")
+	createTx(cmd, payLoad, types3.NameModifyPowerAction)
 }
 
 // MsgSetConsensusNeeded
@@ -391,12 +362,9 @@ func setConsensus(cmd *cobra.Command, args []string) {
 		ConsensusThreshold: power,
 	}
 
-	payLoad, err := json.Marshal(params)
-	if err != nil {
-		return
-	}
+	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, "SetConsensusThreshold")
+	createTx(cmd, payLoad, types3.NameSetConsensusThresholdAction)
 }
 
 func createTx(cmd *cobra.Command, payLoad []byte, action string) {
