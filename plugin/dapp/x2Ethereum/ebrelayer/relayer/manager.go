@@ -411,6 +411,7 @@ func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerType
 		EthReceiver:   common.HexToAddress(newProphecyClaim.EthReceiver),
 		Symbol:        newProphecyClaim.Symbol,
 		Amount:        newProphecyClaim.Amount,
+		Txhash:        common.FromHex(newProphecyClaim.TxHash),
 	}
 	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(newProphecyClaimPara)
 	if nil != err {
@@ -423,24 +424,10 @@ func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerType
 	return nil
 }
 
-func (manager *RelayerManager) ProcessProphecyClaim(prophecyID int64, result *interface{}) error {
+func (manager *RelayerManager) IsProphecyPending(claimID [32]byte, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
-	txhash, err := manager.ethRelayer.ProcessProphecyClaim(prophecyID)
-	if nil != err {
-		return err
-	}
-	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  fmt.Sprintf("Tx:%s", txhash),
-	}
-	return nil
-}
-
-func (manager *RelayerManager) IsProphecyPending(prophecyID int64, result *interface{}) error {
-	manager.mtx.Lock()
-	defer manager.mtx.Unlock()
-	active, err := manager.ethRelayer.IsProphecyPending(prophecyID)
+	active, err := manager.ethRelayer.IsProphecyPending(claimID)
 	if nil != err {
 		return err
 	}

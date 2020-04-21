@@ -231,12 +231,8 @@ func (ethRelayer *EthereumRelayer) ShowBridgeBankAddr() (string, error) {
 	return ethRelayer.x2EthDeployInfo.BridgeBank.Address.String(), nil
 }
 
-func (ethRelayer *EthereumRelayer) ProcessProphecyClaim(prophecyID int64) (string, error) {
-	return ethtxs.ProcessProphecyClaim(ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthContracts, prophecyID)
-}
-
-func (ethRelayer *EthereumRelayer) IsProphecyPending(prophecyID int64) (bool, error) {
-	return ethtxs.IsProphecyPending(prophecyID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Chain33Bridge)
+func (ethRelayer *EthereumRelayer) IsProphecyPending(claimID [32]byte) (bool, error) {
+	return ethtxs.IsProphecyPending(claimID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Chain33Bridge)
 }
 
 func (ethRelayer *EthereumRelayer) MakeNewProphecyClaim(newProphecyClaimPara *ethtxs.NewProphecyClaimPara) (string, error) {

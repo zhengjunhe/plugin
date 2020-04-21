@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/chain33/common"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
@@ -33,7 +34,6 @@ func EthereumRelayerCmd() *cobra.Command {
 		CreateBridgeTokenCmd(),
 		CreateEthereumTokenCmd(),
 		MakeNewProphecyClaimCmd(),
-		ProcessProphecyClaimCmd(),
 		GetBalanceCmd(),
 		IsProphecyPendingCmd(),
 		MintErc20Cmd(),
@@ -501,6 +501,8 @@ func MakeNewProphecyClaimFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("ethReceiver")
 	cmd.Flags().Int64P("amount", "m", 0, "amount")
 	_ = cmd.MarkFlagRequired("amount")
+	cmd.Flags().StringP("hash", "i", "", "chain33 tx hash")
+	_ = cmd.MarkFlagRequired("hash")
 
 }
 
@@ -516,6 +518,8 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 	symbol, _ := cmd.Flags().GetString("symbol")
 	ethReceiver, _ := cmd.Flags().GetString("ethReceiver")
 	amount, _ := cmd.Flags().GetInt64("amount")
+	txhash, _ := cmd.Flags().GetString("hash")
+
 	para := ebTypes.NewProphecyClaim{
 		ClaimType:     claimType,
 		Chain33Sender: chain33Sender,
@@ -523,33 +527,10 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 		Symbol:        symbol,
 		EthReceiver:   ethReceiver,
 		Amount:        amount,
+		TxHash:        txhash,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.MakeNewProphecyClaim", para, &res)
-	ctx.Run()
-}
-
-func ProcessProphecyClaimCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "process",
-		Short: "process Prophecy Claim",
-		Run:   ProcessProphecyClaim,
-	}
-	ProcessProphecyClaimFlags(cmd)
-	return cmd
-}
-
-func ProcessProphecyClaimFlags(cmd *cobra.Command) {
-	cmd.Flags().Int64P("prophecyID", "i", int64(0), "prophecy id to be processed")
-	_ = cmd.MarkFlagRequired("prophecyID")
-}
-
-func ProcessProphecyClaim(cmd *cobra.Command, args []string) {
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	prophecyID, _ := cmd.Flags().GetInt64("prophecyID")
-	para := prophecyID
-	var res rpctypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ProcessProphecyClaim", para, &res)
 	ctx.Run()
 }
 
@@ -593,14 +574,15 @@ func IsProphecyPendingCmd() *cobra.Command {
 }
 
 func IsProphecyPendingFlags(cmd *cobra.Command) {
-	cmd.Flags().Int64P("id", "i", int64(0), "prophecy id")
+	cmd.Flags().StringP("id", "i", "", "claim prophecy id")
 	_ = cmd.MarkFlagRequired("id")
 }
 
 func IsProphecyPending(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	id, _ := cmd.Flags().GetInt64("id")
-	para := id
+	id, _ := cmd.Flags().GetString("id")
+	para := common.HexToHash(id)
+
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.IsProphecyPending", para, &res)
 	ctx.Run()

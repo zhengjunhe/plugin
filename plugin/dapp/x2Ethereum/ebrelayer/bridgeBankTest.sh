@@ -16,6 +16,14 @@ ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b
 ethReceiverAddr3="0x1919203bA8b325278d28Fb8fFeac49F2CD881A4e"
 ethReceiverAddrKey3="62ca4122aac0e6f35bed02fc15c7ddbdaa07f2f2a1821c8b8210b891051e3ee9"
 
+prophecyTx0="0x112260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+prophecyTx1="0x222260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+prophecyTx2="0x332260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+prophecyTx3="0x442260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+prophecyTx4="0x552260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+prophecyTx5="0x662260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+prophecyTx6="0x772260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
+
 InitAndDeploy() {
     result=$(${CLI} relayer set_pwd -n 123456hzj -o kk)
     cli_ret "${result}" "set_pwd"
@@ -78,7 +86,7 @@ TestETH2Chain33Erc20() {
 
     # ETH 2 chain33 withdraw 40
     # -c 1 burn 40
-    result=$(${CLI} relayer ethereum prophecy -m 40 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s "${tokenSymbol}" -t "${tokenAddr}")
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx0}" -m 40 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s "${tokenSymbol}" -t "${tokenAddr}")
     cli_ret "${result}" "prophecy -m 40"
 
     walitProphecyFinish "${ethReceiverAddr2}" "${tokenAddr}" 40
@@ -90,7 +98,7 @@ TestETH2Chain33Erc20() {
     cli_ret "${result}" "balance" ".balance" "60"
 
     # burn 60
-    result=$(${CLI} relayer ethereum prophecy -m 60 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s "${tokenSymbol}" -t "${tokenAddr}")
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx1}" -m 60 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s "${tokenSymbol}" -t "${tokenAddr}")
     cli_ret "${result}" "prophecy -m 60"
 
     walitProphecyFinish "${ethReceiverAddr2}" "${tokenAddr}" 100
@@ -167,7 +175,7 @@ TestETH2Chain33Erc20_err() {
     cli_ret "${result}" "balance" ".balance" "300"
 
     # -c 1 burn 500
-    result=$(${CLI} relayer ethereum prophecy -m 500 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s "${tokenSymbol}" -t "${tokenAddr}")
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx2}" -m 500 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s "${tokenSymbol}" -t "${tokenAddr}")
     #cli_ret "${result}" "prophecy -m 40"
 
     sleep 15
@@ -205,7 +213,7 @@ TestETH2Chain33Assets() {
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}")
     balance3=$(cli_ret "${result}" "balance" ".balance")
 
-    result=$(${CLI} relayer ethereum prophecy -m 40 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s eth)
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx3}" -m 40 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s eth)
     cli_ret "${result}" "prophecy -m 40"
 
     walitProphecyFinish "${ethReceiverAddr2}" $((${balance3}+40))
@@ -226,7 +234,7 @@ TestETH2Chain33Assets() {
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}")
     balance3=$(cli_ret "${result}" "balance" ".balance")
 
-    result=$(${CLI} relayer ethereum prophecy -m 110 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s eth)
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx4}" -m 110 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s eth)
     #cli_ret "${result}" "prophecy -m 110"
 
     sleep 15
@@ -247,7 +255,7 @@ TestETH2Chain33Assets() {
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}")
     balance3=$(cli_ret "${result}" "balance" ".balance")
 
-    result=$(${CLI} relayer ethereum prophecy -m 60 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s eth)
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx5}" -m 60 -a "${chain33SenderAddr}" -c 1 -r "${ethReceiverAddr2}" -s eth)
     cli_ret "${result}" "prophecy -m 60"
 
     walitProphecyFinish "${ethReceiverAddr2}" $((${balance3}+60))
@@ -281,7 +289,7 @@ TestChain33ToEthAssets() {
     cli_ret "${result}" "balance" ".balance" "0"
 
     # -c 2 chain33 lock 100
-    result=$(${CLI} relayer ethereum prophecy -m 100 -a "${chain33SenderAddr}" -c 2 -r "${ethReceiverAddr1}" -s bty -t "${tokenAddr}")
+    result=$(${CLI} relayer ethereum prophecy -i "${prophecyTx6}" -m 100 -a "${chain33SenderAddr}" -c 2 -r "${ethReceiverAddr1}" -s bty -t "${tokenAddr}")
     cli_ret "${result}" "prophecy -m 100"
 
     walitProphecyFinish "${ethReceiverAddr1}" "${tokenAddr}" "100"

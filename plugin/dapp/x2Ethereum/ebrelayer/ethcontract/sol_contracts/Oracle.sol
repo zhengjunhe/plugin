@@ -16,21 +16,26 @@ contract Oracle {
     address public operator;
 
     // Tracks the number of OracleClaims made on an individual BridgeClaim
-    mapping(uint256 => address[]) public oracleClaimValidators;
-    mapping(uint256 => mapping(address => bool)) public hasMadeClaim;
+    mapping(bytes32 => address[]) public oracleClaimValidators;
+    mapping(bytes32 => mapping(address => bool)) public hasMadeClaim;
+
+    enum ClaimType {
+        Unsupported,
+        Burn,
+        Lock
+    }
 
     /*
     * @dev: Event declarations
     */
     event LogNewOracleClaim(
-        uint256 _prophecyID,
-        bytes32 _message,
+        bytes32 _claimID,
         address _validatorAddress,
         bytes _signature
     );
 
     event LogProphecyProcessed(
-        uint256 _prophecyID,
+        bytes32 _claimID,
         uint256 _weightedSignedPower,
         uint256 _weightedTotalPower,
         address _submitter
@@ -64,17 +69,33 @@ contract Oracle {
     * @dev: Modifier to restrict access to current ValSet validators
     */
     modifier isPending(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
     {
         require(
             chain33Bridge.isProphecyClaimActive(
-                _prophecyID
+                _claimID
             ) == true,
             "The prophecy must be pending for this operation"
         );
         _;
     }
+
+    /*
+    * @dev: Modifier to restrict the claim type must be burn or lock
+    */
+    modifier isValidClaimType(
+        ClaimType _claimType
+    )
+    {
+        require(
+           chain33Bridge.isValidClaimType(
+               uint8(_claimType)
+           ) == true,
+           "The claim type must be burn or lock"
+        );
+            _;
+        }
 
     /*
     * @dev: Constructor
@@ -93,51 +114,77 @@ contract Oracle {
 
     /*
     * @dev: newOracleClaim
-    *       Allows validators to make new OracleClaims on an existing Prophecy
+    *       Allows validators to make new OracleClaims on chain33 lock/burn prophecy,
+    *       if the required vote power reached,just make it processed
+    * @param _claimType: burn or lock,
+    * @param _chain33Sender: chain33 sender,
+    * @param _ethereumReceiver: receiver on ethereum
+    * @param _tokenAddress: token address
+    * @param _symbol: token symbol
+    * @param _amount: amount
+    * @param _claimID: claim id
+    * @param _message: message for verifying
+    * @param _signature: need to recover sender
     */
     function newOracleClaim(
-        uint256 _prophecyID,
-        bytes32 _message,
+        ClaimType _claimType,
+        bytes memory _chain33Sender,
+        address payable _ethereumReceiver,
+        address _tokenAddress,
+        string memory _symbol,
+        uint256 _amount,
+        bytes32 _claimID,
         bytes memory _signature
     )
         public
         onlyValidator
-        isPending(_prophecyID)
+        isValidClaimType(_claimType)
     {
         address validatorAddress = msg.sender;
 
         // Validate the msg.sender's signature
         require(
             validatorAddress == valset.recover(
-                _message,
+                _claimID,
                 _signature
             ),
-            "Invalid message signature."
+            "Invalid _claimID signature."
         );
 
-        // Confirm that this address has not already made an oracle claim on this prophecy
+        // Confirm that this address has not already made an oracle claim on this _ClaimID
         require(
-            !hasMadeClaim[_prophecyID][validatorAddress],
+            !hasMadeClaim[_claimID][validatorAddress],
             "Cannot make duplicate oracle claims from the same address."
         );
 
-        hasMadeClaim[_prophecyID][validatorAddress] = true;
-        oracleClaimValidators[_prophecyID].push(validatorAddress);
+        if (oracleClaimValidators[_claimID].length == 0) {
+             chain33Bridge.setNewProphecyClaim(
+                            _claimID,
+                            uint8(_claimType),
+                            _chain33Sender,
+                            _ethereumReceiver,
+                            validatorAddress,
+                            _tokenAddress,
+                            _symbol,
+                            _amount);
+        }
+
+        hasMadeClaim[_claimID][validatorAddress] = true;
+        oracleClaimValidators[_claimID].push(validatorAddress);
 
         emit LogNewOracleClaim(
-            _prophecyID,
-            _message,
+            _claimID,
             validatorAddress,
             _signature
         );
 
-        (bool valid, uint256 weightedSignedPower, uint256 weightedTotalPower ) = getProphecyThreshold(_prophecyID);
+        (bool valid, uint256 weightedSignedPower, uint256 weightedTotalPower ) = getClaimThreshold(_claimID);
         if (true == valid)  {
             // Update the BridgeClaim's status
-            completeProphecy(_prophecyID);
+            completeClaim(_claimID);
 
             emit LogProphecyProcessed(
-                _prophecyID,
+                _claimID,
                 weightedSignedPower,
                 weightedTotalPower,
                 msg.sender
@@ -146,72 +193,38 @@ contract Oracle {
     }
 
     /*
-    * @dev: processBridgeProphecy
-    *       Pubically available method which attempts to process a bridge prophecy
-    */
-    function processBridgeProphecy(
-        uint256 _prophecyID
-    )
-        public
-        isPending(_prophecyID)
-    {
-        // Process the prophecy
-        (bool valid,
-            uint256 weightedSignedPower,
-            uint256 weightedTotalPower
-        ) = getProphecyThreshold(_prophecyID);
-
-        require(
-            valid,
-            "The cumulative power of signatory validators does not meet the threshold"
-        );
-
-        // Update the BridgeClaim's status
-        completeProphecy(
-            _prophecyID
-        );
-
-        emit LogProphecyProcessed(
-            _prophecyID,
-            weightedSignedPower,
-            weightedTotalPower,
-            msg.sender
-        );
-    }
-
-    /*
     * @dev: checkBridgeProphecy
     *       Operator accessor method which checks if a prophecy has passed
     *       the validity threshold, without actually completing the prophecy.
     */
     function checkBridgeProphecy(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
         public
         view
         onlyOperator
-        isPending(_prophecyID)
+        isPending(_claimID)
         returns(bool, uint256, uint256)
     {
         require(
             chain33Bridge.isProphecyClaimActive(
-                _prophecyID
+                _claimID
             ) == true,
             "Can only check active prophecies"
         );
-        return getProphecyThreshold(
-            _prophecyID
+        return getClaimThreshold(
+            _claimID
         );
     }
 
     /*
-    * @dev: processProphecy
-    *       Calculates the status of a prophecy. The claim is considered valid if the
+    * @dev: getClaimThreshold
+    *       Calculates the status of a claim. The claim is considered valid if the
     *       combined active signatory validator powers pass the validation threshold.
     *       The hardcoded threshold is (Combined signed power * 2) >= (Total power * 3).
     */
-    function getProphecyThreshold(
-        uint256 _prophecyID
+    function getClaimThreshold(
+        bytes32 _claimID
     )
         internal
         view
@@ -221,8 +234,8 @@ contract Oracle {
         uint256 totalPower = valset.totalPower();
 
         // Iterate over the signatory addresses
-        for (uint256 i = 0; i < oracleClaimValidators[_prophecyID].length; i = i.add(1)) {
-            address signer = oracleClaimValidators[_prophecyID][i];
+        for (uint256 i = 0; i < oracleClaimValidators[_claimID].length; i = i.add(1)) {
+            address signer = oracleClaimValidators[_claimID][i];
 
                 // Only add the power of active validators
                 if(valset.isActiveValidator(signer)) {
@@ -247,17 +260,17 @@ contract Oracle {
     }
 
     /*
-    * @dev: completeProphecy
-    *       Completes a prophecy by completing the corresponding BridgeClaim
+    * @dev: completeClaim
+    *       Completes a claim by completing the corresponding BridgeClaim
     *       on the Chain33Bridge.
     */
-    function completeProphecy(
-        uint256 _prophecyID
+    function completeClaim(
+        bytes32 _claimID
     )
         internal
     {
-        chain33Bridge.completeProphecyClaim(
-            _prophecyID
+        chain33Bridge.completeClaim(
+            _claimID
         );
     }
 }
