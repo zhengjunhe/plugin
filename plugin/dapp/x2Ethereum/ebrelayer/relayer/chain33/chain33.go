@@ -171,7 +171,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 					actionName = actionName + "-lock"
 				}
 				actionEvent := getOracleClaimType(actionName)
-				if err := chain33Relayer.handleBurnLockMsg(actionEvent, TxReceipts.ReceiptData[i]); nil != err {
+				if err := chain33Relayer.handleBurnLockMsg(actionEvent, TxReceipts.ReceiptData[i], tx.Hash()); nil != err {
 					errInfo := fmt.Sprintf("Failed to handleBurnLockMsg due to:", err.Error())
 					panic(errInfo)
 				}
@@ -199,7 +199,7 @@ func getOracleClaimType(eventType string) events.Event {
 }
 
 // handleBurnLockMsg : parse event data as a Chain33Msg, package it into a ProphecyClaim, then relay tx to the Ethereum Network
-func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event, receipt *chain33Types.ReceiptData) error {
+func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event, receipt *chain33Types.ReceiptData, chain33TxHash []byte) error {
 	// Parse the witnessed event's data into a new Chain33Msg
 	chain33Msg := relayerTx.BurnLockTxReceiptToChain33Msg(claimEvent, receipt)
 
@@ -208,7 +208,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 
 	// TODO: Need some sort of delay on this so validators aren't all submitting at the same time
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, chain33Relayer.registryAddr, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum)
+	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, chain33Relayer.registryAddr, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)
