@@ -2,9 +2,12 @@ package executor
 
 import (
 	"encoding/json"
+	"github.com/33cn/chain33/account"
+	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
+	"strings"
 )
 
 func (x *x2ethereum) Query_GetEthProphecy(in *types2.QueryEthProphecyParams) (types.Message, error) {
@@ -130,5 +133,17 @@ func (x *x2ethereum) Query_GetSymbolTotalAmountByTxType(in *types2.QuerySymbolAs
 	if err != nil {
 		return nil, types.ErrUnmarshal
 	}
+	return symbolAmount, nil
+}
+
+func (x *x2ethereum) Query_GetRelayerBalance(in *types2.QueryRelayerBalance) (types.Message, error) {
+	symbolAmount := &types2.ReceiptQueryRelayerBalance{}
+	accDB, err := account.NewAccountDB(x.GetAPI().GetConfig(), types2.X2ethereumX, strings.ToLower(in.TokenSymbol), x.GetStateDB())
+	if err != nil {
+		return nil, err
+	}
+
+	acc := accDB.LoadExecAccount(in.Address, address.ExecAddress(types2.X2ethereumX))
+	symbolAmount.Balance = uint64(acc.Balance)
 	return symbolAmount, nil
 }

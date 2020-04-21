@@ -23,6 +23,7 @@ func queryCmd() *cobra.Command {
 		queryConsensusCmd(),
 		queryTotalPowerCmd(),
 		querySymbolTotalAmountByTxTypeCmd(),
+		queryRelayerBalanceCmd(),
 	)
 	return cmd
 }
@@ -158,7 +159,7 @@ func querySymbolTotalAmountByTxTypeCmd() *cobra.Command {
 	cmd.Flags().Int64P("direction", "d", 0, "eth2chain33 = 1,chain33toeth = 2")
 	_ = cmd.MarkFlagRequired("direction")
 
-	cmd.Flags().Int64P("txtype", "t", 0, "lock = 1,withdraw = 2")
+	cmd.Flags().Int64P("txtype", "t", 0, "lock = 1,burn = 2")
 	_ = cmd.MarkFlagRequired("txtype")
 	return cmd
 }
@@ -193,6 +194,49 @@ func querySymbolTotalAmountByTxType(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQuerySymbolAssetsByTxType{}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx.Run()
+}
+
+func queryRelayerBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "balance",
+		Short: "query balance of x2ethereum",
+		Run:   queryRelayerBalance,
+	}
+
+	cmd.Flags().StringP("token", "t", "", "token symbol")
+	_ = cmd.MarkFlagRequired("token")
+
+	cmd.Flags().StringP("address", "s", "", "the address you want to query")
+	_ = cmd.MarkFlagRequired("address")
+	return cmd
+}
+
+func queryRelayerBalance(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+
+	token, _ := cmd.Flags().GetString("token")
+	address, _ := cmd.Flags().GetString("address")
+
+	get := &types2.QueryRelayerBalance{
+		TokenSymbol: token,
+		Address:     address,
+	}
+
+	payLoad, err := types.PBToJSON(get)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "ErrPbToJson:"+err.Error())
+		return
+	}
+
+	query := rpctypes.Query4Jrpc{
+		Execer:   types2.X2ethereumX,
+		FuncName: types2.FuncQueryRelayerBalance,
+		Payload:  payLoad,
+	}
+
+	channel := &types2.ReceiptQueryRelayerBalance{}
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
 	ctx.Run()
 }
