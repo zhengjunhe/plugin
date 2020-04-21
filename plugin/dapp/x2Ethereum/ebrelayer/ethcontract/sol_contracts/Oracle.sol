@@ -180,9 +180,10 @@ contract Oracle {
 
         (bool valid, uint256 weightedSignedPower, uint256 weightedTotalPower ) = getClaimThreshold(_claimID);
         if (true == valid)  {
-            // Update the BridgeClaim's status
-            completeClaim(_claimID);
-
+            //if processed already,just emit an event
+            if (chain33Bridge.isProphecyClaimActive(_claimID) == true) {
+                completeClaim(_claimID);
+            }
             emit LogProphecyProcessed(
                 _claimID,
                 weightedSignedPower,

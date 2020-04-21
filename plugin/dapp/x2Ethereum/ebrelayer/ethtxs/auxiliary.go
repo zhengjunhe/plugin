@@ -2,6 +2,8 @@ package ethtxs
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"errors"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	"github.com/ethereum/go-ethereum"
@@ -22,9 +24,10 @@ type NewProphecyClaimPara struct {
 	Txhash        []byte
 }
 
-func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara, x2EthDeployInfo *X2EthDeployInfo, x2EthContracts *X2EthContracts) (string, error) {
-	ctx := context.Background()
-
+func CreateBridgeToken(symbol string, client *ethclient.Client, para *OperatorInfo, x2EthDeployInfo *X2EthDeployInfo, x2EthContracts *X2EthContracts) (string, error) {
+	if nil == para {
+		return "", errors.New("No operator private key configured")
+	}
 	//订阅事件
 	eventName := "LogNewBridgeToken"
 	bridgeBankABI := LoadABI(BridgeBankABI)
@@ -35,14 +38,14 @@ func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara
 	// We will check logs for new events
 	logs := make(chan types.Log)
 	// Filter by contract and event, write results to logs
-	sub, err := client.SubscribeFilterLogs(ctx, query, logs)
+	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
 	if nil != err {
 		txslog.Error("CreateBrigeToken", "failed to SubscribeFilterLogs", err.Error())
 		return "", err
 	}
 
 	//创建token
-	auth, err := PrepareAuth(client, para.DeployPrivateKey, para.Operator)
+	auth, err := PrepareAuth(client, para.PrivateKey, para.Address)
 	if nil != err {
 		return "", err
 	}
@@ -81,8 +84,11 @@ func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara
 	return logEvent.Token.String(), nil
 }
 
-func CreateERC20Token(symbol string, client *ethclient.Client, para *DeployPara, x2EthDeployInfo *X2EthDeployInfo, x2EthContracts *X2EthContracts) (string, error) {
-	auth, err := PrepareAuth(client, para.DeployPrivateKey, para.Operator)
+func CreateERC20Token(symbol string, client *ethclient.Client, para *OperatorInfo, x2EthDeployInfo *X2EthDeployInfo, x2EthContracts *X2EthContracts) (string, error) {
+	if nil == para {
+		return "", errors.New("No operator private key configured")
+	}
+	auth, err := PrepareAuth(client, para.PrivateKey, para.Address)
 	if nil != err {
 		return "", err
 	}
@@ -100,8 +106,12 @@ func CreateERC20Token(symbol string, client *ethclient.Client, para *DeployPara,
 	return tokenAddr.String(), nil
 }
 
-func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient.Client, para *DeployPara) (string, error) {
-	operatorAuth, err := PrepareAuth(client, para.DeployPrivateKey, para.Operator)
+func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient.Client, para *OperatorInfo) (string, error) {
+	if nil == para {
+		return "", errors.New("No operator private key configured")
+	}
+
+	operatorAuth, err := PrepareAuth(client, para.PrivateKey, para.Address)
 	if nil != err {
 		return "", err
 	}
@@ -254,8 +264,9 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 }
 
 /////////////////NewProphecyClaim////////////////
-func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *ethclient.Client, para *DeployPara, x2EthContracts *X2EthContracts) (string, error) {
-	authVali, err := PrepareAuth(client, para.ValidatorPriKey[0], para.InitValidators[0])
+func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *ethclient.Client, privateKey *ecdsa.PrivateKey, transactor common.Address, x2EthContracts *X2EthContracts) (string, error) {
+
+	authVali, err := PrepareAuth(client, privateKey, transactor)
 	if nil != err {
 		return "", err
 	}
@@ -267,7 +278,7 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 	claimID := crypto.Keccak256Hash(newProphecyClaimPara.Txhash, newProphecyClaimPara.Chain33Sender, newProphecyClaimPara.EthReceiver.Bytes(), newProphecyClaimPara.TokenAddr.Bytes(), big.NewInt(amount).Bytes())
 
 	// Sign the hash using the active validator's private key
-	signature, err := SignClaim4Eth(claimID, para.ValidatorPriKey[0])
+	signature, err := SignClaim4Eth(claimID, privateKey)
 	if nil != err {
 		return "", err
 	}

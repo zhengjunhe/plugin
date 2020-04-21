@@ -63,6 +63,7 @@ type EthereumRelayer struct {
 	deployInfo             *ebTypes.Deploy
 	x2EthDeployInfo        *ethtxs.X2EthDeployInfo
 	deployPara             *ethtxs.DeployPara
+	operatorInfo           *ethtxs.OperatorInfo
 	x2EthContracts         *ethtxs.X2EthContracts
 }
 
@@ -126,36 +127,18 @@ func (ethRelayer *EthereumRelayer) GetRunningStatus() (relayerRunStatus *ebTypes
 
 func (ethRelayer *EthereumRelayer) recoverDeployPara() (err error) {
 	if nil == ethRelayer.deployInfo {
-		return errors.New("No deploy info configured yet")
+		return nil
 	}
 	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(ethRelayer.deployInfo.DeployerPrivateKey))
 	if nil != err {
 		return err
 	}
-	if len(ethRelayer.deployInfo.ValidatorsAddr) != len(ethRelayer.deployInfo.InitPowers) {
-		return errors.New("Not same number for validator address and power")
-	}
-	if len(ethRelayer.deployInfo.ValidatorsAddr) < 3 {
-		return errors.New("The number of validator must be not less than 3")
-	}
-
-	var validators []common.Address
-	var initPowers []*big.Int
-
-	for i, addr := range ethRelayer.deployInfo.ValidatorsAddr {
-		validators = append(validators, common.HexToAddress(addr))
-		initPowers = append(initPowers, big.NewInt(ethRelayer.deployInfo.InitPowers[i]))
-	}
 	deployerAddr := crypto.PubkeyToAddress(deployPrivateKey.PublicKey)
-	para := &ethtxs.DeployPara{
-		DeployPrivateKey: deployPrivateKey,
-		Deployer:         deployerAddr,
-		Operator:         deployerAddr,
-		InitValidators:   validators,
-		ValidatorPriKey:  []*ecdsa.PrivateKey{deployPrivateKey},
-		InitPowers:       initPowers,
+
+	ethRelayer.operatorInfo = &ethtxs.OperatorInfo{
+		PrivateKey:deployPrivateKey,
+		Address:deployerAddr,
 	}
-	ethRelayer.deployPara = para
 
 	return nil
 }
@@ -201,9 +184,19 @@ func (ethRelayer *EthereumRelayer) DeployContrcts() (bridgeRegistry string, err 
 		InitPowers:       initPowers,
 	}
 
+	for i, power := range para.InitPowers {
+		relayerLog.Info("deploy", "the validator address ", para.InitValidators[i].String(),
+			                                   "power", power.String())
+	}
+
+
 	x2EthContracts, x2EthDeployInfo, err := ethtxs.DeployAndInit(ethRelayer.client, para)
 	if err != nil {
 		return bridgeRegistry, err
+	}
+	ethRelayer.operatorInfo = &ethtxs.OperatorInfo{
+		PrivateKey:deployPrivateKey,
+		Address:deployerAddr,
 	}
 	ethRelayer.deployPara = para
 	ethRelayer.x2EthDeployInfo = x2EthDeployInfo
@@ -232,23 +225,23 @@ func (ethRelayer *EthereumRelayer) ShowBridgeBankAddr() (string, error) {
 }
 
 func (ethRelayer *EthereumRelayer) IsProphecyPending(claimID [32]byte) (bool, error) {
-	return ethtxs.IsProphecyPending(claimID, ethRelayer.deployPara.InitValidators[0], ethRelayer.x2EthContracts.Chain33Bridge)
+	return ethtxs.IsProphecyPending(claimID, ethRelayer.ethValidator, ethRelayer.x2EthContracts.Chain33Bridge)
 }
 
 func (ethRelayer *EthereumRelayer) MakeNewProphecyClaim(newProphecyClaimPara *ethtxs.NewProphecyClaimPara) (string, error) {
-	return ethtxs.MakeNewProphecyClaim(newProphecyClaimPara, ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthContracts)
+	return ethtxs.MakeNewProphecyClaim(newProphecyClaimPara, ethRelayer.client, ethRelayer.privateKey4Ethereum, ethRelayer.ethValidator, ethRelayer.x2EthContracts)
 }
 
 func (ethRelayer *EthereumRelayer) CreateBridgeToken(symbol string) (string, error) {
-	return ethtxs.CreateBridgeToken(symbol, ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
+	return ethtxs.CreateBridgeToken(symbol, ethRelayer.client, ethRelayer.operatorInfo, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
 }
 
 func (ethRelayer *EthereumRelayer) CreateERC20Token(symbol string) (string, error) {
-	return ethtxs.CreateERC20Token(symbol, ethRelayer.client, ethRelayer.deployPara, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
+	return ethtxs.CreateERC20Token(symbol, ethRelayer.client, ethRelayer.operatorInfo, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
 }
 
 func (ethRelayer *EthereumRelayer) MintERC20Token(tokenAddr, ownerAddr string, amount int64) (string, error) {
-	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, amount, ethRelayer.client, ethRelayer.deployPara)
+	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, amount, ethRelayer.client, ethRelayer.operatorInfo)
 }
 
 func (ethRelayer *EthereumRelayer) ApproveAllowance(ownerPrivateKey, tokenAddr string, amount int64) (string, error) {

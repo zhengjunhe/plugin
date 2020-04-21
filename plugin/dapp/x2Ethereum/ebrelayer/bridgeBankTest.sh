@@ -5,7 +5,7 @@ tokenAddr=""
 bridgeBankAddr=""
 chain33SenderAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 chain33SenderAddrKey="CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944"
-ethOperatorAddrKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
+ethValidatorAddrKey="3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e"
 
 ethReceiverAddr1="0xa4ea64a583f6e51c3799335b28a8f0529570a635"
 ethReceiverAddrKey1="355b876d7cbcb930d5dfab767f66336ce327e082cbaa1877210c1bae89b1df71"
@@ -37,7 +37,7 @@ InitAndDeploy() {
     result=$(${CLI} relayer ethereum import_chain33privatekey -k "${chain33SenderAddrKey}")
     cli_ret "${result}" "import_chain33privatekey"
 
-    result=$(${CLI} relayer ethereum import_ethprivatekey -k "${ethOperatorAddrKey}")
+    result=$(${CLI} relayer ethereum import_ethprivatekey -k "${ethValidatorAddrKey}")
     cli_ret "${result}" "import_ethprivatekey"
 
 

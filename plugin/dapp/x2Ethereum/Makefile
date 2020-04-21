@@ -12,10 +12,6 @@ CLI_B := build/ebcli_B
 CLI_C := build/ebcli_C
 CLI_D := build/ebcli_D
 EBRELAER := build/ebrelayer   ##通过配置文件启动不同的ebrelayer
-EBRELAER_A := build/ebrelayer_A
-EBRELAER_B := build/ebrelayer_B
-EBRELAER_C := build/ebrelayer_C
-EBRELAER_D := build/ebrelayer_D
 
 LDFLAGS := -ldflags "-w -s"
 proj := "build"
@@ -25,10 +21,6 @@ default: build
 
 build:
 	@go build -v -i -o $(EBRELAER) $(SRC_EBRELAYER)
-	@cp $(EBRELAER) $(EBRELAER_A)
-	@cp $(EBRELAER) $(EBRELAER_B)
-	@cp $(EBRELAER) $(EBRELAER_C)
-	@cp $(EBRELAER) $(EBRELAER_D)
 	@go build -v -i -o $(CLI_A) $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_B) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9902" $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_C) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9903" $(SRC_EBCLI)
@@ -91,10 +83,6 @@ docker-compose-down: ## build docker-compose for chain33 run
 
 clean: ## remove all the bins
 	@rm -rf $(EBRELAER)
-	@rm -rf $(EBRELAER_A)
-	@rm -rf $(EBRELAER_B)
-	@rm -rf $(EBRELAER_C)
-	@rm -rf $(EBRELAER_D)
 	@rm -rf $(CLI_A)
 	@rm -rf $(CLI_B)
 	@rm -rf $(CLI_C)

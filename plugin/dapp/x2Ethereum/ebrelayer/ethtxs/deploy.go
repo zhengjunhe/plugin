@@ -50,6 +50,11 @@ type DeployPara struct {
 	InitPowers       []*big.Int
 }
 
+type OperatorInfo struct {
+	PrivateKey *ecdsa.PrivateKey
+	Address    common.Address
+}
+
 //DeployValset: 部署Valset
 func DeployValset(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, deployer common.Address, operator common.Address, initValidators []common.Address, initPowers []*big.Int) (*generated.Valset, *DeployResult, error) {
 	auth, err := PrepareAuth(backend, privateKey, deployer)
