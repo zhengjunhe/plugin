@@ -10,8 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/33cn/chain33/common/log/log15"
-	chain33Bridge "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
-	oracle "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
@@ -29,63 +27,64 @@ const (
 // RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to Chain33Bridge contract on the Ethereum network
 func RelayProphecyClaimToEthereum(provider string, sender, contractAddress common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
 	// Initialize client service, validator's tx auth, and target contract address
-	txslog.Info("RelayProphecyClaimToEthereum", "provider", provider, "sender", sender, "contractAddress", contractAddress, "event", event, "claim", claim, "privateKey", privateKey)
-	client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
-	if nil != err {
-		return "", err
-	}
-
-	// Initialize Chain33Bridge instance
-	chain33BridgeInstance, err := chain33Bridge.NewChain33Bridge(*target, client)
-	if err != nil {
-		txslog.Error("RelayProphecyClaimToEthereum", "NewChain33Bridge failed due to:", err.Error())
-		return "", err
-	}
-
-	// Send transaction
-	tx, err := chain33BridgeInstance.NewProphecyClaim(auth, uint8(claim.ClaimType), claim.Chain33Sender, claim.EthereumReceiver, claim.TokenContractAddress, claim.Symbol, claim.Amount)
-	if err != nil {
-		txslog.Error("RelayProphecyClaimToEthereum", "NewProphecyClaim failed due to:", err.Error())
-		return "", err
-	}
-	txhash = tx.Hash().Hex()
-	txslog.Info("RelayProphecyClaimToEthereum", "NewProphecyClaim tx hash:", txhash)
-	err = waitEthTxFinished(client, tx.Hash(), "ProphecyClaimToEthereum")
-	if nil != err {
-		return txhash, err
-	}
-	return
+	//txslog.Info("RelayProphecyClaimToEthereum", "provider", provider, "sender", sender, "contractAddress", contractAddress, "event", event, "claim", claim, "privateKey", privateKey)
+	//client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
+	//if nil != err {
+	//	return "", err
+	//}
+	//
+	//// Initialize Chain33Bridge instance
+	//chain33BridgeInstance, err := chain33Bridge.NewChain33Bridge(*target, client)
+	//if err != nil {
+	//	txslog.Error("RelayProphecyClaimToEthereum", "NewChain33Bridge failed due to:", err.Error())
+	//	return "", err
+	//}
+	//
+	//// Send transaction
+	//tx, err := chain33BridgeInstance.NewProphecyClaim(auth, uint8(claim.ClaimType), claim.Chain33Sender, claim.EthereumReceiver, claim.TokenContractAddress, claim.Symbol, claim.Amount)
+	//if err != nil {
+	//	txslog.Error("RelayProphecyClaimToEthereum", "NewProphecyClaim failed due to:", err.Error())
+	//	return "", err
+	//}
+	//txhash = tx.Hash().Hex()
+	//txslog.Info("RelayProphecyClaimToEthereum", "NewProphecyClaim tx hash:", txhash)
+	//err = waitEthTxFinished(client, tx.Hash(), "ProphecyClaimToEthereum")
+	//if nil != err {
+	//	return txhash, err
+	//}
+	return "", nil
 }
 
 // RelayOracleClaimToEthereum : relays the provided OracleClaim to Oracle contract on the Ethereum network
 func RelayOracleClaimToEthereum(provider string, sender, contractAddress common.Address, event events.Event, claim *OracleClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
 	// Initialize client service, validator's tx auth, and target contract address
-	client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
-	if nil != err {
-		return "", err
-	}
+	//client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
+	//if nil != err {
+	//	return "", err
+	//}
+	//
+	//// Initialize Oracle instance
+	//oracleInstance, err := oracle.NewOracle(*target, client)
+	//if err != nil {
+	//	txslog.Error("RelayOracleClaimToEthereum", "NewOracle failed due to:", err.Error())
+	//	return "", err
+	//}
+	//
+	//// Send transaction
+	//tx, err := oracleInstance.NewOracleClaim(auth, claim.ProphecyID, claim.Message, claim.Signature)
+	//if err != nil {
+	//	txslog.Error("RelayOracleClaimToEthereum", "NewOracleClaim failed due to:", err.Error())
+	//	return "", err
+	//}
+	//txhash = tx.Hash().Hex()
+	//txslog.Info("RelayOracleClaimToEthereum", "NewOracleClaim tx hash:", txhash)
+	//err = waitEthTxFinished(client, tx.Hash(), "RelayOracleClaimToEthereum")
+	//if nil != err {
+	//	return txhash, err
+	//}
 
-	// Initialize Oracle instance
-	oracleInstance, err := oracle.NewOracle(*target, client)
-	if err != nil {
-		txslog.Error("RelayOracleClaimToEthereum", "NewOracle failed due to:", err.Error())
-		return "", err
-	}
-
-	// Send transaction
-	tx, err := oracleInstance.NewOracleClaim(auth, claim.ProphecyID, claim.Message, claim.Signature)
-	if err != nil {
-		txslog.Error("RelayOracleClaimToEthereum", "NewOracleClaim failed due to:", err.Error())
-		return "", err
-	}
-	txhash = tx.Hash().Hex()
-	txslog.Info("RelayOracleClaimToEthereum", "NewOracleClaim tx hash:", txhash)
-	err = waitEthTxFinished(client, tx.Hash(), "RelayOracleClaimToEthereum")
-	if nil != err {
-		return txhash, err
-	}
-
-	return txhash, nil
+	//return txhash, nil
+	return "", nil
 }
 
 // initRelayConfig : set up Ethereum client, validator's transaction auth, and the target contract's address

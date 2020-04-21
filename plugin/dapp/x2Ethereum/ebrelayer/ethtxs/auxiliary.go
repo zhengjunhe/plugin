@@ -19,6 +19,7 @@ type NewProphecyClaimPara struct {
 	EthReceiver   common.Address
 	Symbol        string
 	Amount        int64
+	Txhash        []byte
 }
 
 func CreateBridgeToken(symbol string, client *ethclient.Client, para *DeployPara, x2EthDeployInfo *X2EthDeployInfo, x2EthContracts *X2EthContracts) (string, error) {
@@ -252,8 +253,6 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 	return tx.Hash().String(), nil
 }
 
-////////////////////订阅LogNewProphecyClaim/////////////////
-//chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
 /////////////////NewProphecyClaim////////////////
 func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *ethclient.Client, para *DeployPara, x2EthContracts *X2EthContracts) (string, error) {
 	authVali, err := PrepareAuth(client, para.ValidatorPriKey[0], para.InitValidators[0])
@@ -263,7 +262,17 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 
 	amount := newProphecyClaimPara.Amount
 	ethReceiver := newProphecyClaimPara.EthReceiver
-	tx, err := x2EthContracts.Chain33Bridge.NewProphecyClaim(authVali, newProphecyClaimPara.ClaimType, newProphecyClaimPara.Chain33Sender, ethReceiver, newProphecyClaimPara.TokenAddr, newProphecyClaimPara.Symbol, big.NewInt(amount))
+
+	// Generate rawHash using ProphecyClaim data
+	claimID := crypto.Keccak256Hash(newProphecyClaimPara.Txhash, newProphecyClaimPara.Chain33Sender, newProphecyClaimPara.EthReceiver.Bytes(), newProphecyClaimPara.TokenAddr.Bytes(), big.NewInt(amount).Bytes())
+
+	// Sign the hash using the active validator's private key
+	signature, err := SignClaim4Eth(claimID, para.ValidatorPriKey[0])
+	if nil != err {
+		return "", err
+	}
+
+	tx, err := x2EthContracts.Oracle.NewOracleClaim(authVali, newProphecyClaimPara.ClaimType, newProphecyClaimPara.Chain33Sender, ethReceiver, newProphecyClaimPara.TokenAddr, newProphecyClaimPara.Symbol, big.NewInt(amount), claimID, signature)
 	if nil != err {
 		return "", err
 	}
@@ -274,19 +283,3 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 	return tx.Hash().String(), nil
 }
 
-func ProcessProphecyClaim(client *ethclient.Client, para *DeployPara, x2EthContracts *X2EthContracts, prophecyID int64) (string, error) {
-	authOracle, err := PrepareAuth(client, para.ValidatorPriKey[0], para.InitValidators[0])
-	if nil != err {
-		return "", err
-	}
-	tx, err := x2EthContracts.Oracle.ProcessBridgeProphecy(authOracle, big.NewInt(prophecyID))
-	if nil != err {
-		return "", err
-	}
-
-	err = waitEthTxFinished(client, tx.Hash(), "ProcessProphecyClaim")
-	if nil != err {
-		return tx.Hash().String(), err
-	}
-	return tx.Hash().String(), nil
-}

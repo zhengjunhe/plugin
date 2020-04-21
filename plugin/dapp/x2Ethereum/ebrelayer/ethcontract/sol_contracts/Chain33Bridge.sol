@@ -19,7 +19,7 @@ contract Chain33Bridge {
     bool public hasBridgeBank;
 
     uint256 public prophecyClaimCount;
-    mapping(uint256 => ProphecyClaim) public prophecyClaims;
+    mapping(bytes32 => ProphecyClaim) public prophecyClaims;
 
     enum Status {
         Null,
@@ -68,7 +68,7 @@ contract Chain33Bridge {
     );
 
     event LogProphecyCompleted(
-        uint256 _prophecyID,
+        bytes32 _claimID,
         ClaimType _claimType
     );
 
@@ -76,11 +76,11 @@ contract Chain33Bridge {
     * @dev: Modifier which only allows access to currently pending prophecies
     */
     modifier isPending(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
     {
         require(
-            isProphecyClaimActive(_prophecyID),
+            isProphecyClaimActive(_claimID),
             "Prophecy claim is not active"
         );
         _;
@@ -98,6 +98,18 @@ contract Chain33Bridge {
         _;
     }
 
+    /*
+    * @dev: Modifier to restrict access to the oracle.
+    */
+    modifier onlyOracle()
+    {
+        require(
+            msg.sender == oracle,
+            'Must be the oracle.'
+        );
+        _;
+    }
+
       /*
     * @dev: The bridge is not active until oracle and bridge bank are set
     */
@@ -106,6 +118,20 @@ contract Chain33Bridge {
         require(
             hasOracle == true && hasBridgeBank == true,
             "The Operator must set the oracle and bridge bank for bridge activation"
+        );
+        _;
+    }
+
+    /*
+    * @dev: Modifier to make sure the claim type is valid
+    */
+    modifier validClaimType(
+        ClaimType _claimType
+    )
+    {
+        require(
+            _claimType == ClaimType.Burn || _claimType == ClaimType.Lock,
+            "The claim type must be ClaimType.Burn or ClaimType.Lock"
         );
         _;
     }
@@ -171,45 +197,35 @@ contract Chain33Bridge {
     }
 
     /*
-    * @dev: newProphecyClaim
-    *       Creates a new burn or lock prophecy claim, adding it to the prophecyClaims mapping.
+    * @dev: setNewProphecyClaim
+    *       Sets a new burn or lock prophecy claim, adding it to the prophecyClaims mapping.
     *       Lock claims can only be created for BridgeTokens on BridgeBank's whitelist. The operator
     *       is responsible for adding them, and lock claims will fail until the operator has done so.
     */
-    function newProphecyClaim(
-        ClaimType _claimType,
+    function setNewProphecyClaim(
+        bytes32 _claimID,
+        uint8 _claimType,
         bytes memory _chain33Sender,
         address payable _ethereumReceiver,
+        address _originalValidator,
         address _tokenAddress,
         string memory _symbol,
         uint256 _amount
     )
         public
         isActive
+        onlyOracle
     {
-        require(
-            valset.isActiveValidator(msg.sender),
-            "Must be an active validator"
-        );
-
         // Increment the prophecy claim count
         prophecyClaimCount = prophecyClaimCount.add(1);
-
-        address originalValidator = msg.sender;
-
-        ClaimType claimType;
-        if(_claimType == ClaimType.Burn){
-            claimType = ClaimType.Burn;
-        } else if(_claimType == ClaimType.Lock){
-            claimType = ClaimType.Lock;
-        }
+        ClaimType claimType = ClaimType(_claimType);
 
         // Create the new ProphecyClaim
         ProphecyClaim memory prophecyClaim = ProphecyClaim(
             claimType,
             _chain33Sender,
             _ethereumReceiver,
-            originalValidator,
+            _originalValidator,
             _tokenAddress,
             _symbol,
             _amount,
@@ -217,14 +233,14 @@ contract Chain33Bridge {
         );
 
         // Add the new ProphecyClaim to the mapping
-        prophecyClaims[prophecyClaimCount] = prophecyClaim;
+        prophecyClaims[_claimID] = prophecyClaim;
 
         emit LogNewProphecyClaim(
             prophecyClaimCount,
             claimType,
             _chain33Sender,
             _ethereumReceiver,
-            originalValidator,
+            _originalValidator,
             _tokenAddress,
             _symbol,
             _amount
@@ -232,33 +248,33 @@ contract Chain33Bridge {
     }
 
     /*
-    * @dev: completeProphecyClaim
+    * @dev: completeClaim
     *       Allows for the completion of ProphecyClaims once processed by the Oracle.
     *       Burn claims unlock tokens stored by BridgeBank.
     *       Lock claims mint BridgeTokens on BridgeBank's token whitelist.
     */
-    function completeProphecyClaim(
-        uint256 _prophecyID
+    function completeClaim(
+        bytes32 _claimID
     )
         public
-        isPending(_prophecyID)
+        isPending(_claimID)
     {
         require(
             msg.sender == oracle,
             "Only the Oracle may complete prophecies"
         );
 
-        prophecyClaims[_prophecyID].status = Status.Success;
+        prophecyClaims[_claimID].status = Status.Success;
 
-        ClaimType claimType = prophecyClaims[_prophecyID].claimType;
+        ClaimType claimType = prophecyClaims[_claimID].claimType;
         if(claimType == ClaimType.Burn) {
-            unlockTokens(_prophecyID);
+            unlockTokens(_claimID);
         } else {
-            issueBridgeTokens(_prophecyID);
+            issueBridgeTokens(_claimID);
         }
 
         emit LogProphecyCompleted(
-            _prophecyID,
+            _claimID,
             claimType
         );
     }
@@ -268,11 +284,11 @@ contract Chain33Bridge {
     *       Issues a request for the BridgeBank to mint new BridgeTokens
     */
     function issueBridgeTokens(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
         internal
     {
-        ProphecyClaim memory prophecyClaim = prophecyClaims[_prophecyID];
+        ProphecyClaim memory prophecyClaim = prophecyClaims[_claimID];
 
         bridgeBank.mintBridgeTokens(
             prophecyClaim.chain33Sender,
@@ -288,11 +304,11 @@ contract Chain33Bridge {
     *       Issues a request for the BridgeBank to unlock funds held on contract
     */
     function unlockTokens(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
         internal
     {
-        ProphecyClaim memory prophecyClaim = prophecyClaims[_prophecyID];
+        ProphecyClaim memory prophecyClaim = prophecyClaims[_claimID];
 
         bridgeBank.unlock(
             prophecyClaim.ethereumReceiver,
@@ -307,13 +323,13 @@ contract Chain33Bridge {
     *       Returns boolean indicating if the ProphecyClaim is active
     */
     function isProphecyClaimActive(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
         public
         view
         returns(bool)
     {
-        return prophecyClaims[_prophecyID].status == Status.Pending;
+        return prophecyClaims[_claimID].status == Status.Pending;
     }
 
     /*
@@ -322,14 +338,26 @@ contract Chain33Bridge {
     *       submitted the ProphecyClaim is still an active validator
     */
     function isProphecyClaimValidatorActive(
-        uint256 _prophecyID
+        bytes32 _claimID
     )
         public
         view
         returns(bool)
     {
         return valset.isActiveValidator(
-            prophecyClaims[_prophecyID].originalValidator
+            prophecyClaims[_claimID].originalValidator
         );
+    }
+
+    /*
+    * @dev: Modifier to make sure the claim type is valid
+    */
+    function isValidClaimType(uint8 _claimType) public pure returns(bool)
+    {
+        ClaimType claimType = ClaimType(_claimType);
+        if (claimType == ClaimType.Burn || claimType == ClaimType.Lock) {
+            return true;
+        }
+        return false;
     }
 }

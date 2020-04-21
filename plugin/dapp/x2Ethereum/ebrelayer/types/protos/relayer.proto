@@ -64,6 +64,7 @@ message NewProphecyClaim {
     string symbol = 4;
     string ethReceiver = 5;
     int64  amount = 6;
+    string txHash = 7;
 }
 
 message BalanceAddr  {
