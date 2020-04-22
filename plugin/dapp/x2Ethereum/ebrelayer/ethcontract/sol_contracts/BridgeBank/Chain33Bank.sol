@@ -15,6 +15,7 @@ contract Chain33Bank {
 
     uint256 public bridgeTokenCount;
     mapping(address => bool) public bridgeTokenWhitelist;
+    mapping(bytes32 => bool) public bridgeTokenCreated;
     mapping(bytes32 => Chain33Deposit) chain33Deposits;
     mapping(bytes32 => Chain33Burn) chain33Burns;
     mapping(address => DepositBurnCount) depositBurnCounts;
@@ -66,10 +67,33 @@ contract Chain33Bank {
     );
 
     /*
+     * @dev: Modifier to make sure this symbol not created now
+     */
+     modifier notCreated(string memory _symbol)
+     {
+         require(
+             !hasBridgeTokenCreated(_symbol),
+             "The symbol has been created already"
+         );
+         _;
+     }
+
+    /*
     * @dev: Constructor, sets bridgeTokenCount
     */
     constructor () public {
         bridgeTokenCount = 0;
+    }
+
+    /*
+    * @dev: check whether this symbol has been created yet or not
+    *
+    * @param _symbol: token symbol
+    * @return: true or false
+    */
+    function hasBridgeTokenCreated(string memory _symbol) public view returns(bool) {
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        return bridgeTokenCreated[symHash];
     }
 
     /*
@@ -167,6 +191,7 @@ contract Chain33Bank {
         string memory _symbol
     )
         internal
+        notCreated(_symbol)
         returns(address)
     {
         bridgeTokenCount = bridgeTokenCount.add(1);
@@ -177,6 +202,8 @@ contract Chain33Bank {
         // Set address in tokens mapping
         address newBridgeTokenAddress = address(newBridgeToken);
         bridgeTokenWhitelist[newBridgeTokenAddress] = true;
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        bridgeTokenCreated[symHash] = true;
         depositBurnCounts[newBridgeTokenAddress] = DepositBurnCount(
             uint256(0),
             uint256(0)
