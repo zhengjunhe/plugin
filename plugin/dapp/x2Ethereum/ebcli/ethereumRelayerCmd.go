@@ -44,6 +44,7 @@ func EthereumRelayerCmd() *cobra.Command {
 		ApproveCmd(),
 		LockEthErc20AssetCmd(),
 		ShowBridgeBankAddrCmd(),
+		ShowBridgeRegistryAddrCmd(),
 		BurnCmd(),
 		StaticsCmd(),
 		TransferTokenCmd(),
@@ -511,6 +512,22 @@ func ShowBridgeBankAddr(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	var res ebTypes.ReplyAddr
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowBridgeBankAddr", nil, &res)
+	ctx.Run()
+}
+
+func ShowBridgeRegistryAddrCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridgeRegistry",
+		Short: "show the address of Contract BridgeRegistry",
+		Run:   ShowBridgeRegistryAddr,
+	}
+	return cmd
+}
+
+func ShowBridgeRegistryAddr(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	var res ebTypes.ReplyAddr
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowBridgeRegistryAddr", nil, &res)
 	ctx.Run()
 }
 
