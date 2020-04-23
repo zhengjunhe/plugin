@@ -277,7 +277,7 @@ func (ethRelayer *EthereumRelayer) proc() {
 	// Start client with infura ropsten provider
 	relayerLog.Info("EthereumRelayer proc", "Started Ethereum websocket with provider:", ethRelayer.provider,
 		"rpcURL2Chain33:", ethRelayer.rpcURL2Chain33)
-	client, err := setupWebsocketEthClient(ethRelayer.provider)
+	client, err := ethtxs.SetupWebsocketEthClient(ethRelayer.provider)
 	if err != nil {
 		panic(err)
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	chain33Types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	relayerTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethtxs"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	syncTx "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/chain33/transceiver/sync"
@@ -18,6 +19,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	ethCommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"os"
 	"sync"
 	"sync/atomic"
@@ -28,7 +30,7 @@ var relayerLog = log.New("module", "chain33_relayer")
 
 type Chain33Relayer struct {
 	syncTxReceipts      *syncTx.SyncTxReceipts
-	web3Provider        string
+	client              *ethclient.Client
 	rpcLaddr            string //用户向指定的blockchain节点进行rpc调用
 	fetchHeightPeriodMs int64
 	db                  dbm.DB
@@ -40,7 +42,8 @@ type Chain33Relayer struct {
 	passphase            string
 	privateKey4Ethereum  *ecdsa.PrivateKey
 	ethSender            ethCommon.Address
-	registryAddr         ethCommon.Address
+	bridgeRegistryAddr         ethCommon.Address
+	oracleInstance       *generated.Oracle
 	totalTx4Chain33ToEth int64
 	ctx                  context.Context
 	wg                   sync.WaitGroup
@@ -57,8 +60,7 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr, provi
 		unlock:              make(chan int),
 		db:                  db,
 		ctx:                 ctx,
-		registryAddr:        ethCommon.HexToAddress(registryAddr),
-		web3Provider:        provider,
+		bridgeRegistryAddr:        ethCommon.HexToAddress(registryAddr),
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -70,6 +72,12 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr, provi
 		StartSyncSequence: syncTxConfig.StartSyncSequence,
 		StartSyncHash:     syncTxConfig.StartSyncHash,
 	}
+
+	client, err := relayerTx.SetupWebsocketEthClient(provider)
+	if err != nil {
+		panic(err)
+	}
+	relayer.client = client
 
 	go relayer.syncProc(syncCfg)
 	return relayer
@@ -108,6 +116,12 @@ func (chain33Relayer *Chain33Relayer) syncProc(syncCfg *ebTypes.SyncTxReceiptCon
 
 	chain33Relayer.syncTxReceipts = syncTx.StartSyncTxReceipt(syncCfg, chain33Relayer.db)
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
+
+	oracleInstance, err := relayerTx.RecoverOracleInstance(chain33Relayer.client, chain33Relayer.bridgeRegistryAddr, chain33Relayer.bridgeRegistryAddr)
+	if err != nil {
+		panic(err.Error())
+	}
+	chain33Relayer.oracleInstance = oracleInstance
 
 	timer := time.NewTicker(time.Duration(chain33Relayer.fetchHeightPeriodMs) * time.Millisecond)
 	for {
@@ -208,7 +222,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 
 	// TODO: Need some sort of delay on this so validators aren't all submitting at the same time
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.web3Provider, chain33Relayer.ethSender, chain33Relayer.registryAddr, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
+	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.oracleInstance, chain33Relayer.client, chain33Relayer.ethSender, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)

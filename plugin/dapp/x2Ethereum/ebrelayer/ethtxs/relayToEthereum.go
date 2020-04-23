@@ -1,18 +1,13 @@
 package ethtxs
 
 import (
-	"context"
 	"crypto/ecdsa"
-	"math/big"
-
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/crypto"
-    "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	"github.com/33cn/chain33/common/log/log15"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var (
@@ -26,18 +21,12 @@ const (
 )
 
 // RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to Chain33Bridge contract on the Ethereum network
-func RelayProphecyClaimToEthereum(provider string, sender, contractAddress common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey, chain33TxHash []byte) (txhash string, err error) {
-	//Initialize client service, validator's tx auth, and target contract address
-	txslog.Info("RelayProphecyClaimToEthereum", "provider", provider, "sender", sender, "contractAddress", contractAddress, "event", event, "claim", claim, "privateKey", privateKey)
-	client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
-	if nil != err {
-		return "", err
-	}
+func RelayProphecyClaimToEthereum(oracleInstance *generated.Oracle, client *ethclient.Client, sender common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey, chain33TxHash []byte) (txhash string, err error) {
+	txslog.Info("RelayProphecyClaimToEthereum","sender", sender.String(), "event", event, "claim", claim)
 
-	// Initialize Chain33Bridge instance
-	oracleInstance, err := generated.NewOracle(*target, client)
-	if err != nil {
-		txslog.Error("RelayProphecyClaimToEthereum", "NewChain33Bridge failed due to:", err.Error())
+	auth, err := PrepareAuth(client, privateKey, sender)
+	if nil != err {
+		txslog.Error("RelayProphecyClaimToEthereum", "PrepareAuth err", err.Error())
 		return "", err
 	}
 
@@ -94,54 +83,4 @@ func RelayOracleClaimToEthereum(provider string, sender, contractAddress common.
 
 	//return txhash, nil
 	return "", nil
-}
-
-// initRelayConfig : set up Ethereum client, validator's transaction auth, and the target contract's address
-func initRelayConfig(provider string, sender, registry common.Address, event events.Event, privateKey *ecdsa.PrivateKey) (*ethclient.Client, *bind.TransactOpts, *common.Address, error) {
-	// Start Ethereum client
-	client, err := ethclient.Dial(provider)
-	if err != nil {
-		txslog.Error("initRelayConfig", "Failed to dial provider:", provider, "error info:", err.Error())
-		return nil, nil, nil, err
-	}
-
-	nonce, err := client.PendingNonceAt(context.Background(), sender)
-	if err != nil {
-		txslog.Error("initRelayConfig", "Failed to PendingNonceAt due to:", err.Error())
-		return nil, nil, nil, err
-	}
-
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		txslog.Error("initRelayConfig", "Failed to PendingNonceAt due to:", err.Error())
-		return nil, nil, nil, err
-	}
-
-	// Set up TransactOpts auth's tx signature authorization
-	transactOptsAuth := bind.NewKeyedTransactor(privateKey)
-	transactOptsAuth.Nonce = big.NewInt(int64(nonce))
-	transactOptsAuth.Value = big.NewInt(0) // in wei
-	transactOptsAuth.GasLimit = GasLimit
-	transactOptsAuth.GasPrice = gasPrice
-
-	var targetContract ContractRegistry
-	switch event {
-	// ProphecyClaims are sent to the Chain33Bridge contract
-	case events.MsgBurn, events.MsgLock:
-		targetContract = Chain33Bridge
-	// OracleClaims are sent to the Oracle contract
-	case events.LogNewProphecyClaim:
-		targetContract = Oracle
-	default:
-		txslog.Error("initRelayConfig", "Wrong event type:", event)
-		return nil, nil, nil, ebrelayerTypes.ErrInvalidContractAddress
-	}
-
-	// Get the specific contract's address
-	target, err := GetAddressFromBridgeRegistry(client, sender, registry, targetContract)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return client, transactOptsAuth, target, nil
 }

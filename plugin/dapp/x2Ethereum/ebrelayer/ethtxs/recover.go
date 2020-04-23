@@ -52,3 +52,18 @@ func RecoverContractHandler(client *ethclient.Client, sender, registry common.Ad
 
 	return x2EthContracts, x2EthDeployInfo, nil
 }
+
+func RecoverOracleInstance(client *ethclient.Client, sender, registry common.Address) (*generated.Oracle, error){
+	oracleAddr, err := GetAddressFromBridgeRegistry(client, sender, registry, Oracle)
+	if nil != err {
+		return nil, errors.New("Failed to get addr for oracleBridgeAddr from registry")
+	}
+	oracle, err := generated.NewOracle(*oracleAddr, client)
+	if nil != err {
+		return nil, errors.New("Failed to NewOracle")
+	}
+
+	return oracle, nil
+}
+
+

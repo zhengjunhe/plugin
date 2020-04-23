@@ -1,4 +1,4 @@
-package ethereum
+package ethtxs
 
 // ------------------------------------------------------------
 //    Network: Validates input and initializes a websocket Ethereum client.
@@ -24,7 +24,7 @@ func isWebsocketURL(rawurl string) bool {
 }
 
 // SetupWebsocketEthClient : returns boolean indicating if a URL is valid websocket ethclient
-func setupWebsocketEthClient(ethURL string) (*ethclient.Client, error) {
+func SetupWebsocketEthClient(ethURL string) (*ethclient.Client, error) {
 	if strings.TrimSpace(ethURL) == "" {
 		return nil, nil
 	}

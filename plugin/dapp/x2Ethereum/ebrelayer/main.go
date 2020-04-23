@@ -71,6 +71,8 @@ func main() {
 	log.Info("deploy info:", "BridgeRegistry", cfg.BridgeRegistry)
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
+
+
 	chain33RelayerService := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, cfg.BridgeRegistry, cfg.EthProvider, db, ctx)
 	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy)
 
