@@ -304,6 +304,9 @@ func (manager *RelayerManager) ShowOperator(param interface{}, result *interface
 func (manager *RelayerManager) DeployContrcts(param interface{}, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	bridgeRegistry, err := manager.ethRelayer.DeployContrcts()
 	if nil != err {
 		return err
@@ -318,6 +321,9 @@ func (manager *RelayerManager) DeployContrcts(param interface{}, result *interfa
 func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	tokenAddr, err := manager.ethRelayer.CreateBridgeToken(symbol)
 	if nil != err {
 		return err
@@ -332,6 +338,9 @@ func (manager *RelayerManager) CreateBridgeToken(symbol string, result *interfac
 func (manager *RelayerManager) CreateERC20Token(symbol string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	tokenAddr, err := manager.ethRelayer.CreateERC20Token(symbol)
 	if nil != err {
 		return err
@@ -346,6 +355,9 @@ func (manager *RelayerManager) CreateERC20Token(symbol string, result *interface
 func (manager *RelayerManager) MintErc20(mintToken relayerTypes.MintToken, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	txhash, err := manager.ethRelayer.MintERC20Token(mintToken.TokenAddr, mintToken.Owner, mintToken.Amount)
 	if nil != err {
 		return err
@@ -360,6 +372,9 @@ func (manager *RelayerManager) MintErc20(mintToken relayerTypes.MintToken, resul
 func (manager *RelayerManager) ApproveAllowance(approveAllowance relayerTypes.ApproveAllowance, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	txhash, err := manager.ethRelayer.ApproveAllowance(approveAllowance.OwnerKey, approveAllowance.TokenAddr, approveAllowance.Amount)
 	if nil != err {
 		return err
@@ -374,6 +389,9 @@ func (manager *RelayerManager) ApproveAllowance(approveAllowance relayerTypes.Ap
 func (manager *RelayerManager) Burn(burn relayerTypes.Burn, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	txhash, err := manager.ethRelayer.Burn(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
 	if nil != err {
 		return err
@@ -388,6 +406,9 @@ func (manager *RelayerManager) Burn(burn relayerTypes.Burn, result *interface{})
 func (manager *RelayerManager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	txhash, err := manager.ethRelayer.LockEthErc20Asset(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
 	if nil != err {
 		return err
@@ -402,6 +423,9 @@ func (manager *RelayerManager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.
 func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerTypes.NewProphecyClaim, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 	var tokenAddress common.Address
 	if "" != newProphecyClaim.TokenAddr {
 		tokenAddress = common.HexToAddress(newProphecyClaim.TokenAddr)
