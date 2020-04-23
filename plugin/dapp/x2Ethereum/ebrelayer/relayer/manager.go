@@ -61,7 +61,6 @@ func (manager *RelayerManager) SetPassphase(setPasswdReq relayerTypes.ReqSetPass
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	// 新密码合法性校验
-	fmt.Printf("\nnew:%s, old:%s\n", setPasswdReq.NewPassphase, setPasswdReq.OldPassphase)
 	if !utils.IsValidPassWord(setPasswdReq.NewPassphase) {
 		return chain33Types.ErrInvalidPassWord
 	}

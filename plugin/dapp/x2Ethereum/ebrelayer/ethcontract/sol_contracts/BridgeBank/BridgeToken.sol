@@ -18,7 +18,7 @@ contract BridgeToken is ERC20Mintable, ERC20Burnable, ERC20Detailed {
         ERC20Detailed(
             _symbol,
             _symbol,
-            18
+            8
         )
     {
         // Intentionally left blank
