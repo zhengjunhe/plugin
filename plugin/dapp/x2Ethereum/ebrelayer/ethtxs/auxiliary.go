@@ -161,7 +161,7 @@ func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Ad
 	return tx.Hash().String(), nil
 }
 
-func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount int64, bridgeBankIns *generated.BridgeBank, client *ethclient.Client) (string, error) {
+func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount *big.Int, bridgeBankIns *generated.BridgeBank, client *ethclient.Client) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -177,7 +177,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 		return "", err
 	}
 	//chain33bank 是bridgeBank的基类，所以使用bridgeBank的地址
-	tx, err := tokenInstance.Approve(auth, bridgeBank, big.NewInt(amount))
+	tx, err := tokenInstance.Approve(auth, bridgeBank, amount)
 	if nil != err {
 		return "", err
 	}
@@ -191,7 +191,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 	if nil != err {
 		return "", err
 	}
-	tx, err = bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, big.NewInt(amount))
+	tx, err = bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, amount)
 	if nil != err {
 		return "", err
 	}

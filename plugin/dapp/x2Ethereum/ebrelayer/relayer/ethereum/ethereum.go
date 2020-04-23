@@ -260,8 +260,10 @@ func (ethRelayer *EthereumRelayer) ApproveAllowance(ownerPrivateKey, tokenAddr, 
 	return ethtxs.ApproveAllowance(ownerPrivateKey, tokenAddr, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.client)
 }
 
-func (ethRelayer *EthereumRelayer) Burn(ownerPrivateKey, tokenAddr, chain33Receiver string, amount int64) (string, error) {
-	return ethtxs.Burn(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, amount, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.client)
+func (ethRelayer *EthereumRelayer) Burn(ownerPrivateKey, tokenAddr, chain33Receiver, amount string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(types2.TrimZeroAndDot(amount), 10)
+	return ethtxs.Burn(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.client)
 }
 
 func (ethRelayer *EthereumRelayer) TransferToken(tokenAddr, fromKey, toAddr, amount string) (string, error) {
