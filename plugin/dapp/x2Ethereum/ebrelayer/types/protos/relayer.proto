@@ -105,7 +105,7 @@ message ReplyBalance {
 message Burn {
     string ownerKey   = 1;
     string tokenAddr  = 2;
-    int64 amount      = 3;
+    string amount      = 3;
     string chain33Receiver = 4;
 }
 
