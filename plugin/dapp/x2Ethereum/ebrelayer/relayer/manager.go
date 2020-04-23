@@ -469,6 +469,20 @@ func (manager *RelayerManager) ShowBridgeBankAddr(para interface{}, result *inte
 	return nil
 }
 
+func (manager *RelayerManager) ShowBridgeRegistryAddr(para interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	addr, err := manager.ethRelayer.ShowBridgeRegistryAddr()
+	if nil != err {
+		return err
+	}
+	*result = relayerTypes.ReplyAddr{
+		IsOK: true,
+		Addr: addr,
+	}
+	return nil
+}
+
 func (manager *RelayerManager) ShowLockStatics(tokenAddr string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()

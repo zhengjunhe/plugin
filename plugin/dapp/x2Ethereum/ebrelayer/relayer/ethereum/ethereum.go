@@ -224,6 +224,14 @@ func (ethRelayer *EthereumRelayer) ShowBridgeBankAddr() (string, error) {
 	return ethRelayer.x2EthDeployInfo.BridgeBank.Address.String(), nil
 }
 
+func (ethRelayer *EthereumRelayer) ShowBridgeRegistryAddr() (string, error) {
+	if nil == ethRelayer.x2EthDeployInfo {
+		return "", errors.New("The relayer is not started yes")
+	}
+
+	return ethRelayer.x2EthDeployInfo.BridgeRegistry.Address.String(), nil
+}
+
 func (ethRelayer *EthereumRelayer) ShowLockStatics(tokenAddr string) (int64, error) {
 	return ethtxs.GetLockedFunds(ethRelayer.x2EthContracts.BridgeBank, tokenAddr)
 }
