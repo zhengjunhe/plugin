@@ -9,7 +9,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
-	"math"
 )
 
 // todo
@@ -435,10 +434,16 @@ func Burn(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
+
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		fmt.Println("get decimals err")
+		return
+	}
 	para := ebTypes.Burn{
 		OwnerKey:        key,
 		TokenAddr:       tokenAddr,
-		Amount:          int64(math.Trunc(amount*1e4)) * 1e4,
+		Amount:          types.ToWei(amount, d).String(),
 		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply
@@ -475,6 +480,7 @@ func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 
 	d, err := types.GetDecimals(tokenAddr)
 	if err != nil {
+		fmt.Println("get decimals err")
 		return
 	}
 
