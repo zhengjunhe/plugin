@@ -15,6 +15,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/ethereum/go-ethereum/common"
 	"math/big"
+	"strconv"
 	"sync"
 	"sync/atomic"
 )
@@ -472,9 +473,14 @@ func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, 
 	if nil != err {
 		return err
 	}
+	d, err := types.GetDecimals(balanceAddr.TokenAddr)
+	if err != nil {
+		return errors.New("get decimals error")
+	}
+
 	*result = relayerTypes.ReplyBalance{
 		IsOK:    true,
-		Balance: fmt.Sprintf("%d", balance),
+		Balance: strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64),
 	}
 	return nil
 }
@@ -514,8 +520,12 @@ func (manager *RelayerManager) ShowLockStatics(tokenAddr string, result *interfa
 	if nil != err {
 		return err
 	}
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		return errors.New("get decimals error")
+	}
 	*result = relayerTypes.StaticsLock{
-		Balance: balance,
+		Balance: strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64),
 	}
 	return nil
 }
@@ -527,8 +537,12 @@ func (manager *RelayerManager) ShowDepositStatics(tokenAddr string, result *inte
 	if nil != err {
 		return err
 	}
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		return errors.New("get decimals error")
+	}
 	*result = relayerTypes.StaticsDeposit{
-		Supply: supply,
+		Supply: strconv.FormatFloat(types.Toeth(supply, d), 'f', 4, 64),
 	}
 	return nil
 }

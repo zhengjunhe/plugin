@@ -129,11 +129,11 @@ message StaticsResponse {
 }
 
 message StaticsLock {
-    int64 balance              = 1;
+    string balance              = 1;
 }
 
 message StaticsDeposit {
-    int64 supply              = 1;
+    string supply              = 1;
 }
 
 message StaticsLockSingle {

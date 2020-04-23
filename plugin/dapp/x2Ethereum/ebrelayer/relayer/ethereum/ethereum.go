@@ -212,7 +212,7 @@ func (ethRelayer *EthereumRelayer) DeployContrcts() (bridgeRegistry string, err 
 }
 
 //GetBalance：获取某一个币种的余额
-func (ethRelayer *EthereumRelayer) GetBalance(tokenAddr, owner string) (int64, error) {
+func (ethRelayer *EthereumRelayer) GetBalance(tokenAddr, owner string) (string, error) {
 	return ethtxs.GetBalance(ethRelayer.client, tokenAddr, owner)
 }
 
@@ -232,11 +232,11 @@ func (ethRelayer *EthereumRelayer) ShowBridgeRegistryAddr() (string, error) {
 	return ethRelayer.x2EthDeployInfo.BridgeRegistry.Address.String(), nil
 }
 
-func (ethRelayer *EthereumRelayer) ShowLockStatics(tokenAddr string) (int64, error) {
+func (ethRelayer *EthereumRelayer) ShowLockStatics(tokenAddr string) (string, error) {
 	return ethtxs.GetLockedFunds(ethRelayer.x2EthContracts.BridgeBank, tokenAddr)
 }
 
-func (ethRelayer *EthereumRelayer) ShowDepositStatics(tokenAddr string) (int64, error) {
+func (ethRelayer *EthereumRelayer) ShowDepositStatics(tokenAddr string) (string, error) {
 	return ethtxs.GetDepositFunds(ethRelayer.client, tokenAddr)
 }
 
