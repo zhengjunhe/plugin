@@ -45,7 +45,7 @@ func (msg Msg_Burn) ValidateBasic() error {
 		return types.ErrInvalidEthAddress
 	}
 
-	if common.AddressIsEmpty(msg.Chain33Sender) {
+	if types.AddressIsEmpty(msg.Chain33Sender) {
 		return types.ErrInvalidAddress
 	}
 

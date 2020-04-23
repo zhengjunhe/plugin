@@ -2,12 +2,12 @@ package ethtxs
 
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func RecoverContractHandler(client *ethclient.Client, sender, registry common.Address) (*X2EthContracts, *X2EthDeployInfo, error){
+func RecoverContractHandler(client *ethclient.Client, sender, registry common.Address) (*X2EthContracts, *X2EthDeployInfo, error) {
 	bridgeBankAddr, err := GetAddressFromBridgeRegistry(client, sender, registry, BridgeBank)
 	if nil != err {
 		return nil, nil, errors.New("Failed to get addr for bridgeBank from registry")
@@ -37,23 +37,23 @@ func RecoverContractHandler(client *ethclient.Client, sender, registry common.Ad
 
 	registryInstance, _ := generated.NewBridgeRegistry(registry, client)
 	x2EthContracts := &X2EthContracts{
-		BridgeRegistry:registryInstance,
-		BridgeBank:bridgeBank,
-		Chain33Bridge:chain33Bridge,
-		Oracle:oracle,
+		BridgeRegistry: registryInstance,
+		BridgeBank:     bridgeBank,
+		Chain33Bridge:  chain33Bridge,
+		Oracle:         oracle,
 	}
 
 	x2EthDeployInfo := &X2EthDeployInfo{
-		BridgeRegistry: &DeployResult{Address:registry},
-		BridgeBank:&DeployResult{Address:*bridgeBankAddr},
-		Chain33Bridge:&DeployResult{Address:*chain33BridgeAddr},
-		Oracle:&DeployResult{Address:*oracleAddr},
+		BridgeRegistry: &DeployResult{Address: registry},
+		BridgeBank:     &DeployResult{Address: *bridgeBankAddr},
+		Chain33Bridge:  &DeployResult{Address: *chain33BridgeAddr},
+		Oracle:         &DeployResult{Address: *oracleAddr},
 	}
 
 	return x2EthContracts, x2EthDeployInfo, nil
 }
 
-func RecoverOracleInstance(client *ethclient.Client, sender, registry common.Address) (*generated.Oracle, error){
+func RecoverOracleInstance(client *ethclient.Client, sender, registry common.Address) (*generated.Oracle, error) {
 	oracleAddr, err := GetAddressFromBridgeRegistry(client, sender, registry, Oracle)
 	if nil != err {
 		return nil, errors.New("Failed to get addr for oracleBridgeAddr from registry")
@@ -65,5 +65,3 @@ func RecoverOracleInstance(client *ethclient.Client, sender, registry common.Add
 
 	return oracle, nil
 }
-
-

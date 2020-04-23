@@ -51,5 +51,5 @@ func PrintChain33Msg(event Chain33Msg) {
 	amount := event.Amount
 
 	fmt.Printf("\nClaim Type: %v\nChain33 Sender: %v\nEthereum Recipient: %v\nToken Address: %v\nSymbol: %v\nAmount: %v\n",
-		claimType, chain33Sender, ethereumReceiver, tokenContractAddress, symbol, amount)
+		claimType, chain33Sender, ethereumReceiver, tokenContractAddress, symbol, amount.String())
 }

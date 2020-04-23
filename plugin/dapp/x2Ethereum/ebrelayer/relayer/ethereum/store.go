@@ -2,23 +2,23 @@ package ethereum
 
 import (
 	"fmt"
-	"sync/atomic"
 	chain33Types "github.com/33cn/chain33/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
+	"sync/atomic"
 )
 
 var (
-	eth2chain33TxHashPrefix = "Eth2chain33TxHash"
+	eth2chain33TxHashPrefix  = "Eth2chain33TxHash"
 	eth2chain33TxTotalAmount = []byte("Eth2chain33TxTotalAmount")
 
-	chain33ToEthTxHashPrefix = "chain33ToEthTxHash"
+	chain33ToEthTxHashPrefix  = "chain33ToEthTxHash"
 	chain33ToEthTxTotalAmount = []byte("chain33ToEthTxTotalAmount")
 
 	bridgeRegistryAddrPrefix = []byte("x2EthBridgeRegistryAddr")
 
 	chain33BridgeLogProcessedAt = []byte("chain33BridgeLogProcessedAt")
-	bridgeBankLogProcessedAt = []byte("bridgeBankLogProcessedAt")
+	bridgeBankLogProcessedAt    = []byte("bridgeBankLogProcessedAt")
 )
 
 func calcRelay2Chain33Txhash(txindex int64) []byte {
@@ -43,7 +43,7 @@ func (ethRelayer *EthereumRelayer) getBridgeRegistryAddr() (string, error) {
 
 func (ethRelayer *EthereumRelayer) updateTotalTxAmount2chain33(total int64) error {
 	totalTx := &chain33Types.Int64{
-		Data:atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
+		Data: atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
 	}
 	//更新成功见证的交易数
 	return ethRelayer.db.Set(eth2chain33TxTotalAmount, chain33Types.Encode(totalTx))
@@ -56,7 +56,7 @@ func (ethRelayer *EthereumRelayer) setLastestRelay2Chain33Txhash(txhash string, 
 
 func (ethRelayer *EthereumRelayer) updateTotalTxAmount2Eth(total int64) error {
 	totalTx := &chain33Types.Int64{
-		Data:atomic.LoadInt64(&ethRelayer.totalTx4Chain33ToEth),
+		Data: atomic.LoadInt64(&ethRelayer.totalTx4Chain33ToEth),
 	}
 	//更新成功见证的交易数
 	return ethRelayer.db.Set(chain33ToEthTxTotalAmount, chain33Types.Encode(totalTx))
@@ -89,13 +89,13 @@ func (ethRelayer *EthereumRelayer) getHeight4BridgeBankLogAt() uint64 {
 
 func (ethRelayer *EthereumRelayer) setLogProcHeight(key []byte, height uint64) error {
 	data := &ebTypes.Uint64{
-		Data:height,
+		Data: height,
 	}
 	return ethRelayer.db.Set(key, chain33Types.Encode(data))
 }
 
 func (ethRelayer *EthereumRelayer) getLogProcHeight(key []byte) uint64 {
-	value , err := ethRelayer.db.Get(key)
+	value, err := ethRelayer.db.Get(key)
 	if nil != err {
 		return 0
 	}

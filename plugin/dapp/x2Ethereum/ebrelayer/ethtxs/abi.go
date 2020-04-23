@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	BridgeBankABI = "BridgeBankABI"
-	Chain33BankABI = "Chain33BankABI"
+	BridgeBankABI    = "BridgeBankABI"
+	Chain33BankABI   = "Chain33BankABI"
 	Chain33BridgeABI = "Chain33BridgeABI"
-	EthereumBankABI = "EthereumBankABI"
+	EthereumBankABI  = "EthereumBankABI"
 )
 
 func LoadABI(contractName string) abi.ABI {

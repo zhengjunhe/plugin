@@ -5,8 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/common/crypto"
+	"github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
 )

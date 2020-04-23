@@ -2,12 +2,14 @@ package ethbridge
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/33cn/chain33/account"
 	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
 	types2 "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
+	"strconv"
 )
 
 type Keeper struct {
@@ -38,8 +40,9 @@ func (k Keeper) ProcessClaim(claim types.Eth2Chain33) (oracle.Status, error) {
 }
 
 // 处理经过审核的关于Lock的claim
-func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol string, accDB *account.DB) (*types2.Receipt, error) {
+func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol, tokenAddress string, accDB *account.DB) (*types2.Receipt, error) {
 	var receipt *types2.Receipt
+	var s *types2.KeyValue
 	oracleClaim, err := CreateOracleClaimFromOracleString(claim)
 	if err != nil {
 		elog.Error("CreateEthClaimFromOracleString", "CreateOracleClaimFromOracleString error", err)
@@ -50,18 +53,55 @@ func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol strin
 
 	if oracleClaim.ClaimType == int64(types.LOCK_CLAIM_TYPE) {
 		//铸币到相关的tokenSymbolBank账户下
-		// todo
-		//在这里修正金额
-		receipt, err = accDB.Mint(execAddr, int64(oracleClaim.Amount/1e10))
+		d, err := types.GetDecimalsFromDB(tokenAddress, k.db)
+		if err != nil {
+			if err == types2.ErrNotFound {
+				var e error
+				d, e = types.GetDecimals(tokenAddress)
+				if e != nil {
+					return nil, errors.New("get decimals error")
+				}
+
+				var m map[string]int64
+				res, _ := k.db.Get(types.CalAddr2DecimalsPrefix())
+				_ = json.Unmarshal(res, &m)
+				m[tokenAddress] = d
+				mBytes, e := json.Marshal(m)
+				if e != nil {
+					return nil, e
+				}
+				s = &types2.KeyValue{
+					Key:   types.CalAddr2DecimalsPrefix(),
+					Value: mBytes,
+				}
+
+			} else {
+				return nil, err
+			}
+		}
+		var amount int64
+		if d > 8 {
+			amount = int64(types.Toeth(oracleClaim.Amount, d-8))
+		} else {
+			a, _ := strconv.ParseFloat(types.TrimZeroAndDot(oracleClaim.Amount), 64)
+			amount = int64(types.MultiplySpecifyTimes(a, 8-d))
+		}
+
+		receipt, err = accDB.Mint(execAddr, amount)
 		if err != nil {
 			return nil, err
 		}
-		r, err := accDB.ExecDeposit(receiverAddress, execAddr, int64(oracleClaim.Amount/1e10))
+		r, err := accDB.ExecDeposit(receiverAddress, execAddr, amount)
 		if err != nil {
 			return nil, err
 		}
 		receipt.KV = append(receipt.KV, r.KV...)
 		receipt.Logs = append(receipt.Logs, r.Logs...)
+
+		if s != nil {
+			receipt.KV = append(receipt.KV, s)
+		}
+
 		return receipt, nil
 	}
 	return nil, types.ErrInvalidClaimType
@@ -79,7 +119,8 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 	senderAddr := oracleClaim.Chain33Receiver
 
 	if oracleClaim.ClaimType == int64(types.BURN_CLAIM_TYPE) {
-		receipt, err = accDB.ExecTransfer(address.ExecAddress(tokenSymbol), senderAddr, execAddr, int64(oracleClaim.Amount))
+		amount, _ := strconv.ParseInt(types.TrimZeroAndDot(oracleClaim.Amount), 10, 64)
+		receipt, err = accDB.ExecTransfer(address.ExecAddress(tokenSymbol), senderAddr, execAddr, amount)
 		if err != nil {
 			return nil, err
 		}
@@ -90,13 +131,25 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 }
 
 // ProcessBurn processes the burn of bridged coins from the given sender
-func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
-	receipt, err := accDB.ExecWithdraw(execAddr, address, amount)
+func (k Keeper) ProcessBurn(address, execAddr, amount, tokenAddress string, accDB *account.DB) (*types2.Receipt, error) {
+	d, err := types.GetDecimalsFromDB(tokenAddress, k.db)
+	//在burn的过程中，必须是在数据库中存储的token
+	if err != nil {
+		return nil, err
+	}
+	var a int64
+	if d > 8 {
+		a = int64(types.Toeth(amount, d-8))
+	} else {
+		aa, _ := strconv.ParseFloat(types.TrimZeroAndDot(amount), 64)
+		a = int64(types.MultiplySpecifyTimes(aa, 8-d))
+	}
+	receipt, err := accDB.ExecWithdraw(execAddr, address, a)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := accDB.Burn(execAddr, amount)
+	r, err := accDB.Burn(execAddr, a)
 	if err != nil {
 		return nil, err
 	}
@@ -107,9 +160,10 @@ func (k Keeper) ProcessBurn(address, execAddr string, amount int64, accDB *accou
 
 // ProcessLock processes the lockup of cosmos coins from the given sender
 // accDB = mavl-coins-bty-addr
-func (k Keeper) ProcessLock(address, to, execAddr string, amount int64, accDB *account.DB) (*types2.Receipt, error) {
+func (k Keeper) ProcessLock(address, to, execAddr, amount string, accDB *account.DB) (*types2.Receipt, error) {
 	// 转到 mavl-coins-bty-execAddr:addr
-	receipt, err := accDB.ExecTransfer(address, to, execAddr, amount)
+	a, _ := strconv.ParseInt(types.TrimZeroAndDot(amount), 10, 64)
+	receipt, err := accDB.ExecTransfer(address, to, execAddr, a)
 	if err != nil {
 		return nil, err
 	}

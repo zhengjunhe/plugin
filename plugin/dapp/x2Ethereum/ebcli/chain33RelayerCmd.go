@@ -46,7 +46,7 @@ func importPrivatekey(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	privateKey, _ := cmd.Flags().GetString("key")
 	importKeyReq := ebTypes.ImportKeyReq{
-		PrivateKey:privateKey,
+		PrivateKey: privateKey,
 	}
 
 	var res rpctypes.Reply
@@ -86,7 +86,7 @@ func showChain33Relayer2EthTxs(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowChain33Relayer2EthTxs", nil, &res)
 	if _, err := ctx.RunResult(); nil != err {
 		errInfo := err.Error()
-		fmt.Println("errinfo:"+errInfo)
+		fmt.Println("errinfo:" + errInfo)
 		return
 	}
 	for _, hash := range res.Txhash {
@@ -110,7 +110,3 @@ func showChain33RelayerStatus(cmd *cobra.Command, args []string) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowChain33RelayerStatus", nil, &res)
 	ctx.Run()
 }
-
-
-
-

@@ -48,3 +48,7 @@ func CalConsensusThresholdPrefix() []byte {
 func CalTokenSymbolTotalLockOrBurnAmount(symbol, direction, txType string) []byte {
 	return []byte(KeyPrefixLocalDB + string(TokenSymbolTotalLockOrBurnAmountKey) + direction + "-" + txType + "-" + symbol)
 }
+
+func CalAddr2DecimalsPrefix() []byte {
+	return []byte(KeyPrefixStateDB + string(Addr2DecimalsKey))
+}

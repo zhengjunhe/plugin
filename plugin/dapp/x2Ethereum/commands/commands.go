@@ -7,14 +7,12 @@ import (
 	"github.com/33cn/chain33/types"
 	types3 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 /*
  * 实现合约对应客户端
  */
-
-//TODO
-// 在本地维护一张不同token的unit表格
 
 // Cmd x2ethereum client command
 func Cmd() *cobra.Command {
@@ -98,8 +96,11 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	claimtype, _ := cmd.Flags().GetInt64("claimtype")
 
-	//todo
-	// 这边暂时默认是ethereum，即decimals为18
+	d, err := types3.GetDecimals(tcontract)
+	if err != nil {
+		return
+	}
+
 	params := &types3.Eth2Chain33{
 		EthereumChainID:       ethid,
 		BridgeContractAddress: bcontract,
@@ -110,7 +111,7 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 		EthereumSender:        sender,
 		Chain33Receiver:       receiver,
 		ValidatorAddress:      validator,
-		Amount:                uint64(amount * 1e18),
+		Amount:                strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, d), 'f', 4, 64),
 		ClaimType:             claimtype,
 	}
 
@@ -154,7 +155,7 @@ func WithdrawEth(cmd *cobra.Command, args []string) {
 		EthereumSender:        sender,
 		Chain33Receiver:       receiver,
 		ValidatorAddress:      validator,
-		Amount:                uint64(amount * 1e8),
+		Amount:                strconv.FormatFloat(amount*1e8, 'f', 4, 64),
 		ClaimType:             claimtype,
 	}
 
@@ -197,18 +198,23 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 }
 
 func burn(cmd *cobra.Command, args []string) {
+	contract, _ := cmd.Flags().GetString("tcontract")
 	csymbol, _ := cmd.Flags().GetString("csymbol")
 	cexec, _ := cmd.Flags().GetString("cexec")
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
-	tcontract, _ := cmd.Flags().GetString("tcontract")
+
+	d, err := types3.GetDecimals(contract)
+	if err != nil {
+		return
+	}
 
 	params := &types3.Chain33ToEth{
-		TokenContract:    tcontract,
+		TokenContract:    contract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
-		Amount:           uint64(amount * 1e8),
+		Amount:           types3.TrimZeroAndDot(strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, d), 'f', 4, 64)),
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
 	}
@@ -242,7 +248,7 @@ func lock(cmd *cobra.Command, args []string) {
 		TokenContract:    contract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
-		Amount:           uint64(amount * 1e8),
+		Amount:           strconv.FormatFloat(amount*1e8, 'f', 4, 64),
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
 	}

@@ -12,7 +12,9 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/ethereum/go-ethereum/common"
+	"math/big"
 	"sync"
 	"sync/atomic"
 )
@@ -404,13 +406,15 @@ func (manager *RelayerManager) MakeNewProphecyClaim(newProphecyClaim relayerType
 	if "" != newProphecyClaim.TokenAddr {
 		tokenAddress = common.HexToAddress(newProphecyClaim.TokenAddr)
 	}
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(types.TrimZeroAndDot(newProphecyClaim.Amount), 10)
 	newProphecyClaimPara := &ethtxs.NewProphecyClaimPara{
 		ClaimType:     uint8(newProphecyClaim.ClaimType),
 		Chain33Sender: []byte(newProphecyClaim.Chain33Sender),
 		TokenAddr:     tokenAddress,
 		EthReceiver:   common.HexToAddress(newProphecyClaim.EthReceiver),
 		Symbol:        newProphecyClaim.Symbol,
-		Amount:        newProphecyClaim.Amount,
+		Amount:        bn,
 		Txhash:        common.FromHex(newProphecyClaim.TxHash),
 	}
 	txhash, err := manager.ethRelayer.MakeNewProphecyClaim(newProphecyClaimPara)
@@ -486,7 +490,7 @@ func (manager *RelayerManager) ShowDepositStatics(tokenAddr string, result *inte
 		return err
 	}
 	*result = relayerTypes.StaticsDeposit{
-		Supply:supply,
+		Supply: supply,
 	}
 	return nil
 }

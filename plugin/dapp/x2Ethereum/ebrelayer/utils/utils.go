@@ -82,4 +82,3 @@ func QueryTxhashes(prefix []byte, db dbm.DB) []string {
 	}
 	return hashStrs
 }
-

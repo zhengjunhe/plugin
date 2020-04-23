@@ -14,7 +14,7 @@ var (
 	elog = log.New("module", "ethbridge")
 )
 
-func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, localCoinSymbol, localCoinExec string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount uint64, claimType int64) types.Eth2Chain33 {
+func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64, localCoinSymbol, localCoinExec string, tokenContact string, ethereumSender string, chain33Receiver string, validator string, amount string, claimType int64) types.Eth2Chain33 {
 	return types.Eth2Chain33{
 		EthereumChainID:       ethereumChainID,
 		BridgeContractAddress: bridgeContract,
@@ -30,7 +30,7 @@ func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64
 	}
 }
 
-func NewOracleClaimContent(chain33Receiver string, amount uint64, claimType int64) types.OracleClaimContent {
+func NewOracleClaimContent(chain33Receiver string, amount string, claimType int64) types.OracleClaimContent {
 	return types.OracleClaimContent{
 		Chain33Receiver: chain33Receiver,
 		Amount:          amount,

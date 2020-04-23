@@ -2,13 +2,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/common"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
+	"math"
 )
+
+// todo
+// 所有amount要做bigint处理，还要做只保留四位的截断处理
 
 // EthereumRelayerCmd command func
 func EthereumRelayerCmd() *cobra.Command {
@@ -335,19 +340,26 @@ func MintErc20Flags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("token")
 	cmd.Flags().StringP("owner", "o", "", "owner address")
 	_ = cmd.MarkFlagRequired("owner")
-	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
 	_ = cmd.MarkFlagRequired("amount")
 }
-
 func MintErc20(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	owner, _ := cmd.Flags().GetString("owner")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		fmt.Println("get decimals error")
+		return
+	}
+
+	realAmount := types.ToWei(amount, d)
 	para := ebTypes.MintToken{
 		Owner:     owner,
 		TokenAddr: tokenAddr,
-		Amount:    amount,
+		Amount:    realAmount.String(),
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.MintErc20", para, &res)
@@ -369,7 +381,7 @@ func ApproveAllowanceFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("token", "t", "", "token address")
 	_ = cmd.MarkFlagRequired("token")
-	cmd.Flags().Int64P("amount", "m", int64(0), "amount")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
 	_ = cmd.MarkFlagRequired("amount")
 }
 
@@ -377,11 +389,19 @@ func ApproveAllowance(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	key, _ := cmd.Flags().GetString("key")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		fmt.Println("get decimals error")
+		return
+	}
+
+	realAmount := types.ToWei(amount, d)
 	para := ebTypes.ApproveAllowance{
 		OwnerKey:  key,
 		TokenAddr: tokenAddr,
-		Amount:    amount,
+		Amount:    realAmount.String(),
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ApproveAllowance", para, &res)
@@ -418,7 +438,7 @@ func Burn(cmd *cobra.Command, args []string) {
 	para := ebTypes.Burn{
 		OwnerKey:        key,
 		TokenAddr:       tokenAddr,
-		Amount:          int64(amount * 1e8),
+		Amount:          int64(math.Trunc(amount*1e4)) * 1e4,
 		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply
@@ -440,24 +460,31 @@ func LockEthErc20AssetFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("key", "k", "", "owner private key")
 	_ = cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("token", "t", "", "token address, optional, nil for ETH")
-	cmd.Flags().Int64P("amount", "m", 0, "amount")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
 	_ = cmd.MarkFlagRequired("amount")
 	cmd.Flags().StringP("receiver", "r", "", "chain33 receiver address")
 	_ = cmd.MarkFlagRequired("receiver")
 }
 
-// todo
-// get decimals by token contract address
 func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	key, _ := cmd.Flags().GetString("key")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
+
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		return
+	}
+
+	realAmount := types.ToWei(amount, d)
+	fmt.Println(realAmount.String(), amount, d)
+
 	para := ebTypes.LockEthErc20{
 		OwnerKey:        key,
 		TokenAddr:       tokenAddr,
-		Amount:          amount,
+		Amount:          realAmount.String(),
 		Chain33Receiver: receiver,
 	}
 	var res rpctypes.Reply
@@ -501,7 +528,7 @@ func MakeNewProphecyClaimFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("symbol")
 	cmd.Flags().StringP("ethReceiver", "r", "", "eth Receiver")
 	_ = cmd.MarkFlagRequired("ethReceiver")
-	cmd.Flags().Int64P("amount", "m", 0, "amount")
+	cmd.Flags().Float64P("amount", "m", 0, "amount")
 	_ = cmd.MarkFlagRequired("amount")
 	cmd.Flags().StringP("hash", "i", "", "chain33 tx hash")
 	_ = cmd.MarkFlagRequired("hash")
@@ -519,8 +546,16 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	symbol, _ := cmd.Flags().GetString("symbol")
 	ethReceiver, _ := cmd.Flags().GetString("ethReceiver")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
 	txhash, _ := cmd.Flags().GetString("hash")
+
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		fmt.Println("get decimals error")
+		return
+	}
+
+	realAmount := types.ToWei(amount, d)
 
 	para := ebTypes.NewProphecyClaim{
 		ClaimType:     claimType,
@@ -528,7 +563,7 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 		TokenAddr:     tokenAddr,
 		Symbol:        symbol,
 		EthReceiver:   ethReceiver,
-		Amount:        amount,
+		Amount:        realAmount.String(),
 		TxHash:        txhash,
 	}
 	var res rpctypes.Reply
@@ -607,7 +642,7 @@ func TransferTokenFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("from")
 	cmd.Flags().StringP("to", "r", "", "to address")
 	_ = cmd.MarkFlagRequired("to")
-	cmd.Flags().Int64P("amount", "m", 0, "amount")
+	cmd.Flags().Float64P("amount", "m", 0, "amount")
 	_ = cmd.MarkFlagRequired("amount")
 
 }
@@ -617,12 +652,20 @@ func TransferToken(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	from, _ := cmd.Flags().GetString("from")
 	to, _ := cmd.Flags().GetString("to")
-	amount, _ := cmd.Flags().GetInt64("amount")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+
+	d, err := types.GetDecimals(tokenAddr)
+	if err != nil {
+		fmt.Println("get decimals error")
+		return
+	}
+
+	realAmount := types.ToWei(amount, d)
 	para := ebTypes.TransferToken{
 		TokenAddr: tokenAddr,
 		FromKey:   from,
 		ToAddr:    to,
-		Amount:    amount,
+		Amount:    realAmount.String(),
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.TransferToken", para, &res)

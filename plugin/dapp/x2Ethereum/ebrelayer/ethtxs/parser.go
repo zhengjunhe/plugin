@@ -11,14 +11,14 @@ package ethtxs
 
 import (
 	"crypto/ecdsa"
+	chain33Types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
+	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
+	"github.com/ethereum/go-ethereum/common"
 	"math/big"
 	"regexp"
 	"strings"
-	chain33Types "github.com/33cn/chain33/types"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
-	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
 )
 
 // LogLockToEthBridgeClaim : parses and packages a LockEvent struct with a validator address in an EthBridgeClaim msg
@@ -41,7 +41,7 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.From.String()
 	witnessClaim.Chain33Receiver = string(recipient)
-	witnessClaim.Amount = event.Value.Int64()
+	witnessClaim.Amount = event.Value.String()
 
 	witnessClaim.ClaimType = types.LOCK_CLAIM_TYPE
 	witnessClaim.ChainName = types.LOCK_CLAIM
@@ -63,7 +63,7 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.OwnerFrom.String()
 	witnessClaim.Chain33Receiver = string(recipient)
-	witnessClaim.Amount = event.Amount.Int64()
+	witnessClaim.Amount = event.Amount.String()
 	witnessClaim.ClaimType = types.BURN_CLAIM_TYPE
 	witnessClaim.ChainName = types.BURN_CLAIM
 
@@ -91,8 +91,11 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 			ethereumReceiver = common.HexToAddress(chain33ToEth.EthereumReceiver)
 			tokenContractAddress = common.HexToAddress(chain33ToEth.TokenContract)
 			symbol = chain33ToEth.EthSymbol
-			amount = big.NewInt(int64(chain33ToEth.Amount))
-			txslog.Info("BurnLockTxReceiptToChain33Msg", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount)
+			chain33ToEth.Amount = types.TrimZeroAndDot(chain33ToEth.Amount)
+			amount = big.NewInt(1)
+			amount, _ = amount.SetString(chain33ToEth.Amount, 10)
+
+			txslog.Info("BurnLockTxReceiptToChain33Msg", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount.String())
 		}
 	}
 

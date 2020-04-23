@@ -49,7 +49,7 @@ func (x EthBridgeStatus) String() string {
 	return proto.EnumName(EthBridgeStatus_name, int32(x))
 }
 func (EthBridgeStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{0}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{0}
 }
 
 type X2EthereumAction struct {
@@ -73,7 +73,7 @@ func (m *X2EthereumAction) Reset()         { *m = X2EthereumAction{} }
 func (m *X2EthereumAction) String() string { return proto.CompactTextString(m) }
 func (*X2EthereumAction) ProtoMessage()    {}
 func (*X2EthereumAction) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{0}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{0}
 }
 func (m *X2EthereumAction) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_X2EthereumAction.Unmarshal(m, b)
@@ -400,7 +400,7 @@ func (m *MsgConsensusThreshold) Reset()         { *m = MsgConsensusThreshold{} }
 func (m *MsgConsensusThreshold) String() string { return proto.CompactTextString(m) }
 func (*MsgConsensusThreshold) ProtoMessage()    {}
 func (*MsgConsensusThreshold) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{1}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{1}
 }
 func (m *MsgConsensusThreshold) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MsgConsensusThreshold.Unmarshal(m, b)
@@ -439,7 +439,7 @@ func (m *MsgValidator) Reset()         { *m = MsgValidator{} }
 func (m *MsgValidator) String() string { return proto.CompactTextString(m) }
 func (*MsgValidator) ProtoMessage()    {}
 func (*MsgValidator) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{2}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{2}
 }
 func (m *MsgValidator) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MsgValidator.Unmarshal(m, b)
@@ -484,7 +484,7 @@ type Eth2Chain33 struct {
 	EthereumSender        string   `protobuf:"bytes,7,opt,name=EthereumSender" json:"EthereumSender,omitempty"`
 	Chain33Receiver       string   `protobuf:"bytes,8,opt,name=Chain33Receiver" json:"Chain33Receiver,omitempty"`
 	ValidatorAddress      string   `protobuf:"bytes,9,opt,name=ValidatorAddress" json:"ValidatorAddress,omitempty"`
-	Amount                uint64   `protobuf:"varint,10,opt,name=Amount" json:"Amount,omitempty"`
+	Amount                string   `protobuf:"bytes,10,opt,name=Amount" json:"Amount,omitempty"`
 	ClaimType             int64    `protobuf:"varint,11,opt,name=ClaimType" json:"ClaimType,omitempty"`
 	XXX_NoUnkeyedLiteral  struct{} `json:"-"`
 	XXX_unrecognized      []byte   `json:"-"`
@@ -495,7 +495,7 @@ func (m *Eth2Chain33) Reset()         { *m = Eth2Chain33{} }
 func (m *Eth2Chain33) String() string { return proto.CompactTextString(m) }
 func (*Eth2Chain33) ProtoMessage()    {}
 func (*Eth2Chain33) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{3}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{3}
 }
 func (m *Eth2Chain33) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Eth2Chain33.Unmarshal(m, b)
@@ -578,11 +578,11 @@ func (m *Eth2Chain33) GetValidatorAddress() string {
 	return ""
 }
 
-func (m *Eth2Chain33) GetAmount() uint64 {
+func (m *Eth2Chain33) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return 0
+	return ""
 }
 
 func (m *Eth2Chain33) GetClaimType() int64 {
@@ -595,7 +595,7 @@ func (m *Eth2Chain33) GetClaimType() int64 {
 // OracleClaimContent is the details of how the content of the claim for each validator will be stored in the oracle
 type OracleClaimContent struct {
 	Chain33Receiver      string   `protobuf:"bytes,1,opt,name=Chain33Receiver" json:"Chain33Receiver,omitempty"`
-	Amount               uint64   `protobuf:"varint,2,opt,name=Amount" json:"Amount,omitempty"`
+	Amount               string   `protobuf:"bytes,2,opt,name=Amount" json:"Amount,omitempty"`
 	ClaimType            int64    `protobuf:"varint,3,opt,name=ClaimType" json:"ClaimType,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -606,7 +606,7 @@ func (m *OracleClaimContent) Reset()         { *m = OracleClaimContent{} }
 func (m *OracleClaimContent) String() string { return proto.CompactTextString(m) }
 func (*OracleClaimContent) ProtoMessage()    {}
 func (*OracleClaimContent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{4}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{4}
 }
 func (m *OracleClaimContent) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OracleClaimContent.Unmarshal(m, b)
@@ -633,11 +633,11 @@ func (m *OracleClaimContent) GetChain33Receiver() string {
 	return ""
 }
 
-func (m *OracleClaimContent) GetAmount() uint64 {
+func (m *OracleClaimContent) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return 0
+	return ""
 }
 
 func (m *OracleClaimContent) GetClaimType() int64 {
@@ -652,7 +652,7 @@ type Chain33ToEth struct {
 	TokenContract        string   `protobuf:"bytes,1,opt,name=TokenContract" json:"TokenContract,omitempty"`
 	Chain33Sender        string   `protobuf:"bytes,2,opt,name=Chain33Sender" json:"Chain33Sender,omitempty"`
 	EthereumReceiver     string   `protobuf:"bytes,3,opt,name=EthereumReceiver" json:"EthereumReceiver,omitempty"`
-	Amount               uint64   `protobuf:"varint,4,opt,name=Amount" json:"Amount,omitempty"`
+	Amount               string   `protobuf:"bytes,4,opt,name=Amount" json:"Amount,omitempty"`
 	LocalCoinSymbol      string   `protobuf:"bytes,5,opt,name=localCoinSymbol" json:"localCoinSymbol,omitempty"`
 	LocalCoinExec        string   `protobuf:"bytes,6,opt,name=localCoinExec" json:"localCoinExec,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -664,7 +664,7 @@ func (m *Chain33ToEth) Reset()         { *m = Chain33ToEth{} }
 func (m *Chain33ToEth) String() string { return proto.CompactTextString(m) }
 func (*Chain33ToEth) ProtoMessage()    {}
 func (*Chain33ToEth) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{5}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{5}
 }
 func (m *Chain33ToEth) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Chain33ToEth.Unmarshal(m, b)
@@ -705,11 +705,11 @@ func (m *Chain33ToEth) GetEthereumReceiver() string {
 	return ""
 }
 
-func (m *Chain33ToEth) GetAmount() uint64 {
+func (m *Chain33ToEth) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return 0
+	return ""
 }
 
 func (m *Chain33ToEth) GetLocalCoinSymbol() string {
@@ -737,7 +737,7 @@ type ReceiptEth2Chain33 struct {
 	EthereumSender        string   `protobuf:"bytes,7,opt,name=EthereumSender" json:"EthereumSender,omitempty"`
 	Chain33Receiver       string   `protobuf:"bytes,8,opt,name=Chain33Receiver" json:"Chain33Receiver,omitempty"`
 	ValidatorAddress      string   `protobuf:"bytes,9,opt,name=ValidatorAddress" json:"ValidatorAddress,omitempty"`
-	Amount                uint64   `protobuf:"varint,10,opt,name=Amount" json:"Amount,omitempty"`
+	Amount                string   `protobuf:"bytes,10,opt,name=Amount" json:"Amount,omitempty"`
 	ClaimType             int64    `protobuf:"varint,11,opt,name=ClaimType" json:"ClaimType,omitempty"`
 	XTxHash               []byte   `protobuf:"bytes,12,opt,name=xTxHash,proto3" json:"xTxHash,omitempty"`
 	XHeight               uint64   `protobuf:"varint,13,opt,name=xHeight" json:"xHeight,omitempty"`
@@ -751,7 +751,7 @@ func (m *ReceiptEth2Chain33) Reset()         { *m = ReceiptEth2Chain33{} }
 func (m *ReceiptEth2Chain33) String() string { return proto.CompactTextString(m) }
 func (*ReceiptEth2Chain33) ProtoMessage()    {}
 func (*ReceiptEth2Chain33) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{6}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{6}
 }
 func (m *ReceiptEth2Chain33) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptEth2Chain33.Unmarshal(m, b)
@@ -834,11 +834,11 @@ func (m *ReceiptEth2Chain33) GetValidatorAddress() string {
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetAmount() uint64 {
+func (m *ReceiptEth2Chain33) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return 0
+	return ""
 }
 
 func (m *ReceiptEth2Chain33) GetClaimType() int64 {
@@ -873,7 +873,7 @@ type ReceiptChain33ToEth struct {
 	TokenContract        string   `protobuf:"bytes,1,opt,name=TokenContract" json:"TokenContract,omitempty"`
 	Chain33Sender        string   `protobuf:"bytes,2,opt,name=Chain33Sender" json:"Chain33Sender,omitempty"`
 	EthereumReceiver     string   `protobuf:"bytes,3,opt,name=EthereumReceiver" json:"EthereumReceiver,omitempty"`
-	Amount               uint64   `protobuf:"varint,4,opt,name=Amount" json:"Amount,omitempty"`
+	Amount               string   `protobuf:"bytes,4,opt,name=Amount" json:"Amount,omitempty"`
 	EthSymbol            string   `protobuf:"bytes,5,opt,name=EthSymbol" json:"EthSymbol,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -884,7 +884,7 @@ func (m *ReceiptChain33ToEth) Reset()         { *m = ReceiptChain33ToEth{} }
 func (m *ReceiptChain33ToEth) String() string { return proto.CompactTextString(m) }
 func (*ReceiptChain33ToEth) ProtoMessage()    {}
 func (*ReceiptChain33ToEth) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{7}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{7}
 }
 func (m *ReceiptChain33ToEth) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptChain33ToEth.Unmarshal(m, b)
@@ -925,11 +925,11 @@ func (m *ReceiptChain33ToEth) GetEthereumReceiver() string {
 	return ""
 }
 
-func (m *ReceiptChain33ToEth) GetAmount() uint64 {
+func (m *ReceiptChain33ToEth) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return 0
+	return ""
 }
 
 func (m *ReceiptChain33ToEth) GetEthSymbol() string {
@@ -953,7 +953,7 @@ func (m *ReceiptValidator) Reset()         { *m = ReceiptValidator{} }
 func (m *ReceiptValidator) String() string { return proto.CompactTextString(m) }
 func (*ReceiptValidator) ProtoMessage()    {}
 func (*ReceiptValidator) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{8}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{8}
 }
 func (m *ReceiptValidator) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptValidator.Unmarshal(m, b)
@@ -1015,7 +1015,7 @@ func (m *ReceiptSetConsensusThreshold) Reset()         { *m = ReceiptSetConsensu
 func (m *ReceiptSetConsensusThreshold) String() string { return proto.CompactTextString(m) }
 func (*ReceiptSetConsensusThreshold) ProtoMessage()    {}
 func (*ReceiptSetConsensusThreshold) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{9}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{9}
 }
 func (m *ReceiptSetConsensusThreshold) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptSetConsensusThreshold.Unmarshal(m, b)
@@ -1075,7 +1075,7 @@ func (m *QueryEthProphecyParams) Reset()         { *m = QueryEthProphecyParams{}
 func (m *QueryEthProphecyParams) String() string { return proto.CompactTextString(m) }
 func (*QueryEthProphecyParams) ProtoMessage()    {}
 func (*QueryEthProphecyParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{10}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{10}
 }
 func (m *QueryEthProphecyParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryEthProphecyParams.Unmarshal(m, b)
@@ -1116,7 +1116,7 @@ func (m *ReceiptEthProphecy) Reset()         { *m = ReceiptEthProphecy{} }
 func (m *ReceiptEthProphecy) String() string { return proto.CompactTextString(m) }
 func (*ReceiptEthProphecy) ProtoMessage()    {}
 func (*ReceiptEthProphecy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{11}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{11}
 }
 func (m *ReceiptEthProphecy) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptEthProphecy.Unmarshal(m, b)
@@ -1176,7 +1176,7 @@ func (m *ClaimValidators) Reset()         { *m = ClaimValidators{} }
 func (m *ClaimValidators) String() string { return proto.CompactTextString(m) }
 func (*ClaimValidators) ProtoMessage()    {}
 func (*ClaimValidators) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{12}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{12}
 }
 func (m *ClaimValidators) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ClaimValidators.Unmarshal(m, b)
@@ -1222,7 +1222,7 @@ func (m *ValidatorClaims) Reset()         { *m = ValidatorClaims{} }
 func (m *ValidatorClaims) String() string { return proto.CompactTextString(m) }
 func (*ValidatorClaims) ProtoMessage()    {}
 func (*ValidatorClaims) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{13}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{13}
 }
 func (m *ValidatorClaims) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ValidatorClaims.Unmarshal(m, b)
@@ -1267,7 +1267,7 @@ func (m *StringMap) Reset()         { *m = StringMap{} }
 func (m *StringMap) String() string { return proto.CompactTextString(m) }
 func (*StringMap) ProtoMessage()    {}
 func (*StringMap) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{14}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{14}
 }
 func (m *StringMap) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StringMap.Unmarshal(m, b)
@@ -1306,7 +1306,7 @@ func (m *ProphecyStatus) Reset()         { *m = ProphecyStatus{} }
 func (m *ProphecyStatus) String() string { return proto.CompactTextString(m) }
 func (*ProphecyStatus) ProtoMessage()    {}
 func (*ProphecyStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{15}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{15}
 }
 func (m *ProphecyStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ProphecyStatus.Unmarshal(m, b)
@@ -1351,7 +1351,7 @@ func (m *QueryValidatorsParams) Reset()         { *m = QueryValidatorsParams{} }
 func (m *QueryValidatorsParams) String() string { return proto.CompactTextString(m) }
 func (*QueryValidatorsParams) ProtoMessage()    {}
 func (*QueryValidatorsParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{16}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{16}
 }
 func (m *QueryValidatorsParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryValidatorsParams.Unmarshal(m, b)
@@ -1390,7 +1390,7 @@ func (m *ReceiptQueryValidator) Reset()         { *m = ReceiptQueryValidator{} }
 func (m *ReceiptQueryValidator) String() string { return proto.CompactTextString(m) }
 func (*ReceiptQueryValidator) ProtoMessage()    {}
 func (*ReceiptQueryValidator) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{17}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{17}
 }
 func (m *ReceiptQueryValidator) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptQueryValidator.Unmarshal(m, b)
@@ -1434,7 +1434,7 @@ func (m *QueryTotalPowerParams) Reset()         { *m = QueryTotalPowerParams{} }
 func (m *QueryTotalPowerParams) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalPowerParams) ProtoMessage()    {}
 func (*QueryTotalPowerParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{18}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{18}
 }
 func (m *QueryTotalPowerParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryTotalPowerParams.Unmarshal(m, b)
@@ -1465,7 +1465,7 @@ func (m *ReceiptQueryTotalPower) Reset()         { *m = ReceiptQueryTotalPower{}
 func (m *ReceiptQueryTotalPower) String() string { return proto.CompactTextString(m) }
 func (*ReceiptQueryTotalPower) ProtoMessage()    {}
 func (*ReceiptQueryTotalPower) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{19}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{19}
 }
 func (m *ReceiptQueryTotalPower) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptQueryTotalPower.Unmarshal(m, b)
@@ -1502,7 +1502,7 @@ func (m *QueryConsensusThresholdParams) Reset()         { *m = QueryConsensusThr
 func (m *QueryConsensusThresholdParams) String() string { return proto.CompactTextString(m) }
 func (*QueryConsensusThresholdParams) ProtoMessage()    {}
 func (*QueryConsensusThresholdParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{20}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{20}
 }
 func (m *QueryConsensusThresholdParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryConsensusThresholdParams.Unmarshal(m, b)
@@ -1533,7 +1533,7 @@ func (m *ReceiptQueryConsensusThreshold) Reset()         { *m = ReceiptQueryCons
 func (m *ReceiptQueryConsensusThreshold) String() string { return proto.CompactTextString(m) }
 func (*ReceiptQueryConsensusThreshold) ProtoMessage()    {}
 func (*ReceiptQueryConsensusThreshold) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{21}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{21}
 }
 func (m *ReceiptQueryConsensusThreshold) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptQueryConsensusThreshold.Unmarshal(m, b)
@@ -1573,7 +1573,7 @@ func (m *QuerySymbolAssetsByTxTypeParams) Reset()         { *m = QuerySymbolAsse
 func (m *QuerySymbolAssetsByTxTypeParams) String() string { return proto.CompactTextString(m) }
 func (*QuerySymbolAssetsByTxTypeParams) ProtoMessage()    {}
 func (*QuerySymbolAssetsByTxTypeParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{22}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{22}
 }
 func (m *QuerySymbolAssetsByTxTypeParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QuerySymbolAssetsByTxTypeParams.Unmarshal(m, b)
@@ -1616,7 +1616,7 @@ func (m *QuerySymbolAssetsByTxTypeParams) GetTxType() string {
 
 type ReceiptQuerySymbolAssetsByTxType struct {
 	TokenSymbol          string   `protobuf:"bytes,1,opt,name=tokenSymbol" json:"tokenSymbol,omitempty"`
-	TotalAmount          uint64   `protobuf:"varint,2,opt,name=totalAmount" json:"totalAmount,omitempty"`
+	TotalAmount          string   `protobuf:"bytes,2,opt,name=totalAmount" json:"totalAmount,omitempty"`
 	TxType               string   `protobuf:"bytes,3,opt,name=txType" json:"txType,omitempty"`
 	Direction            int64    `protobuf:"varint,4,opt,name=direction" json:"direction,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1628,7 +1628,7 @@ func (m *ReceiptQuerySymbolAssetsByTxType) Reset()         { *m = ReceiptQuerySy
 func (m *ReceiptQuerySymbolAssetsByTxType) String() string { return proto.CompactTextString(m) }
 func (*ReceiptQuerySymbolAssetsByTxType) ProtoMessage()    {}
 func (*ReceiptQuerySymbolAssetsByTxType) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{23}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{23}
 }
 func (m *ReceiptQuerySymbolAssetsByTxType) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptQuerySymbolAssetsByTxType.Unmarshal(m, b)
@@ -1655,11 +1655,11 @@ func (m *ReceiptQuerySymbolAssetsByTxType) GetTokenSymbol() string {
 	return ""
 }
 
-func (m *ReceiptQuerySymbolAssetsByTxType) GetTotalAmount() uint64 {
+func (m *ReceiptQuerySymbolAssetsByTxType) GetTotalAmount() string {
 	if m != nil {
 		return m.TotalAmount
 	}
-	return 0
+	return ""
 }
 
 func (m *ReceiptQuerySymbolAssetsByTxType) GetTxType() string {
@@ -1688,7 +1688,7 @@ func (m *QueryRelayerBalance) Reset()         { *m = QueryRelayerBalance{} }
 func (m *QueryRelayerBalance) String() string { return proto.CompactTextString(m) }
 func (*QueryRelayerBalance) ProtoMessage()    {}
 func (*QueryRelayerBalance) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{24}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{24}
 }
 func (m *QueryRelayerBalance) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryRelayerBalance.Unmarshal(m, b)
@@ -1723,7 +1723,7 @@ func (m *QueryRelayerBalance) GetAddress() string {
 }
 
 type ReceiptQueryRelayerBalance struct {
-	Balance              uint64   `protobuf:"varint,1,opt,name=balance" json:"balance,omitempty"`
+	Balance              string   `protobuf:"bytes,1,opt,name=balance" json:"balance,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1733,7 +1733,7 @@ func (m *ReceiptQueryRelayerBalance) Reset()         { *m = ReceiptQueryRelayerB
 func (m *ReceiptQueryRelayerBalance) String() string { return proto.CompactTextString(m) }
 func (*ReceiptQueryRelayerBalance) ProtoMessage()    {}
 func (*ReceiptQueryRelayerBalance) Descriptor() ([]byte, []int) {
-	return fileDescriptor_x2ethereum_10a1fbbbd862cce2, []int{25}
+	return fileDescriptor_x2ethereum_71739cfbf90bc94b, []int{25}
 }
 func (m *ReceiptQueryRelayerBalance) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReceiptQueryRelayerBalance.Unmarshal(m, b)
@@ -1753,11 +1753,11 @@ func (m *ReceiptQueryRelayerBalance) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReceiptQueryRelayerBalance proto.InternalMessageInfo
 
-func (m *ReceiptQueryRelayerBalance) GetBalance() uint64 {
+func (m *ReceiptQueryRelayerBalance) GetBalance() string {
 	if m != nil {
 		return m.Balance
 	}
-	return 0
+	return ""
 }
 
 func init() {
@@ -1828,9 +1828,9 @@ var _X2Ethereum_serviceDesc = grpc.ServiceDesc{
 	Metadata:    "x2ethereum.proto",
 }
 
-func init() { proto.RegisterFile("x2ethereum.proto", fileDescriptor_x2ethereum_10a1fbbbd862cce2) }
+func init() { proto.RegisterFile("x2ethereum.proto", fileDescriptor_x2ethereum_71739cfbf90bc94b) }
 
-var fileDescriptor_x2ethereum_10a1fbbbd862cce2 = []byte{
+var fileDescriptor_x2ethereum_71739cfbf90bc94b = []byte{
 	// 1166 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x57, 0xdd, 0x6e, 0xe3, 0xc4,
 	0x17, 0xaf, 0xe3, 0x24, 0xfd, 0xfb, 0x24, 0xdb, 0xe6, 0x3f, 0x6d, 0x8a, 0x85, 0xca, 0x6e, 0x64,
@@ -1863,46 +1863,46 @@ var fileDescriptor_x2ethereum_10a1fbbbd862cce2 = []byte{
 	0x3a, 0xf4, 0x0e, 0xec, 0x65, 0x25, 0xce, 0x68, 0xe0, 0xc8, 0xe9, 0x31, 0x70, 0x05, 0xe5, 0x5c,
 	0x65, 0xb3, 0x30, 0xb5, 0xa9, 0x77, 0x47, 0x23, 0x31, 0x23, 0x06, 0xae, 0xc2, 0xe8, 0x04, 0x7a,
 	0xf9, 0x87, 0xc9, 0x18, 0x18, 0xc2, 0x74, 0x03, 0x47, 0x47, 0xd0, 0x3e, 0x5f, 0x84, 0xab, 0x80,
-	0x89, 0x69, 0x69, 0x62, 0x29, 0xa1, 0x63, 0x30, 0xc6, 0x3e, 0xf1, 0x16, 0xf3, 0x64, 0x49, 0xcd,
-	0x8e, 0xe8, 0x59, 0x01, 0x58, 0x0c, 0xd0, 0x97, 0x11, 0xb1, 0x7d, 0x2a, 0x20, 0x5e, 0x11, 0x0d,
-	0x58, 0x1d, 0x43, 0xad, 0x9e, 0x61, 0x91, 0xb5, 0xf1, 0x70, 0x56, 0xbd, 0x9a, 0xf5, 0x0f, 0x0d,
-	0xba, 0xea, 0x09, 0xc0, 0x3f, 0x4a, 0xa9, 0xa5, 0x32, 0x5d, 0x19, 0xe4, 0x56, 0xd2, 0x4b, 0xf6,
-	0x37, 0x1d, 0x94, 0x32, 0xc8, 0x9b, 0x96, 0x35, 0x3c, 0x67, 0xaf, 0xa7, 0x4d, 0xab, 0xe2, 0x0a,
-	0xfd, 0x66, 0x89, 0x7e, 0xcd, 0x38, 0xb5, 0x5e, 0x71, 0x9c, 0xda, 0x35, 0xe3, 0x64, 0xfd, 0xd8,
-	0x04, 0x24, 0x92, 0x2e, 0xd9, 0x7f, 0xbb, 0xf2, 0x2f, 0xdd, 0x15, 0x7e, 0x32, 0xae, 0xe7, 0xeb,
-	0x2b, 0x12, 0xbb, 0x66, 0x77, 0xa0, 0x0d, 0xbb, 0x38, 0x13, 0x85, 0xe6, 0x8a, 0x7a, 0xb7, 0x2e,
-	0x33, 0x1f, 0x89, 0x80, 0x99, 0x88, 0x1e, 0x03, 0x4c, 0xa3, 0x70, 0xe9, 0x52, 0x3b, 0xb9, 0xbe,
-	0x34, 0xf7, 0x04, 0x1f, 0x05, 0xb1, 0x7e, 0xd3, 0xe0, 0x40, 0x0e, 0xc6, 0x3f, 0x7a, 0x21, 0x8e,
-	0xc1, 0x98, 0x30, 0xb7, 0xb4, 0x0a, 0x05, 0x60, 0xdd, 0x41, 0x4f, 0x16, 0xf1, 0xda, 0xf7, 0x88,
-	0xda, 0x5d, 0xfd, 0xc1, 0xee, 0x36, 0x4b, 0xdd, 0xb5, 0x7e, 0xd5, 0xe0, 0x58, 0x26, 0x9e, 0xd5,
-	0x5e, 0x9f, 0x4f, 0xa1, 0xbf, 0x8c, 0xe8, 0xf8, 0xa1, 0xfb, 0xb0, 0x5e, 0xc9, 0xbd, 0x82, 0xf0,
-	0xbe, 0xc6, 0x2b, 0x25, 0x5c, 0xaf, 0x7c, 0xad, 0x02, 0x86, 0x70, 0xf4, 0x72, 0x45, 0xa3, 0x64,
-	0xc2, 0xdc, 0x6c, 0x28, 0xa6, 0x24, 0x22, 0x8b, 0x98, 0x5f, 0xfc, 0xf2, 0x34, 0x30, 0x70, 0xe3,
-	0xfa, 0xd2, 0xfa, 0x5d, 0x53, 0x4f, 0x90, 0xcc, 0xb8, 0x6a, 0x86, 0xde, 0x83, 0xf6, 0x8c, 0x11,
-	0xb6, 0x8a, 0xe5, 0x4b, 0xaf, 0x2f, 0x9f, 0x1d, 0x99, 0x43, 0xaa, 0xc4, 0xd2, 0x08, 0x7d, 0x06,
-	0xfb, 0x62, 0xbe, 0xf3, 0xcf, 0x16, 0x9b, 0xfa, 0x40, 0x1f, 0x76, 0x46, 0x47, 0xd9, 0x3b, 0xad,
-	0xac, 0xc5, 0x55, 0x73, 0x1e, 0x21, 0x97, 0x84, 0x2e, 0x36, 0x9b, 0xa5, 0x08, 0x15, 0x2d, 0xae,
-	0x9a, 0x5b, 0xdf, 0x6e, 0x70, 0xe0, 0x13, 0x62, 0x73, 0x48, 0x16, 0x96, 0x0a, 0xe8, 0x7d, 0x80,
-	0xbb, 0x82, 0x67, 0x5a, 0x5f, 0x4f, 0x66, 0x99, 0xb1, 0xc8, 0x0b, 0x6e, 0x5f, 0x90, 0x25, 0x56,
-	0x6c, 0xac, 0xc9, 0x06, 0x39, 0x3e, 0xc8, 0xb9, 0x81, 0x0c, 0x5f, 0x00, 0x45, 0xe2, 0x86, 0x92,
-	0xd8, 0x7a, 0x17, 0x8c, 0x3c, 0x3e, 0xdf, 0x68, 0x85, 0x85, 0x36, 0xd0, 0xf9, 0x46, 0x2b, 0x39,
-	0xbf, 0x83, 0xbd, 0x72, 0xb3, 0xd1, 0x09, 0x34, 0xe7, 0x74, 0x9d, 0xae, 0xf0, 0x5e, 0xde, 0x97,
-	0x09, 0x73, 0xd3, 0x43, 0x5b, 0x7e, 0x12, 0x61, 0xc3, 0xa3, 0x3f, 0xf7, 0x02, 0xe2, 0x8f, 0x15,
-	0x16, 0x0a, 0x62, 0x7d, 0x00, 0x7d, 0x31, 0x30, 0x45, 0xb3, 0xe4, 0xbc, 0x6c, 0xad, 0xcb, 0xf2,
-	0xa1, 0x2f, 0x87, 0xa7, 0xec, 0x8d, 0xce, 0x36, 0xaa, 0xa9, 0x7f, 0xed, 0xaa, 0x25, 0x72, 0x92,
-	0x2c, 0x64, 0xc4, 0x9f, 0x2a, 0x5b, 0xac, 0x20, 0xd6, 0x1b, 0x92, 0xe4, 0x3c, 0x87, 0x52, 0x92,
-	0xd6, 0x47, 0x70, 0xa4, 0xd2, 0x28, 0xf4, 0x95, 0x90, 0xda, 0x46, 0xc8, 0x27, 0xf0, 0x96, 0x70,
-	0xd9, 0xdc, 0x3b, 0x19, 0x7a, 0x0a, 0x8f, 0xd5, 0xd0, 0x7f, 0xc3, 0xc3, 0x38, 0x81, 0x27, 0x22,
-	0x54, 0x7a, 0xc6, 0x9d, 0xc7, 0x31, 0x65, 0xf1, 0x45, 0x32, 0x5f, 0xf3, 0xbb, 0x40, 0x36, 0x7d,
-	0x00, 0x1d, 0xc6, 0x0f, 0x64, 0x79, 0x2e, 0xa6, 0x6d, 0x57, 0x21, 0xfe, 0x59, 0x1c, 0x2f, 0xa2,
-	0xe2, 0x3f, 0x9c, 0xec, 0x54, 0x01, 0xf0, 0xd3, 0x96, 0xad, 0xf3, 0x27, 0x92, 0x81, 0xa5, 0x64,
-	0xfd, 0xa4, 0xc1, 0x40, 0xad, 0xa6, 0x8e, 0xc2, 0x2b, 0x24, 0x17, 0x16, 0x8c, 0xf8, 0xa5, 0x17,
-	0x9a, 0x0a, 0x3d, 0x44, 0xa0, 0x4c, 0xbb, 0x59, 0xa1, 0x6d, 0xbd, 0x84, 0x03, 0x41, 0x0b, 0x53,
-	0x9f, 0x24, 0x34, 0xba, 0x20, 0x3e, 0xe1, 0xef, 0x8a, 0xbf, 0x26, 0xa4, 0xdc, 0x09, 0x8d, 0xd2,
-	0x9d, 0x60, 0x3d, 0x83, 0x37, 0xd5, 0x82, 0x2b, 0x91, 0x4d, 0xd8, 0xbd, 0x49, 0x7f, 0x8a, 0xa8,
-	0x4d, 0x9c, 0x89, 0x27, 0xa1, 0x78, 0x41, 0xa9, 0x8b, 0x84, 0xfa, 0xf0, 0xff, 0x29, 0x0d, 0x1c,
-	0x2f, 0xb8, 0x4d, 0x01, 0xbe, 0x57, 0xbd, 0x1d, 0x0e, 0xcf, 0x56, 0xb6, 0x4d, 0xe3, 0x58, 0x81,
-	0x35, 0x74, 0x08, 0xbd, 0xe7, 0xc4, 0xf3, 0xa9, 0xa3, 0xa0, 0x0d, 0x64, 0xc2, 0xe1, 0xd7, 0xf2,
-	0xff, 0x6c, 0x49, 0xa3, 0x8f, 0xba, 0x00, 0xc5, 0xff, 0xf6, 0x9b, 0xb6, 0xf8, 0xe3, 0x7e, 0xf6,
-	0x67, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe8, 0x5d, 0x41, 0x2f, 0xcc, 0x0f, 0x00, 0x00,
+	0x89, 0x69, 0x31, 0xb0, 0x94, 0xd0, 0x31, 0x18, 0x63, 0x9f, 0x78, 0x8b, 0x79, 0xb2, 0xa4, 0x66,
+	0x47, 0xf4, 0xac, 0x00, 0x2c, 0x06, 0xe8, 0xcb, 0x88, 0xd8, 0x3e, 0x15, 0x10, 0xaf, 0x88, 0x06,
+	0xac, 0x8e, 0xa1, 0x56, 0xcf, 0xb0, 0xc8, 0xda, 0x78, 0x38, 0xab, 0x5e, 0xcd, 0xfa, 0x87, 0x06,
+	0x5d, 0xf5, 0x04, 0xe0, 0x1f, 0xa5, 0xd4, 0x52, 0x99, 0xae, 0x0c, 0x72, 0x2b, 0xe9, 0x25, 0xfb,
+	0x9b, 0xe6, 0x2c, 0x83, 0xbc, 0x69, 0x59, 0xc3, 0x73, 0xf6, 0x7a, 0xda, 0xb4, 0x2a, 0xae, 0xd0,
+	0x6f, 0x96, 0xe8, 0xd7, 0x8c, 0x53, 0xeb, 0x15, 0xc7, 0xa9, 0x5d, 0x33, 0x4e, 0xd6, 0x8f, 0x4d,
+	0x40, 0x22, 0xe9, 0x92, 0xfd, 0xb7, 0x2b, 0xff, 0xd2, 0x5d, 0xe1, 0x27, 0xe3, 0x7a, 0xbe, 0xbe,
+	0x22, 0xb1, 0x6b, 0x76, 0x07, 0xda, 0xb0, 0x8b, 0x33, 0x51, 0x68, 0xae, 0xa8, 0x77, 0xeb, 0x32,
+	0xf3, 0xd1, 0x40, 0x1b, 0x36, 0x71, 0x26, 0xa2, 0xc7, 0x00, 0xd3, 0x28, 0x5c, 0xba, 0xd4, 0x4e,
+	0xae, 0x2f, 0xcd, 0x3d, 0x91, 0x4d, 0x41, 0xac, 0xdf, 0x34, 0x38, 0x90, 0x83, 0xf1, 0x8f, 0x5e,
+	0x88, 0x63, 0x30, 0x26, 0xcc, 0x2d, 0xad, 0x42, 0x01, 0x58, 0x77, 0xd0, 0x93, 0x45, 0xbc, 0xf6,
+	0x3d, 0xa2, 0x76, 0x57, 0x7f, 0xb0, 0xbb, 0xcd, 0x52, 0x77, 0xad, 0x5f, 0x35, 0x38, 0x96, 0x89,
+	0x67, 0xb5, 0xd7, 0xe7, 0x53, 0xe8, 0x2f, 0x23, 0x3a, 0x7e, 0xe8, 0x3e, 0xac, 0x57, 0x72, 0xaf,
+	0x20, 0xbc, 0xaf, 0xf1, 0x4a, 0x09, 0xd7, 0x2b, 0x5f, 0xab, 0x80, 0x21, 0x1c, 0xbd, 0x5c, 0xd1,
+	0x28, 0x99, 0x30, 0x37, 0x1b, 0x8a, 0x29, 0x89, 0xc8, 0x22, 0xe6, 0x17, 0xbf, 0x3c, 0x0d, 0x0c,
+	0xdc, 0xb8, 0xbe, 0xb4, 0x7e, 0xd7, 0xd4, 0x13, 0x24, 0x33, 0xae, 0x9a, 0xa1, 0xf7, 0xa0, 0x3d,
+	0x63, 0x84, 0xad, 0x62, 0xf9, 0xd2, 0xeb, 0xcb, 0x67, 0x47, 0xe6, 0x90, 0x2a, 0xb1, 0x34, 0x42,
+	0x9f, 0xc1, 0xbe, 0x98, 0xef, 0xfc, 0xb3, 0xc5, 0xa6, 0x3e, 0xd0, 0x87, 0x9d, 0xd1, 0x51, 0xf6,
+	0x4e, 0x2b, 0x6b, 0x71, 0xd5, 0x9c, 0x47, 0xc8, 0x25, 0xa1, 0x8b, 0xcd, 0x66, 0x29, 0x42, 0x45,
+	0x8b, 0xab, 0xe6, 0xd6, 0xb7, 0x1b, 0x1c, 0xf8, 0x84, 0xd8, 0x1c, 0x92, 0x85, 0xa5, 0x02, 0x7a,
+	0x1f, 0xe0, 0xae, 0xe0, 0x99, 0xd6, 0xd7, 0x93, 0x59, 0x66, 0x2c, 0xf2, 0x82, 0xdb, 0x17, 0x64,
+	0x89, 0x15, 0x1b, 0x6b, 0xb2, 0x41, 0x8e, 0x0f, 0x72, 0x6e, 0x20, 0xc3, 0x17, 0x40, 0x91, 0xb8,
+	0xa1, 0x24, 0xb6, 0xde, 0x05, 0x23, 0x8f, 0xcf, 0x37, 0x5a, 0x61, 0xa1, 0x0d, 0x74, 0xbe, 0xd1,
+	0x4a, 0xce, 0xef, 0x60, 0xaf, 0xdc, 0x6c, 0x74, 0x02, 0xcd, 0x39, 0x5d, 0xa7, 0x2b, 0xbc, 0x97,
+	0xf7, 0x65, 0xc2, 0xdc, 0xf4, 0xd0, 0x96, 0x9f, 0x44, 0xd8, 0xf0, 0xe8, 0xcf, 0xbd, 0x80, 0xf8,
+	0x63, 0x85, 0x85, 0x82, 0x58, 0x1f, 0x40, 0x5f, 0x0c, 0x4c, 0xd1, 0x2c, 0x39, 0x2f, 0x5b, 0xeb,
+	0xb2, 0x7c, 0xe8, 0xcb, 0xe1, 0x29, 0x7b, 0xa3, 0xb3, 0x8d, 0x6a, 0xea, 0x5f, 0xbb, 0x6a, 0x89,
+	0x9c, 0x24, 0x0b, 0x19, 0xf1, 0xa7, 0xca, 0x16, 0x2b, 0x88, 0xf5, 0x86, 0x24, 0x39, 0xcf, 0xa1,
+	0x94, 0xa4, 0xf5, 0x11, 0x1c, 0xa9, 0x34, 0x0a, 0x7d, 0x25, 0xa4, 0xb6, 0x11, 0xf2, 0x09, 0xbc,
+	0x25, 0x5c, 0x36, 0xf7, 0x4e, 0x86, 0x9e, 0xc2, 0x63, 0x35, 0xf4, 0xdf, 0xf0, 0x30, 0x4e, 0xe0,
+	0x89, 0x08, 0x95, 0x9e, 0x71, 0xe7, 0x71, 0x4c, 0x59, 0x7c, 0x91, 0xcc, 0xd7, 0xfc, 0x2e, 0x90,
+	0x4d, 0x1f, 0x40, 0x87, 0xf1, 0x03, 0x59, 0x9e, 0x8b, 0x69, 0xdb, 0x55, 0x88, 0x7f, 0x16, 0xc7,
+	0x8b, 0xa8, 0xf8, 0x0f, 0x27, 0x3b, 0x55, 0x00, 0xfc, 0xb4, 0x65, 0xeb, 0xfc, 0x89, 0x64, 0x60,
+	0x29, 0x59, 0x3f, 0x69, 0x30, 0x50, 0xab, 0xa9, 0xa3, 0xf0, 0x0a, 0xc9, 0x85, 0x05, 0x23, 0x7e,
+	0xe9, 0x85, 0xa6, 0x42, 0x0f, 0x11, 0x28, 0xd3, 0x6e, 0x56, 0x68, 0x5b, 0x2f, 0xe1, 0x40, 0xd0,
+	0xc2, 0xd4, 0x27, 0x09, 0x8d, 0x2e, 0x88, 0x4f, 0xf8, 0xbb, 0xe2, 0xaf, 0x09, 0x29, 0x77, 0x42,
+	0xa3, 0x74, 0x27, 0x58, 0xcf, 0xe0, 0x4d, 0xb5, 0xe0, 0x4a, 0x64, 0x13, 0x76, 0x6f, 0xd2, 0x9f,
+	0xd9, 0x5d, 0x22, 0xc5, 0x93, 0x50, 0xbc, 0xa0, 0xd4, 0x45, 0x42, 0x7d, 0xf8, 0xff, 0x94, 0x06,
+	0x8e, 0x17, 0xdc, 0xa6, 0x00, 0xdf, 0xab, 0xde, 0x0e, 0x87, 0x67, 0x2b, 0xdb, 0xa6, 0x71, 0xac,
+	0xc0, 0x1a, 0x3a, 0x84, 0xde, 0x73, 0xe2, 0xf9, 0xd4, 0x51, 0xd0, 0x06, 0x32, 0xe1, 0xf0, 0x6b,
+	0xf9, 0x7f, 0xb6, 0xa4, 0xd1, 0x47, 0x5d, 0x80, 0xe2, 0x7f, 0xfb, 0x4d, 0x5b, 0xfc, 0x71, 0x3f,
+	0xfb, 0x33, 0x00, 0x00, 0xff, 0xff, 0xed, 0x7b, 0xbd, 0x16, 0xcc, 0x0f, 0x00, 0x00,
 }

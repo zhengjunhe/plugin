@@ -20,7 +20,7 @@ type NewProphecyClaimPara struct {
 	TokenAddr     common.Address
 	EthReceiver   common.Address
 	Symbol        string
-	Amount        int64
+	Amount        *big.Int
 	Txhash        []byte
 }
 
@@ -106,7 +106,7 @@ func CreateERC20Token(symbol string, client *ethclient.Client, para *OperatorInf
 	return tokenAddr.String(), nil
 }
 
-func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient.Client, para *OperatorInfo) (string, error) {
+func MintERC20Token(tokenAddr, ownerAddr string, amount *big.Int, client *ethclient.Client, para *OperatorInfo) (string, error) {
 	if nil == para {
 		return "", errors.New("No operator private key configured")
 	}
@@ -119,7 +119,7 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient
 	if nil != err {
 		return "", err
 	}
-	tx, err := erc20TokenInstance.Mint(operatorAuth, common.HexToAddress(ownerAddr), big.NewInt(amount))
+	tx, err := erc20TokenInstance.Mint(operatorAuth, common.HexToAddress(ownerAddr), amount)
 	if nil != err {
 		return "", err
 	}
@@ -132,7 +132,7 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount int64, client *ethclient
 	return tx.Hash().String(), nil
 }
 
-func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Address, amount int64, client *ethclient.Client) (string, error) {
+func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Address, amount *big.Int, client *ethclient.Client) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -148,7 +148,7 @@ func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Ad
 		return "", err
 	}
 
-	tx, err := erc20TokenInstance.Approve(auth, bridgeBank, big.NewInt(amount))
+	tx, err := erc20TokenInstance.Approve(auth, bridgeBank, amount)
 	if nil != err {
 		return "", err
 	}
@@ -203,7 +203,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 	return tx.Hash().String(), nil
 }
 
-func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount int64, client *ethclient.Client) (string, error) {
+func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount *big.Int, client *ethclient.Client) (string, error) {
 	tokenInstance, err := generated.NewBridgeToken(common.HexToAddress(tokenAddr), client)
 	if nil != err {
 		return "", err
@@ -219,7 +219,7 @@ func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount int64, cl
 		return "", err
 	}
 
-	tx, err := tokenInstance.Transfer(auth, common.HexToAddress(toAddr), big.NewInt(amount))
+	tx, err := tokenInstance.Transfer(auth, common.HexToAddress(toAddr), amount)
 	if nil != err {
 		return "", err
 	}
@@ -231,7 +231,8 @@ func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount int64, cl
 	return tx.Hash().String(), nil
 }
 
-func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount int64, client *ethclient.Client, bridgeBank *generated.BridgeBank) (string, error) {
+func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client *ethclient.Client, bridgeBank *generated.BridgeBank) (string, error) {
+	txslog.Info("LockEthErc20Asset", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "chain33Receiver", chain33Receiver, "amount", amount.String())
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -246,13 +247,13 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 	//ETH转账，空地址，且设置value
 	var tokenAddr common.Address
 	if "" == tokenAddrStr {
-		auth.Value = big.NewInt(amount)
+		auth.Value = amount
 	}
 
 	if "" != tokenAddrStr {
 		tokenAddr = common.HexToAddress(tokenAddrStr)
 	}
-	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, big.NewInt(amount))
+	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, amount)
 	if nil != err {
 		txslog.Error("LockEthErc20Asset", "lock err", err.Error())
 		return "", err
@@ -278,7 +279,7 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 	ethReceiver := newProphecyClaimPara.EthReceiver
 
 	// Generate rawHash using ProphecyClaim data
-	claimID := crypto.Keccak256Hash(newProphecyClaimPara.Txhash, newProphecyClaimPara.Chain33Sender, newProphecyClaimPara.EthReceiver.Bytes(), newProphecyClaimPara.TokenAddr.Bytes(), big.NewInt(amount).Bytes())
+	claimID := crypto.Keccak256Hash(newProphecyClaimPara.Txhash, newProphecyClaimPara.Chain33Sender, newProphecyClaimPara.EthReceiver.Bytes(), newProphecyClaimPara.TokenAddr.Bytes(), amount.Bytes())
 
 	// Sign the hash using the active validator's private key
 	signature, err := SignClaim4Eth(claimID, privateKey)
@@ -286,7 +287,7 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 		return "", err
 	}
 
-	tx, err := x2EthContracts.Oracle.NewOracleClaim(authVali, newProphecyClaimPara.ClaimType, newProphecyClaimPara.Chain33Sender, ethReceiver, newProphecyClaimPara.TokenAddr, newProphecyClaimPara.Symbol, big.NewInt(amount), claimID, signature)
+	tx, err := x2EthContracts.Oracle.NewOracleClaim(authVali, newProphecyClaimPara.ClaimType, newProphecyClaimPara.Chain33Sender, ethReceiver, newProphecyClaimPara.TokenAddr, newProphecyClaimPara.Symbol, amount, claimID, signature)
 	if nil != err {
 		return "", err
 	}
@@ -296,4 +297,3 @@ func MakeNewProphecyClaim(newProphecyClaimPara *NewProphecyClaimPara, client *et
 	}
 	return tx.Hash().String(), nil
 }
-

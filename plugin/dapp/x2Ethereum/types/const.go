@@ -11,6 +11,7 @@ var (
 	ConsensusThresholdKey               = []byte("prefix_for_ConsensusThreshold")
 	TokenSymbolTotalAmountKey           = []byte("prefix_for_TokenSymbolTotalAmount-")
 	TokenSymbolTotalLockOrBurnAmountKey = []byte("prefix_for_TokenSymbolTotalLockOrBurnAmount-")
+	Addr2DecimalsKey                    = []byte("prefix_for_Addr2Decimals")
 )
 
 // log for x2ethereum
@@ -81,3 +82,5 @@ const (
 	LOCK_CLAIM_TYPE = int32(1)
 	BURN_CLAIM_TYPE = int32(2)
 )
+
+const EthNodeUrl = "http://127.0.0.1:7545"

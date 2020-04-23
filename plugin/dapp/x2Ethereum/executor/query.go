@@ -7,6 +7,7 @@ import (
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/oracle"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
+	"strconv"
 	"strings"
 )
 
@@ -144,6 +145,6 @@ func (x *x2ethereum) Query_GetRelayerBalance(in *types2.QueryRelayerBalance) (ty
 	}
 
 	acc := accDB.LoadExecAccount(in.Address, address.ExecAddress(types2.X2ethereumX))
-	symbolAmount.Balance = uint64(acc.Balance)
+	symbolAmount.Balance = strconv.FormatFloat(float64(acc.Balance)/1e8, 'f', 4, 64)
 	return symbolAmount, nil
 }

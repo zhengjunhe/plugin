@@ -32,7 +32,7 @@ func RelayLockToChain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 		TokenContractAddress:  claim.TokenAddr,
 		EthereumSender:        claim.EthereumSender,
 		Chain33Receiver:       claim.Chain33Receiver,
-		Amount:                uint64(claim.Amount),
+		Amount:                claim.Amount,
 		ClaimType:             int64(claim.ClaimType),
 	}
 
@@ -88,7 +88,7 @@ func RelayBurnToChain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 		TokenContractAddress:  claim.TokenAddr,
 		EthereumSender:        claim.EthereumSender,
 		Chain33Receiver:       claim.Chain33Receiver,
-		Amount:                uint64(claim.Amount),
+		Amount:                claim.Amount,
 		ClaimType:             int64(claim.ClaimType),
 	}
 

@@ -22,9 +22,9 @@ import (
 )
 
 var (
-	ethAccountKey = []byte("EthAccount4EthRelayer")
+	ethAccountKey     = []byte("EthAccount4EthRelayer")
 	chain33AccountKey = []byte("Chain33Account4EthRelayer")
-	start         = int(1)
+	start             = int(1)
 )
 
 type Key struct {
@@ -37,7 +37,7 @@ type Key struct {
 }
 
 func (ethRelayer *EthereumRelayer) NewAccount(passphrase string) (privateKeystr, addr string, err error) {
-	var privateKey  *ecdsa.PrivateKey
+	var privateKey *ecdsa.PrivateKey
 	privateKey, privateKeystr, addr, err = newKeyAndStore(ethRelayer.db, crand.Reader, passphrase)
 	if err != nil {
 		return "", "", err
@@ -85,8 +85,8 @@ func (ethRelayer *EthereumRelayer) GetValidatorAddr() (validators x2ethTypes.Val
 	}
 
 	validators = x2ethTypes.ValidatorAddr4EthRelayer{
-		EthValidator:ethAccountAddr,
-		Chain33Validator:chain33AccountAddr,
+		EthValidator:     ethAccountAddr,
+		Chain33Validator: chain33AccountAddr,
 	}
 	return
 }
@@ -127,8 +127,8 @@ func (ethRelayer *EthereumRelayer) RestorePrivateKeys(passPhase string) (err err
 		}
 	}
 
-	if ethRelayer.privateKey4Ethereum != nil &&  nil != ethRelayer.privateKey4Chain33{
-		ethRelayer.unlockchan<-start
+	if ethRelayer.privateKey4Ethereum != nil && nil != ethRelayer.privateKey4Chain33 {
+		ethRelayer.unlockchan <- start
 	}
 
 	return nil
@@ -290,5 +290,3 @@ func newKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *Key {
 	}
 	return key
 }
-
-

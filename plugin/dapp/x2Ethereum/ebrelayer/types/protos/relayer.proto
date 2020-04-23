@@ -43,7 +43,7 @@ message EthBridgeClaim {
     string symbol        = 5;
     string ethereumSender = 6;
     string chain33Receiver = 7;
-    int64 amount = 9;
+    string amount = 9;
     int32 claimType = 10;
     string chainName = 11;
 }
@@ -63,7 +63,7 @@ message NewProphecyClaim {
     string tokenAddr = 3;
     string symbol = 4;
     string ethReceiver = 5;
-    int64  amount = 6;
+    string  amount = 6;
     string txHash = 7;
 }
 
@@ -75,19 +75,19 @@ message BalanceAddr  {
 message MintToken {
     string owner      = 1;
     string tokenAddr  = 2;
-    int64 amount      = 3;
+    string amount      = 3;
 }
 
 message ApproveAllowance {
     string ownerKey   = 1;
     string tokenAddr  = 2;
-    int64 amount      = 3;
+    string amount      = 3;
 }
 
 message LockEthErc20 {
     string ownerKey        = 1;
     string tokenAddr       = 2;
-    int64 amount           = 3;
+    string amount           = 3;
     //将lock住的资产跨链转移到chain33的该账户名下
     string chain33Receiver = 4;
 }
@@ -145,7 +145,7 @@ message TransferToken {
     string tokenAddr = 1;
     string fromKey = 2;
     string toAddr = 3;
-    int64 amount = 4;
+    string amount = 4;
 }
 
 message Uint64 {

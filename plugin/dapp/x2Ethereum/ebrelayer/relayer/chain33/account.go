@@ -12,7 +12,7 @@ import (
 
 var (
 	chain33AccountKey = []byte("Chain33Account4Relayer")
-	start = int(1)
+	start             = int(1)
 )
 
 func (chain33Relayer *Chain33Relayer) GetAccount(passphrase string) (privateKey, addr string, err error) {
@@ -57,13 +57,13 @@ func (chain33Relayer *Chain33Relayer) ImportPrivateKey(passphrase, privateKeyStr
 	ethSender := crypto.PubkeyToAddress(privateKey.PublicKey)
 	chain33Relayer.privateKey4Ethereum = privateKey
 	chain33Relayer.ethSender = ethSender
-	chain33Relayer.unlock<-start
+	chain33Relayer.unlock <- start
 
 	addr = chain33Common.ToHex(ethSender.Bytes())
 	encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySlice)
 	ethAccount := &x2ethTypes.Account4Relayer{
-		Privkey:encryptered,
-		Addr:addr,
+		Privkey: encryptered,
+		Addr:    addr,
 	}
 	encodedInfo := chain33Types.Encode(ethAccount)
 	err = chain33Relayer.db.SetSync(chain33AccountKey, encodedInfo)
@@ -109,7 +109,7 @@ func (chain33Relayer *Chain33Relayer) RestorePrivateKeys(passphrase string) erro
 	chain33Relayer.rwLock.Lock()
 	chain33Relayer.privateKey4Ethereum = privateKey
 	chain33Relayer.rwLock.Unlock()
-	chain33Relayer.unlock<-start
+	chain33Relayer.unlock <- start
 	return nil
 }
 

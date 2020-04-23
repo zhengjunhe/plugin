@@ -58,6 +58,8 @@ type action struct {
 	keeper       ethbridge.Keeper
 }
 
+//todo
+//补充不同token的decimal数据库存储
 func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action {
 	hash := tx.Hash()
 	fromaddr := tx.From()
@@ -89,8 +91,6 @@ func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action
 
 // ethereum ---> chain33
 // lock
-// todo
-// 铸币时可能会超出int64的范围，在这里根据维护的精度表全部统一修正为1e8
 func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain33types.Receipt, error) {
 	receipt := new(chain33types.Receipt)
 	ethBridgeClaim.LocalCoinSymbol = strings.ToLower(ethBridgeClaim.LocalCoinSymbol)
@@ -151,7 +151,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 			return nil, errors.Wrapf(err, "relay procMsgEth2Chain33,exec=%s,sym=%s", msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol)
 		}
 
-		r, err := a.keeper.ProcessSuccessfulClaimForLock(status.FinalClaim, a.execaddr, ethBridgeClaim.LocalCoinSymbol, accDB)
+		r, err := a.keeper.ProcessSuccessfulClaimForLock(status.FinalClaim, a.execaddr, ethBridgeClaim.LocalCoinSymbol, ethBridgeClaim.TokenContractAddress, accDB)
 		if err != nil {
 			return nil, err
 		}
@@ -194,7 +194,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 	if err != nil {
 		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
 	}
-	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, int64(msgBurn.Amount), accDB)
+	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, msgBurn.Amount, msgBurn.TokenContract, accDB)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receipt, error) {
 	accDB := account.NewCoinsAccount(a.api.GetConfig())
 	accDB.SetDB(a.db)
-	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, int64(msgLock.Amount), accDB)
+	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, msgLock.Amount, accDB)
 	if err != nil {
 		return nil, err
 	}
@@ -425,6 +425,19 @@ func (a *action) procMsgSetConsensusThreshold(msgSetConsensusThreshold *types2.M
 		return nil, chain33types.ErrMarshal
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalConsensusThresholdPrefix(), Value: msgSetConsensusThresholdBytes})
+
+	_, err = types2.GetDecimalsFromDB("0x0000000000000000000000000000000000000000", a.db)
+	if err != nil {
+		if err == chain33types.ErrNotFound {
+			m := make(map[string]int64, 100)
+			m["0x0000000000000000000000000000000000000000"] = 18
+			mm, err := json.Marshal(m)
+			if err != nil {
+				panic(err)
+			}
+			receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalAddr2DecimalsPrefix(), Value: mm})
+		}
+	}
 
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil

@@ -3,15 +3,13 @@ package executor
 import (
 	"github.com/33cn/chain33/types"
 	x2ethereumtypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
+	"strconv"
 )
 
 /*
  * 实现交易相关数据本地执行，数据不上链
  * 非关键数据，本地存储(localDB), 用于辅助查询，效率高
  */
-
-// todo
-// 将锁定和销毁分开存储
 
 func (x *x2ethereum) ExecLocal_Eth2Chain33(payload *x2ethereumtypes.Eth2Chain33, tx *types.Transaction, receiptData *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	set, err := x.execLocal(receiptData)
@@ -96,10 +94,12 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 			if err != nil {
 				return nil, err
 			}
+			preAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(now.TotalAmount), 64)
+			nowAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(receiptEth2Chain33.Amount), 64)
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
 				TokenSymbol: receiptEth2Chain33.LocalCoinSymbol,
 				TxType:      "lock",
-				TotalAmount: receiptEth2Chain33.Amount + now.TotalAmount,
+				TotalAmount: strconv.FormatFloat(preAmount+nowAmount, 'f', 4, 64),
 				Direction:   1,
 			})
 			dbSet.KV = append(dbSet.KV, &types.KeyValue{
@@ -122,10 +122,13 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 			if err != nil {
 				return nil, err
 			}
+
+			preAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(now.TotalAmount), 64)
+			nowAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(receiptEth2Chain33.Amount), 64)
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
 				TokenSymbol: receiptEth2Chain33.LocalCoinSymbol,
 				TxType:      "withdraw",
-				TotalAmount: receiptEth2Chain33.Amount + now.TotalAmount,
+				TotalAmount: strconv.FormatFloat(preAmount+nowAmount, 'f', 4, 64),
 				Direction:   2,
 			})
 			dbSet.KV = append(dbSet.KV, &types.KeyValue{
@@ -148,10 +151,13 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 			if err != nil {
 				return nil, err
 			}
+
+			preAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(now.TotalAmount), 64)
+			nowAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(receiptChain33ToEth.Amount), 64)
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
 				TokenSymbol: receiptChain33ToEth.EthSymbol,
 				TxType:      "lock",
-				TotalAmount: receiptChain33ToEth.Amount + now.TotalAmount,
+				TotalAmount: strconv.FormatFloat(preAmount+nowAmount, 'f', 4, 64),
 				Direction:   1,
 			})
 			dbSet.KV = append(dbSet.KV, &types.KeyValue{
@@ -174,10 +180,13 @@ func (x *x2ethereum) execLocal(receiptData *types.ReceiptData) (*types.LocalDBSe
 			if err != nil {
 				return nil, err
 			}
+
+			preAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(now.TotalAmount), 64)
+			nowAmount, _ := strconv.ParseFloat(x2ethereumtypes.TrimZeroAndDot(receiptChain33ToEth.Amount), 64)
 			TokenAssetsByTxTypeBytes := types.Encode(&x2ethereumtypes.ReceiptQuerySymbolAssetsByTxType{
 				TokenSymbol: receiptChain33ToEth.EthSymbol,
 				TxType:      "withdraw",
-				TotalAmount: receiptChain33ToEth.Amount + now.TotalAmount,
+				TotalAmount: strconv.FormatFloat(preAmount+nowAmount, 'f', 4, 64),
 				Direction:   2,
 			})
 			dbSet.KV = append(dbSet.KV, &types.KeyValue{

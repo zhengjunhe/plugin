@@ -1,9 +1,20 @@
 package types
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/33cn/chain33/common/db"
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
+	"github.com/bitly/go-simplejson"
+	"io"
+	"io/ioutil"
+	"net"
+	"net/http"
 	"reflect"
+	"strconv"
+	"strings"
+	"time"
 )
 
 /*
@@ -120,4 +131,97 @@ func (action *X2EthereumAction) GetActionName() string {
 		return "SetConsensusThreshold"
 	}
 	return "unknown-x2ethereum"
+}
+
+func GetDecimalsFromDB(addr string, db db.KV) (int64, error) {
+	res, err := db.Get(CalAddr2DecimalsPrefix())
+	if err != nil {
+		return 0, err
+	}
+	var addr2Decimals map[string]int64
+	err = json.Unmarshal(res, &addr2Decimals)
+	if err != nil {
+		return 0, err
+	}
+	if d, ok := addr2Decimals[addr]; ok {
+		return d, nil
+	}
+	return 0, types.ErrNotFound
+}
+
+func GetDecimals(addr string) (int64, error) {
+	if addr == "0x0000000000000000000000000000000000000000" || addr == "" {
+		return 18, nil
+	}
+	Hashprefix := "0x313ce567"
+	postData := fmt.Sprintf(`{"id":1,"jsonrpc":"2.0","method":"eth_call","params":[{"to":"%s", "data":"%s"},"latest"]}`, addr, Hashprefix)
+
+	retryTimes := 0
+RETRY:
+	res, err := sendToServer(EthNodeUrl, strings.NewReader(postData))
+	if err != nil {
+		tlog.Error("GetDecimals", "error:", err.Error())
+		if retryTimes > 3 {
+			return 0, err
+		}
+		retryTimes++
+		goto RETRY
+	}
+	js, err := simplejson.NewJson(res)
+	if err != nil {
+		tlog.Error("GetDecimals", "NewJson error:", err.Error())
+		if retryTimes > 3 {
+			return 0, err
+		}
+		retryTimes++
+		goto RETRY
+	}
+	result := js.Get("result").MustString()
+
+	decimals, err := strconv.ParseInt(result, 0, 64)
+	if err != nil {
+		if retryTimes > 3 {
+			return 0, err
+		}
+		retryTimes++
+		goto RETRY
+	}
+	return decimals, nil
+}
+
+func sendToServer(url string, req io.Reader) ([]byte, error) {
+	client := http.Client{
+		Transport: &http.Transport{
+			Dial: func(netw, addr string) (net.Conn, error) {
+				deadline := time.Now().Add(10 * time.Second)
+				c, err := net.DialTimeout(netw, addr, time.Second*5)
+				if err != nil {
+					return nil, err
+				}
+				c.SetDeadline(deadline)
+				return c, nil
+			},
+		},
+	}
+	var request *http.Request
+	var err error
+
+	request, err = http.NewRequest("POST", url, req)
+
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+
 }

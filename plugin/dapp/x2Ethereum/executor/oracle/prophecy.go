@@ -2,7 +2,6 @@ package oracle
 
 import (
 	"encoding/json"
-	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/executor/common"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 )
 
@@ -89,7 +88,7 @@ func (prophecy *Prophecy) AddClaim(validator string, claim string) {
 		for index, cv := range prophecy.ClaimValidators {
 			if cv.Claim == claim {
 				claimValidators = cv.Validators
-				prophecy.ClaimValidators[index].Validators = common.AddToStringMap(claimValidators, validator)
+				prophecy.ClaimValidators[index].Validators = types.AddToStringMap(claimValidators, validator)
 				break
 			}
 		}
