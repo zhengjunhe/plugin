@@ -25,7 +25,7 @@ contract Chain33Bank {
         address payable ethereumRecipient;
         address bridgeTokenAddress;
         uint256 amount;
-        bool locked;
+        bool exist;
         uint256 nonce;
     }
 
@@ -330,7 +330,7 @@ contract Chain33Bank {
         view
         returns(bool)
     {
-        return(chain33Deposits[_id].locked);
+        return(chain33Deposits[_id].exist);
     }
 
   /*

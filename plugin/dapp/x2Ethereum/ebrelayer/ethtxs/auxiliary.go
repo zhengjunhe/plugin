@@ -240,6 +240,7 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 
 	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
 	if nil != err {
+		txslog.Error("LockEthErc20Asset", "PrepareAuth err", err.Error())
 		return "", err
 	}
 	//ETH转账，空地址，且设置value
@@ -253,10 +254,12 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 	}
 	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, big.NewInt(amount))
 	if nil != err {
+		txslog.Error("LockEthErc20Asset", "lock err", err.Error())
 		return "", err
 	}
 	err = waitEthTxFinished(client, tx.Hash(), "LockEthErc20Asset")
 	if nil != err {
+		txslog.Error("LockEthErc20Asset", "waitEthTxFinished err", err.Error())
 		return "", err
 	}
 

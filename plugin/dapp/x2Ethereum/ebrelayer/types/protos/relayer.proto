@@ -120,11 +120,26 @@ message StaticsAll {
 message StaticsSingle {
 }
 
-message StaticsResponse {
-    StaticsAll staticsAll   = 1;
-    StaticsSingle staticsSingle  = 2;
+message StaticsLockResponse {
+    StaticsLock all = 1;
+    StaticsLockSingle single  = 2;
 }
 
+message StaticsResponse {
+}
+
+message StaticsLock {
+    int64 balance              = 1;
+}
+
+message StaticsDeposit {
+    int64 supply              = 1;
+}
+
+message StaticsLockSingle {
+    int64 totalLockedAccumated = 1;
+    repeated int64 locked = 2;
+}
 
 message TransferToken {
     string tokenAddr = 1;

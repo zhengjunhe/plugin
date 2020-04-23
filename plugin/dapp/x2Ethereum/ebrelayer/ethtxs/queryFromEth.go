@@ -2,6 +2,7 @@ package ethtxs
 
 import (
 	"context"
+	"errors"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -94,5 +95,42 @@ func GetBalance(client *ethclient.Client, tokenAddr, owner string) (int64, error
 	return balance.Int64(), nil
 }
 
+func GetLockedFunds(bridgeBank *generated.BridgeBank, tokenAddrStr string) (int64, error) {
+	var tokenAddr common.Address
+	if tokenAddrStr != "" {
+		tokenAddr = common.HexToAddress(tokenAddrStr)
+	}
+	opts := &bind.CallOpts{
+		Pending: true,
+		From:    tokenAddr,
+		Context: context.Background(),
+	}
+	balance, err := bridgeBank.LockedFunds(opts, tokenAddr)
+	if nil != err {
+		return 0, err
+	}
+	return balance.Int64(), nil
+}
 
+func GetDepositFunds(client *ethclient.Client, tokenAddrStr string) (int64, error) {
+	if tokenAddrStr == "" {
+		return 0, errors.New("nil token address")
+	}
 
+	tokenAddr := common.HexToAddress(tokenAddrStr)
+	bridgeToken, err := generated.NewBridgeToken(tokenAddr, client)
+	if nil != err {
+		return 0, err
+	}
+
+	opts := &bind.CallOpts{
+		Pending: true,
+		From:    tokenAddr,
+		Context: context.Background(),
+	}
+	supply, err := bridgeToken.TotalSupply(opts)
+	if nil != err {
+		return 0, err
+	}
+	return supply.Int64(), nil
+}

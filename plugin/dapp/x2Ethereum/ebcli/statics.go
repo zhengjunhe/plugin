@@ -16,8 +16,8 @@ func StaticsCmd() *cobra.Command {
 
 	cmd.AddCommand(
 		ShowLockStaticsCmd(),
-		ShowUnlockStaticsCmd(),
-		ShowBurnStaticsCmd(),
+		//ShowUnlockStaticsCmd(),
+		//ShowBurnStaticsCmd(),
 		ShowDepositStaticsCmd(),
 	)
 
@@ -36,19 +36,14 @@ func ShowLockStaticsCmd() *cobra.Command {
 
 func ShowLockStaticsFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("token", "t", "", "token address, optional, nil for ETH")
-	cmd.Flags().StringP("owner", "o", "", "owner address, optional, nil for all")
 }
 
 func ShowLockStatics(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	owner, _ := cmd.Flags().GetString("owner")
-	para := ebTypes.StaticsRequest{
-		Owner:owner,
-		TokenAddr:tokenAddr,
-	}
 
-	var res rpctypes.Reply
+	para := tokenAddr
+	var res ebTypes.StaticsLock
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowLockStatics", para, &res)
 	ctx.Run()
 }
@@ -123,21 +118,16 @@ func ShowDepositStaticsCmd() *cobra.Command {
 }
 
 func ShowDepositStaticsFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("token", "t", "", "token address, optional, nil for ETH")
-	cmd.Flags().StringP("owner", "o", "", "owner address, optional, nil for all")
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
 }
 
 func ShowDepositStatics(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	owner, _ := cmd.Flags().GetString("owner")
 
-	para := ebTypes.StaticsRequest{
-		Owner:owner,
-		TokenAddr:tokenAddr,
-	}
-
-	var res ebTypes.StaticsResponse
+	para := tokenAddr
+	var res ebTypes.StaticsDeposit
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowDepositStatics", para, &res)
 	ctx.Run()
 }
