@@ -180,6 +180,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 			XTxHash:               a.txhash,
 			XHeight:               uint64(a.height),
 			ProphecyID:            ID,
+			Decimals:              msgEthBridgeClaim.Decimals,
 		})}
 		receipt.Logs = append(receipt.Logs, execlog)
 
@@ -189,12 +190,14 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 	return receipt, nil
 }
 
+// chain33 -> ethereum
+// 返还在chain33上生成的erc20代币
 func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receipt, error) {
 	accDB, err := account.NewAccountDB(a.api.GetConfig(), msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol, a.db)
 	if err != nil {
 		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
 	}
-	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, msgBurn.Amount, msgBurn.TokenContract, accDB)
+	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, msgBurn.Amount, msgBurn.TokenContract, msgBurn.Decimals, accDB)
 	if err != nil {
 		return nil, err
 	}
@@ -205,6 +208,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 		EthereumReceiver: msgBurn.EthereumReceiver,
 		Amount:           msgBurn.Amount,
 		EthSymbol:        msgBurn.LocalCoinSymbol,
+		Decimals:         msgBurn.Decimals,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -232,6 +236,7 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 		EthereumReceiver: msgLock.EthereumReceiver,
 		Amount:           msgLock.Amount,
 		EthSymbol:        msgLock.LocalCoinSymbol,
+		Decimals:         msgLock.Decimals,
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
@@ -331,6 +336,7 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 			XTxHash:               a.txhash,
 			XHeight:               uint64(a.height),
 			ProphecyID:            ID,
+			Decimals:              msgWithdrawEth.Decimals,
 		})}
 		receipt.Logs = append(receipt.Logs, execlog)
 
@@ -425,19 +431,6 @@ func (a *action) procMsgSetConsensusThreshold(msgSetConsensusThreshold *types2.M
 		return nil, chain33types.ErrMarshal
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalConsensusThresholdPrefix(), Value: msgSetConsensusThresholdBytes})
-
-	_, err = types2.GetDecimalsFromDB("0x0000000000000000000000000000000000000000", a.db)
-	if err != nil {
-		if err == chain33types.ErrNotFound {
-			m := make(map[string]int64, 100)
-			m["0x0000000000000000000000000000000000000000"] = 18
-			mm, err := json.Marshal(m)
-			if err != nil {
-				panic(err)
-			}
-			receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalAddr2DecimalsPrefix(), Value: mm})
-		}
-	}
 
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil

@@ -30,11 +30,12 @@ func NewEthBridgeClaim(ethereumChainID int64, bridgeContract string, nonce int64
 	}
 }
 
-func NewOracleClaimContent(chain33Receiver string, amount string, claimType int64) types.OracleClaimContent {
+func NewOracleClaimContent(chain33Receiver string, amount string, claimType, decimals int64) types.OracleClaimContent {
 	return types.OracleClaimContent{
 		Chain33Receiver: chain33Receiver,
 		Amount:          amount,
 		ClaimType:       claimType,
+		Decimals:        decimals,
 	}
 }
 
@@ -52,7 +53,7 @@ func CreateOracleClaimFromEthClaim(ethClaim types.Eth2Chain33) (types.OracleClai
 		return types.OracleClaim{}, types.ErrInvalidClaimType
 	}
 	oracleID := strconv.Itoa(int(ethClaim.EthereumChainID)) + strconv.Itoa(int(ethClaim.Nonce)) + ethClaim.EthereumSender
-	claimContent := NewOracleClaimContent(ethClaim.Chain33Receiver, ethClaim.Amount, ethClaim.ClaimType)
+	claimContent := NewOracleClaimContent(ethClaim.Chain33Receiver, ethClaim.Amount, ethClaim.ClaimType, ethClaim.Decimals)
 	claimBytes, err := json.Marshal(claimContent)
 	if err != nil {
 		return types.OracleClaim{}, err

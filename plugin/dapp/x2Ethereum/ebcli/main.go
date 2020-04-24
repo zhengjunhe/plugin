@@ -53,12 +53,13 @@ func testTLS(RPCAddr string) string {
 }
 
 //run :
-func run(RPCAddr string) {
+func run(RPCAddr, NodeAddr string) {
 	//test tls is enable
 	RPCAddr = testTLS(RPCAddr)
 	pluginmgr.AddCmd(rootCmd)
 	log.SetLogLevel("error")
 	rootCmd.PersistentFlags().String("rpc_laddr", RPCAddr, "http url")
+	rootCmd.PersistentFlags().String("node_addr", NodeAddr, "eth node url")
 	//rootCmd.PersistentFlags().String("rpc_laddr", "", "http url")
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -70,5 +71,8 @@ func main() {
 	if buildflags.RPCAddr == "" {
 		buildflags.RPCAddr = "http://localhost:9901"
 	}
-	run(buildflags.RPCAddr)
+	if buildflags.NodeAddr == "" {
+		buildflags.NodeAddr = "http://127.0.0.1:7545"
+	}
+	run(buildflags.RPCAddr, buildflags.NodeAddr)
 }

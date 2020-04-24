@@ -2,7 +2,6 @@ package ethbridge
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/33cn/chain33/account"
 	"github.com/33cn/chain33/common/address"
 	dbm "github.com/33cn/chain33/common/db"
@@ -42,7 +41,6 @@ func (k Keeper) ProcessClaim(claim types.Eth2Chain33) (oracle.Status, error) {
 // 处理经过审核的关于Lock的claim
 func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol, tokenAddress string, accDB *account.DB) (*types2.Receipt, error) {
 	var receipt *types2.Receipt
-	var s *types2.KeyValue
 	oracleClaim, err := CreateOracleClaimFromOracleString(claim)
 	if err != nil {
 		elog.Error("CreateEthClaimFromOracleString", "CreateOracleClaimFromOracleString error", err)
@@ -53,32 +51,7 @@ func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol, toke
 
 	if oracleClaim.ClaimType == int64(types.LOCK_CLAIM_TYPE) {
 		//铸币到相关的tokenSymbolBank账户下
-		d, err := types.GetDecimalsFromDB(tokenAddress, k.db)
-		if err != nil {
-			if err == types2.ErrNotFound {
-				var e error
-				d, e = types.GetDecimals(tokenAddress)
-				if e != nil {
-					return nil, errors.New("get decimals error")
-				}
-
-				var m map[string]int64
-				res, _ := k.db.Get(types.CalAddr2DecimalsPrefix())
-				_ = json.Unmarshal(res, &m)
-				m[tokenAddress] = d
-				mBytes, e := json.Marshal(m)
-				if e != nil {
-					return nil, e
-				}
-				s = &types2.KeyValue{
-					Key:   types.CalAddr2DecimalsPrefix(),
-					Value: mBytes,
-				}
-
-			} else {
-				return nil, err
-			}
-		}
+		d := oracleClaim.Decimals
 		var amount int64
 		if d > 8 {
 			amount = int64(types.Toeth(oracleClaim.Amount, d-8))
@@ -97,10 +70,6 @@ func (k Keeper) ProcessSuccessfulClaimForLock(claim, execAddr, tokenSymbol, toke
 		}
 		receipt.KV = append(receipt.KV, r.KV...)
 		receipt.Logs = append(receipt.Logs, r.Logs...)
-
-		if s != nil {
-			receipt.KV = append(receipt.KV, s)
-		}
 
 		return receipt, nil
 	}
@@ -131,12 +100,7 @@ func (k Keeper) ProcessSuccessfulClaimForBurn(claim, execAddr, tokenSymbol strin
 }
 
 // ProcessBurn processes the burn of bridged coins from the given sender
-func (k Keeper) ProcessBurn(address, execAddr, amount, tokenAddress string, accDB *account.DB) (*types2.Receipt, error) {
-	d, err := types.GetDecimalsFromDB(tokenAddress, k.db)
-	//在burn的过程中，必须是在数据库中存储的token
-	if err != nil {
-		return nil, err
-	}
+func (k Keeper) ProcessBurn(address, execAddr, amount, tokenAddress string, d int64, accDB *account.DB) (*types2.Receipt, error) {
 	var a int64
 	if d > 8 {
 		a = int64(types.Toeth(amount, d-8))

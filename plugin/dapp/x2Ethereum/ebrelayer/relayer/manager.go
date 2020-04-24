@@ -14,6 +14,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/ethereum/go-ethereum/common"
+	lru "github.com/hashicorp/golang-lru"
 	"math/big"
 	"strconv"
 	"sync"
@@ -38,6 +39,7 @@ type RelayerManager struct {
 	mtx            sync.Mutex
 	encryptFlag    int64
 	passphase      string
+	decimalLru     *lru.Cache
 }
 
 //实现记录
@@ -45,6 +47,7 @@ type RelayerManager struct {
 //2.显示或者重新替换原有的私钥首先需要通过passpin进行unlock的操作
 
 func NewRelayerManager(chain33Relayer *chain33.Chain33Relayer, ethRelayer *ethereum.EthereumRelayer, db dbm.DB) *RelayerManager {
+	l, _ := lru.New(4096)
 	manager := &RelayerManager{
 		chain33Relayer: chain33Relayer,
 		ethRelayer:     ethRelayer,
@@ -53,6 +56,7 @@ func NewRelayerManager(chain33Relayer *chain33.Chain33Relayer, ethRelayer *ether
 		mtx:            sync.Mutex{},
 		encryptFlag:    0,
 		passphase:      "",
+		decimalLru:     l,
 	}
 	manager.encryptFlag = manager.store.GetEncryptionFlag()
 	return manager
@@ -472,7 +476,7 @@ func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, 
 	if nil != err {
 		return err
 	}
-	d, err := types.GetDecimals(balanceAddr.TokenAddr)
+	d, err := manager.GetDecimals(balanceAddr.TokenAddr, balanceAddr.NodeAddr)
 	if err != nil {
 		return errors.New("get decimals error")
 	}
@@ -512,14 +516,14 @@ func (manager *RelayerManager) ShowBridgeRegistryAddr(para interface{}, result *
 	return nil
 }
 
-func (manager *RelayerManager) ShowLockStatics(tokenAddr string, result *interface{}) error {
+func (manager *RelayerManager) ShowLockStatics(token relayerTypes.TokenStatics, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
-	balance, err := manager.ethRelayer.ShowLockStatics(tokenAddr)
+	balance, err := manager.ethRelayer.ShowLockStatics(token.TokenAddr)
 	if nil != err {
 		return err
 	}
-	d, err := types.GetDecimals(tokenAddr)
+	d, err := manager.GetDecimals(token.TokenAddr, token.NodeAddr)
 	if err != nil {
 		return errors.New("get decimals error")
 	}
@@ -529,14 +533,14 @@ func (manager *RelayerManager) ShowLockStatics(tokenAddr string, result *interfa
 	return nil
 }
 
-func (manager *RelayerManager) ShowDepositStatics(tokenAddr string, result *interface{}) error {
+func (manager *RelayerManager) ShowDepositStatics(token relayerTypes.TokenStatics, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
-	supply, err := manager.ethRelayer.ShowDepositStatics(tokenAddr)
+	supply, err := manager.ethRelayer.ShowDepositStatics(token.TokenAddr)
 	if nil != err {
 		return err
 	}
-	d, err := types.GetDecimals(tokenAddr)
+	d, err := manager.GetDecimals(token.TokenAddr, token.NodeAddr)
 	if err != nil {
 		return errors.New("get decimals error")
 	}
@@ -626,4 +630,33 @@ func (manager *RelayerManager) TransferToken(transfer relayerTypes.TransferToken
 		Msg:  txhash,
 	}
 	return nil
+}
+
+func (manager *RelayerManager) GetDecimals(tokenAddr, nodeAddr string) (int64, error) {
+	if d, ok := manager.decimalLru.Get(tokenAddr); ok {
+		return d.(int64), nil
+	} else {
+		if d, err := manager.store.Get(utils.CalAddr2DecimalsPrefix(tokenAddr)); err == nil {
+			decimal, err := strconv.ParseInt(string(d), 10, 64)
+			if err != nil {
+				return 0, err
+			}
+
+			manager.decimalLru.Add(tokenAddr, decimal)
+
+			return decimal, nil
+
+		} else {
+			d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
+			if err != nil {
+				return 0, err
+			}
+
+			_ = manager.store.Set(utils.CalAddr2DecimalsPrefix(tokenAddr), []byte(strconv.FormatInt(d, 10)))
+
+			manager.decimalLru.Add(tokenAddr, d)
+
+			return d, nil
+		}
+	}
 }

@@ -44,6 +44,7 @@ message Eth2Chain33 {
     string ValidatorAddress = 9;
     string Amount = 10;
     int64 ClaimType = 11;
+    int64 Decimals = 12;
 }
 
 // OracleClaimContent is the details of how the content of the claim for each validator will be stored in the oracle
@@ -51,6 +52,7 @@ message OracleClaimContent {
     string Chain33Receiver = 1;
     string Amount = 2;
     int64 ClaimType = 3;
+    int64 Decimals = 4;
 }
 
 // MsgBurn defines a message for burning coins and triggering a related event
@@ -61,6 +63,7 @@ message Chain33ToEth {
     string Amount = 4;
     string localCoinSymbol = 5;
     string localCoinExec = 6;
+    int64 Decimals = 7;
 }
 
 // 回执接口定义
@@ -79,6 +82,7 @@ message ReceiptEth2Chain33 {
     bytes xTxHash = 12;
     uint64 xHeight = 13;
     string ProphecyID = 14;
+    int64 Decimals = 15;
 }
 
 message ReceiptChain33ToEth {
@@ -87,6 +91,7 @@ message ReceiptChain33ToEth {
     string EthereumReceiver = 3;
     string Amount = 4;
     string EthSymbol = 5;
+    int64 Decimals = 6;
 }
 
 message ReceiptValidator {
