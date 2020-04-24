@@ -8,11 +8,11 @@ GO_OUT := generated
 PACKAGE := generated
 
 proj := "build"
-.PHONY: default build clean registry bridgeBank
+.PHONY: default build clean registry bridgeBank setup
 
-default: build
+default: depends build
 
-build:
+build: depends
 	@abigen --sol $(SRC_CONTRACT)/BridgeRegistry.sol --pkg $(PACKAGE) --out $(GO_OUT)/BridgeRegistry.go
 	@abigen --sol $(SRC_CONTRACT)/BridgeBank/BridgeBank.sol --pkg $(PACKAGE) --out $(GO_OUT)/BridgeBank.go
 #@abigen --sol $(SRC_CONTRACT)/CosmosBridge.sol --pkg $(PACKAGE) --out $(GO_OUT)/CosmosBridge.go
@@ -26,3 +26,11 @@ registry:
 
 bridgeBank:
 	@abigen --sol $(SRC_CONTRACT)/BridgeBank/BridgeBank.sol --pkg $(PACKAGE) --out $(GO_OUT)/BridgeBank.go
+
+depends:
+	if ! [ -d openzeppelin-solidity ]; then \
+	echo "not exist openzeppelin-solidity and going to get" ; \
+	go get github.com/OpenZeppelin/openzeppelin-contracts@v2.5 ; \
+	mkdir openzeppelin-solidity ;\
+	cp -r ${GOPATH}/pkg/mod/github.com/\!open\!zeppelin/openzeppelin-contracts@v2.5.0+incompatible/contracts openzeppelin-solidity ; \
+	fi; \

@@ -20,6 +20,7 @@ proj := "build"
 default: build
 
 build:
+	make -C ebrelayer/ethcontract
 	@go build -v -i -o $(EBRELAER) $(SRC_EBRELAYER)
 	@go build -v -i -o $(CLI_A) $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_B) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9902" $(SRC_EBCLI)
