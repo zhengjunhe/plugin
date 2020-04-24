@@ -20,13 +20,16 @@ proj := "build"
 default: build
 
 build:
-	make -C ebrelayer/ethcontract
 	@go build -v -i -o $(EBRELAER) $(SRC_EBRELAYER)
 	@go build -v -i -o $(CLI_A) $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_B) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9902" $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_C) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9903" $(SRC_EBCLI)
 	@go build -v -i -o $(CLI_D) -ldflags "-X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:9904" $(SRC_EBCLI)
 	@cp ebrelayer/relayer.toml build/
+
+rebuild:
+	make -C ebrelayer/ethcontract
+	make build
 
 cli:
 	@go build -v -i -o $(CLI_A) $(SRC_EBCLI)
@@ -87,6 +90,7 @@ clean: ## remove all the bins
 	@rm -rf $(CLI_B)
 	@rm -rf $(CLI_C)
 	@rm -rf $(CLI_D)
+	@rm -rf $(EBRELAER)
 	@rm -rf build/*.toml
 
 proto:protobuf
