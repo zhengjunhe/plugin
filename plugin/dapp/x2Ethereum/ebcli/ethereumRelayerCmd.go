@@ -6,6 +6,7 @@ import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
@@ -348,8 +349,11 @@ func MintErc20(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	owner, _ := cmd.Flags().GetString("owner")
 	amount, _ := cmd.Flags().GetFloat64("amount")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	d, err := types.GetDecimals(tokenAddr)
+	fmt.Println(nodeAddr)
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals error")
 		return
@@ -390,8 +394,11 @@ func ApproveAllowance(cmd *cobra.Command, args []string) {
 	key, _ := cmd.Flags().GetString("key")
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	amount, _ := cmd.Flags().GetFloat64("amount")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	d, err := types.GetDecimals(tokenAddr)
+	fmt.Println(nodeAddr)
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals error")
 		return
@@ -435,8 +442,11 @@ func Burn(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	d, err := types.GetDecimals(tokenAddr)
+	fmt.Println(nodeAddr)
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals err")
 		return
@@ -478,8 +488,11 @@ func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	d, err := types.GetDecimals(tokenAddr)
+	fmt.Println(nodeAddr)
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals err")
 		return
@@ -571,8 +584,11 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 	ethReceiver, _ := cmd.Flags().GetString("ethReceiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	txhash, _ := cmd.Flags().GetString("hash")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	d, err := types.GetDecimals(tokenAddr)
+	fmt.Println(nodeAddr)
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals error")
 		return
@@ -614,9 +630,14 @@ func GetBalance(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	owner, _ := cmd.Flags().GetString("owner")
 	tokenAddr, _ := cmd.Flags().GetString("tokenAddr")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	fmt.Println(nodeAddr)
+
 	para := ebTypes.BalanceAddr{
 		Owner:     owner,
 		TokenAddr: tokenAddr,
+		NodeAddr:  nodeAddr,
 	}
 	var res ebTypes.ReplyBalance
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.GetBalance", para, &res)
@@ -676,8 +697,11 @@ func TransferToken(cmd *cobra.Command, args []string) {
 	from, _ := cmd.Flags().GetString("from")
 	to, _ := cmd.Flags().GetString("to")
 	amount, _ := cmd.Flags().GetFloat64("amount")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	d, err := types.GetDecimals(tokenAddr)
+	fmt.Println(nodeAddr)
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals error")
 		return

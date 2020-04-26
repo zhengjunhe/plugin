@@ -8,16 +8,27 @@ package utils
 
 import (
 	"encoding/json"
-	"github.com/ethereum/go-ethereum/common"
-	"unicode"
-
+	"fmt"
 	dbm "github.com/33cn/chain33/common/db"
+	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
+	"github.com/bitly/go-simplejson"
+	"github.com/ethereum/go-ethereum/common"
+	"io"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+	"unicode"
 )
 
 const (
 	nullAddress = "0x0000000000000000000000000000000000000000"
 )
+
+var log = log15.New("module", "utils")
 
 // IsZeroAddress : checks an Ethereum address and returns a bool which indicates if it is the null address
 func IsZeroAddress(address common.Address) bool {
@@ -81,4 +92,105 @@ func QueryTxhashes(prefix []byte, db dbm.DB) []string {
 		hashStrs = append(hashStrs, string(hash))
 	}
 	return hashStrs
+}
+
+var (
+	Addr2DecimalsKey = []byte("prefix_for_Addr2Decimals")
+)
+
+func CalAddr2DecimalsPrefix(tokenAddr string) []byte {
+	return []byte(fmt.Sprintf("%s-%s", Addr2DecimalsKey, tokenAddr))
+}
+
+func GetDecimalsFromDB(addr string, db dbm.DB) (int64, error) {
+	res, err := db.Get(CalAddr2DecimalsPrefix(addr))
+	if err != nil {
+		return 0, err
+	}
+	var addr2Decimals map[string]int64
+	err = json.Unmarshal(res, &addr2Decimals)
+	if err != nil {
+		return 0, err
+	}
+	if d, ok := addr2Decimals[addr]; ok {
+		return d, nil
+	}
+	return 0, types.ErrNotFound
+}
+
+func GetDecimalsFromNode(addr string, nodeAddr string) (int64, error) {
+	if addr == "0x0000000000000000000000000000000000000000" || addr == "" {
+		return 18, nil
+	}
+	Hashprefix := "0x313ce567"
+	postData := fmt.Sprintf(`{"id":1,"jsonrpc":"2.0","method":"eth_call","params":[{"to":"%s", "data":"%s"},"latest"]}`, addr, Hashprefix)
+
+	retryTimes := 0
+RETRY:
+	res, err := sendToServer(nodeAddr, strings.NewReader(postData))
+	if err != nil {
+		log.Error("GetDecimals", "error:", err.Error())
+		if retryTimes > 3 {
+			return 0, err
+		}
+		retryTimes++
+		goto RETRY
+	}
+	js, err := simplejson.NewJson(res)
+	if err != nil {
+		log.Error("GetDecimals", "NewJson error:", err.Error())
+		if retryTimes > 3 {
+			return 0, err
+		}
+		retryTimes++
+		goto RETRY
+	}
+	result := js.Get("result").MustString()
+
+	decimals, err := strconv.ParseInt(result, 0, 64)
+	if err != nil {
+		if retryTimes > 3 {
+			return 0, err
+		}
+		retryTimes++
+		goto RETRY
+	}
+	return decimals, nil
+}
+
+func sendToServer(url string, req io.Reader) ([]byte, error) {
+	client := http.Client{
+		Transport: &http.Transport{
+			Dial: func(netw, addr string) (net.Conn, error) {
+				deadline := time.Now().Add(10 * time.Second)
+				c, err := net.DialTimeout(netw, addr, time.Second*5)
+				if err != nil {
+					return nil, err
+				}
+				c.SetDeadline(deadline)
+				return c, nil
+			},
+		},
+	}
+	var request *http.Request
+	var err error
+
+	request, err = http.NewRequest("POST", url, req)
+
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+
 }

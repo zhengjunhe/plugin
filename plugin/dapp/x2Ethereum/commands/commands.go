@@ -81,6 +81,9 @@ func addEth2Chain33Flags(cmd *cobra.Command) {
 	cmd.Flags().Int64("claimtype", 0, "the type of this claim,lock=1,burn=2")
 	_ = cmd.MarkFlagRequired("claimtype")
 
+	cmd.Flags().Int64("decimal", 0, "the decimal of this token")
+	_ = cmd.MarkFlagRequired("decimal")
+
 }
 
 func Eth2Chain33(cmd *cobra.Command, args []string) {
@@ -95,11 +98,7 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 	validator, _ := cmd.Flags().GetString("validator")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	claimtype, _ := cmd.Flags().GetInt64("claimtype")
-
-	d, err := types3.GetDecimals(tcontract)
-	if err != nil {
-		return
-	}
+	decimal, _ := cmd.Flags().GetInt64("decimal")
 
 	params := &types3.Eth2Chain33{
 		EthereumChainID:       ethid,
@@ -111,8 +110,9 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 		EthereumSender:        sender,
 		Chain33Receiver:       receiver,
 		ValidatorAddress:      validator,
-		Amount:                strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, d), 'f', 4, 64),
+		Amount:                strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, decimal), 'f', 4, 64),
 		ClaimType:             claimtype,
+		Decimals:              decimal,
 	}
 
 	payLoad := types.MustPBToJSON(params)
@@ -144,6 +144,7 @@ func WithdrawEth(cmd *cobra.Command, args []string) {
 	validator, _ := cmd.Flags().GetString("validator")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	claimtype, _ := cmd.Flags().GetInt64("claimtype")
+	decimal, _ := cmd.Flags().GetInt64("decimal")
 
 	params := &types3.Eth2Chain33{
 		EthereumChainID:       ethid,
@@ -157,6 +158,7 @@ func WithdrawEth(cmd *cobra.Command, args []string) {
 		ValidatorAddress:      validator,
 		Amount:                strconv.FormatFloat(amount*1e8, 'f', 4, 64),
 		ClaimType:             claimtype,
+		Decimals:              decimal,
 	}
 
 	payLoad := types.MustPBToJSON(params)
@@ -195,6 +197,9 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 	cmd.Flags().Float64P("amount", "a", float64(0), "the amount of this contract want to lock")
 	_ = cmd.MarkFlagRequired("amount")
 
+	cmd.Flags().Int64("decimal", 0, "the decimal of this token")
+	_ = cmd.MarkFlagRequired("decimal")
+
 }
 
 func burn(cmd *cobra.Command, args []string) {
@@ -204,19 +209,16 @@ func burn(cmd *cobra.Command, args []string) {
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
-
-	d, err := types3.GetDecimals(contract)
-	if err != nil {
-		return
-	}
+	decimal, _ := cmd.Flags().GetInt64("decimal")
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
 		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
-		Amount:           types3.TrimZeroAndDot(strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, d), 'f', 4, 64)),
+		Amount:           types3.TrimZeroAndDot(strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, decimal), 'f', 4, 64)),
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
+		Decimals:         decimal,
 	}
 
 	payLoad := types.MustPBToJSON(params)
@@ -243,6 +245,7 @@ func lock(cmd *cobra.Command, args []string) {
 	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
+	decimal, _ := cmd.Flags().GetInt64("decimal")
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
@@ -251,6 +254,7 @@ func lock(cmd *cobra.Command, args []string) {
 		Amount:           strconv.FormatFloat(amount*1e8, 'f', 4, 64),
 		LocalCoinSymbol:  csymbol,
 		LocalCoinExec:    cexec,
+		Decimals:         decimal,
 	}
 
 	payLoad := types.MustPBToJSON(params)

@@ -42,7 +42,7 @@ type Chain33Relayer struct {
 	passphase            string
 	privateKey4Ethereum  *ecdsa.PrivateKey
 	ethSender            ethCommon.Address
-	bridgeRegistryAddr         ethCommon.Address
+	bridgeRegistryAddr   ethCommon.Address
 	oracleInstance       *generated.Oracle
 	totalTx4Chain33ToEth int64
 	ctx                  context.Context
@@ -60,7 +60,7 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr, provi
 		unlock:              make(chan int),
 		db:                  db,
 		ctx:                 ctx,
-		bridgeRegistryAddr:        ethCommon.HexToAddress(registryAddr),
+		bridgeRegistryAddr:  ethCommon.HexToAddress(registryAddr),
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -160,7 +160,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 		TxReceipts, err := chain33Relayer.syncTxReceipts.GetNextValidTxReceipts(lastHeight4Tx)
 		if nil == TxReceipts || nil != err {
 			if err != nil {
-				relayerLog.Error("onNewHeightProc", "Failede to GetNextValidTxReceipts due to:", err.Error())
+				relayerLog.Error("onNewHeightProc", "Failed to GetNextValidTxReceipts due to:", err.Error())
 			}
 			break
 		}

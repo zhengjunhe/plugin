@@ -1,10 +1,10 @@
 package main
 
 import (
-	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/rpc/jsonclient"
-	"github.com/spf13/cobra"
+	rpctypes "github.com/33cn/chain33/rpc/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
+	"github.com/spf13/cobra"
 )
 
 func StaticsCmd() *cobra.Command {
@@ -41,8 +41,12 @@ func ShowLockStaticsFlags(cmd *cobra.Command) {
 func ShowLockStatics(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	para := tokenAddr
+	para := ebTypes.TokenStatics{
+		TokenAddr: tokenAddr,
+		NodeAddr:  nodeAddr,
+	}
 	var res ebTypes.StaticsLock
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowLockStatics", para, &res)
 	ctx.Run()
@@ -68,8 +72,8 @@ func ShowUnlockStatics(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	owner, _ := cmd.Flags().GetString("owner")
 	para := ebTypes.StaticsRequest{
-		Owner:owner,
-		TokenAddr:tokenAddr,
+		Owner:     owner,
+		TokenAddr: tokenAddr,
 	}
 
 	var res rpctypes.Reply
@@ -98,8 +102,8 @@ func ShowBurnStatics(cmd *cobra.Command, args []string) {
 	owner, _ := cmd.Flags().GetString("owner")
 
 	para := ebTypes.StaticsRequest{
-		Owner:owner,
-		TokenAddr:tokenAddr,
+		Owner:     owner,
+		TokenAddr: tokenAddr,
 	}
 
 	var res ebTypes.StaticsResponse
@@ -125,8 +129,12 @@ func ShowDepositStaticsFlags(cmd *cobra.Command) {
 func ShowDepositStatics(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	para := tokenAddr
+	para := ebTypes.TokenStatics{
+		TokenAddr: tokenAddr,
+		NodeAddr:  nodeAddr,
+	}
 	var res ebTypes.StaticsDeposit
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowDepositStatics", para, &res)
 	ctx.Run()
