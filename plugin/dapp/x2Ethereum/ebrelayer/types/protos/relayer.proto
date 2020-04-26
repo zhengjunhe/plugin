@@ -70,7 +70,6 @@ message NewProphecyClaim {
 message BalanceAddr  {
     string owner      = 1;
     string tokenAddr  = 2;
-    string nodeAddr = 3;
 }
 
 message MintToken {
@@ -155,7 +154,6 @@ message Uint64 {
 
 message TokenStatics {
     string tokenAddr = 1;
-    string nodeAddr = 2;
 }
 
 message EventLogIndex {

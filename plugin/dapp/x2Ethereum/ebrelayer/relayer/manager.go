@@ -476,14 +476,14 @@ func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, 
 	if nil != err {
 		return err
 	}
-	d, err := manager.GetDecimals(balanceAddr.TokenAddr, balanceAddr.NodeAddr)
+	d, err := manager.GetDecimals(balanceAddr.TokenAddr)
 	if err != nil {
 		return errors.New("get decimals error")
 	}
 
 	*result = relayerTypes.ReplyBalance{
 		IsOK:    true,
-		Balance: strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64),
+		Balance: types.TrimZeroAndDot(strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64)),
 	}
 	return nil
 }
@@ -523,7 +523,7 @@ func (manager *RelayerManager) ShowLockStatics(token relayerTypes.TokenStatics, 
 	if nil != err {
 		return err
 	}
-	d, err := manager.GetDecimals(token.TokenAddr, token.NodeAddr)
+	d, err := manager.GetDecimals(token.TokenAddr)
 	if err != nil {
 		return errors.New("get decimals error")
 	}
@@ -540,7 +540,7 @@ func (manager *RelayerManager) ShowDepositStatics(token relayerTypes.TokenStatic
 	if nil != err {
 		return err
 	}
-	d, err := manager.GetDecimals(token.TokenAddr, token.NodeAddr)
+	d, err := manager.GetDecimals(token.TokenAddr)
 	if err != nil {
 		return errors.New("get decimals error")
 	}
@@ -632,8 +632,9 @@ func (manager *RelayerManager) TransferToken(transfer relayerTypes.TransferToken
 	return nil
 }
 
-func (manager *RelayerManager) GetDecimals(tokenAddr, nodeAddr string) (int64, error) {
+func (manager *RelayerManager) GetDecimals(tokenAddr string) (int64, error) {
 	if d, ok := manager.decimalLru.Get(tokenAddr); ok {
+		mlog.Info("GetDecimals", "from cache", d)
 		return d.(int64), nil
 	} else {
 		if d, err := manager.store.Get(utils.CalAddr2DecimalsPrefix(tokenAddr)); err == nil {
@@ -644,19 +645,23 @@ func (manager *RelayerManager) GetDecimals(tokenAddr, nodeAddr string) (int64, e
 
 			manager.decimalLru.Add(tokenAddr, decimal)
 
+			mlog.Info("GetDecimals", "from DB", d)
+
 			return decimal, nil
 
 		} else {
-			d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
+			d, err := manager.ethRelayer.GetDecimals(tokenAddr)
 			if err != nil {
 				return 0, err
 			}
 
-			_ = manager.store.Set(utils.CalAddr2DecimalsPrefix(tokenAddr), []byte(strconv.FormatInt(d, 10)))
+			_ = manager.store.Set(utils.CalAddr2DecimalsPrefix(tokenAddr), []byte(strconv.FormatInt(int64(d), 10)))
 
-			manager.decimalLru.Add(tokenAddr, d)
+			manager.decimalLru.Add(tokenAddr, int64(d))
 
-			return d, nil
+			mlog.Info("GetDecimals", "from Node", d)
+
+			return int64(d), nil
 		}
 	}
 }

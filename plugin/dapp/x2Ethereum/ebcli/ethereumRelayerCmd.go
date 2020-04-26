@@ -351,8 +351,6 @@ func MintErc20(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	fmt.Println(nodeAddr)
-
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals error")
@@ -395,8 +393,6 @@ func ApproveAllowance(cmd *cobra.Command, args []string) {
 	tokenAddr, _ := cmd.Flags().GetString("token")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	nodeAddr, _ := cmd.Flags().GetString("node_addr")
-
-	fmt.Println(nodeAddr)
 
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
@@ -444,8 +440,6 @@ func Burn(cmd *cobra.Command, args []string) {
 	receiver, _ := cmd.Flags().GetString("receiver")
 	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	fmt.Println(nodeAddr)
-
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals err")
@@ -489,8 +483,6 @@ func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	nodeAddr, _ := cmd.Flags().GetString("node_addr")
-
-	fmt.Println(nodeAddr)
 
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
@@ -586,8 +578,6 @@ func MakeNewProphecyClaim(cmd *cobra.Command, args []string) {
 	txhash, _ := cmd.Flags().GetString("hash")
 	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
-	fmt.Println(nodeAddr)
-
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
 		fmt.Println("get decimals error")
@@ -630,14 +620,10 @@ func GetBalance(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	owner, _ := cmd.Flags().GetString("owner")
 	tokenAddr, _ := cmd.Flags().GetString("tokenAddr")
-	nodeAddr, _ := cmd.Flags().GetString("node_addr")
-
-	fmt.Println(nodeAddr)
 
 	para := ebTypes.BalanceAddr{
 		Owner:     owner,
 		TokenAddr: tokenAddr,
-		NodeAddr:  nodeAddr,
 	}
 	var res ebTypes.ReplyBalance
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.GetBalance", para, &res)
@@ -698,8 +684,6 @@ func TransferToken(cmd *cobra.Command, args []string) {
 	to, _ := cmd.Flags().GetString("to")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	nodeAddr, _ := cmd.Flags().GetString("node_addr")
-
-	fmt.Println(nodeAddr)
 
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {

@@ -14,8 +14,10 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/ethcontract/generated"
 	x2ethTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
@@ -86,14 +88,14 @@ func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAd
 		blockInterval = DefaultBlockPeriod
 	}
 	relayer := &EthereumRelayer{
-		provider:           provider,
-		db:                 db,
-		unlockchan:         make(chan int, 2),
-		rpcURL2Chain33:     rpcURL2Chain33,
-		status:             ebTypes.StatusPending,
-		bridgeRegistryAddr: common.HexToAddress(registryAddress),
-		deployInfo:         deploy,
-		maturityDegree:     degree,
+		provider:            provider,
+		db:                  db,
+		unlockchan:          make(chan int, 2),
+		rpcURL2Chain33:      rpcURL2Chain33,
+		status:              ebTypes.StatusPending,
+		bridgeRegistryAddr:  common.HexToAddress(registryAddress),
+		deployInfo:          deploy,
+		maturityDegree:      degree,
 		fetchHeightPeriodMs: blockInterval,
 	}
 
@@ -296,6 +298,16 @@ func (ethRelayer *EthereumRelayer) TransferToken(tokenAddr, fromKey, toAddr, amo
 	return ethtxs.TransferToken(tokenAddr, fromKey, toAddr, bn, ethRelayer.client)
 }
 
+func (ethRelayer *EthereumRelayer) GetDecimals(tokenAddr string) (uint8, error) {
+	opts := &bind.CallOpts{
+		Pending: true,
+		From:    common.HexToAddress(tokenAddr),
+		Context: context.Background(),
+	}
+	bridgeToken, _ := generated.NewBridgeToken(common.HexToAddress(tokenAddr), ethRelayer.client)
+	return bridgeToken.Decimals(opts)
+}
+
 func (ethRelayer *EthereumRelayer) LockEthErc20Asset(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
@@ -403,7 +415,7 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 	relayerLog.Info("procNewHeight", "currentHeight", currentHeight)
 	//一次最大只获取10个logEvent进行处理
 	fetchCnt := int32(10)
-	for ethRelayer.eventLogIndex.Height + uint64(ethRelayer.maturityDegree) + 1 <= currentHeight {
+	for ethRelayer.eventLogIndex.Height+uint64(ethRelayer.maturityDegree)+1 <= currentHeight {
 		logs, err := ethRelayer.getNextValidEthTxEventLogs(ethRelayer.eventLogIndex.Height, ethRelayer.eventLogIndex.Index, fetchCnt)
 		if nil != err {
 			relayerLog.Error("Failed to get ethereum height", "getNextValidEthTxEventLogs err", err.Error())
@@ -411,7 +423,7 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 		}
 
 		for i, vLog := range logs {
-			if vLog.BlockNumber + uint64(ethRelayer.maturityDegree) + 1 > currentHeight {
+			if vLog.BlockNumber+uint64(ethRelayer.maturityDegree)+1 > currentHeight {
 				logs = logs[:i]
 				break
 			}
@@ -421,8 +433,8 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 		cnt := int32(len(logs))
 		if len(logs) > 0 {
 			//firstHeight := logs[0].BlockNumber
-			lastHeight := logs[cnt - 1].BlockNumber
-			index := logs[cnt - 1].Index
+			lastHeight := logs[cnt-1].BlockNumber
+			index := logs[cnt-1].Index
 			//获取的数量小于批量获取数量，则认为直接
 			ethRelayer.setBridgeBankProcessedHeight(lastHeight, uint32(index))
 			ethRelayer.eventLogIndex.Height = lastHeight
@@ -439,7 +451,7 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 func (ethRelayer *EthereumRelayer) storeBridgeBankLogs(vLog types.Log) {
 	//lock,用于捕捉 (ETH/ERC20----->chain33) 跨链转移
 	//burn,用于捕捉 (chain33 token----->chain33) 实现chain33资产withdraw操作，之后在chain33上实现unlock操作
-	if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig  {
+	if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig {
 		//先进行数据的持久化，等到一定的高度成熟度之后再进行处理
 		relayerLog.Info("EthereumRelayer storeBridgeBankLogs", "^_^ ^_^ Received bridgeBankLog for event", "lock",
 			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
@@ -460,7 +472,6 @@ func (ethRelayer *EthereumRelayer) storeBridgeBankLogs(vLog types.Log) {
 
 	return
 }
-
 
 func (ethRelayer *EthereumRelayer) procBridgeBankLogs(vLog types.Log) {
 	if ethRelayer.checkTxProcessed(vLog.TxHash.Bytes()) {

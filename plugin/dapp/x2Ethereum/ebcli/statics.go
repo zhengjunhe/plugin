@@ -41,11 +41,9 @@ func ShowLockStaticsFlags(cmd *cobra.Command) {
 func ShowLockStatics(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
 	para := ebTypes.TokenStatics{
 		TokenAddr: tokenAddr,
-		NodeAddr:  nodeAddr,
 	}
 	var res ebTypes.StaticsLock
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowLockStatics", para, &res)
@@ -129,11 +127,9 @@ func ShowDepositStaticsFlags(cmd *cobra.Command) {
 func ShowDepositStatics(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	tokenAddr, _ := cmd.Flags().GetString("token")
-	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
 	para := ebTypes.TokenStatics{
 		TokenAddr: tokenAddr,
-		NodeAddr:  nodeAddr,
 	}
 	var res ebTypes.StaticsDeposit
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.ShowDepositStatics", para, &res)

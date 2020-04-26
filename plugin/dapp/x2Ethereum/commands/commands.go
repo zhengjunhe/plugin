@@ -2,11 +2,14 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/33cn/chain33/rpc/jsonclient"
 	types2 "github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/chain33/system/dapp/commands"
 	"github.com/33cn/chain33/types"
 	types3 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/spf13/cobra"
+	"os"
 	"strconv"
 )
 
@@ -30,7 +33,9 @@ func Cmd() *cobra.Command {
 		CreateRawRemoveValidatorTxCmd(),
 		CreateRawModifyValidatorTxCmd(),
 		CreateRawSetConsensusTxCmd(),
+		CreateTransferCmd(),
 		queryCmd(),
+		queryRelayerBalanceCmd(),
 	)
 	return cmd
 }
@@ -39,7 +44,7 @@ func Cmd() *cobra.Command {
 func CreateRawEth2Chain33TxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a Eth2Chain33",
+		Short: "Create a Eth2Chain33 && lock a erc20 and mint a token in chain33",
 		Run:   Eth2Chain33,
 	}
 
@@ -124,7 +129,7 @@ func Eth2Chain33(cmd *cobra.Command, args []string) {
 func CreateRawWithdrawEthTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "withdraweth",
-		Short: "withdraw a Eth2Chain33",
+		Short: "withdraw a tx && burn erc20 back to chain33",
 		Run:   WithdrawEth,
 	}
 
@@ -175,6 +180,9 @@ func CreateRawWithdrawChain33TxCmd() *cobra.Command {
 	}
 
 	addChain33ToEthFlags(cmd)
+
+	cmd.Flags().Int64P("decimal", "d", 0, "the decimal of this token")
+	_ = cmd.MarkFlagRequired("decimal")
 	return cmd
 }
 
@@ -188,17 +196,11 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("cexec", "e", "", "chain execer in chain33")
 	_ = cmd.MarkFlagRequired("cexec")
 
-	cmd.Flags().StringP("sender", "s", "", "chain33 sender address")
-	_ = cmd.MarkFlagRequired("sender")
-
 	cmd.Flags().StringP("receiver", "r", "", "ethereum receiver address")
 	_ = cmd.MarkFlagRequired("cExec")
 
 	cmd.Flags().Float64P("amount", "a", float64(0), "the amount of this contract want to lock")
 	_ = cmd.MarkFlagRequired("amount")
-
-	cmd.Flags().Int64("decimal", 0, "the decimal of this token")
-	_ = cmd.MarkFlagRequired("decimal")
 
 }
 
@@ -206,14 +208,12 @@ func burn(cmd *cobra.Command, args []string) {
 	contract, _ := cmd.Flags().GetString("tcontract")
 	csymbol, _ := cmd.Flags().GetString("csymbol")
 	cexec, _ := cmd.Flags().GetString("cexec")
-	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	decimal, _ := cmd.Flags().GetInt64("decimal")
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
-		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
 		Amount:           types3.TrimZeroAndDot(strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, decimal), 'f', 4, 64)),
 		LocalCoinSymbol:  csymbol,
@@ -235,6 +235,7 @@ func CreateRawChain33ToEthTxCmd() *cobra.Command {
 	}
 
 	addChain33ToEthFlags(cmd)
+	cmd.Flags().Int64P("decimal", "d", 8, "the decimal of this token")
 	return cmd
 }
 
@@ -242,14 +243,12 @@ func lock(cmd *cobra.Command, args []string) {
 	contract, _ := cmd.Flags().GetString("tcontract")
 	csymbol, _ := cmd.Flags().GetString("csymbol")
 	cexec, _ := cmd.Flags().GetString("cexec")
-	sender, _ := cmd.Flags().GetString("sender")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	decimal, _ := cmd.Flags().GetInt64("decimal")
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
-		Chain33Sender:    sender,
 		EthereumReceiver: receiver,
 		Amount:           strconv.FormatFloat(amount*1e8, 'f', 4, 64),
 		LocalCoinSymbol:  csymbol,
@@ -260,6 +259,36 @@ func lock(cmd *cobra.Command, args []string) {
 	payLoad := types.MustPBToJSON(params)
 
 	createTx(cmd, payLoad, types3.NameChain33ToEthAction)
+}
+
+// Transfer
+func CreateTransferCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer",
+		Short: "Create a transfer tx in chain33",
+		Run:   transfer,
+	}
+
+	addTransferFlags(cmd)
+	return cmd
+}
+
+func transfer(cmd *cobra.Command, args []string) {
+	commands.CreateAssetTransfer(cmd, args, types3.X2ethereumX)
+}
+
+func addTransferFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("to", "t", "", "receiver account address")
+	_ = cmd.MarkFlagRequired("to")
+
+	cmd.Flags().Float64P("amount", "a", 0, "transaction amount")
+	_ = cmd.MarkFlagRequired("amount")
+
+	cmd.Flags().StringP("note", "n", "", "transaction note info")
+
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+
 }
 
 // AddValidator
@@ -375,6 +404,49 @@ func setConsensus(cmd *cobra.Command, args []string) {
 	payLoad := types.MustPBToJSON(params)
 
 	createTx(cmd, payLoad, types3.NameSetConsensusThresholdAction)
+}
+
+func queryRelayerBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "balance",
+		Short: "query balance of x2ethereum",
+		Run:   queryRelayerBalance,
+	}
+
+	cmd.Flags().StringP("token", "t", "", "token symbol")
+	_ = cmd.MarkFlagRequired("token")
+
+	cmd.Flags().StringP("address", "s", "", "the address you want to query")
+	_ = cmd.MarkFlagRequired("address")
+	return cmd
+}
+
+func queryRelayerBalance(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+
+	token, _ := cmd.Flags().GetString("token")
+	address, _ := cmd.Flags().GetString("address")
+
+	get := &types3.QueryRelayerBalance{
+		TokenSymbol: token,
+		Address:     address,
+	}
+
+	payLoad, err := types.PBToJSON(get)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "ErrPbToJson:"+err.Error())
+		return
+	}
+
+	query := types2.Query4Jrpc{
+		Execer:   types3.X2ethereumX,
+		FuncName: types3.FuncQueryRelayerBalance,
+		Payload:  payLoad,
+	}
+
+	channel := &types3.ReceiptQueryRelayerBalance{}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx.Run()
 }
 
 func createTx(cmd *cobra.Command, payLoad []byte, action string) {

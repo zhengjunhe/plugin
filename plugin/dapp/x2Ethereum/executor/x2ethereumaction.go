@@ -197,14 +197,14 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 	if err != nil {
 		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
 	}
-	receipt, err := a.keeper.ProcessBurn(msgBurn.Chain33Sender, a.execaddr, msgBurn.Amount, msgBurn.TokenContract, msgBurn.Decimals, accDB)
+	receipt, err := a.keeper.ProcessBurn(a.fromaddr, a.execaddr, msgBurn.Amount, msgBurn.TokenContract, msgBurn.Decimals, accDB)
 	if err != nil {
 		return nil, err
 	}
 
 	execlog := &chain33types.ReceiptLog{Ty: types2.TyWithdrawChain33Log, Log: chain33types.Encode(&types2.ReceiptChain33ToEth{
 		TokenContract:    msgBurn.TokenContract,
-		Chain33Sender:    msgBurn.Chain33Sender,
+		Chain33Sender:    a.fromaddr,
 		EthereumReceiver: msgBurn.EthereumReceiver,
 		Amount:           msgBurn.Amount,
 		EthSymbol:        msgBurn.LocalCoinSymbol,
@@ -225,14 +225,14 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receipt, error) {
 	accDB := account.NewCoinsAccount(a.api.GetConfig())
 	accDB.SetDB(a.db)
-	receipt, err := a.keeper.ProcessLock(msgLock.Chain33Sender, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, msgLock.Amount, accDB)
+	receipt, err := a.keeper.ProcessLock(a.fromaddr, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, msgLock.Amount, accDB)
 	if err != nil {
 		return nil, err
 	}
 
 	execlog := &chain33types.ReceiptLog{Ty: types2.TyChain33ToEthLog, Log: chain33types.Encode(&types2.ReceiptChain33ToEth{
 		TokenContract:    msgLock.TokenContract,
-		Chain33Sender:    msgLock.Chain33Sender,
+		Chain33Sender:    a.fromaddr,
 		EthereumReceiver: msgLock.EthereumReceiver,
 		Amount:           msgLock.Amount,
 		EthSymbol:        msgLock.LocalCoinSymbol,
