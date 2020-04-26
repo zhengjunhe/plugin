@@ -42,5 +42,5 @@ func (chain33Relayer *Chain33Relayer) loadLastSyncHeight() int64 {
 
 func (chain33Relayer *Chain33Relayer) setLastSyncHeight(syncHeight int64) {
 	bytes := types.Encode(&types.Int64{Data: syncHeight})
-	chain33Relayer.db.Set(lastSyncHeightPrefix, bytes)
+	_ = chain33Relayer.db.Set(lastSyncHeightPrefix, bytes)
 }

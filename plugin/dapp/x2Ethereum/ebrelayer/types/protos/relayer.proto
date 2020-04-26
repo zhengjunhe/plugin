@@ -152,3 +152,8 @@ message Uint64 {
     uint64 data = 1;
 }
 
+message EventLogIndex {
+    uint64 height = 1;
+    uint32 index = 2;
+}
+

@@ -144,16 +144,18 @@ check_Number 100 ${totalPower}
 # send bty to mavl-x2ethereum-bty-12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 ${CLI} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 
-# send a chain33eth tx
+# send a chain33eth tx，在chain33侧lock 5个bty
 hash=`${CLI} send x2ethereum lock --amount 5 -e x2ethereum -t bty  -r ${Ethsender} -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -q ${BtyTokenContractAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 4
 check_tx 2 ${hash}
 
+#在以太坊侧burn掉1个bty
 hash=`${EBCLI} relayer ethereum burn -m 1 -t ${BtyTokenContractAddr} -r ${BtyReceiever} -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f | jq .msg | sed 's/\"//g'`
 
-# ethereum -> chain33
+# ethereum -> chain33，在以太坊侧lock 0.1 eth
 hash=`${EBCLI} relayer ethereum lock -m 0.1  -r ${BtyReceiever} -k 772db14fc5ae829b155e1eda09431a0b566833f2de3b50b2d35625542b3ae52f`
 
+#在chain33 burn 0.1eth
 hash=`${CLI} send x2ethereum burn --amount 0.1 -e x2ethereum -t eth  -r ${Ethsender} -s ${BtyReceiever} -q ${ETHContractAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv`
 #block_wait 4
 check_tx 2 ${hash}

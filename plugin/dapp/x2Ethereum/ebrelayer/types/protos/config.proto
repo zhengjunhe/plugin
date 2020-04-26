@@ -37,7 +37,9 @@ message RelayerConfig {
   string jrpcBindAddr = 4; // Jrpc服务地址
   string ethProvider  = 5;
   string bridgeRegistry = 6;
-  Deploy Deploy = 7;
+  Deploy deploy = 7;
+  int32 ethMaturityDegree = 8;
+  int32 ethBlockFetchPeriod = 9;
 }
 
 message SyncTxReceiptConfig {

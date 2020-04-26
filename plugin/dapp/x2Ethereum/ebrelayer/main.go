@@ -57,15 +57,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	//set config: lns 用 lns.toml 这个配置文件
 	cfg := initCfg(*configPath)
 	log.Info("Starting FUZAMEI Chain33-X-Ethereum relayer software:", "\n     Name: ", cfg.Title)
-
 	logf.SetFileLog(convertLogCfg(cfg.Log))
 
 	ctx, cancel := context.WithCancel(context.Background())
-	//创建blockchain服务，用于接收chain33的区块推送，过滤转发，以及转发闪电钱包的相关交易
 	var wg sync.WaitGroup
 	log.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	log.Info("deploy info:", "BridgeRegistry", cfg.BridgeRegistry)
@@ -74,7 +70,7 @@ func main() {
 
 
 	chain33RelayerService := chain33Relayer.StartChain33Relayer(cfg.SyncTxConfig, cfg.BridgeRegistry, cfg.EthProvider, db, ctx)
-	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy)
+	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy, cfg.EthMaturityDegree, cfg.EthBlockFetchPeriod)
 
 	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
 
