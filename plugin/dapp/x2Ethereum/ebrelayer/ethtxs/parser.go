@@ -71,7 +71,7 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 }
 
 // BurnLockTxReceiptToChain33Msg : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
-func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types.ReceiptData) events.Chain33Msg {
+func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types.ReceiptData) *events.Chain33Msg {
 	// Set up variables
 	var chain33Sender []byte
 	var ethereumReceiver, tokenContractAddress common.Address
@@ -85,7 +85,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 			var chain33ToEth types.ReceiptChain33ToEth
 			err := chain33Types.Decode(log.Log, &chain33ToEth)
 			if err != nil {
-				return events.Chain33Msg{}
+				return nil
 			}
 			chain33Sender = []byte(chain33ToEth.Chain33Sender)
 			ethereumReceiver = common.HexToAddress(chain33ToEth.EthereumReceiver)
@@ -96,11 +96,12 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 			amount, _ = amount.SetString(chain33ToEth.Amount, 10)
 
 			txslog.Info("BurnLockTxReceiptToChain33Msg", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount.String())
+			// Package the event data into a Chain33Msg
+			chain33Msg := events.NewChain33Msg(claimType, chain33Sender, ethereumReceiver, symbol, amount, tokenContractAddress)
+			return &chain33Msg
 		}
 	}
-
-	// Package the event data into a Chain33Msg
-	return events.NewChain33Msg(claimType, chain33Sender, ethereumReceiver, symbol, amount, tokenContractAddress)
+	return nil
 }
 
 // ProphecyClaimToSignedOracleClaim : packages and signs a prophecy claim's data, returning a new oracle claim

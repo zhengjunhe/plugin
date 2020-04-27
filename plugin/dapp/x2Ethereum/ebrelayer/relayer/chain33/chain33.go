@@ -154,7 +154,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 	//           ^             ^           ^
 	// lastHeight4Tx    matDegress   currentHeight
 	for chain33Relayer.lastHeight4Tx+int64(chain33Relayer.matDegree)+1 <= currentHeight {
-		relayerLog.Debug("onNewHeightProc", "currHeight", currentHeight, "lastHeight4Tx", chain33Relayer.lastHeight4Tx)
+		relayerLog.Info("onNewHeightProc", "currHeight", currentHeight, "lastHeight4Tx", chain33Relayer.lastHeight4Tx)
 
 		lastHeight4Tx := chain33Relayer.lastHeight4Tx
 		TxReceipts, err := chain33Relayer.syncTxReceipts.GetNextValidTxReceipts(lastHeight4Tx)
@@ -214,11 +214,18 @@ func getOracleClaimType(eventType string) events.Event {
 
 // handleBurnLockMsg : parse event data as a Chain33Msg, package it into a ProphecyClaim, then relay tx to the Ethereum Network
 func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event, receipt *chain33Types.ReceiptData, chain33TxHash []byte) error {
+	relayerLog.Info("handleBurnLockMsg", "Received tx with hash", ethCommon.Bytes2Hex(chain33TxHash))
+
 	// Parse the witnessed event's data into a new Chain33Msg
 	chain33Msg := relayerTx.BurnLockTxReceiptToChain33Msg(claimEvent, receipt)
+	if nil == chain33Msg {
+		//收到执行失败的交易，直接跳过
+		relayerLog.Error("handleBurnLockMsg", "Received failed tx with hash", ethCommon.Bytes2Hex(chain33TxHash))
+		return nil
+	}
 
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
-	prophecyClaim := relayerTx.Chain33MsgToProphecyClaim(chain33Msg)
+	prophecyClaim := relayerTx.Chain33MsgToProphecyClaim(*chain33Msg)
 
 	// TODO: Need some sort of delay on this so validators aren't all submitting at the same time
 	// Relay the Chain33Msg to the Ethereum network
