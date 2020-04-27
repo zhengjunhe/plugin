@@ -60,7 +60,8 @@ type action struct {
 
 //todo
 //补充不同token的decimal数据库存储
-func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action {
+func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) (*action, bool) {
+	var defaultCon = false
 	hash := tx.Hash()
 	fromaddr := tx.From()
 
@@ -74,8 +75,9 @@ func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action
 				NowConsensusThreshold: int64(ConsensusThreshold * 100),
 			})
 			_ = a.GetStateDB().Set(types2.CalConsensusThresholdPrefix(), cb)
+			defaultCon = true
 		} else {
-			return nil
+			return nil, false
 		}
 	} else {
 		var mc types2.ReceiptSetConsensusThreshold
@@ -86,12 +88,12 @@ func newAction(a *x2ethereum, tx *chain33types.Transaction, index int32) *action
 
 	elog.Info("newAction", "newAction", "done")
 	return &action{a.GetAPI(), a.GetCoinsAccount(), a.GetStateDB(), hash, fromaddr,
-		a.GetBlockTime(), a.GetHeight(), index, address.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(&oracleKeeper, a.GetStateDB())}
+		a.GetBlockTime(), a.GetHeight(), index, address.ExecAddress(string(tx.Execer)), ethbridge.NewKeeper(&oracleKeeper, a.GetStateDB())}, defaultCon
 }
 
 // ethereum ---> chain33
 // lock
-func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain33types.Receipt, error) {
+func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33, defaultCon bool) (*chain33types.Receipt, error) {
 	receipt := new(chain33types.Receipt)
 	ethBridgeClaim.LocalCoinSymbol = strings.ToLower(ethBridgeClaim.LocalCoinSymbol)
 	msgEthBridgeClaim := ethbridge.NewMsgCreateEthBridgeClaim(*ethBridgeClaim)
@@ -144,6 +146,24 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 		ValidatorClaims: dRes.ValidatorClaims,
 	})})
 
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_SuccessStatusText) {
 		// mavl-x2ethereum-eth
 		accDB, err := account.NewAccountDB(a.api.GetConfig(), msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol, a.db)
@@ -192,7 +212,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33) (*chain3
 
 // chain33 -> ethereum
 // 返还在chain33上生成的erc20代币
-func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receipt, error) {
+func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth, defaultCon bool) (*chain33types.Receipt, error) {
 	accDB, err := account.NewAccountDB(a.api.GetConfig(), msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol, a.db)
 	if err != nil {
 		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
@@ -218,11 +238,29 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth) (*chain33types.Receip
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalWithdrawChain33Prefix(), Value: msgBurnBytes})
 
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil
 }
 
-func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receipt, error) {
+func (a *action) procMsgLock(msgLock *types2.Chain33ToEth, defaultCon bool) (*chain33types.Receipt, error) {
 	accDB := account.NewCoinsAccount(a.api.GetConfig())
 	accDB.SetDB(a.db)
 	receipt, err := a.keeper.ProcessLock(a.fromaddr, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, msgLock.Amount, accDB)
@@ -246,13 +284,31 @@ func (a *action) procMsgLock(msgLock *types2.Chain33ToEth) (*chain33types.Receip
 	}
 	receipt.KV = append(receipt.KV, &chain33types.KeyValue{Key: types2.CalChain33ToEthPrefix(), Value: msgLockBytes})
 
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil
 }
 
 // ethereum -> chain33
 // burn
-func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types.Receipt, error) {
+func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33, defaultCon bool) (*chain33types.Receipt, error) {
 	elog.Info("procWithdrawEth", "receive a procWithdrawEth tx", "start")
 	receipt := new(chain33types.Receipt)
 	msgWithdrawEth := ethbridge.NewMsgCreateEthBridgeClaim(*withdrawEth)
@@ -305,6 +361,24 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 		ValidatorClaims: dRes.ValidatorClaims,
 	})})
 
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_WithdrawedStatusText) {
 		accDB := account.NewCoinsAccount(a.api.GetConfig())
 		accDB.SetDB(a.db)
@@ -349,7 +423,7 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33) (*chain33types
 //需要一笔交易来注册validator
 //这里注册的validator的power之和可能不为1，需要在内部进行加权
 //返回的回执中，KV包含所有validator的power值，Log中包含本次注册的validator的power值
-func (a *action) procAddValidator(msgAddValidator *types2.MsgValidator) (*chain33types.Receipt, error) {
+func (a *action) procAddValidator(msgAddValidator *types2.MsgValidator, defaultCon bool) (*chain33types.Receipt, error) {
 	elog.Info("procAddValidator", "start", msgAddValidator)
 
 	receipt, err := a.keeper.ProcessAddValidator(msgAddValidator.Address, msgAddValidator.Power)
@@ -365,11 +439,29 @@ func (a *action) procAddValidator(msgAddValidator *types2.MsgValidator) (*chain3
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil
 }
 
-func (a *action) procRemoveValidator(msgRemoveValidator *types2.MsgValidator) (*chain33types.Receipt, error) {
+func (a *action) procRemoveValidator(msgRemoveValidator *types2.MsgValidator, defaultCon bool) (*chain33types.Receipt, error) {
 	receipt := new(chain33types.Receipt)
 
 	receipt, err := a.keeper.ProcessRemoveValidator(msgRemoveValidator.Address)
@@ -385,11 +477,29 @@ func (a *action) procRemoveValidator(msgRemoveValidator *types2.MsgValidator) (*
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
 
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil
 }
 
-func (a *action) procModifyValidator(msgModifyValidator *types2.MsgValidator) (*chain33types.Receipt, error) {
+func (a *action) procModifyValidator(msgModifyValidator *types2.MsgValidator, defaultCon bool) (*chain33types.Receipt, error) {
 	receipt := new(chain33types.Receipt)
 
 	receipt, err := a.keeper.ProcessModifyValidator(msgModifyValidator.Address, msgModifyValidator.Power)
@@ -404,6 +514,24 @@ func (a *action) procModifyValidator(msgModifyValidator *types2.MsgValidator) (*
 		XHeight: uint64(a.height),
 	})}
 	receipt.Logs = append(receipt.Logs, execlog)
+
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
 
 	receipt.Ty = chain33types.ExecOk
 	return receipt, nil
