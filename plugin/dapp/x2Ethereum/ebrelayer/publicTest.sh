@@ -116,8 +116,8 @@ function kill_ebrelayer() {
 function kill_all_ebrelayer() {
     for name in A B C D
     do
-        local CLI="./../build/$name/ebrelayer"
-        killEbrelayer "${CLI}"
+        local ebrelayer="./../build/$name/ebrelayer"
+        kill_ebrelayer "${ebrelayer}"
     done
 }
 

@@ -19,10 +19,11 @@ prophecyTx0="0x772260c98aec81b3e235af47c355db720f60e751cce100fed6f334e1b1530bde"
 InitAndDeploy() {
     echo "=========== $FUNCNAME begin ==========="
     # 创建文件夹及拷贝
+    rm -rf '../build/A' '../build/B' '../build/C' '../build/D'
     mkdir '../build/A' '../build/B' '../build/C' '../build/D'
     cp '../build/relayer.toml' '../build/A/relayer.toml'
     cp '../build/ebrelayer' '../build/A/ebrelayer'
-    startEbrelayer "./../build/A/ebrelayer" "./../build/A/ebrelayer.log"
+    start_ebrelayer "./../build/A/ebrelayer" "./../build/A/ebrelayer.log"
 
     result=$(${CLIA} relayer set_pwd -n 123456hzj -o kk)
     cli_ret "${result}" "set_pwd"
@@ -52,7 +53,7 @@ function InitConfigFile() {
         # 删除配置文件中不需要的字段
         for deleteName in "BridgeRegistry" "deployerPrivateKey" "operatorAddr" "validatorsAddr" "initPowers" "deployerPrivateKey" "\[deploy\]"
         do
-            deleteLine "${file}" "${deleteName}"
+            delete_line "${file}" "${deleteName}"
         done
 
         # 在第 5 行后面 新增合约地址
@@ -75,7 +76,7 @@ function ImportCBDKey() {
 
     for name in B C D
     do
-        startEbrelayer "./../build/"$name"/ebrelayer" "./../build/"$name"/ebrelayer.log"
+        start_ebrelayer "./../build/"$name"/ebrelayer" "./../build/"$name"/ebrelayer.log"
 
         # 导入测试地址私钥
         CLI="../build/ebcli_$name"
@@ -151,7 +152,7 @@ TestChain33ToEth() {
 }
 
 main () {
-    KillAllEbrelayer
+    kill_all_ebrelayer
 
     InitAndDeploy
 
@@ -159,6 +160,6 @@ main () {
     ImportCBDKey
     TestChain33ToEth
 
-    KillAllEbrelayer
+    kill_all_ebrelayer
 }
 main
