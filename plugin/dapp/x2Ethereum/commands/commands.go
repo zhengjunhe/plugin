@@ -7,6 +7,8 @@ import (
 	types2 "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/system/dapp/commands"
 	"github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebcli/buildflags"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	types3 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/spf13/cobra"
 	"os"
@@ -37,6 +39,11 @@ func Cmd() *cobra.Command {
 		queryCmd(),
 		queryRelayerBalanceCmd(),
 	)
+
+	if buildflags.NodeAddr == "" {
+		buildflags.NodeAddr = "http://127.0.0.1:7545"
+	}
+	cmd.PersistentFlags().String("node_addr", buildflags.NodeAddr, "eth node url")
 	return cmd
 }
 
@@ -181,20 +188,15 @@ func CreateRawWithdrawChain33TxCmd() *cobra.Command {
 
 	addChain33ToEthFlags(cmd)
 
-	cmd.Flags().Int64P("decimal", "d", 0, "the decimal of this token")
-	_ = cmd.MarkFlagRequired("decimal")
 	return cmd
 }
 
 func addChain33ToEthFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("tcontract", "q", "", "token contract address")
-	_ = cmd.MarkFlagRequired("tcontract")
+	cmd.Flags().StringP("contract", "q", "", "token contract address")
+	_ = cmd.MarkFlagRequired("contract")
 
-	cmd.Flags().StringP("csymbol", "t", "", "token symbol in chain33")
-	_ = cmd.MarkFlagRequired("csymbol")
-
-	cmd.Flags().StringP("cexec", "e", "", "chain execer in chain33")
-	_ = cmd.MarkFlagRequired("cexec")
+	cmd.Flags().StringP("symbol", "t", "", "token symbol in chain33")
+	_ = cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("receiver", "r", "", "ethereum receiver address")
 	_ = cmd.MarkFlagRequired("cExec")
@@ -205,19 +207,23 @@ func addChain33ToEthFlags(cmd *cobra.Command) {
 }
 
 func burn(cmd *cobra.Command, args []string) {
-	contract, _ := cmd.Flags().GetString("tcontract")
-	csymbol, _ := cmd.Flags().GetString("csymbol")
-	cexec, _ := cmd.Flags().GetString("cexec")
+	contract, _ := cmd.Flags().GetString("contract")
+	csymbol, _ := cmd.Flags().GetString("symbol")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
-	decimal, _ := cmd.Flags().GetInt64("decimal")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	decimal, err := utils.GetDecimalsFromNode(contract, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimal error")
+		return
+	}
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
 		EthereumReceiver: receiver,
 		Amount:           types3.TrimZeroAndDot(strconv.FormatFloat(types3.MultiplySpecifyTimes(amount, decimal), 'f', 4, 64)),
 		LocalCoinSymbol:  csymbol,
-		LocalCoinExec:    cexec,
 		Decimals:         decimal,
 	}
 
@@ -235,24 +241,27 @@ func CreateRawChain33ToEthTxCmd() *cobra.Command {
 	}
 
 	addChain33ToEthFlags(cmd)
-	cmd.Flags().Int64P("decimal", "d", 8, "the decimal of this token")
 	return cmd
 }
 
 func lock(cmd *cobra.Command, args []string) {
-	contract, _ := cmd.Flags().GetString("tcontract")
-	csymbol, _ := cmd.Flags().GetString("csymbol")
-	cexec, _ := cmd.Flags().GetString("cexec")
+	contract, _ := cmd.Flags().GetString("contract")
+	csymbol, _ := cmd.Flags().GetString("symbol")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	amount, _ := cmd.Flags().GetFloat64("amount")
-	decimal, _ := cmd.Flags().GetInt64("decimal")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	decimal, err := utils.GetDecimalsFromNode(contract, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimal error")
+		return
+	}
 
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
 		EthereumReceiver: receiver,
 		Amount:           strconv.FormatFloat(amount*1e8, 'f', 4, 64),
 		LocalCoinSymbol:  csymbol,
-		LocalCoinExec:    cexec,
 		Decimals:         decimal,
 	}
 

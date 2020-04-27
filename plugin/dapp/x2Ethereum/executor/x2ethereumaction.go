@@ -213,6 +213,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33, defaultC
 // chain33 -> ethereum
 // 返还在chain33上生成的erc20代币
 func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth, defaultCon bool) (*chain33types.Receipt, error) {
+	msgBurn.LocalCoinExec = types2.X2ethereumX
 	accDB, err := account.NewAccountDB(a.api.GetConfig(), msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol, a.db)
 	if err != nil {
 		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
@@ -261,6 +262,7 @@ func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth, defaultCon bool) (*ch
 }
 
 func (a *action) procMsgLock(msgLock *types2.Chain33ToEth, defaultCon bool) (*chain33types.Receipt, error) {
+	msgLock.LocalCoinExec = types2.X2ethereumX
 	accDB := account.NewCoinsAccount(a.api.GetConfig())
 	accDB.SetDB(a.db)
 	receipt, err := a.keeper.ProcessLock(a.fromaddr, address.ExecAddress(msgLock.LocalCoinSymbol), a.execaddr, msgLock.Amount, accDB)
