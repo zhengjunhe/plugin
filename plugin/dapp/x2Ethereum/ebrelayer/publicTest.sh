@@ -199,3 +199,34 @@ function updata_relayer_toml() {
     #sed -i 's/192.168.64.2/'${chain33Host}'/g' "./build/relayer.toml"
     #sed -i 's/192.168.3.156/'${pushHost}'/g' "./build/relayer.toml"
 }
+
+# $1 CLI
+function wait_prophecy_finish() {
+    local CLI=${1}
+    set +x
+    local count=0
+    while true; do
+        if [[ $# -eq 4 ]]; then
+            ${CLI} relayer ethereum balance -o "${2}" -t "${3}"
+            balance=$(${CLI} relayer ethereum balance -o "${2}" -t "${3}" | jq -r .balance)
+            if [[ "${balance}" == "${4}" ]]; then
+                break
+            fi
+        fi
+        if [[ $# -eq 3 ]]; then
+            ${CLI} relayer ethereum balance -o "${2}"
+            balance=$(${CLI} relayer ethereum balance -o "${2}" | jq -r .balance)
+            if [[ "${balance}" == "${3}" ]]; then
+                break
+            fi
+        fi
+        count=$((${count}+1))
+        if [[ "${count}" == 30 ]]; then
+            echo "failed to get balance"
+            exit 1
+        fi
+
+        sleep 1
+    done
+    set -x
+}
