@@ -49,6 +49,12 @@ func (x *x2ethereum) Exec_Chain33ToEth(payload *x2ethereumtypes.Chain33ToEth, tx
 	return action.procMsgLock(payload, defaultCon)
 }
 
+// 转账功能
+func (x *x2ethereum) Exec_Transfer(payload *types.AssetsTransfer, tx *types.Transaction, index int) (*types.Receipt, error) {
+	action, defaultCon := newAction(x, tx, int32(index))
+	return action.procMsgTransfer(payload, defaultCon)
+}
+
 //--------------------------合约管理员账户操作-------------------------//
 
 // AddValidator是为了增加validator

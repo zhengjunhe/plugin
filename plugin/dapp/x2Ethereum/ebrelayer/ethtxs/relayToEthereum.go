@@ -22,7 +22,7 @@ const (
 
 // RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to Chain33Bridge contract on the Ethereum network
 func RelayProphecyClaimToEthereum(oracleInstance *generated.Oracle, client *ethclient.Client, sender common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey, chain33TxHash []byte) (txhash string, err error) {
-	txslog.Info("RelayProphecyClaimToEthereum","sender", sender.String(), "event", event, "claim", claim)
+	txslog.Info("RelayProphecyClaimToEthereum", "sender", sender.String(), "event", event, "chain33Sender", common.ToHex(claim.Chain33Sender), "ethereumReceiver", claim.EthereumReceiver.String(), "TokenAddress", claim.TokenContractAddress.String(), "symbol", claim.Symbol, "Amount", claim.Amount.String(), "claimType", claim.ClaimType.String())
 
 	auth, err := PrepareAuth(client, privateKey, sender)
 	if nil != err {

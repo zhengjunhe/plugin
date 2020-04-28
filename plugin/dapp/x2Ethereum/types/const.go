@@ -25,8 +25,8 @@ const (
 	TyRemoveValidatorLog
 	TyModifyPowerLog
 	TySetConsensusThresholdLog
-	TySymbolAssetsLog
 	TyProphecyLog
+	TyTransferLog
 )
 
 // action类型id和name，这些常量可以自定义修改
@@ -40,6 +40,7 @@ const (
 	TyRemoveValidatorAction
 	TyModifyPowerAction
 	TySetConsensusThresholdAction
+	TyTransferAction
 
 	NameEth2Chain33Action           = "Eth2Chain33"
 	NameWithdrawEthAction           = "WithdrawEth"
@@ -49,6 +50,7 @@ const (
 	NameRemoveValidatorAction       = "RemoveValidator"
 	NameModifyPowerAction           = "ModifyPower"
 	NameSetConsensusThresholdAction = "SetConsensusThreshold"
+	NameTransferAction              = "Transfer"
 )
 
 const ModuleName = "ETH"

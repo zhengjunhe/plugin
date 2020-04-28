@@ -1,6 +1,9 @@
 syntax = "proto3";
 package types;
 
+import "transaction.proto";
+import "account.proto";
+
 enum EthBridgeStatus {
     PendingStatusText = 0;
     SuccessStatusText = 1;
@@ -18,6 +21,7 @@ message X2ethereumAction {
         MsgValidator removeValidator = 6;
         MsgValidator modifyPower = 7;
         MsgConsensusThreshold setConsensusThreshold = 8;
+        AssetsTransfer       transfer          = 9;
     }
     int32 ty = 10;
 }

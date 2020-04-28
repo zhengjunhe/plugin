@@ -25,6 +25,7 @@ var (
 		NameRemoveValidatorAction:       TyRemoveValidatorAction,
 		NameModifyPowerAction:           TyModifyPowerAction,
 		NameSetConsensusThresholdAction: TySetConsensusThresholdAction,
+		NameTransferAction:              TyTransferAction,
 	}
 	//定义log的id和具体log类型及名称，填入具体自定义log类型
 	logMap = map[int64]*types.LogInfo{
@@ -37,6 +38,7 @@ var (
 		TyModifyPowerLog:           {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogModifyPower"},
 		TySetConsensusThresholdLog: {Ty: reflect.TypeOf(ReceiptSetConsensusThreshold{}), Name: "LogSetConsensusThreshold"},
 		TyProphecyLog:              {Ty: reflect.TypeOf(ReceiptEthProphecy{}), Name: "LogEthProphecy"},
+		TyTransferLog:              {Ty: reflect.TypeOf(types.ReceiptAccountTransfer{}), Name: "LogTransfer"},
 	}
 	tlog = log.New("module", "x2ethereum.types")
 )

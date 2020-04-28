@@ -422,6 +422,39 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33, defaultCon boo
 	return receipt, nil
 }
 
+func (a *action) procMsgTransfer(msgTransfer *chain33types.AssetsTransfer, defaultCon bool) (*chain33types.Receipt, error) {
+	token := msgTransfer.GetCointoken()
+	accDB, err := account.NewAccountDB(a.api.GetConfig(), types2.X2ethereumX, token, a.db)
+	if err != nil {
+		return nil, err
+	}
+	receipt, err := accDB.ExecTransfer(a.fromaddr, msgTransfer.To, address.ExecAddress(types2.X2ethereumX), msgTransfer.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	if defaultCon {
+		setConsensusThreshold := &types2.ReceiptSetConsensusThreshold{
+			PreConsensusThreshold: int64(0),
+			NowConsensusThreshold: int64(types2.DefaultConsensusNeeded * 100),
+			XTxHash:               a.txhash,
+			XHeight:               uint64(a.height),
+		}
+		msgSetConsensusThresholdBytes, err := json.Marshal(setConsensusThreshold)
+		if err != nil {
+			return nil, chain33types.ErrMarshal
+		}
+		receipt.KV = append(receipt.KV, &chain33types.KeyValue{
+			Key:   types2.CalConsensusThresholdPrefix(),
+			Value: msgSetConsensusThresholdBytes,
+		})
+		receipt.Logs = append(receipt.Logs, &chain33types.ReceiptLog{Ty: types2.TySetConsensusThresholdLog, Log: chain33types.Encode(setConsensusThreshold)})
+	}
+
+	receipt.Ty = chain33types.ExecOk
+	return receipt, nil
+}
+
 //需要一笔交易来注册validator
 //这里注册的validator的power之和可能不为1，需要在内部进行加权
 //返回的回执中，KV包含所有validator的power值，Log中包含本次注册的validator的power值

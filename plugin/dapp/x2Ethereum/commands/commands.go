@@ -292,7 +292,7 @@ func addTransferFlags(cmd *cobra.Command) {
 	cmd.Flags().Float64P("amount", "a", 0, "transaction amount")
 	_ = cmd.MarkFlagRequired("amount")
 
-	cmd.Flags().StringP("note", "n", "", "transaction note info")
+	cmd.Flags().StringP("note", "n", "", "transaction note info,optional")
 
 	cmd.Flags().StringP("symbol", "s", "", "token symbol")
 	_ = cmd.MarkFlagRequired("symbol")
