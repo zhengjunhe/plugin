@@ -34,6 +34,7 @@ func RelayLockToChain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 		Chain33Receiver:       claim.Chain33Receiver,
 		Amount:                claim.Amount,
 		ClaimType:             int64(claim.ClaimType),
+		Decimals:              claim.Decimal,
 	}
 
 	pm := rpctypes.CreateTxIn{
@@ -90,6 +91,7 @@ func RelayBurnToChain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 		Chain33Receiver:       claim.Chain33Receiver,
 		Amount:                claim.Amount,
 		ClaimType:             int64(claim.ClaimType),
+		Decimals:              claim.Decimal,
 	}
 
 	pm := rpctypes.CreateTxIn{

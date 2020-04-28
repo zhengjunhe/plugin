@@ -412,10 +412,11 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 	*continueFailCount = 0
 
 	currentHeight := head.Number.Uint64()
-	relayerLog.Info("procNewHeight", "currentHeight", currentHeight)
+	//relayerLog.Info("procNewHeight", "currentHeight", currentHeight)
 	//一次最大只获取10个logEvent进行处理
 	fetchCnt := int32(10)
 	for ethRelayer.eventLogIndex.Height+uint64(ethRelayer.maturityDegree)+1 <= currentHeight {
+		relayerLog.Info("procNewHeight", "currentHeight", currentHeight, "ethRelayer.eventLogIndex.Height", ethRelayer.eventLogIndex.Height, "ethRelayer.eventLogIndex.Index", ethRelayer.eventLogIndex.Index)
 		logs, err := ethRelayer.getNextValidEthTxEventLogs(ethRelayer.eventLogIndex.Height, ethRelayer.eventLogIndex.Index, fetchCnt)
 		if nil != err {
 			relayerLog.Error("Failed to get ethereum height", "getNextValidEthTxEventLogs err", err.Error())
@@ -435,6 +436,7 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 			//firstHeight := logs[0].BlockNumber
 			lastHeight := logs[cnt-1].BlockNumber
 			index := logs[cnt-1].Index
+			fmt.Println(cnt, lastHeight, index, logs[cnt-1].TxHash)
 			//获取的数量小于批量获取数量，则认为直接
 			ethRelayer.setBridgeBankProcessedHeight(lastHeight, uint32(index))
 			ethRelayer.eventLogIndex.Height = lastHeight
@@ -750,8 +752,25 @@ func (ethRelayer *EthereumRelayer) handleLogLockEvent(clientChainID *big.Int, co
 	// Add the event to the record
 	events.NewEventWrite(log.TxHash.Hex(), *event)
 
+	var decimal uint8
+	if event.Token.String() == "" || event.Token.String() == "0x0000000000000000000000000000000000000000" {
+		decimal = 18
+	} else {
+		opts := &bind.CallOpts{
+			Pending: true,
+			From:    common.HexToAddress(event.Token.String()),
+			Context: context.Background(),
+		}
+		bridgeToken, _ := generated.NewBridgeToken(common.HexToAddress(event.Token.String()), ethRelayer.client)
+
+		decimal, err = bridgeToken.Decimals(opts)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String())
+	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String(), int64(decimal))
 	if err != nil {
 		return err
 	}
@@ -788,8 +807,25 @@ func (ethRelayer *EthereumRelayer) handleLogBurnEvent(clientChainID *big.Int, co
 		return err
 	}
 
+	var decimal uint8
+	if event.Token.String() == "" || event.Token.String() == "0x0000000000000000000000000000000000000000" {
+		decimal = 18
+	} else {
+		opts := &bind.CallOpts{
+			Pending: true,
+			From:    common.HexToAddress(event.Token.String()),
+			Context: context.Background(),
+		}
+		bridgeToken, _ := generated.NewBridgeToken(common.HexToAddress(event.Token.String()), ethRelayer.client)
+
+		decimal, err = bridgeToken.Decimals(opts)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String())
+	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String(), int64(decimal))
 	if err != nil {
 		return err
 	}

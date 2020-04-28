@@ -46,6 +46,7 @@ message EthBridgeClaim {
     string amount = 9;
     int32 claimType = 10;
     string chainName = 11;
+    int64 decimal = 12;
 }
 
 message ImportKeyReq {

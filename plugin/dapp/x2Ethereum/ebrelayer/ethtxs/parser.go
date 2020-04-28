@@ -11,6 +11,7 @@ package ethtxs
 
 import (
 	"crypto/ecdsa"
+	"fmt"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
@@ -22,7 +23,7 @@ import (
 )
 
 // LogLockToEthBridgeClaim : parses and packages a LockEvent struct with a validator address in an EthBridgeClaim msg
-func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bridgeBrankAddr string) (*ebrelayerTypes.EthBridgeClaim, error) {
+func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bridgeBrankAddr string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
 	recipient := event.To
 	if 0 == len(recipient) {
 		return nil, ebrelayerTypes.ErrEmptyAddress
@@ -45,11 +46,12 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 
 	witnessClaim.ClaimType = types.LOCK_CLAIM_TYPE
 	witnessClaim.ChainName = types.LOCK_CLAIM
+	witnessClaim.Decimal = decimal
 
 	return witnessClaim, nil
 }
 
-func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bridgeBrankAddr string) (*ebrelayerTypes.EthBridgeClaim, error) {
+func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bridgeBrankAddr string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
 	recipient := event.Chain33Receiver
 	if 0 == len(recipient) {
 		return nil, ebrelayerTypes.ErrEmptyAddress
@@ -66,6 +68,9 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	witnessClaim.Amount = event.Amount.String()
 	witnessClaim.ClaimType = types.BURN_CLAIM_TYPE
 	witnessClaim.ChainName = types.BURN_CLAIM
+	witnessClaim.Decimal = decimal
+
+	fmt.Println("2222222222222222222222", event.Nonce.Int64())
 
 	return witnessClaim, nil
 }

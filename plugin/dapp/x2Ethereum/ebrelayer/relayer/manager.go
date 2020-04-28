@@ -476,9 +476,15 @@ func (manager *RelayerManager) GetBalance(balanceAddr relayerTypes.BalanceAddr, 
 	if nil != err {
 		return err
 	}
-	d, err := manager.GetDecimals(balanceAddr.TokenAddr)
-	if err != nil {
-		return errors.New("get decimals error")
+
+	var d int64
+	if balanceAddr.TokenAddr == "" || balanceAddr.TokenAddr == "0x0000000000000000000000000000000000000000" {
+		d = 18
+	} else {
+		d, err = manager.GetDecimals(balanceAddr.TokenAddr)
+		if err != nil {
+			return errors.New("get decimals error")
+		}
 	}
 
 	*result = relayerTypes.ReplyBalance{
@@ -523,9 +529,14 @@ func (manager *RelayerManager) ShowLockStatics(token relayerTypes.TokenStatics, 
 	if nil != err {
 		return err
 	}
-	d, err := manager.GetDecimals(token.TokenAddr)
-	if err != nil {
-		return errors.New("get decimals error")
+	var d int64
+	if token.TokenAddr == "" || token.TokenAddr == "0x0000000000000000000000000000000000000000" {
+		d = 18
+	} else {
+		d, err = manager.GetDecimals(token.TokenAddr)
+		if err != nil {
+			return errors.New("get decimals error")
+		}
 	}
 	*result = relayerTypes.StaticsLock{
 		Balance: strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64),
@@ -540,9 +551,14 @@ func (manager *RelayerManager) ShowDepositStatics(token relayerTypes.TokenStatic
 	if nil != err {
 		return err
 	}
-	d, err := manager.GetDecimals(token.TokenAddr)
-	if err != nil {
-		return errors.New("get decimals error")
+	var d int64
+	if token.TokenAddr == "" || token.TokenAddr == "0x0000000000000000000000000000000000000000" {
+		d = 18
+	} else {
+		d, err = manager.GetDecimals(token.TokenAddr)
+		if err != nil {
+			return errors.New("get decimals error")
+		}
 	}
 	*result = relayerTypes.StaticsDeposit{
 		Supply: strconv.FormatFloat(types.Toeth(supply, d), 'f', 4, 64),
