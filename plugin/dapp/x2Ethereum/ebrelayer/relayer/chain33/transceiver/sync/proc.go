@@ -111,12 +111,10 @@ func (syncTx *SyncTxReceipts) dealTxReceipts(txReceipts *types.TxReceipts4Subscr
 	if err != nil {
 		resultCh <- err
 	}
-	// 在app 端保存成功， 但回复ok时，程序挂掉, 记录日志
-	if start <= syncTx.seqNum {
-		log.Error("dealTxReceipts", "start", start, "current_seq", syncTx.seqNum)
-	}
-	if start+int64(count-1) < syncTx.seqNum {
-		log.Error("dealTxReceipts", "start", start, "current_seq", syncTx.seqNum)
+
+	//正常情况下，本次开始的的seq不能小于上次结束的seq
+	if start < syncTx.seqNum {
+		log.Error("dealTxReceipts err: the tx and receipt pushed is old", "start", start, "current_seq", syncTx.seqNum)
 		resultCh <- errors.New("The tx and receipt pushed is old")
 		return
 	}
