@@ -42,6 +42,8 @@ InitAndDeploy() {
 
 function ImportKey() {
     echo "=========== $FUNCNAME begin ==========="
+    result=$(${CLI} relayer set_pwd -n 123456hzj -o kk)
+
     result=$(${CLI} relayer unlock -p 123456hzj)
     #cli_ret "${result}" "unlock"
 
@@ -59,19 +61,22 @@ function ImportKey() {
 
 function StartRelayerAndDeploy() {
     kill_ebrelayer "./build/ebrelayer"
+    rm -rf "./build/datadir"
+    rm -rf "./build/ebrelayer.log"
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
 
-    #InitAndDeploy
+    InitAndDeploy
     ImportKey
 
     # 获取 BridgeRegistry 地址
-    #result=$(${CLI} relayer ethereum bridgeRegistry)
-    #BridgeRegistry=$(cli_ret "${result}" "bridgeRegistry" ".addr")
-    BridgeRegistry="0x27527EeF5d9f6519d793d1630B5a31EcA7376615"
+    result=$(${CLI} relayer ethereum bridgeRegistry)
+    BridgeRegistry=$(cli_ret "${result}" "bridgeRegistry" ".addr")
+#    BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
 
     kill_ebrelayer "./build/ebrelayer"
     # 修改 relayer.toml 配置文件
     updata_relayer_toml ${BridgeRegistry} "./build/relayer.toml"
+    sed -i 's/initPowers=\[25, 25, 25, 25\]/initPowers=\[925, 25, 25, 25\]/g' "./build/relayer.toml"
 
     # 重启 ebrelayer 并解锁
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
@@ -81,6 +86,11 @@ function StartRelayerAndDeploy() {
 # chian33 添加验证着及权重
 function InitChain33Vilators() {
     echo "=========== $FUNCNAME begin ==========="
+    # SetConsensusThreshold
+    hash=$(${Chain33Cli} send x2ethereum setconsensus -p 80 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    block_wait ${Chain33Cli} 2
+    check_tx ${Chain33Cli} "${hash}"
+
     # add a validator
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator1} -p 87 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     block_wait ${Chain33Cli} 2
@@ -109,7 +119,6 @@ function InitChain33Vilators() {
     check_tx ${Chain33Cli} "${hash}"
 
     result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
-    cli_ret "${result}" "balance" ".balance" "200"
 
     echo "=========== $FUNCNAME end ==========="
 }
@@ -117,9 +126,9 @@ function InitChain33Vilators() {
 TestChain33ToEthAssets() {
     echo "=========== $FUNCNAME begin ==========="
     # token4chain33 在 以太坊 上先有 bty
-#    result=$(${CLI} relayer ethereum token4chain33 -s bty)
-#    tokenAddr=$(cli_ret "${result}" "token4chain33" ".addr")
-    tokenAddr="0x34B2B7026caDf7ad9ba93d005D36A23399df5433"
+    result=$(${CLI} relayer ethereum token4chain33 -s bty)
+    tokenAddr=$(cli_ret "${result}" "token4chain33" ".addr")
+#    tokenAddr="0x9C3D40A44a2F61Ef8D46fa8C7A731C08FB16cCEF"
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
@@ -129,8 +138,11 @@ TestChain33ToEthAssets() {
     block_wait ${Chain33Cli} 4
     check_tx ${Chain33Cli} "${hash}"
 
+    block_wait ${Chain33Cli} 10
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
-    cli_ret "${result}" "balance" ".balance" "5.0000"
+    cli_ret "${result}" "balance" ".balance" "5"
+
+    return
 
     # eth transfer
     {
@@ -179,11 +191,11 @@ TestETH2Chain33Assets() {
     cli_ret "${result}" "balance" ".balance" "0"
 
     # eth lock 100
-    result=$(${CLI} relayer ethereum lock -m 100 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    result=$(${CLI} relayer ethereum lock -m 5 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     cli_ret "${result}" "lock"
 
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
-    cli_ret "${result}" "balance" ".balance" "100"
+    cli_ret "${result}" "balance" ".balance" "5"
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}")
 
@@ -196,7 +208,7 @@ TestETH2Chain33Assets() {
 }
 
 TestETH2Chain33Erc20() {
-    echo "=========== TestETH2Chain33Erc20 begin ==========="
+    echo "=========== $FUNCNAME begin ==========="
 
     ${CLI} relayer unlock -p 123456hzj
     # token4erc20 在 chain33 上先有 token,同时 mint
@@ -254,18 +266,21 @@ TestETH2Chain33Erc20() {
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
-    echo "=========== TestETH2Chain33Erc20 end ==========="
+    echo "=========== $FUNCNAME end ==========="
 }
 
 function main() {
-    #StartRelayerAndDeploy
-    #InitChain33Vilators
+   # proxy_off
+    StartRelayerAndDeploy
+    InitChain33Vilators
 
-    #TestChain33ToEthAssets
-    TestETH2Chain33Assets
+    TestChain33ToEthAssets
+
+    #TestETH2Chain33Assets
+    #TestETH2Chain33Erc20
 }
-main
 
+main
 
 
 

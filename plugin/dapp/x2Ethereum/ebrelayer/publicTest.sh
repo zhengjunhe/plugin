@@ -123,6 +123,7 @@ function kill_all_ebrelayer() {
 
 # 区块等待 $1:cli 路径  $2:等待高度
 function block_wait() {
+    set +x
     local CLI=${1}
 
     if [[ $# -lt 1 ]]; then
@@ -148,6 +149,7 @@ function block_wait() {
     done
 
     count=$((count + 1))
+    set -x
     echo "wait new block $count s, cur height=$expect,old=$cur_height"
 }
 
