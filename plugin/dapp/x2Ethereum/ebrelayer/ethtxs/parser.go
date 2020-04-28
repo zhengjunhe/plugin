@@ -11,7 +11,6 @@ package ethtxs
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
@@ -69,8 +68,6 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	witnessClaim.ClaimType = types.BURN_CLAIM_TYPE
 	witnessClaim.ChainName = types.BURN_CLAIM
 	witnessClaim.Decimal = decimal
-
-	fmt.Println("2222222222222222222222", event.Nonce.Int64())
 
 	return witnessClaim, nil
 }

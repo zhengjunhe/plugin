@@ -192,8 +192,7 @@ func CreateRawWithdrawChain33TxCmd() *cobra.Command {
 }
 
 func addChain33ToEthFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("contract", "q", "", "token contract address")
-	_ = cmd.MarkFlagRequired("contract")
+	cmd.Flags().StringP("contract", "q", "", "token contract address,nil for ETH")
 
 	cmd.Flags().StringP("symbol", "t", "", "token symbol in chain33")
 	_ = cmd.MarkFlagRequired("symbol")

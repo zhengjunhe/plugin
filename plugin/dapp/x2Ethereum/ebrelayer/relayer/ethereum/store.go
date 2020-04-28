@@ -23,8 +23,8 @@ var (
 	chain33BridgeLogProcessedAt = []byte("chain33BridgeLogProcessedAt")
 	bridgeBankLogProcessedAt    = []byte("bridgeBankLogProcessedAt")
 
-	ethTxEventPrefix            = []byte("ethTxEventPrefix")
-	lastBridgeBankHeightProcPrefix  = []byte("lastBridgeBankHeight")
+	ethTxEventPrefix               = []byte("ethTxEventPrefix")
+	lastBridgeBankHeightProcPrefix = []byte("lastBridgeBankHeight")
 
 	bridgeBankTxProCnt = []byte("bridgeBankTxProCnt")
 )
@@ -123,6 +123,7 @@ func (ethRelayer *EthereumRelayer) getLogProcHeight(key []byte) uint64 {
 func (ethRelayer *EthereumRelayer) setTxProcessed(txhash []byte) error {
 	return ethRelayer.db.Set(txhash, []byte("1"))
 }
+
 //判断是否已经被处理，如果能够在数据库中找到该笔交易，则认为已经被处理
 func (ethRelayer *EthereumRelayer) checkTxProcessed(txhash []byte) bool {
 	_, err := ethRelayer.db.Get(txhash)
@@ -133,7 +134,7 @@ func (ethRelayer *EthereumRelayer) checkTxProcessed(txhash []byte) bool {
 }
 
 func (ethRelayer *EthereumRelayer) setEthTxEvent(vLog types.Log) error {
-	key := ethTxEventKey4Height(vLog.BlockNumber, uint32(vLog.TxIndex))
+	key := ethTxEventKey4Height(vLog.BlockNumber, uint32(vLog.Index))
 	value, err := json.Marshal(vLog)
 	if nil != err {
 		return err
@@ -178,7 +179,7 @@ func (ethRelayer *EthereumRelayer) getNextValidEthTxEventLogs(height uint64, ind
 func (ethRelayer *EthereumRelayer) setBridgeBankProcessedHeight(height uint64, index uint32) {
 	bytes := chain33Types.Encode(&ebTypes.EventLogIndex{
 		Height: height,
-		Index:index})
+		Index:  index})
 	_ = ethRelayer.db.Set(lastBridgeBankHeightProcPrefix, bytes)
 }
 
@@ -200,4 +201,3 @@ func (ethRelayer *EthereumRelayer) initBridgeBankTx() {
 	}
 	_ = ethRelayer.setEthTxEvent(types.Log{})
 }
-

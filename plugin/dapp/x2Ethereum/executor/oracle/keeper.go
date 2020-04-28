@@ -191,11 +191,15 @@ func (k *Keeper) ProcessClaim(claim types.OracleClaim) (Status, error) {
 		}
 		prophecy = NewProphecy(claim.ID)
 	} else {
+		var exist bool
 		for _, vc := range prophecy.ValidatorClaims {
-			if vc.Claim != claim.Content {
-				prophecy.Status.Text = StatusText(types.EthBridgeStatus_FailedStatusText)
-				return Status{}, types.ErrClaimInconsist
+			if vc.Claim == claim.Content {
+				exist = true
 			}
+		}
+		if !exist {
+			prophecy.Status.Text = StatusText(types.EthBridgeStatus_FailedStatusText)
+			return Status{}, types.ErrClaimInconsist
 		}
 		if claimContent.ClaimType == int64(types.LOCK_CLAIM_TYPE) {
 			if prophecy.Status.Text == StatusText(types.EthBridgeStatus_SuccessStatusText) || prophecy.Status.Text == StatusText(types.EthBridgeStatus_FailedStatusText) {
