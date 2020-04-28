@@ -76,19 +76,12 @@ func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, tra
 	}
 
 	ctx := context.Background()
-	nonce, err := backend.PendingNonceAt(context.Background(), transactor)
-	if err != nil {
-		txslog.Error("PrepareAuth", "Failed to PendingNonceAt due to:", err.Error())
-		return nil, errors.New("Failed to get nonce")
-	}
-
 	gasPrice, err := backend.SuggestGasPrice(ctx)
 	if err != nil {
 		txslog.Error("PrepareAuth", "Failed to SuggestGasPrice due to:", err.Error())
 		return nil, errors.New("Failed to get suggest gas price")
 	}
 	auth := bind.NewKeyedTransactor(privateKey)
-	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0) // in wei
 	auth.GasLimit = GasLimit4Deploy
 	auth.GasPrice = gasPrice
