@@ -491,7 +491,6 @@ func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	}
 
 	realAmount := types.ToWei(amount, d)
-	fmt.Println(realAmount.String(), amount, d)
 
 	para := ebTypes.LockEthErc20{
 		OwnerKey:        key,
