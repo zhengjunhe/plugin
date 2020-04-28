@@ -50,7 +50,7 @@ func RelayProphecyClaimToEthereum(oracleInstance *generated.Oracle, client *ethc
 	if nil != err {
 		return txhash, err
 	}
-	return "", nil
+	return txhash, nil
 }
 
 // RelayOracleClaimToEthereum : relays the provided OracleClaim to Oracle contract on the Ethereum network

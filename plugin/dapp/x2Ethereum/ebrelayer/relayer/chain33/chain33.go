@@ -176,7 +176,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 			}
 			var ss types.X2EthereumAction
 			_ = chain33Types.Decode(tx.Payload, &ss)
-			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx", ss.GetActionName(), "action", tx.ActionName(), "fromAddr", tx.From())
+			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx ActionName", ss.GetActionName(), "fromAddr", tx.From())
 			actionName := ss.GetActionName()
 			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				if actionName == relayerTx.BurnAction {
@@ -227,9 +227,11 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
 	prophecyClaim := relayerTx.Chain33MsgToProphecyClaim(*chain33Msg)
 
-	// TODO: Need some sort of delay on this so validators aren't all submitting at the same time
 	// Relay the Chain33Msg to the Ethereum network
 	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.oracleInstance, chain33Relayer.client, chain33Relayer.ethSender, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
+	if nil != err {
+		return err
+	}
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)

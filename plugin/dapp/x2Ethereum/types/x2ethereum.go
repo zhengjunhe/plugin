@@ -92,7 +92,7 @@ func (x *x2ethereumType) GetLogMap() map[int64]*types.LogInfo {
 }
 
 // ActionName get PrivacyType action name
-func (x *x2ethereumType) ActionName(tx *types.Transaction) string {
+func (x x2ethereumType) ActionName(tx *types.Transaction) string {
 	var action X2EthereumAction
 	err := types.Decode(tx.Payload, &action)
 	if err != nil {
