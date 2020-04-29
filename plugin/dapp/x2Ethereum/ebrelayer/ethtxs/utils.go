@@ -19,8 +19,17 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 )
 
+type EthTxStatus int32
+
+func (ethTxStatus EthTxStatus) String() string {
+	return [...]string{"Fail", "Success", "Pending"}[ethTxStatus]
+}
+
 const (
 	PendingDuration4TxExeuction = 300
+	EthTxFail = EthTxStatus(0)
+	EthTxSuccess = EthTxStatus(1)
+	EthTxPending = EthTxStatus(2)
 )
 
 // GenerateClaimHash : Generates an OracleClaim hash from a ProphecyClaim's event data
@@ -108,4 +117,19 @@ func waitEthTxFinished(client *ethclient.Client, txhash common.Hash, txName stri
 			return nil
 		}
 	}
+}
+
+func GetEthTxStatus(client *ethclient.Client, txhash common.Hash) string {
+	receipt, err := client.TransactionReceipt(context.Background(), txhash)
+	if nil != err {
+		return EthTxPending.String()
+	}
+	status := EthTxStatus(receipt.Status).String()
+	if status == EthTxFail.String() {
+		txslog.Error("GetEthTxStatus", "Failed eth tx with hash", txhash.String())
+	} else {
+		txslog.Info("GetEthTxStatus", "check status for eth txwith hash", txhash.String(), "status", status)
+	}
+
+	return status
 }

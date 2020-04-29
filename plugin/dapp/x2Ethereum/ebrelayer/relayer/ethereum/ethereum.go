@@ -292,6 +292,12 @@ func (ethRelayer *EthereumRelayer) Burn(ownerPrivateKey, tokenAddr, chain33Recei
 	return ethtxs.Burn(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.client)
 }
 
+func (ethRelayer *EthereumRelayer) BurnAsync(ownerPrivateKey, tokenAddr, chain33Receiver, amount string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	return ethtxs.BurnAsync(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.client)
+}
+
 func (ethRelayer *EthereumRelayer) TransferToken(tokenAddr, fromKey, toAddr, amount string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
@@ -311,7 +317,13 @@ func (ethRelayer *EthereumRelayer) GetDecimals(tokenAddr string) (uint8, error) 
 func (ethRelayer *EthereumRelayer) LockEthErc20Asset(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
-	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.client, ethRelayer.x2EthContracts.BridgeBank)
+	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.client, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.x2EthDeployInfo.BridgeBank.Address)
+}
+
+func (ethRelayer *EthereumRelayer) LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	return ethtxs.LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.client, ethRelayer.x2EthContracts.BridgeBank)
 }
 
 func (ethRelayer *EthereumRelayer) ShowTxReceipt(hash string) (*types.Receipt, error) {

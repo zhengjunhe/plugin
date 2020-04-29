@@ -45,6 +45,7 @@ type Chain33Relayer struct {
 	bridgeRegistryAddr   ethCommon.Address
 	oracleInstance       *generated.Oracle
 	totalTx4Chain33ToEth int64
+	statusCheckedIndex   int64
 	ctx                  context.Context
 	wg                   sync.WaitGroup
 	rwLock               sync.RWMutex
@@ -78,6 +79,8 @@ func StartChain33Relayer(syncTxConfig *ebTypes.SyncTxConfig, registryAddr, provi
 		panic(err)
 	}
 	relayer.client = client
+	relayer.totalTx4Chain33ToEth = relayer.getTotalTxAmount2Eth()
+	relayer.statusCheckedIndex = relayer.getStatusCheckedIndex()
 
 	go relayer.syncProc(syncCfg)
 	return relayer
@@ -149,6 +152,24 @@ func (chain33Relayer *Chain33Relayer) getCurrentHeight() int64 {
 }
 
 func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
+    //检查已经提交的交易结果
+	for chain33Relayer.statusCheckedIndex < chain33Relayer.totalTx4Chain33ToEth {
+		index := chain33Relayer.statusCheckedIndex + 1
+		txhash, err := chain33Relayer.getEthTxhash(index)
+		if nil != err {
+			relayerLog.Error("onNewHeightProc", "getEthTxhash for index ", index, "error", err.Error())
+			break
+		}
+		status := relayerTx.GetEthTxStatus(chain33Relayer.client, txhash)
+		//按照提交交易的先后顺序检查交易，只要出现当前交易还在pending状态，就不再检查后续交易，等到下个区块再从该交易进行检查
+		//TODO:可能会由于网络和打包挖矿的原因，使得交易执行顺序和提交顺序有差别，后续完善该检查逻辑
+		if status == relayerTx.EthTxPending.String() {
+			break
+		}
+		_ = chain33Relayer.setLastestRelay2EthTxhash(status, txhash.Hex(), index)
+		atomic.AddInt64(&chain33Relayer.statusCheckedIndex, 1)
+		_ = chain33Relayer.setStatusCheckedIndex(chain33Relayer.statusCheckedIndex)
+	}
 	//未达到足够的成熟度，不进行处理
 	//  +++++++++||++++++++++++||++++++++++||
 	//           ^             ^           ^
@@ -176,7 +197,6 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 			}
 			var ss types.X2EthereumAction
 			_ = chain33Types.Decode(tx.Payload, &ss)
-			relayerLog.Debug("onNewHeightProc", "exec", string(tx.Execer), "tx ActionName", ss.GetActionName(), "fromAddr", tx.From())
 			actionName := ss.GetActionName()
 			if relayerTx.BurnAction == actionName || relayerTx.LockAction == actionName {
 				if actionName == relayerTx.BurnAction {
@@ -184,6 +204,7 @@ func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
 				} else {
 					actionName = actionName + "-lock"
 				}
+				relayerLog.Debug("^_^ ^_^ Processing chain33 tx receipt", "ActionName", actionName, "fromAddr", tx.From(), "exec", string(tx.Execer))
 				actionEvent := getOracleClaimType(actionName)
 				if err := chain33Relayer.handleBurnLockMsg(actionEvent, TxReceipts.ReceiptData[i], tx.Hash()); nil != err {
 					errInfo := fmt.Sprintf("Failed to handleBurnLockMsg due to:", err.Error())
@@ -240,7 +261,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 		relayerLog.Error("handleLogNewProphecyClaimEvent", "Failed to RelayLockToChain33 due to:", err.Error())
 		return err
 	}
-	if err = chain33Relayer.setLastestRelay2EthTxhash(txhash, txIndex); nil != err {
+	if err = chain33Relayer.setLastestRelay2EthTxhash(relayerTx.EthTxPending.String(), txhash, txIndex); nil != err {
 		relayerLog.Error("handleLogNewProphecyClaimEvent", "Failed to RelayLockToChain33 due to:", err.Error())
 		return err
 	}

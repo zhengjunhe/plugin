@@ -407,6 +407,40 @@ func (manager *RelayerManager) Burn(burn relayerTypes.Burn, result *interface{})
 	return nil
 }
 
+func (manager *RelayerManager) BurnAsync(burn relayerTypes.Burn, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.BurnAsync(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
+func (manager *RelayerManager) LockEthErc20AssetAsync(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.LockEthErc20AssetAsync(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
 func (manager *RelayerManager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()

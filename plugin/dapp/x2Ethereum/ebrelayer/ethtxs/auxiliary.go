@@ -203,6 +203,25 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 	return tx.Hash().String(), nil
 }
 
+func BurnAsync(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount *big.Int, bridgeBankIns *generated.BridgeBank, client *ethclient.Client) (string, error) {
+	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	ownerAddr := crypto.PubkeyToAddress(ownerPrivateKey.PublicKey)
+	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
+	if nil != err {
+		return "", err
+	}
+	tokenAddr := common.HexToAddress(tokenAddrstr)
+	tx, err := bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, amount)
+	if nil != err {
+		return "", err
+	}
+
+	return tx.Hash().String(), nil
+}
+
 func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount *big.Int, client *ethclient.Client) (string, error) {
 	tokenInstance, err := generated.NewBridgeToken(common.HexToAddress(tokenAddr), client)
 	if nil != err {
@@ -231,7 +250,56 @@ func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount *big.Int,
 	return tx.Hash().String(), nil
 }
 
-func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client *ethclient.Client, bridgeBank *generated.BridgeBank) (string, error) {
+func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client *ethclient.Client, bridgeBank *generated.BridgeBank, bridgeBankAddr common.Address) (string, error) {
+	txslog.Info("LockEthErc20Asset", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "chain33Receiver", chain33Receiver, "amount", amount.String())
+	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	ownerAddr := crypto.PubkeyToAddress(ownerPrivateKey.PublicKey)
+	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
+	if nil != err {
+		txslog.Error("LockEthErc20Asset", "PrepareAuth err", err.Error())
+		return "", err
+	}
+	//ETH转账，空地址，且设置value
+	var tokenAddr common.Address
+	if "" != tokenAddrStr {
+		//如果是eth以外的erc20，则需要先进行approve操作
+		tokenAddr = common.HexToAddress(tokenAddrStr)
+		tokenInstance, err := generated.NewBridgeToken(tokenAddr, client)
+		if nil != err {
+			return "", err
+		}
+		//chain33bank 是bridgeBank的基类，所以使用bridgeBank的地址
+		tx, err := tokenInstance.Approve(auth, bridgeBankAddr, amount)
+		if nil != err {
+			return "", err
+		}
+		err = waitEthTxFinished(client, tx.Hash(), "Approve")
+		if nil != err {
+			return "", err
+		}
+		txslog.Info("LockEthErc20Asset", "Approve tx with hash", tx.Hash().String())
+	}
+	if "" == tokenAddrStr {
+		auth.Value = amount
+	}
+	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, amount)
+	if nil != err {
+		txslog.Error("LockEthErc20Asset", "lock err", err.Error())
+		return "", err
+	}
+	err = waitEthTxFinished(client, tx.Hash(), "LockEthErc20Asset")
+	if nil != err {
+		txslog.Error("LockEthErc20Asset", "waitEthTxFinished err", err.Error())
+		return "", err
+	}
+
+	return tx.Hash().String(), nil
+}
+
+func LockEthErc20AssetAsync(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client *ethclient.Client, bridgeBank *generated.BridgeBank) (string, error) {
 	txslog.Info("LockEthErc20Asset", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "chain33Receiver", chain33Receiver, "amount", amount.String())
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
@@ -258,12 +326,6 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 		txslog.Error("LockEthErc20Asset", "lock err", err.Error())
 		return "", err
 	}
-	err = waitEthTxFinished(client, tx.Hash(), "LockEthErc20Asset")
-	if nil != err {
-		txslog.Error("LockEthErc20Asset", "waitEthTxFinished err", err.Error())
-		return "", err
-	}
-
 	return tx.Hash().String(), nil
 }
 

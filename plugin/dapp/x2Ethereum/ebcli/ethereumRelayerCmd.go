@@ -43,10 +43,12 @@ func EthereumRelayerCmd() *cobra.Command {
 		IsProphecyPendingCmd(),
 		MintErc20Cmd(),
 		ApproveCmd(),
-		LockEthErc20AssetCmd(),
+		BurnCmd(),
+		BurnAsyncCmd(),
+		LockSyncCmd(),
+		LockAsyncCmd(),
 		ShowBridgeBankAddrCmd(),
 		ShowBridgeRegistryAddrCmd(),
-		BurnCmd(),
 		StaticsCmd(),
 		TransferTokenCmd(),
 	)
@@ -421,6 +423,16 @@ func BurnCmd() *cobra.Command {
 	return cmd
 }
 
+func BurnAsyncCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "burn-async",
+		Short: "async burn the asset to make it unlocked on chain33",
+		Run:   BurnAsync,
+	}
+	BurnFlags(cmd)
+	return cmd
+}
+
 func BurnFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("key", "k", "", "owner private key")
 	_ = cmd.MarkFlagRequired("key")
@@ -456,11 +468,45 @@ func Burn(cmd *cobra.Command, args []string) {
 	ctx.Run()
 }
 
-func LockEthErc20AssetCmd() *cobra.Command {
+func BurnAsync(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	receiver, _ := cmd.Flags().GetString("receiver")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimals err")
+		return
+	}
+	para := ebTypes.Burn{
+		OwnerKey:        key,
+		TokenAddr:       tokenAddr,
+		Amount:          types.ToWei(amount, d).String(),
+		Chain33Receiver: receiver,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.BurnAsync", para, &res)
+	ctx.Run()
+}
+
+func LockSyncCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lock",
 		Short: "lock eth or erc20 and cross-chain transfer to chain33",
 		Run:   LockEthErc20Asset,
+	}
+	LockEthErc20AssetFlags(cmd)
+	return cmd
+}
+
+func LockAsyncCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "lock",
+		Short: "async lock eth or erc20 and cross-chain transfer to chain33",
+		Run:   LockEthErc20AssetAsync,
 	}
 	LockEthErc20AssetFlags(cmd)
 	return cmd
@@ -500,6 +546,33 @@ func LockEthErc20Asset(cmd *cobra.Command, args []string) {
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.LockEthErc20Asset", para, &res)
+	ctx.Run()
+}
+
+func LockEthErc20AssetAsync(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	receiver, _ := cmd.Flags().GetString("receiver")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimals err")
+		return
+	}
+
+	realAmount := types.ToWei(amount, d)
+
+	para := ebTypes.LockEthErc20{
+		OwnerKey:        key,
+		TokenAddr:       tokenAddr,
+		Amount:          realAmount.String(),
+		Chain33Receiver: receiver,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "RelayerManager.LockEthErc20AssetAsync", para, &res)
 	ctx.Run()
 }
 

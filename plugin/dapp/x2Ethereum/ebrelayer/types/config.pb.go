@@ -3,9 +3,11 @@
 
 package types
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,21 +18,21 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type SyncTxConfig struct {
-	Chain33Host          string   `protobuf:"bytes,1,opt,name=chain33host" json:"chain33host,omitempty"`
-	PushHost             string   `protobuf:"bytes,2,opt,name=pushHost" json:"pushHost,omitempty"`
-	PushName             string   `protobuf:"bytes,3,opt,name=pushName" json:"pushName,omitempty"`
-	PushBind             string   `protobuf:"bytes,4,opt,name=pushBind" json:"pushBind,omitempty"`
-	MaturityDegree       int32    `protobuf:"varint,5,opt,name=maturityDegree" json:"maturityDegree,omitempty"`
-	Dbdriver             string   `protobuf:"bytes,6,opt,name=dbdriver" json:"dbdriver,omitempty"`
-	DbPath               string   `protobuf:"bytes,7,opt,name=dbPath" json:"dbPath,omitempty"`
-	DbCache              int32    `protobuf:"varint,8,opt,name=dbCache" json:"dbCache,omitempty"`
-	FetchHeightPeriodMs  int64    `protobuf:"varint,9,opt,name=fetchHeightPeriodMs" json:"fetchHeightPeriodMs,omitempty"`
-	StartSyncHeight      int64    `protobuf:"varint,10,opt,name=startSyncHeight" json:"startSyncHeight,omitempty"`
-	StartSyncSequence    int64    `protobuf:"varint,11,opt,name=startSyncSequence" json:"startSyncSequence,omitempty"`
-	StartSyncHash        string   `protobuf:"bytes,12,opt,name=startSyncHash" json:"startSyncHash,omitempty"`
+	Chain33Host          string   `protobuf:"bytes,1,opt,name=chain33host,proto3" json:"chain33host,omitempty"`
+	PushHost             string   `protobuf:"bytes,2,opt,name=pushHost,proto3" json:"pushHost,omitempty"`
+	PushName             string   `protobuf:"bytes,3,opt,name=pushName,proto3" json:"pushName,omitempty"`
+	PushBind             string   `protobuf:"bytes,4,opt,name=pushBind,proto3" json:"pushBind,omitempty"`
+	MaturityDegree       int32    `protobuf:"varint,5,opt,name=maturityDegree,proto3" json:"maturityDegree,omitempty"`
+	Dbdriver             string   `protobuf:"bytes,6,opt,name=dbdriver,proto3" json:"dbdriver,omitempty"`
+	DbPath               string   `protobuf:"bytes,7,opt,name=dbPath,proto3" json:"dbPath,omitempty"`
+	DbCache              int32    `protobuf:"varint,8,opt,name=dbCache,proto3" json:"dbCache,omitempty"`
+	FetchHeightPeriodMs  int64    `protobuf:"varint,9,opt,name=fetchHeightPeriodMs,proto3" json:"fetchHeightPeriodMs,omitempty"`
+	StartSyncHeight      int64    `protobuf:"varint,10,opt,name=startSyncHeight,proto3" json:"startSyncHeight,omitempty"`
+	StartSyncSequence    int64    `protobuf:"varint,11,opt,name=startSyncSequence,proto3" json:"startSyncSequence,omitempty"`
+	StartSyncHash        string   `protobuf:"bytes,12,opt,name=startSyncHash,proto3" json:"startSyncHash,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -40,16 +42,17 @@ func (m *SyncTxConfig) Reset()         { *m = SyncTxConfig{} }
 func (m *SyncTxConfig) String() string { return proto.CompactTextString(m) }
 func (*SyncTxConfig) ProtoMessage()    {}
 func (*SyncTxConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_config_de1752c779fc3508, []int{0}
+	return fileDescriptor_3eaf2c85e69e9ea4, []int{0}
 }
+
 func (m *SyncTxConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SyncTxConfig.Unmarshal(m, b)
 }
 func (m *SyncTxConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_SyncTxConfig.Marshal(b, m, deterministic)
 }
-func (dst *SyncTxConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SyncTxConfig.Merge(dst, src)
+func (m *SyncTxConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SyncTxConfig.Merge(m, src)
 }
 func (m *SyncTxConfig) XXX_Size() int {
 	return xxx_messageInfo_SyncTxConfig.Size(m)
@@ -145,16 +148,16 @@ func (m *SyncTxConfig) GetStartSyncHash() string {
 }
 
 type Log struct {
-	Loglevel             string   `protobuf:"bytes,1,opt,name=loglevel" json:"loglevel,omitempty"`
-	LogConsoleLevel      string   `protobuf:"bytes,2,opt,name=logConsoleLevel" json:"logConsoleLevel,omitempty"`
-	LogFile              string   `protobuf:"bytes,3,opt,name=logFile" json:"logFile,omitempty"`
-	MaxFileSize          uint32   `protobuf:"varint,4,opt,name=maxFileSize" json:"maxFileSize,omitempty"`
-	MaxBackups           uint32   `protobuf:"varint,5,opt,name=maxBackups" json:"maxBackups,omitempty"`
-	MaxAge               uint32   `protobuf:"varint,6,opt,name=maxAge" json:"maxAge,omitempty"`
-	LocalTime            bool     `protobuf:"varint,7,opt,name=localTime" json:"localTime,omitempty"`
-	Compress             bool     `protobuf:"varint,8,opt,name=compress" json:"compress,omitempty"`
-	CallerFile           bool     `protobuf:"varint,9,opt,name=callerFile" json:"callerFile,omitempty"`
-	CallerFunction       bool     `protobuf:"varint,10,opt,name=callerFunction" json:"callerFunction,omitempty"`
+	Loglevel             string   `protobuf:"bytes,1,opt,name=loglevel,proto3" json:"loglevel,omitempty"`
+	LogConsoleLevel      string   `protobuf:"bytes,2,opt,name=logConsoleLevel,proto3" json:"logConsoleLevel,omitempty"`
+	LogFile              string   `protobuf:"bytes,3,opt,name=logFile,proto3" json:"logFile,omitempty"`
+	MaxFileSize          uint32   `protobuf:"varint,4,opt,name=maxFileSize,proto3" json:"maxFileSize,omitempty"`
+	MaxBackups           uint32   `protobuf:"varint,5,opt,name=maxBackups,proto3" json:"maxBackups,omitempty"`
+	MaxAge               uint32   `protobuf:"varint,6,opt,name=maxAge,proto3" json:"maxAge,omitempty"`
+	LocalTime            bool     `protobuf:"varint,7,opt,name=localTime,proto3" json:"localTime,omitempty"`
+	Compress             bool     `protobuf:"varint,8,opt,name=compress,proto3" json:"compress,omitempty"`
+	CallerFile           bool     `protobuf:"varint,9,opt,name=callerFile,proto3" json:"callerFile,omitempty"`
+	CallerFunction       bool     `protobuf:"varint,10,opt,name=callerFunction,proto3" json:"callerFunction,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -164,16 +167,17 @@ func (m *Log) Reset()         { *m = Log{} }
 func (m *Log) String() string { return proto.CompactTextString(m) }
 func (*Log) ProtoMessage()    {}
 func (*Log) Descriptor() ([]byte, []int) {
-	return fileDescriptor_config_de1752c779fc3508, []int{1}
+	return fileDescriptor_3eaf2c85e69e9ea4, []int{1}
 }
+
 func (m *Log) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Log.Unmarshal(m, b)
 }
 func (m *Log) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Log.Marshal(b, m, deterministic)
 }
-func (dst *Log) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Log.Merge(dst, src)
+func (m *Log) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Log.Merge(m, src)
 }
 func (m *Log) XXX_Size() int {
 	return xxx_messageInfo_Log.Size(m)
@@ -255,15 +259,15 @@ func (m *Log) GetCallerFunction() bool {
 }
 
 type RelayerConfig struct {
-	Title                string        `protobuf:"bytes,1,opt,name=title" json:"title,omitempty"`
-	SyncTxConfig         *SyncTxConfig `protobuf:"bytes,2,opt,name=syncTxConfig" json:"syncTxConfig,omitempty"`
-	Log                  *Log          `protobuf:"bytes,3,opt,name=log" json:"log,omitempty"`
-	JrpcBindAddr         string        `protobuf:"bytes,4,opt,name=jrpcBindAddr" json:"jrpcBindAddr,omitempty"`
-	EthProvider          string        `protobuf:"bytes,5,opt,name=ethProvider" json:"ethProvider,omitempty"`
-	BridgeRegistry       string        `protobuf:"bytes,6,opt,name=bridgeRegistry" json:"bridgeRegistry,omitempty"`
-	Deploy               *Deploy       `protobuf:"bytes,7,opt,name=deploy" json:"deploy,omitempty"`
-	EthMaturityDegree    int32         `protobuf:"varint,8,opt,name=ethMaturityDegree" json:"ethMaturityDegree,omitempty"`
-	EthBlockFetchPeriod  int32         `protobuf:"varint,9,opt,name=ethBlockFetchPeriod" json:"ethBlockFetchPeriod,omitempty"`
+	Title                string        `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	SyncTxConfig         *SyncTxConfig `protobuf:"bytes,2,opt,name=syncTxConfig,proto3" json:"syncTxConfig,omitempty"`
+	Log                  *Log          `protobuf:"bytes,3,opt,name=log,proto3" json:"log,omitempty"`
+	JrpcBindAddr         string        `protobuf:"bytes,4,opt,name=jrpcBindAddr,proto3" json:"jrpcBindAddr,omitempty"`
+	EthProvider          string        `protobuf:"bytes,5,opt,name=ethProvider,proto3" json:"ethProvider,omitempty"`
+	BridgeRegistry       string        `protobuf:"bytes,6,opt,name=bridgeRegistry,proto3" json:"bridgeRegistry,omitempty"`
+	Deploy               *Deploy       `protobuf:"bytes,7,opt,name=deploy,proto3" json:"deploy,omitempty"`
+	EthMaturityDegree    int32         `protobuf:"varint,8,opt,name=ethMaturityDegree,proto3" json:"ethMaturityDegree,omitempty"`
+	EthBlockFetchPeriod  int32         `protobuf:"varint,9,opt,name=ethBlockFetchPeriod,proto3" json:"ethBlockFetchPeriod,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -273,16 +277,17 @@ func (m *RelayerConfig) Reset()         { *m = RelayerConfig{} }
 func (m *RelayerConfig) String() string { return proto.CompactTextString(m) }
 func (*RelayerConfig) ProtoMessage()    {}
 func (*RelayerConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_config_de1752c779fc3508, []int{2}
+	return fileDescriptor_3eaf2c85e69e9ea4, []int{2}
 }
+
 func (m *RelayerConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RelayerConfig.Unmarshal(m, b)
 }
 func (m *RelayerConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_RelayerConfig.Marshal(b, m, deterministic)
 }
-func (dst *RelayerConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RelayerConfig.Merge(dst, src)
+func (m *RelayerConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RelayerConfig.Merge(m, src)
 }
 func (m *RelayerConfig) XXX_Size() int {
 	return xxx_messageInfo_RelayerConfig.Size(m)
@@ -357,13 +362,13 @@ func (m *RelayerConfig) GetEthBlockFetchPeriod() int32 {
 }
 
 type SyncTxReceiptConfig struct {
-	Chain33Host          string   `protobuf:"bytes,1,opt,name=chain33host" json:"chain33host,omitempty"`
-	PushHost             string   `protobuf:"bytes,2,opt,name=pushHost" json:"pushHost,omitempty"`
-	PushName             string   `protobuf:"bytes,3,opt,name=pushName" json:"pushName,omitempty"`
-	PushBind             string   `protobuf:"bytes,4,opt,name=pushBind" json:"pushBind,omitempty"`
-	StartSyncHeight      int64    `protobuf:"varint,5,opt,name=startSyncHeight" json:"startSyncHeight,omitempty"`
-	StartSyncSequence    int64    `protobuf:"varint,6,opt,name=startSyncSequence" json:"startSyncSequence,omitempty"`
-	StartSyncHash        string   `protobuf:"bytes,7,opt,name=startSyncHash" json:"startSyncHash,omitempty"`
+	Chain33Host          string   `protobuf:"bytes,1,opt,name=chain33host,proto3" json:"chain33host,omitempty"`
+	PushHost             string   `protobuf:"bytes,2,opt,name=pushHost,proto3" json:"pushHost,omitempty"`
+	PushName             string   `protobuf:"bytes,3,opt,name=pushName,proto3" json:"pushName,omitempty"`
+	PushBind             string   `protobuf:"bytes,4,opt,name=pushBind,proto3" json:"pushBind,omitempty"`
+	StartSyncHeight      int64    `protobuf:"varint,5,opt,name=startSyncHeight,proto3" json:"startSyncHeight,omitempty"`
+	StartSyncSequence    int64    `protobuf:"varint,6,opt,name=startSyncSequence,proto3" json:"startSyncSequence,omitempty"`
+	StartSyncHash        string   `protobuf:"bytes,7,opt,name=startSyncHash,proto3" json:"startSyncHash,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -373,16 +378,17 @@ func (m *SyncTxReceiptConfig) Reset()         { *m = SyncTxReceiptConfig{} }
 func (m *SyncTxReceiptConfig) String() string { return proto.CompactTextString(m) }
 func (*SyncTxReceiptConfig) ProtoMessage()    {}
 func (*SyncTxReceiptConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_config_de1752c779fc3508, []int{3}
+	return fileDescriptor_3eaf2c85e69e9ea4, []int{3}
 }
+
 func (m *SyncTxReceiptConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SyncTxReceiptConfig.Unmarshal(m, b)
 }
 func (m *SyncTxReceiptConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_SyncTxReceiptConfig.Marshal(b, m, deterministic)
 }
-func (dst *SyncTxReceiptConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SyncTxReceiptConfig.Merge(dst, src)
+func (m *SyncTxReceiptConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SyncTxReceiptConfig.Merge(m, src)
 }
 func (m *SyncTxReceiptConfig) XXX_Size() int {
 	return xxx_messageInfo_SyncTxReceiptConfig.Size(m)
@@ -443,14 +449,14 @@ func (m *SyncTxReceiptConfig) GetStartSyncHash() string {
 }
 
 type Deploy struct {
-	// 操作管理员地址
-	OperatorAddr string `protobuf:"bytes,1,opt,name=operatorAddr" json:"operatorAddr,omitempty"`
-	// 合约部署人员私钥，用于部署合约时签名使用
-	DeployerPrivateKey string `protobuf:"bytes,2,opt,name=deployerPrivateKey" json:"deployerPrivateKey,omitempty"`
-	// 验证人地址
-	ValidatorsAddr []string `protobuf:"bytes,3,rep,name=validatorsAddr" json:"validatorsAddr,omitempty"`
-	// 验证人权重
-	InitPowers           []int64  `protobuf:"varint,4,rep,packed,name=initPowers" json:"initPowers,omitempty"`
+	//操作管理员地址
+	OperatorAddr string `protobuf:"bytes,1,opt,name=operatorAddr,proto3" json:"operatorAddr,omitempty"`
+	//合约部署人员私钥，用于部署合约时签名使用
+	DeployerPrivateKey string `protobuf:"bytes,2,opt,name=deployerPrivateKey,proto3" json:"deployerPrivateKey,omitempty"`
+	//验证人地址
+	ValidatorsAddr []string `protobuf:"bytes,3,rep,name=validatorsAddr,proto3" json:"validatorsAddr,omitempty"`
+	//验证人权重
+	InitPowers           []int64  `protobuf:"varint,4,rep,packed,name=initPowers,proto3" json:"initPowers,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -460,16 +466,17 @@ func (m *Deploy) Reset()         { *m = Deploy{} }
 func (m *Deploy) String() string { return proto.CompactTextString(m) }
 func (*Deploy) ProtoMessage()    {}
 func (*Deploy) Descriptor() ([]byte, []int) {
-	return fileDescriptor_config_de1752c779fc3508, []int{4}
+	return fileDescriptor_3eaf2c85e69e9ea4, []int{4}
 }
+
 func (m *Deploy) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Deploy.Unmarshal(m, b)
 }
 func (m *Deploy) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Deploy.Marshal(b, m, deterministic)
 }
-func (dst *Deploy) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Deploy.Merge(dst, src)
+func (m *Deploy) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Deploy.Merge(m, src)
 }
 func (m *Deploy) XXX_Size() int {
 	return xxx_messageInfo_Deploy.Size(m)
@@ -516,9 +523,11 @@ func init() {
 	proto.RegisterType((*Deploy)(nil), "types.Deploy")
 }
 
-func init() { proto.RegisterFile("config.proto", fileDescriptor_config_de1752c779fc3508) }
+func init() {
+	proto.RegisterFile("config.proto", fileDescriptor_3eaf2c85e69e9ea4)
+}
 
-var fileDescriptor_config_de1752c779fc3508 = []byte{
+var fileDescriptor_3eaf2c85e69e9ea4 = []byte{
 	// 680 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x55, 0xcd, 0x6e, 0x1a, 0x3b,
 	0x18, 0x15, 0x4c, 0x20, 0x60, 0xe0, 0x5e, 0x5d, 0xe7, 0xaa, 0x1a, 0x55, 0x51, 0x85, 0x50, 0x5b,

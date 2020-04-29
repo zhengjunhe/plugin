@@ -47,9 +47,9 @@ func RelayProphecyClaimToEthereum(oracleInstance *generated.Oracle, client *ethc
 	txhash = tx.Hash().Hex()
 	txslog.Info("RelayProphecyClaimToEthereum", "NewProphecyClaim tx hash:", txhash)
 	err = waitEthTxFinished(client, tx.Hash(), "ProphecyClaimToEthereum")
-	if nil != err {
-		return txhash, err
-	}
+	//if nil != err {
+	//	return txhash, err
+	//}
 	return txhash, nil
 }
 

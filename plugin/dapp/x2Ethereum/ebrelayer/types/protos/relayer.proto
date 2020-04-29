@@ -161,3 +161,8 @@ message EventLogIndex {
     uint64 height = 1;
     uint32 index = 2;
 }
+
+message EthTxStatus {
+    string status = 1;
+    string txhash = 2;
+}
