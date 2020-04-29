@@ -40,7 +40,7 @@ function cli_ret() {
     if [[ $# -eq 4 ]]; then
          if [[ "${msg}" != "${4}" ]]; then
           echo -e "${RED}The balance is not correct${NOC}"
-#          exit 1
+          exit 1
         fi
     fi
 
@@ -60,7 +60,7 @@ function balance_ret() {
     local balance=$(echo "${1}" | jq -r ".balance")
     if [[ "${balance}" != "${2}" ]]; then
         echo -e "${RED}The balance is not correct${NOC}"
-#          exit 1
+          exit 1
     fi
 
     set -x
@@ -187,6 +187,16 @@ function check_tx() {
         echo "wrong check_tx parameters"
         exit 1
     fi
+
+    while true; do
+        ty=$(${CLI} tx query -s ${2} | jq .receipt.ty)
+        if [[ ${ty} != "" ]]; then
+            break
+        fi
+
+        sleep 1
+    done
+
     ty=$(${CLI} tx query -s ${2} | jq .receipt.ty)
     if [[ ${ty} != 2 ]]; then
         echo "check tx error, hash is ${2}"
@@ -211,7 +221,7 @@ function updata_relayer_toml() {
     local file=${2}
 
     local chain33Host=$(docker inspect build_chain33_1 | jq ".[].NetworkSettings.Networks.build_default.IPAddress" | sed 's/\"//g')
-    local pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+    local pushHost=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
 
     local line=$(delete_line_show ${file} "chain33Host")
     # 在第 line 行后面 新增合约地址

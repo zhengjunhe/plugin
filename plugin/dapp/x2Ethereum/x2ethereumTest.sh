@@ -7,6 +7,8 @@ source "./ebrelayer/publicTest.sh"
 
 CLI="./build/ebcli_A"
 Chain33Cli="$GOPATH/src/github.com/33cn/plugin/build/chain33-cli"
+docker_chain33_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' build_chain33_1)
+Chain33Cli="${Chain33Cli} --rpc_laddr http://${docker_chain33_ip}:8801"
 
 tokenAddr=""
 BridgeRegistry=""
@@ -113,23 +115,23 @@ function InitChain33Vilators() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     # SetConsensusThreshold
     hash=$(${Chain33Cli} send x2ethereum setconsensus -p 80 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
+    #block_wait "${Chain33Cli}" 2
+    check_tx "${Chain33Cli}" "${hash}"
 
     # add a validator
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator1} -p 87 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
+    #block_wait "${Chain33Cli}" 2
+    check_tx "${Chain33Cli}" "${hash}"
 
     # add a validator again
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator2} -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
+    #block_wait "${Chain33Cli}" 2
+    check_tx "${Chain33Cli}" "${hash}"
 
     # add a validator
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator3} -p 7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
+    #block_wait "${Chain33Cli}" 2
+    check_tx "${Chain33Cli}" "${hash}"
 
     # query Validators
     totalPower=$(${Chain33Cli} send x2ethereum query validators -v ${chain33Validator1} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq .totalPower | sed 's/\"//g')
@@ -140,15 +142,15 @@ function InitChain33Vilators() {
 
     # cions 转帐到 x2ethereum 合约地址
     hash=$(${Chain33Cli} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
+    #block_wait "${Chain33Cli}" 2
+    check_tx "${Chain33Cli}" "${hash}"
     result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
     balance_ret "${result}" "200.0000"
 
     # chain33SenderAddr 要有手续费
     hash=$(${Chain33Cli} send coins transfer -a 100 -t "${chain33SenderAddr}" -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
+    #block_wait "${Chain33Cli}" 2
+    check_tx "${Chain33Cli}" "${hash}"
     result=$(${Chain33Cli} account balance -a "${chain33SenderAddr}" -e coins)
 #    balance_ret "${result}" "100.0000"
 
@@ -167,8 +169,8 @@ function TestChain33ToEthAssets() {
 
     # chain33 lock bty
     hash=$(${Chain33Cli} send x2ethereum lock -a 5 -t bty  -r ${ethReceiverAddr1} -q ${tokenAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 12
-    check_tx ${Chain33Cli} "${hash}"
+    block_wait "${Chain33Cli}" 12
+    check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
     balance_ret "${result}" "195.0000"
@@ -249,8 +251,8 @@ function TestETH2Chain33Assets() {
         balance=$(cli_ret "${result}" "balance" ".balance")
 
         hash=$(${Chain33Cli} send x2ethereum burn -a 4.9999 -t eth  -r ${ethReceiverAddr1} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-        block_wait ${Chain33Cli} 12
-        check_tx ${Chain33Cli} "${hash}"
+        block_wait "${Chain33Cli}" 12
+        check_tx "${Chain33Cli}" "${hash}"
 
         result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
         balance_ret "${result}" "5.0001"
@@ -271,8 +273,8 @@ function TestETH2Chain33Assets() {
         balance=$(cli_ret "${result}" "balance" ".balance")
 
         hash=$(${Chain33Cli} send x2ethereum burn -a 5.0001 -t eth  -r ${ethReceiverAddr2} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-        block_wait ${Chain33Cli} 12
-        check_tx ${Chain33Cli} "${hash}"
+        block_wait "${Chain33Cli}" 12
+        check_tx "${Chain33Cli}" "${hash}"
 
         result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
         balance_ret "${result}" "0.0000"
@@ -333,8 +335,8 @@ function TestETH2Chain33Erc20() {
 
     # chain33 burn 40
     hash=$(${Chain33Cli} send x2ethereum burn -a 40 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
-    block_wait ${Chain33Cli} 12
-    check_tx ${Chain33Cli} "${hash}"
+    block_wait "${Chain33Cli}" 12
+    check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
     balance_ret "${result}" "60.0000"
@@ -349,8 +351,8 @@ function TestETH2Chain33Erc20() {
 
     # burn 60
     hash=$(${Chain33Cli} send x2ethereum burn -a 60 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
-    block_wait ${Chain33Cli} 12
-    check_tx ${Chain33Cli} "${hash}"
+    block_wait "${Chain33Cli}" 12
+    check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
     balance_ret "${result}" "0.0000"
@@ -376,12 +378,11 @@ function main() {
     TestChain33ToEthAssets
     TestETH2Chain33Assets
     TestETH2Chain33Erc20
-
-    ExitRelayer
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 main
+
 
 
 
