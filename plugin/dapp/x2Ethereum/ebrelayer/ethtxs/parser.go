@@ -72,8 +72,8 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	return witnessClaim, nil
 }
 
-// BurnLockTxReceiptToChain33Msg : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
-func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types.ReceiptData) *events.Chain33Msg {
+// ParseBurnLockTxReceipt : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
+func ParseBurnLockTxReceipt(claimType events.Event, receipt *chain33Types.ReceiptData) *events.Chain33Msg {
 	// Set up variables
 	var chain33Sender []byte
 	var ethereumReceiver, tokenContractAddress common.Address
@@ -83,7 +83,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 	// Iterate over attributes
 	for _, log := range receipt.Logs {
 		if log.Ty == types.TyChain33ToEthLog || log.Ty == types.TyWithdrawChain33Log {
-			txslog.Debug("BurnLockTxReceiptToChain33Msg", "value", string(log.Log))
+			txslog.Debug("ParseBurnLockTxReceipt", "value", string(log.Log))
 			var chain33ToEth types.ReceiptChain33ToEth
 			err := chain33Types.Decode(log.Log, &chain33ToEth)
 			if err != nil {
@@ -97,7 +97,7 @@ func BurnLockTxReceiptToChain33Msg(claimType events.Event, receipt *chain33Types
 			amount = big.NewInt(1)
 			amount, _ = amount.SetString(chain33ToEth.Amount, 10)
 
-			txslog.Info("BurnLockTxReceiptToChain33Msg", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount.String())
+			txslog.Info("ParseBurnLockTxReceipt", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount.String())
 			// Package the event data into a Chain33Msg
 			chain33Msg := events.NewChain33Msg(claimType, chain33Sender, ethereumReceiver, symbol, amount, tokenContractAddress)
 			return &chain33Msg

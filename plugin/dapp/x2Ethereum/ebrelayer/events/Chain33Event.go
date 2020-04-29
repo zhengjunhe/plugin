@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -36,20 +35,5 @@ func NewChain33Msg(
 		TokenContractAddress: tokenContractAddress,
 	}
 
-	PrintChain33Msg(chain33Msg)
-
 	return chain33Msg
-}
-
-// PrintChain33Msg : prints a Chain33Msg struct's information
-func PrintChain33Msg(event Chain33Msg) {
-	claimType := event.ClaimType.String()
-	chain33Sender := string(event.Chain33Sender)
-	ethereumReceiver := event.EthereumReceiver.Hex()
-	tokenContractAddress := event.TokenContractAddress.Hex()
-	symbol := event.Symbol
-	amount := event.Amount
-
-	fmt.Printf("\nClaim Type: %v\nChain33 Sender: %v\nEthereum Recipient: %v\nToken Address: %v\nSymbol: %v\nAmount: %v\n",
-		claimType, chain33Sender, ethereumReceiver, tokenContractAddress, symbol, amount.String())
 }

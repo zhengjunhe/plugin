@@ -217,7 +217,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 	relayerLog.Info("handleBurnLockMsg", "Received tx with hash", ethCommon.Bytes2Hex(chain33TxHash))
 
 	// Parse the witnessed event's data into a new Chain33Msg
-	chain33Msg := relayerTx.BurnLockTxReceiptToChain33Msg(claimEvent, receipt)
+	chain33Msg := relayerTx.ParseBurnLockTxReceipt(claimEvent, receipt)
 	if nil == chain33Msg {
 		//收到执行失败的交易，直接跳过
 		relayerLog.Error("handleBurnLockMsg", "Received failed tx with hash", ethCommon.Bytes2Hex(chain33TxHash))
