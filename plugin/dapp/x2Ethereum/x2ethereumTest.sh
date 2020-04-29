@@ -21,7 +21,7 @@ ethReceiverAddr3="0x1919203bA8b325278d28Fb8fFeac49F2CD881A4e"
 ethReceiverAddrKey3="62ca4122aac0e6f35bed02fc15c7ddbdaa07f2f2a1821c8b8210b891051e3ee9"
 
 chain33Validator1="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-chain33Validator2="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+chain33Validator2="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv" #0x4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01
 chain33Validator3="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
 BtyReceiever="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
 ETHContractAddr="0x0000000000000000000000000000000000000000"
@@ -50,6 +50,10 @@ function ImportKey() {
     result=$(${CLI} relayer ethereum import_chain33privatekey -k "${chain33SenderAddrKey}")
     cli_ret "${result}" "import_chain33privatekey"
 
+    hash=$(${Chain33Cli} send coins transfer -a 100 -t "${chain33SenderAddr}" -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    block_wait ${Chain33Cli} 2
+    check_tx ${Chain33Cli} "${hash}"
+
     result=$(${CLI} relayer ethereum import_ethprivatekey -k "${ethValidatorAddrKey}")
     cli_ret "${result}" "import_ethprivatekey"
 
@@ -66,7 +70,6 @@ function StartRelayerAndDeploy() {
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
 
     InitAndDeploy
-    ImportKey
 
     # 获取 BridgeRegistry 地址
     result=$(${CLI} relayer ethereum bridgeRegistry)
@@ -191,16 +194,20 @@ TestETH2Chain33Assets() {
     cli_ret "${result}" "balance" ".balance" "0"
 
     # eth lock 100
-    result=$(${CLI} relayer ethereum lock -m 5 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    result=$(${CLI} relayer ethereum lock -m 1 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     cli_ret "${result}" "lock"
 
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
-    cli_ret "${result}" "balance" ".balance" "5"
+    cli_ret "${result}" "balance" ".balance" "1"
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}")
 
+    sleep 50
+
+    ${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth
+
     # chain33 burn 0.1eth
-    hash=$(${Chain33CLI} send x2ethereum burn -a 0.1 -t eth  -r ${ethReceiverAddr1} -q ${ETHContractAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    hash=$(${Chain33Cli} send x2ethereum burn -a 0.1 -t eth  -r ${ethReceiverAddr1} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     block_wait ${Chain33Cli} 4
     check_tx ${Chain33Cli} "${hash}"
 
@@ -245,7 +252,7 @@ TestETH2Chain33Erc20() {
     cli_ret "${result}" "balance" ".balance" "100"
 
     # chain33 burn 40
-    hash=$(${Chain33CLI} send x2ethereum burn -a 40 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
+    hash=$(${Chain33Cli} send x2ethereum burn -a 40 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
     block_wait ${Chain33Cli} 4
     check_tx ${Chain33Cli} "${hash}"
 
@@ -256,7 +263,7 @@ TestETH2Chain33Erc20() {
     cli_ret "${result}" "balance" ".balance" "60"
 
     # burn 60
-    hash=$(${Chain33CLI} send x2ethereum burn -a 60 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
+    hash=$(${Chain33Cli} send x2ethereum burn -a 60 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
     block_wait ${Chain33Cli} 4
     check_tx ${Chain33Cli} "${hash}"
 
@@ -272,12 +279,14 @@ TestETH2Chain33Erc20() {
 function main() {
    # proxy_off
     StartRelayerAndDeploy
+
+    ImportKey
     InitChain33Vilators
 
-    TestChain33ToEthAssets
+#    TestChain33ToEthAssets
 
-    #TestETH2Chain33Assets
-    #TestETH2Chain33Erc20
+#    TestETH2Chain33Assets
+ #   TestETH2Chain33Erc20
 }
 
 main
