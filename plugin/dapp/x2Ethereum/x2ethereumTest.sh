@@ -4,7 +4,7 @@ set -x
 source "./ebrelayer/publicTest.sh"
 
 CLI="./build/ebcli_A"
-Chain33Cli="/home/lyh/go/src/github.com/33cn/plugin/build/chain33-cli"
+Chain33Cli="$GOPATH/src/github.com/33cn/plugin/build/chain33-cli"
 
 tokenAddr=""
 BridgeRegistry=""
