@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2128
+# shellcheck source=/dev/null
 set -x
+
+#color
+RED='\033[1;31m'
+GRE='\033[1;32m'
+NOC='\033[0m'
 
 # 解锁
 function unlock_relayer() {
@@ -32,13 +39,32 @@ function cli_ret() {
     msg=$(echo "${1}" | jq -r "${jqMsg}")
     if [[ $# -eq 4 ]]; then
          if [[ "${msg}" != "${4}" ]]; then
-          echo "The balance is not correct"
+          echo -e "${RED}The balance is not correct${NOC}"
 #          exit 1
         fi
     fi
 
     set -x
     echo "${msg}"
+}
+
+# 判断 chain33 金额是否正确
+function balance_ret() {
+    set +x
+    if [[ $# -lt 2 ]]; then
+        echo "wrong parameter"
+        exit 1
+    fi
+
+
+    local balance=$(echo "${1}" | jq -r ".balance")
+    if [[ "${balance}" != "${2}" ]]; then
+        echo -e "${RED}The balance is not correct${NOC}"
+#          exit 1
+    fi
+
+    set -x
+    echo "${balance}"
 }
 
 # 判断结果是否错误
@@ -87,11 +113,11 @@ function start_ebrelayer() {
 
     # 后台启动程序
     nohup "${1}" >"${2}" 2>&1 &
-    sleep 1
 
+    sleep 1
     pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
     if [ "${pid}" == "" ];then
-        echo "start ${1} failed"
+        echo -e "${RED}start ${1} failed${NOC}"
         exit 1
     fi
 }
@@ -121,7 +147,7 @@ function kill_all_ebrelayer() {
     done
 }
 
-# 区块等待 $1:cli 路径  $2:等待高度
+# chain33 区块等待 $1:cli 路径  $2:等待高度
 function block_wait() {
     set +x
     local CLI=${1}
@@ -143,14 +169,14 @@ function block_wait() {
         count=$((count + 1))
         sleep 1
 
-        if [[ ${count} -ge 30 ]]; then
-           break
-        fi
+#        if [[ ${count} -ge 30 ]]; then
+#           break
+#        fi
     done
 
     count=$((count + 1))
     set -x
-    echo "wait new block $count s, cur height=$expect,old=$cur_height"
+    echo -e "${GRE}chain33 wait new block $count s, cur height=$expect,old=$cur_height${NOC}"
 }
 
 # 检查交易是否执行成功 $1:cli 路径  $2:交易hash
@@ -231,4 +257,35 @@ function wait_prophecy_finish() {
         sleep 1
     done
     set -x
+}
+
+# eth 区块等待 $1:等待高度
+function eth_block_wait() {
+    set +x
+    if [[ $# -lt 0 ]]; then
+        echo "wrong block_wait parameter"
+        exit 1
+    fi
+
+    local cur_height=$(curl -H "Content-Type: application/json" -X POST --data '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:7545 | jq -r ".result")
+    local expect=$((cur_height + ${1} + 1))
+    local count=0
+    while true; do
+        new_height=$(curl -H "Content-Type: application/json" -X POST --data '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:7545 | jq -r ".result")
+        if [[ ${new_height} -ge ${expect} ]]; then
+            break
+        fi
+
+        count=$((count + 1))
+        sleep 1
+
+#        if [[ ${count} -ge 80 ]]; then
+#           break
+#        fi
+    done
+
+    count=$((count + 1))
+    sleep 1
+    set -x
+    echo -e "${GRE}eth wait new block $count s, cur height=$expect,old=$((cur_height))${NOC}"
 }

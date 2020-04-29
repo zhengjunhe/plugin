@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2128
+# shellcheck source=/dev/null
 set -x
 
 source "./ebrelayer/publicTest.sh"
@@ -26,8 +28,8 @@ chain33Validator3="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
 BtyReceiever="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
 ETHContractAddr="0x0000000000000000000000000000000000000000"
 
-InitAndDeploy() {
-    echo "=========== $FUNCNAME begin ==========="
+function InitAndDeploy() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     result=$(${CLI} relayer set_pwd -n 123456hzj -o kk)
     cli_ret "${result}" "set_pwd"
 
@@ -37,22 +39,17 @@ InitAndDeploy() {
     result=$(${CLI} relayer ethereum deploy)
     cli_ret "${result}" "deploy"
 
-    echo "=========== $FUNCNAME end ==========="
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-function ImportKey() {
-    echo "=========== $FUNCNAME begin ==========="
+function EthImportKey() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     result=$(${CLI} relayer set_pwd -n 123456hzj -o kk)
 
     result=$(${CLI} relayer unlock -p 123456hzj)
-    #cli_ret "${result}" "unlock"
 
     result=$(${CLI} relayer ethereum import_chain33privatekey -k "${chain33SenderAddrKey}")
     cli_ret "${result}" "import_chain33privatekey"
-
-    hash=$(${Chain33Cli} send coins transfer -a 100 -t "${chain33SenderAddr}" -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 2
-    check_tx ${Chain33Cli} "${hash}"
 
     result=$(${CLI} relayer ethereum import_ethprivatekey -k "${ethValidatorAddrKey}")
     cli_ret "${result}" "import_ethprivatekey"
@@ -60,13 +57,26 @@ function ImportKey() {
     result=$(${CLI} relayer chain33 import_privatekey -k "${ethValidatorAddrKey}")
     cli_ret "${result}" "import_ethprivatekey"
 
-    echo "=========== $FUNCNAME end ==========="
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 function StartRelayerAndDeploy() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
     kill_ebrelayer "./build/ebrelayer"
-    rm -rf "./build/datadir"
-    rm -rf "./build/ebrelayer.log"
+
+    # 如果原来存在先删除
+    docker stop ganachetest
+    docker rm ganachetest
+
+    cp "./ebrelayer/relayer.toml" "./build/relayer.toml"
+    sed -i 's/initPowers=\[25, 25, 25, 25\]/initPowers=\[925, 25, 25, 25\]/g' "./build/relayer.toml"
+    rm -rf "./build/datadir" "./build/ebrelayer.log" "./build/logs"
+
+    # 启动 eth
+    docker run -d --name ganachetest -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 5 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
+    sleep 5
+
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
 
     InitAndDeploy
@@ -79,16 +89,28 @@ function StartRelayerAndDeploy() {
     kill_ebrelayer "./build/ebrelayer"
     # 修改 relayer.toml 配置文件
     updata_relayer_toml ${BridgeRegistry} "./build/relayer.toml"
-    sed -i 's/initPowers=\[25, 25, 25, 25\]/initPowers=\[925, 25, 25, 25\]/g' "./build/relayer.toml"
 
     # 重启 ebrelayer 并解锁
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
+
+    ${CLI} relayer set_pwd -n 123456hzj -o kk
     ${CLI} relayer unlock -p 123456hzj
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function ExitRelayer() {
+    # kill ebrelayer
+    kill_ebrelayer "./build/ebrelayer"
+
+    # 删除 eth
+    docker stop ganachetest
+    docker rm ganachetest
 }
 
 # chian33 添加验证着及权重
 function InitChain33Vilators() {
-    echo "=========== $FUNCNAME begin ==========="
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     # SetConsensusThreshold
     hash=$(${Chain33Cli} send x2ethereum setconsensus -p 80 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     block_wait ${Chain33Cli} 2
@@ -120,14 +142,21 @@ function InitChain33Vilators() {
     hash=$(${Chain33Cli} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     block_wait ${Chain33Cli} 2
     check_tx ${Chain33Cli} "${hash}"
-
     result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
+    balance_ret "${result}" "200.0000"
 
-    echo "=========== $FUNCNAME end ==========="
+    # chain33SenderAddr 要有手续费
+    hash=$(${Chain33Cli} send coins transfer -a 100 -t "${chain33SenderAddr}" -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    block_wait ${Chain33Cli} 2
+    check_tx ${Chain33Cli} "${hash}"
+    result=$(${Chain33Cli} account balance -a "${chain33SenderAddr}" -e coins)
+#    balance_ret "${result}" "100.0000"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-TestChain33ToEthAssets() {
-    echo "=========== $FUNCNAME begin ==========="
+function TestChain33ToEthAssets() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     # token4chain33 在 以太坊 上先有 bty
     result=$(${CLI} relayer ethereum token4chain33 -s bty)
     tokenAddr=$(cli_ret "${result}" "token4chain33" ".addr")
@@ -138,14 +167,16 @@ TestChain33ToEthAssets() {
 
     # chain33 lock bty
     hash=$(${Chain33Cli} send x2ethereum lock -a 5 -t bty  -r ${ethReceiverAddr1} -q ${tokenAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 4
+    block_wait ${Chain33Cli} 12
     check_tx ${Chain33Cli} "${hash}"
 
-    block_wait ${Chain33Cli} 10
+    result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
+    balance_ret "${result}" "195.0000"
+
+    eth_block_wait 12
+
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "5"
-
-    return
 
     # eth transfer
     {
@@ -153,10 +184,10 @@ TestChain33ToEthAssets() {
         cli_ret "${result}" "transfer"
 
         result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
-        cli_ret "${result}" "balance" ".balance" "3.5000"
+        cli_ret "${result}" "balance" ".balance" "3.5"
 
         result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}" -t "${tokenAddr}")
-        cli_ret "${result}" "balance" ".balance" "1.5000"
+        cli_ret "${result}" "balance" ".balance" "1.5"
     }
 
     # eth burn
@@ -164,27 +195,33 @@ TestChain33ToEthAssets() {
     cli_ret "${result}" "burn"
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}" -t "${tokenAddr}")
-    cli_ret "${result}" "balance" ".balance" "1.1000"
-
-    ${Chain33Cli} account balance -a "${chain33SenderAddr}" -e x2ethereum
-    cli_ret "${result}" "balance" ".balance" "0.4000"
+    cli_ret "${result}" "balance" ".balance" "1.1"
 
     result=$(${CLI} relayer ethereum burn -m 0.4 -k "${ethReceiverAddrKey2}" -r "${chain33SenderAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "burn"
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}" -t "${tokenAddr}")
-    cli_ret "${result}" "balance" ".balance" "0.7000"
+    cli_ret "${result}" "balance" ".balance" "0.7"
 
-    ${Chain33Cli} account balance -a "${chain33SenderAddr}" -e x2ethereum
-    cli_ret "${result}" "balance" ".balance" "0.8000"
+    result=$(${CLI} relayer ethereum burn -m 0.7 -k "${ethReceiverAddrKey2}" -r "${chain33Validator3}" -t "${tokenAddr}")
+    cli_ret "${result}" "burn"
 
-    echo "=========== $FUNCNAME end ==========="
+    # eth 等待 10 个区块
+    eth_block_wait 12
+
+    result=$(${Chain33Cli} account balance -a "${chain33SenderAddr}" -e x2ethereum)
+    balance_ret "${result}" "0.8000"
+
+    result=$(${Chain33Cli} account balance -a "${chain33Validator3}" -e x2ethereum)
+    balance_ret "${result}" "0.7000"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
-
+# shellcheck disable=SC2046
 # eth to chain33
 # 在以太坊上锁定资产,然后在 chain33 上铸币,针对 eth 资产
-TestETH2Chain33Assets() {
-    echo "=========== $FUNCNAME begin ==========="
+function TestETH2Chain33Assets() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     ${CLI} relayer unlock -p 123456hzj
 
     result=$(${CLI} relayer ethereum bridgeBankAddr)
@@ -193,31 +230,69 @@ TestETH2Chain33Assets() {
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
-    # eth lock 100
-    result=$(${CLI} relayer ethereum lock -m 1 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+    # eth lock 10
+    result=$(${CLI} relayer ethereum lock -m 10 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     cli_ret "${result}" "lock"
 
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
-    cli_ret "${result}" "balance" ".balance" "1"
+    cli_ret "${result}" "balance" ".balance" "10"
 
-    result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}")
+    # eth 等待 10 个区块
+    eth_block_wait 12
 
-    sleep 50
+    result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
+    balance_ret "${result}" "10.0000"
 
-    ${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth
+    # chain33 burn 4.9999 eth
+    {
+        result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}")
+        balance=$(cli_ret "${result}" "balance" ".balance")
 
-    # chain33 burn 0.1eth
-    hash=$(${Chain33Cli} send x2ethereum burn -a 0.1 -t eth  -r ${ethReceiverAddr1} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait ${Chain33Cli} 4
-    check_tx ${Chain33Cli} "${hash}"
+        hash=$(${Chain33Cli} send x2ethereum burn -a 4.9999 -t eth  -r ${ethReceiverAddr1} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+        block_wait ${Chain33Cli} 12
+        check_tx ${Chain33Cli} "${hash}"
 
-    echo "=========== $FUNCNAME end ==========="
+        result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
+        balance_ret "${result}" "5.0001"
+
+        eth_block_wait 2
+
+        result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
+        cli_ret "${result}" "balance" ".balance" "5.0001"
+
+        result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}")
+        cli_ret "${result}" "balance" ".balance" $(echo "${balance}+4.9999"|bc)
+
+    }
+
+    # chain33 burn 5.0001 eth
+    {
+        result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}")
+        balance=$(cli_ret "${result}" "balance" ".balance")
+
+        hash=$(${Chain33Cli} send x2ethereum burn -a 5.0001 -t eth  -r ${ethReceiverAddr2} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
+        block_wait ${Chain33Cli} 12
+        check_tx ${Chain33Cli} "${hash}"
+
+        result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
+        balance_ret "${result}" "0.0000"
+
+        eth_block_wait 2
+
+        result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}")
+        cli_ret "${result}" "balance" ".balance" "0"
+
+        result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}")
+        cli_ret "${result}" "balance" ".balance" $(echo "${balance}+5.0001"|bc)
+    }
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-TestETH2Chain33Erc20() {
-    echo "=========== $FUNCNAME begin ==========="
-
+function TestETH2Chain33Erc20() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     ${CLI} relayer unlock -p 123456hzj
+
     # token4erc20 在 chain33 上先有 token,同时 mint
     tokenSymbol="testc"
     result=$(${CLI} relayer ethereum token4erc20 -s "${tokenSymbol}")
@@ -240,8 +315,7 @@ TestETH2Chain33Erc20() {
     result=$(${CLI} relayer ethereum approve -m 100 -k "${ethReceiverAddrKey1}" -t "${tokenAddr}")
     cli_ret "${result}" "approve"
 
-    # ETH 2 chain33 lock 100
-    # -r chain33 receiver addr
+    # lock 100
     result=$(${CLI} relayer ethereum lock -m 100 -k "${ethReceiverAddrKey1}" -r "${chain33SenderAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "lock"
 
@@ -251,10 +325,21 @@ TestETH2Chain33Erc20() {
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "100"
 
+    # eth 等待 10 个区块
+    eth_block_wait 12
+
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
+    balance_ret "${result}" "100.0000"
+
     # chain33 burn 40
     hash=$(${Chain33Cli} send x2ethereum burn -a 40 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
-    block_wait ${Chain33Cli} 4
+    block_wait ${Chain33Cli} 12
     check_tx ${Chain33Cli} "${hash}"
+
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
+    balance_ret "${result}" "60.0000"
+
+    eth_block_wait 2
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "40"
@@ -264,8 +349,13 @@ TestETH2Chain33Erc20() {
 
     # burn 60
     hash=$(${Chain33Cli} send x2ethereum burn -a 60 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
-    block_wait ${Chain33Cli} 4
+    block_wait ${Chain33Cli} 12
     check_tx ${Chain33Cli} "${hash}"
+
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
+    balance_ret "${result}" "0.0000"
+
+    eth_block_wait 2
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr2}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "100"
@@ -273,23 +363,26 @@ TestETH2Chain33Erc20() {
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
-    echo "=========== $FUNCNAME end ==========="
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 function main() {
-   # proxy_off
-    StartRelayerAndDeploy
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
-    ImportKey
+    StartRelayerAndDeploy
+    EthImportKey
     InitChain33Vilators
 
-#    TestChain33ToEthAssets
+    TestChain33ToEthAssets
+    TestETH2Chain33Assets
+    TestETH2Chain33Erc20
 
-#    TestETH2Chain33Assets
- #   TestETH2Chain33Erc20
+    ExitRelayer
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 main
+
 
 
 
