@@ -286,6 +286,11 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 	if "" == tokenAddrStr {
 		auth.Value = amount
 	}
+	auth, err = PrepareAuth(client, ownerPrivateKey, ownerAddr)
+	if nil != err {
+		txslog.Error("LockEthErc20Asset", "PrepareAuth err", err.Error())
+		return "", err
+	}
 	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, amount)
 	if nil != err {
 		txslog.Error("LockEthErc20Asset", "lock err", err.Error())

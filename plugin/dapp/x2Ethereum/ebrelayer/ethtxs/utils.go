@@ -84,6 +84,7 @@ func getNonce(sender common.Address, backend bind.ContractBackend) (*big.Int, er
 	if nonce, exist := addr2Nonce[sender]; exist {
 		nonce += 1
 		addr2Nonce[sender] = nonce
+		txslog.Debug("getNonce", "address", sender.String(), "nonce", nonce)
 		return big.NewInt(nonce), nil
 	}
 
@@ -91,6 +92,7 @@ func getNonce(sender common.Address, backend bind.ContractBackend) (*big.Int, er
 	if nil != err {
 		return nil, err
 	}
+	txslog.Debug("getNonce", "address", sender.String(), "nonce", nonce)
 	addr2Nonce[sender] = int64(nonce)
 	return big.NewInt(int64(nonce)), nil
 }
