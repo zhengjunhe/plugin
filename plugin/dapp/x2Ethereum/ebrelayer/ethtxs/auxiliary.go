@@ -258,11 +258,7 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 		return "", err
 	}
 	ownerAddr := crypto.PubkeyToAddress(ownerPrivateKey.PublicKey)
-	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
-	if nil != err {
-		txslog.Error("LockEthErc20Asset", "PrepareAuth err", err.Error())
-		return "", err
-	}
+
 	//ETH转账，空地址，且设置value
 	var tokenAddr common.Address
 	if "" != tokenAddrStr {
@@ -272,6 +268,12 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 		if nil != err {
 			return "", err
 		}
+		auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
+		if nil != err {
+			txslog.Error("LockEthErc20Asset", "PrepareAuth err", err.Error())
+			return "", err
+		}
+
 		//chain33bank 是bridgeBank的基类，所以使用bridgeBank的地址
 		tx, err := tokenInstance.Approve(auth, bridgeBankAddr, amount)
 		if nil != err {
@@ -283,14 +285,16 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 		}
 		txslog.Info("LockEthErc20Asset", "Approve tx with hash", tx.Hash().String())
 	}
-	if "" == tokenAddrStr {
-		auth.Value = amount
-	}
-	auth, err = PrepareAuth(client, ownerPrivateKey, ownerAddr)
+
+	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
 	if nil != err {
 		txslog.Error("LockEthErc20Asset", "PrepareAuth err", err.Error())
 		return "", err
 	}
+	if "" == tokenAddrStr {
+		auth.Value = amount
+	}
+
 	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, amount)
 	if nil != err {
 		txslog.Error("LockEthErc20Asset", "lock err", err.Error())
