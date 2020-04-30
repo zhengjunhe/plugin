@@ -5,7 +5,7 @@ JrpcBindAddr="localhost:9901"
 EthProvider="ws://127.0.0.1:7545/"
 EthMaturityDegree=10
 EthBlockFetchPeriod=5000
-BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
+#BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
 
 [SyncTxConfig]
 chain33Host="http://172.18.0.7:8801"

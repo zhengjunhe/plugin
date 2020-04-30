@@ -181,6 +181,7 @@ function block_wait() {
 
 # 检查交易是否执行成功 $1:cli 路径  $2:交易hash
 function check_tx() {
+    set +x
     local CLI=${1}
 
     if [[ $# -lt 2 ]]; then
@@ -188,14 +189,23 @@ function check_tx() {
         exit 1
     fi
 
+    local count=0
     while true; do
         ty=$(${CLI} tx query -s ${2} | jq .receipt.ty)
         if [[ ${ty} != "" ]]; then
             break
         fi
 
+        count=$((count + 1))
         sleep 1
+
+        if [[ ${count} -ge 100 ]]; then
+            echo "chain33 query tx for too long"
+            break
+        fi
     done
+
+    set -x
 
     ty=$(${CLI} tx query -s ${2} | jq .receipt.ty)
     if [[ ${ty} != 2 ]]; then
@@ -215,13 +225,39 @@ function check_number() {
     fi
 }
 
+# 检查地址是否匹配 $1返回结果 $2匹配地址
+function check_addr() {
+    if [[ $# -lt 2 ]]; then
+        echo "wrong check number parameters"
+        exit 1
+    fi
+
+    addr=$(echo ${1} | jq -r ".acc.addr")
+    if [[ ${addr} != ${2} ]]; then
+        echo "error addr, expect ${1}, get ${2}"
+     #   exit 1
+    fi
+}
+
 # 更新配置文件 $1 为 BridgeRegistry 合约地址 $2 relayer.toml 地址
 function updata_relayer_toml() {
     local BridgeRegistry=${1}
     local file=${2}
 
     local chain33Host=$(docker inspect build_chain33_1 | jq ".[].NetworkSettings.Networks.build_default.IPAddress" | sed 's/\"//g')
+    if [[ "${chain33Host}" == "" ]]; then
+        echo "chain33Host is empty"
+        exit 1
+    fi
+
     local pushHost=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+    if [[ "${pushHost}" == "" ]]; then
+        pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+        if [[ "${pushHost}" == "" ]]; then
+            echo "pushHost is empty"
+            exit 1
+        fi
+    fi
 
     local line=$(delete_line_show ${file} "chain33Host")
     # 在第 line 行后面 新增合约地址
@@ -236,6 +272,38 @@ function updata_relayer_toml() {
     #sed -i 's/#BridgeRegistry=\"0x40BFE5eD039A9a2Eb42ece2E2CA431bFa7Cf4c42\"/BridgeRegistry=\"'${BridgeRegistry}'\"/g' "./build/relayer.toml"
     #sed -i 's/192.168.64.2/'${chain33Host}'/g' "./build/relayer.toml"
     #sed -i 's/192.168.3.156/'${pushHost}'/g' "./build/relayer.toml"
+}
+
+# 更新 B C D 的配置文件
+function updata_all_relayer_toml() {
+    local port=9901
+    for name in B C D
+    do
+        local file="./build/"$name"/relayer.toml"
+        cp './build/A/relayer.toml' "${file}"
+        cp './build/ebrelayer' "./build/"$name"/ebrelayer"
+
+        # 删除配置文件中不需要的字段
+        for deleteName in "deployerPrivateKey" "operatorAddr" "validatorsAddr" "initPowers" "deployerPrivateKey" "\[deploy\]"
+        do
+            delete_line "${file}" "${deleteName}"
+        done
+
+        # 替换端口
+        port=$((${port} + 1))
+        sed -i 's/localhost:9901/localhost:'${port}'/g' "${file}"
+    done
+}
+
+# 启动 eth
+function start_trufflesuite() {
+    # 如果原来存在先删除
+    docker stop ganachetest
+    docker rm ganachetest
+
+    # 启动 eth
+    docker run -d --name ganachetest -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 5 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
+    sleep 5
 }
 
 # $1 CLI
@@ -277,11 +345,11 @@ function eth_block_wait() {
         exit 1
     fi
 
-    local cur_height=$(curl -H "Content-Type: application/json" -X POST --data '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:7545 | jq -r ".result")
+    local cur_height=$(curl -ksd '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:7545 | jq -r ".result")
     local expect=$((cur_height + ${1} + 1))
     local count=0
     while true; do
-        new_height=$(curl -H "Content-Type: application/json" -X POST --data '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:7545 | jq -r ".result")
+        new_height=$(curl -ksd '{"id":1,"jsonrpc":"2.0","method":"eth_blockNumber","params":[]}' http://localhost:7545 | jq -r ".result")
         if [[ ${new_height} -ge ${expect} ]]; then
             break
         fi

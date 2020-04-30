@@ -6,9 +6,8 @@ set -x
 source "./ebrelayer/publicTest.sh"
 
 CLI="./build/ebcli_A"
-Chain33Cli="$GOPATH/src/github.com/33cn/plugin/build/chain33-cli"
 docker_chain33_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' build_chain33_1)
-Chain33Cli="${Chain33Cli} --rpc_laddr http://${docker_chain33_ip}:8801"
+Chain33Cli="$GOPATH/src/github.com/33cn/plugin/build/chain33-cli --rpc_laddr http://${docker_chain33_ip}:8801"
 
 tokenAddr=""
 BridgeRegistry=""
@@ -67,17 +66,12 @@ function StartRelayerAndDeploy() {
 
     kill_ebrelayer "./build/ebrelayer"
 
-    # 如果原来存在先删除
-    docker stop ganachetest
-    docker rm ganachetest
-
     cp "./ebrelayer/relayer.toml" "./build/relayer.toml"
     sed -i 's/initPowers=\[25, 25, 25, 25\]/initPowers=\[925, 25, 25, 25\]/g' "./build/relayer.toml"
     rm -rf "./build/datadir" "./build/ebrelayer.log" "./build/logs"
 
     # 启动 eth
-    docker run -d --name ganachetest -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 5 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
-    sleep 5
+    start_trufflesuite
 
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
 
@@ -115,22 +109,18 @@ function InitChain33Vilators() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     # SetConsensusThreshold
     hash=$(${Chain33Cli} send x2ethereum setconsensus -p 80 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    #block_wait "${Chain33Cli}" 2
     check_tx "${Chain33Cli}" "${hash}"
 
     # add a validator
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator1} -p 87 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    #block_wait "${Chain33Cli}" 2
     check_tx "${Chain33Cli}" "${hash}"
 
     # add a validator again
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator2} -p 6 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    #block_wait "${Chain33Cli}" 2
     check_tx "${Chain33Cli}" "${hash}"
 
     # add a validator
     hash=$(${Chain33Cli} send x2ethereum add -a ${chain33Validator3} -p 7 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    #block_wait "${Chain33Cli}" 2
     check_tx "${Chain33Cli}" "${hash}"
 
     # query Validators
@@ -142,14 +132,12 @@ function InitChain33Vilators() {
 
     # cions 转帐到 x2ethereum 合约地址
     hash=$(${Chain33Cli} send coins send_exec -e x2ethereum -a 200 -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    #block_wait "${Chain33Cli}" 2
     check_tx "${Chain33Cli}" "${hash}"
     result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
     balance_ret "${result}" "200.0000"
 
     # chain33SenderAddr 要有手续费
     hash=$(${Chain33Cli} send coins transfer -a 100 -t "${chain33SenderAddr}" -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    #block_wait "${Chain33Cli}" 2
     check_tx "${Chain33Cli}" "${hash}"
     result=$(${Chain33Cli} account balance -a "${chain33SenderAddr}" -e coins)
 #    balance_ret "${result}" "100.0000"
@@ -312,10 +300,6 @@ function TestETH2Chain33Erc20() {
 
     result=$(${CLI} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
-
-    # ETH 2 chain33 lock 前先审批一下
-    result=$(${CLI} relayer ethereum approve -m 100 -k "${ethReceiverAddrKey1}" -t "${tokenAddr}")
-    cli_ret "${result}" "approve"
 
     # lock 100
     result=$(${CLI} relayer ethereum lock -m 100 -k "${ethReceiverAddrKey1}" -r "${chain33SenderAddr}" -t "${tokenAddr}")
