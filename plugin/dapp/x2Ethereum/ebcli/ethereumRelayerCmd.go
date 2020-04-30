@@ -504,7 +504,7 @@ func LockSyncCmd() *cobra.Command {
 
 func LockAsyncCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "lock",
+		Use:   "lock-async",
 		Short: "async lock eth or erc20 and cross-chain transfer to chain33",
 		Run:   LockEthErc20AssetAsync,
 	}

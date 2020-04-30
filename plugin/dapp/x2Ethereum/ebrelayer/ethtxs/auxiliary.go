@@ -213,6 +213,7 @@ func BurnAsync(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeB
 	if nil != err {
 		return "", err
 	}
+
 	tokenAddr := common.HexToAddress(tokenAddrstr)
 	tx, err := bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, amount)
 	if nil != err {

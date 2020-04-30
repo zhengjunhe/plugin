@@ -446,7 +446,7 @@ func (ethRelayer *EthereumRelayer) procNewHeight(continueFailCount *int32, ctx c
 		if len(logs) > 0 {
 			//firstHeight := logs[0].BlockNumber
 			lastHeight := logs[cnt-1].BlockNumber
-			index := logs[cnt-1].Index
+			index := logs[cnt-1].TxIndex
 			//获取的数量小于批量获取数量，则认为直接
 			ethRelayer.setBridgeBankProcessedHeight(lastHeight, uint32(index))
 			ethRelayer.eventLogIndex.Height = lastHeight
@@ -466,13 +466,13 @@ func (ethRelayer *EthereumRelayer) storeBridgeBankLogs(vLog types.Log) {
 	if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig {
 		//先进行数据的持久化，等到一定的高度成熟度之后再进行处理
 		relayerLog.Info("EthereumRelayer storeBridgeBankLogs", "^_^ ^_^ Received bridgeBankLog for event", "lock",
-			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
+			"Block number:", vLog.BlockNumber, "tx Index", vLog.TxIndex, "log Index", vLog.Index, "Tx hash:", vLog.TxHash.Hex())
 		if err := ethRelayer.setEthTxEvent(vLog); nil != err {
 			panic(err.Error())
 		}
 	} else if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventBurnSig {
 		relayerLog.Info("EthereumRelayer storeBridgeBankLogs", "^_^ ^_^ Received bridgeBankLog for event", "burn",
-			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
+			"Block number:", vLog.BlockNumber, "tx Index", vLog.TxIndex, "log Index", vLog.Index, "Tx hash:", vLog.TxHash.Hex())
 		if err := ethRelayer.setEthTxEvent(vLog); nil != err {
 			panic(err.Error())
 		}

@@ -21,6 +21,8 @@ import (
 
 type EthTxStatus int32
 
+var addr2Nonce = make(map[common.Address]int64)
+
 func (ethTxStatus EthTxStatus) String() string {
 	return [...]string{"Fail", "Success", "Pending"}[ethTxStatus]
 }
@@ -78,6 +80,21 @@ func LoadSender(privateKey *ecdsa.PrivateKey) (address common.Address, err error
 	return fromAddress, nil
 }
 
+func getNonce(sender common.Address, backend bind.ContractBackend) (*big.Int, error) {
+	if nonce, exist := addr2Nonce[sender]; exist {
+		nonce += 1
+		addr2Nonce[sender] = nonce
+		return big.NewInt(nonce), nil
+	}
+
+	nonce, err := backend.PendingNonceAt(context.Background(), sender)
+	if nil != err {
+		return nil, err
+	}
+	addr2Nonce[sender] = int64(nonce)
+	return big.NewInt(int64(nonce)), nil
+}
+
 func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, transactor common.Address) (*bind.TransactOpts, error) {
 	if nil == privateKey || nil == backend {
 		txslog.Error("PrepareAuth", "nil input parameter", "backend", backend, "privateKey", privateKey)
@@ -94,6 +111,10 @@ func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, tra
 	auth.Value = big.NewInt(0) // in wei
 	auth.GasLimit = GasLimit4Deploy
 	auth.GasPrice = gasPrice
+
+	if auth.Nonce, err = getNonce(transactor, backend); err != nil {
+		return nil, err
+	}
 
 	return auth, nil
 }

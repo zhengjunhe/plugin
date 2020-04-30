@@ -134,7 +134,7 @@ func (ethRelayer *EthereumRelayer) checkTxProcessed(txhash []byte) bool {
 }
 
 func (ethRelayer *EthereumRelayer) setEthTxEvent(vLog types.Log) error {
-	key := ethTxEventKey4Height(vLog.BlockNumber, uint32(vLog.Index))
+	key := ethTxEventKey4Height(vLog.BlockNumber, uint32(vLog.TxIndex))
 	value, err := json.Marshal(vLog)
 	if nil != err {
 		return err
