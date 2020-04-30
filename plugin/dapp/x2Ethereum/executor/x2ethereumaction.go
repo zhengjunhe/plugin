@@ -166,7 +166,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33, defaultC
 
 	if status.Text == oracle.StatusText(types2.EthBridgeStatus_SuccessStatusText) {
 		// mavl-x2ethereum-eth
-		accDB, err := account.NewAccountDB(a.api.GetConfig(), msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol, a.db)
+		accDB, err := account.NewAccountDB(a.api.GetConfig(), msgEthBridgeClaim.LocalCoinExec, strings.ToLower(msgEthBridgeClaim.LocalCoinSymbol+msgEthBridgeClaim.TokenContractAddress), a.db)
 		if err != nil {
 			return nil, errors.Wrapf(err, "relay procMsgEth2Chain33,exec=%s,sym=%s", msgEthBridgeClaim.LocalCoinExec, msgEthBridgeClaim.LocalCoinSymbol)
 		}
@@ -214,7 +214,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33, defaultC
 // 返还在chain33上生成的erc20代币
 func (a *action) procMsgBurn(msgBurn *types2.Chain33ToEth, defaultCon bool) (*chain33types.Receipt, error) {
 	msgBurn.LocalCoinExec = types2.X2ethereumX
-	accDB, err := account.NewAccountDB(a.api.GetConfig(), msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol, a.db)
+	accDB, err := account.NewAccountDB(a.api.GetConfig(), msgBurn.LocalCoinExec, strings.ToLower(msgBurn.LocalCoinSymbol+msgBurn.TokenContract), a.db)
 	if err != nil {
 		return nil, errors.Wrapf(err, "relay procMsgBurn,exec=%s,sym=%s", msgBurn.LocalCoinExec, msgBurn.LocalCoinSymbol)
 	}

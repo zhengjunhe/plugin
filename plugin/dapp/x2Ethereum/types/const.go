@@ -9,8 +9,8 @@ var (
 	LastTotalPowerKey                   = []byte("prefix_for_LastTotalPower")
 	ValidatorMapsKey                    = []byte("prefix_for_ValidatorMaps")
 	ConsensusThresholdKey               = []byte("prefix_for_ConsensusThreshold")
-	TokenSymbolTotalAmountKey           = []byte("prefix_for_TokenSymbolTotalAmount-")
 	TokenSymbolTotalLockOrBurnAmountKey = []byte("prefix_for_TokenSymbolTotalLockOrBurnAmount-")
+	TokenSymbolToTokenAddressKey        = []byte("prefix_for_TokenSymbolToTokenAddress-")
 )
 
 // log for x2ethereum

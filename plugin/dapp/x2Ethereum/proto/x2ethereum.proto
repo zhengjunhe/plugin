@@ -170,6 +170,12 @@ message QuerySymbolAssetsByTxTypeParams {
     string tokenSymbol = 1;
     int64 direction = 2;
     string txType = 3;
+    string tokenAddr = 4;
+    int64 decimal = 5;
+}
+
+message ReceiptQuerySymbolAssets {
+    repeated ReceiptQuerySymbolAssetsByTxType res = 1;
 }
 
 message ReceiptQuerySymbolAssetsByTxType {
@@ -177,15 +183,27 @@ message ReceiptQuerySymbolAssetsByTxType {
     string totalAmount = 2;
     string txType = 3;
     int64 direction = 4;
+    string tokenAddr = 5;
 }
 
 message QueryRelayerBalance {
     string tokenSymbol = 1;
     string address = 2;
+    string tokenAddr = 3;
 }
 
 message ReceiptQueryRelayerBalance {
+    repeated ReceiptQueryRelayerBalanceForOneToken res = 1;
+}
+
+message ReceiptQueryRelayerBalanceForOneToken {
     string balance = 1;
+    string tokenSymbol = 2;
+    string tokenAddr = 3;
+}
+
+message ReceiptTokenToTokenAddress {
+    repeated string tokenAddress = 1;
 }
 
 service x2ethereum {
