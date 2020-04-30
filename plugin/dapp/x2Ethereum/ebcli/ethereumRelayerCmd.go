@@ -416,7 +416,7 @@ func ApproveAllowance(cmd *cobra.Command, args []string) {
 func BurnCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "burn",
-		Short: "burn the asset to make it unlocked on chain33",
+		Short: "burn(including approve) the asset to make it unlocked on chain33",
 		Run:   Burn,
 	}
 	BurnFlags(cmd)
@@ -495,7 +495,7 @@ func BurnAsync(cmd *cobra.Command, args []string) {
 func LockSyncCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lock",
-		Short: "lock eth or erc20 and cross-chain transfer to chain33",
+		Short: "lock(including approve) eth or erc20 and cross-chain transfer to chain33",
 		Run:   LockEthErc20Asset,
 	}
 	LockEthErc20AssetFlags(cmd)
