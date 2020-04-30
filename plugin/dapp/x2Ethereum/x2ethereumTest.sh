@@ -230,8 +230,8 @@ function TestETH2Chain33Assets() {
     # eth 等待 10 个区块
     eth_block_wait 12
 
-    result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
-    balance_ret "${result}" "10.0000"
+    result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth | jq ".res" | jq ".[]")
+    balance_ret "${result}" "10"
 
     # chain33 burn 4.9999 eth
     {
@@ -242,7 +242,7 @@ function TestETH2Chain33Assets() {
         block_wait "${Chain33Cli}" 12
         check_tx "${Chain33Cli}" "${hash}"
 
-        result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
+        result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth | jq ".res" | jq ".[]")
         balance_ret "${result}" "5.0001"
 
         eth_block_wait 2
@@ -264,8 +264,8 @@ function TestETH2Chain33Assets() {
         block_wait "${Chain33Cli}" 12
         check_tx "${Chain33Cli}" "${hash}"
 
-        result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth)
-        balance_ret "${result}" "0.0000"
+        result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth | jq ".res" | jq ".[]")
+        balance_ret "${result}" "0"
 
         eth_block_wait 2
 
@@ -314,16 +314,16 @@ function TestETH2Chain33Erc20() {
     # eth 等待 10 个区块
     eth_block_wait 12
 
-    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
-    balance_ret "${result}" "100.0000"
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
+    balance_ret "${result}" "100"
 
     # chain33 burn 40
     hash=$(${Chain33Cli} send x2ethereum burn -a 40 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
     block_wait "${Chain33Cli}" 12
     check_tx "${Chain33Cli}" "${hash}"
 
-    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
-    balance_ret "${result}" "60.0000"
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
+    balance_ret "${result}" "60"
 
     eth_block_wait 2
 
@@ -338,8 +338,8 @@ function TestETH2Chain33Erc20() {
     block_wait "${Chain33Cli}" 12
     check_tx "${Chain33Cli}" "${hash}"
 
-    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}")
-    balance_ret "${result}" "0.0000"
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
+    balance_ret "${result}" "0"
 
     eth_block_wait 2
 
