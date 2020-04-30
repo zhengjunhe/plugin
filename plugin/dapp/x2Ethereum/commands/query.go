@@ -5,9 +5,11 @@ import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/utils"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2Ethereum/types"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
 func queryCmd() *cobra.Command {
@@ -161,6 +163,8 @@ func querySymbolTotalAmountByTxTypeCmd() *cobra.Command {
 
 	cmd.Flags().Int64P("txtype", "t", 0, "lock = 1,burn = 2")
 	_ = cmd.MarkFlagRequired("txtype")
+
+	cmd.Flags().StringP("tokenaddress", "a", "", "token address,nil for all this token symbol,and if you want to query eth,you can also ignore it")
 	return cmd
 }
 
@@ -169,6 +173,18 @@ func querySymbolTotalAmountByTxType(cmd *cobra.Command, args []string) {
 	symbol, _ := cmd.Flags().GetString("symbol")
 	direction, _ := cmd.Flags().GetInt64("direction")
 	txType, _ := cmd.Flags().GetInt64("txtype")
+	contract, _ := cmd.Flags().GetString("tokenaddress")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	decimal, err := utils.GetDecimalsFromNode(contract, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimal error")
+		return
+	}
+
+	if strings.ToLower(symbol) == "eth" && contract == "" {
+		contract = "0x0000000000000000000000000000000000000000"
+	}
 
 	var txTypeStr string
 	if txType == 1 {
@@ -180,6 +196,8 @@ func querySymbolTotalAmountByTxType(cmd *cobra.Command, args []string) {
 		TokenSymbol: symbol,
 		Direction:   direction,
 		TxType:      txTypeStr,
+		TokenAddr:   contract,
+		Decimal:     decimal,
 	}
 	payLoad, err := types.PBToJSON(get)
 	if err != nil {
@@ -193,7 +211,7 @@ func querySymbolTotalAmountByTxType(cmd *cobra.Command, args []string) {
 		Payload:  payLoad,
 	}
 
-	channel := &types2.ReceiptQuerySymbolAssetsByTxType{}
+	channel := &types2.ReceiptQuerySymbolAssets{}
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
 	ctx.Run()
 }

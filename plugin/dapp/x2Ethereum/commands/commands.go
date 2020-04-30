@@ -192,7 +192,6 @@ func CreateRawWithdrawChain33TxCmd() *cobra.Command {
 }
 
 func addChain33ToEthFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("contract", "q", "", "token contract address,nil for ETH")
 
 	cmd.Flags().StringP("symbol", "t", "", "token symbol in chain33")
 	_ = cmd.MarkFlagRequired("symbol")
@@ -218,6 +217,10 @@ func burn(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	if contract == "" {
+		contract = "0x0000000000000000000000000000000000000000"
+	}
+
 	params := &types3.Chain33ToEth{
 		TokenContract:    contract,
 		EthereumReceiver: receiver,
@@ -240,6 +243,9 @@ func CreateRawChain33ToEthTxCmd() *cobra.Command {
 	}
 
 	addChain33ToEthFlags(cmd)
+
+	cmd.Flags().StringP("contract", "q", "", "token contract address,nil for ETH")
+
 	return cmd
 }
 
@@ -254,6 +260,10 @@ func lock(cmd *cobra.Command, args []string) {
 	if err != nil {
 		fmt.Println("get decimal error")
 		return
+	}
+
+	if contract == "" {
+		contract = "0x0000000000000000000000000000000000000000"
 	}
 
 	params := &types3.Chain33ToEth{
@@ -426,6 +436,8 @@ func queryRelayerBalanceCmd() *cobra.Command {
 
 	cmd.Flags().StringP("address", "s", "", "the address you want to query")
 	_ = cmd.MarkFlagRequired("address")
+
+	cmd.Flags().StringP("tokenaddress", "a", "", "token address,nil for all this token symbol")
 	return cmd
 }
 
@@ -434,10 +446,12 @@ func queryRelayerBalance(cmd *cobra.Command, args []string) {
 
 	token, _ := cmd.Flags().GetString("token")
 	address, _ := cmd.Flags().GetString("address")
+	contract, _ := cmd.Flags().GetString("tokenaddress")
 
 	get := &types3.QueryRelayerBalance{
 		TokenSymbol: token,
 		Address:     address,
+		TokenAddr:   contract,
 	}
 
 	payLoad, err := types.PBToJSON(get)
