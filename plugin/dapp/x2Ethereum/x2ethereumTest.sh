@@ -28,6 +28,7 @@ chain33Validator2="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv" #0x4257d8692ef7fe13c68b65
 chain33Validator3="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
 BtyReceiever="1BqP2vHkYNjSgdnTqm7pGbnphLhtEhuJFi"
 ETHContractAddr="0x0000000000000000000000000000000000000000"
+maturityDegree=10
 
 function InitAndDeploy() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
@@ -65,6 +66,7 @@ function StartRelayerAndDeploy() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
     kill_ebrelayer "./build/ebrelayer"
+    kill_ebrelayer "./build/A/ebrelayer"
 
     cp "./ebrelayer/relayer.toml" "./build/relayer.toml"
     sed -i 's/initPowers=\[25, 25, 25, 25\]/initPowers=\[925, 25, 25, 25\]/g' "./build/relayer.toml"
@@ -84,7 +86,7 @@ function StartRelayerAndDeploy() {
 
     kill_ebrelayer "./build/ebrelayer"
     # 修改 relayer.toml 配置文件
-    updata_relayer_toml ${BridgeRegistry} "./build/relayer.toml"
+    updata_relayer_toml ${BridgeRegistry} ${maturityDegree} "./build/relayer.toml"
 
     # 重启 ebrelayer 并解锁
     start_ebrelayer "./build/ebrelayer" "./build/ebrelayer.log"
@@ -157,13 +159,13 @@ function TestChain33ToEthAssets() {
 
     # chain33 lock bty
     hash=$(${Chain33Cli} send x2ethereum lock -a 5 -t bty  -r ${ethReceiverAddr1} -q ${tokenAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-    block_wait "${Chain33Cli}" 12
+    block_wait "${Chain33Cli}" $((${maturityDegree}+2))
     check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} account balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -e x2ethereum)
     balance_ret "${result}" "195.0000"
 
-    eth_block_wait 12
+    eth_block_wait $((${maturityDegree}+2))
 
     result=$(${CLI} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "5"
@@ -197,7 +199,7 @@ function TestChain33ToEthAssets() {
     cli_ret "${result}" "burn"
 
     # eth 等待 10 个区块
-    eth_block_wait 12
+    eth_block_wait $((${maturityDegree}+2))
 
     result=$(${Chain33Cli} account balance -a "${chain33SenderAddr}" -e x2ethereum)
     balance_ret "${result}" "0.8000"
@@ -228,7 +230,7 @@ function TestETH2Chain33Assets() {
     cli_ret "${result}" "balance" ".balance" "10"
 
     # eth 等待 10 个区块
-    eth_block_wait 12
+    eth_block_wait $((${maturityDegree}+2))
 
     result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth | jq ".res" | jq ".[]")
     balance_ret "${result}" "10"
@@ -239,7 +241,7 @@ function TestETH2Chain33Assets() {
         balance=$(cli_ret "${result}" "balance" ".balance")
 
         hash=$(${Chain33Cli} send x2ethereum burn -a 4.9999 -t eth  -r ${ethReceiverAddr1} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-        block_wait "${Chain33Cli}" 12
+        block_wait "${Chain33Cli}" $((${maturityDegree}+2))
         check_tx "${Chain33Cli}" "${hash}"
 
         result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth | jq ".res" | jq ".[]")
@@ -261,7 +263,7 @@ function TestETH2Chain33Assets() {
         balance=$(cli_ret "${result}" "balance" ".balance")
 
         hash=$(${Chain33Cli} send x2ethereum burn -a 5.0001 -t eth  -r ${ethReceiverAddr2} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
-        block_wait "${Chain33Cli}" 12
+        block_wait "${Chain33Cli}" $((${maturityDegree}+2))
         check_tx "${Chain33Cli}" "${hash}"
 
         result=$(${Chain33Cli} x2ethereum balance -s 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -t eth | jq ".res" | jq ".[]")
@@ -312,14 +314,14 @@ function TestETH2Chain33Erc20() {
     cli_ret "${result}" "balance" ".balance" "100"
 
     # eth 等待 10 个区块
-    eth_block_wait 12
+    eth_block_wait $((${maturityDegree}+2))
 
     result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
     balance_ret "${result}" "100"
 
     # chain33 burn 40
     hash=$(${Chain33Cli} send x2ethereum burn -a 40 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
-    block_wait "${Chain33Cli}" 12
+    block_wait "${Chain33Cli}" $((${maturityDegree}+2))
     check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
@@ -335,7 +337,7 @@ function TestETH2Chain33Erc20() {
 
     # burn 60
     hash=$(${Chain33Cli} send x2ethereum burn -a 60 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
-    block_wait "${Chain33Cli}" 12
+    block_wait "${Chain33Cli}" $((${maturityDegree}+2))
     check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
@@ -355,6 +357,11 @@ function TestETH2Chain33Erc20() {
 function main() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
+    if [[ "${1}" != "" ]]; then
+        maturityDegree=${1}
+        echo -e "${GRE}maturityDegree is ${maturityDegree} ${NOC}"
+    fi
+
     StartRelayerAndDeploy
     EthImportKey
     InitChain33Vilators
@@ -365,7 +372,8 @@ function main() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-main
+# $1 等待区块 默认10
+main "${1}"
 
 
 

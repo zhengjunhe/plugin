@@ -111,15 +111,25 @@ function start_ebrelayer() {
         exit 1
     fi
 
+
     # 后台启动程序
     nohup "${1}" >"${2}" 2>&1 &
+    sleep 2
 
-    sleep 1
     pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
-    if [ "${pid}" == "" ];then
-        echo -e "${RED}start ${1} failed${NOC}"
-        exit 1
-    fi
+    local count=0
+    while [ "${pid}" == "" ]; do
+        nohup "${1}" >"${2}" 2>&1 &
+        sleep 2
+
+        count=$((count + 1))
+        if [[ ${count} -ge 20 ]]; then
+            echo -e "${RED}start ${1} failed${NOC}"
+            exit 1
+        fi
+
+        pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
+    done
 }
 
 # 杀死进程ebrelayer 进程 $1进程名称
@@ -189,6 +199,11 @@ function check_tx() {
         exit 1
     fi
 
+    if [[ "${2}" == "" ]]; then
+        echo -e "${RED}wrong check_tx txHash is empty${NOC}"
+       exit 1
+    fi
+
     local count=0
     while true; do
         ty=$(${CLI} tx query -s ${2} | jq .receipt.ty)
@@ -239,10 +254,11 @@ function check_addr() {
     fi
 }
 
-# 更新配置文件 $1 为 BridgeRegistry 合约地址 $2 relayer.toml 地址
+# 更新配置文件 $1 为 BridgeRegistry 合约地址; $2 等待区块 默认10; $3 relayer.toml 地址
 function updata_relayer_toml() {
     local BridgeRegistry=${1}
-    local file=${2}
+    local maturityDegree=${2}
+    local file=${3}
 
     local chain33Host=$(docker inspect build_chain33_1 | jq ".[].NetworkSettings.Networks.build_default.IPAddress" | sed 's/\"//g')
     if [[ "${chain33Host}" == "" ]]; then
@@ -276,6 +292,9 @@ function updata_relayer_toml() {
     line=$(delete_line_show ${file} "BridgeRegistry")
     sed -i ''${line}' a BridgeRegistry="'${BridgeRegistry}'"' "${file}"
 
+    sed -i 's/EthMaturityDegree=10/'EthMaturityDegree=${maturityDegree}'/g' "${file}"
+    sed -i 's/maturityDegree=10/'maturityDegree=${maturityDegree}'/g' "${file}"
+
     #sed -i 's/#BridgeRegistry=\"0x40BFE5eD039A9a2Eb42ece2E2CA431bFa7Cf4c42\"/BridgeRegistry=\"'${BridgeRegistry}'\"/g' "./build/relayer.toml"
     #sed -i 's/192.168.64.2/'${chain33Host}'/g' "./build/relayer.toml"
     #sed -i 's/192.168.3.156/'${pushHost}'/g' "./build/relayer.toml"
@@ -284,6 +303,8 @@ function updata_relayer_toml() {
 # 更新 B C D 的配置文件
 function updata_all_relayer_toml() {
     local port=9901
+    local port2=20000
+
     for name in B C D
     do
         local file="./build/"$name"/relayer.toml"
@@ -299,6 +320,11 @@ function updata_all_relayer_toml() {
         # 替换端口
         port=$((${port} + 1))
         sed -i 's/localhost:9901/localhost:'${port}'/g' "${file}"
+
+        port2=$((${port2} + 1))
+        sed -i 's/20000/'${port2}'/g' "${file}"
+
+        sed -i 's/x2ethereum/x2ethereum'${name}'/g' "${file}"
     done
 }
 
@@ -310,7 +336,7 @@ function start_trufflesuite() {
 
     # 启动 eth
     docker run -d --name ganachetest -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 5 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
-    sleep 5
+    sleep 1
 }
 
 # $1 CLI
