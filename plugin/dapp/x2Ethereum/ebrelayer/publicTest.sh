@@ -21,13 +21,13 @@ function unlock_relayer() {
 function cli_ret() {
     set +x
     if [[ $# -lt 2 ]]; then
-        echo "wrong parameter"
+        echo -e "${RED}wrong parameter${NOC}"
         exit 1
     fi
 
     ok=$(echo "${1}" | jq -r .isOK)
     if [[ ${ok} != "true" ]]; then
-        echo "failed to ${2}"
+        echo -e "${RED}failed to ${2}${NOC}"
         exit 1
     fi
 
@@ -52,7 +52,7 @@ function cli_ret() {
 function balance_ret() {
     set +x
     if [[ $# -lt 2 ]]; then
-        echo "wrong parameter"
+        echo -e "${RED}wrong parameter${NOC}"
         exit 1
     fi
 
@@ -60,7 +60,7 @@ function balance_ret() {
     local balance=$(echo "${1}" | jq -r ".balance")
     if [[ "${balance}" != "${2}" ]]; then
         echo -e "${RED}The balance is not correct${NOC}"
-          exit 1
+        exit 1
     fi
 
     set -x
@@ -73,7 +73,7 @@ function cli_ret_err() {
     ok=$(echo "${1}" | jq -r .isOK)
     echo "${ok}"
     if [[ "${ok}" == "true" ]]; then
-        echo "isOK is true"
+        echo -e "${RED}isOK is true${NOC}"
         exit 1
     fi
     #set -x
@@ -101,13 +101,13 @@ function delete_line_show() {
 function start_ebrelayer() {
     # 参数如果小于 2 直接报错
     if [[ $# -lt 2 ]]; then
-        echo "wrong parameter"
+        echo -e "${RED}wrong parameter${NOC}"
         exit 1
     fi
 
     # 判断可执行文件是否存在
     if [ ! -x "${1}" ];then
-        echo "${1} not exist"
+        echo -e "${RED}${1} not exist${NOC}"
         exit 1
     fi
 
@@ -153,7 +153,7 @@ function block_wait() {
     local CLI=${1}
 
     if [[ $# -lt 1 ]]; then
-        echo "wrong block_wait parameter"
+        echo -e "${RED}wrong block_wait parameter${NOC}"
         exit 1
     fi
 
@@ -185,7 +185,7 @@ function check_tx() {
     local CLI=${1}
 
     if [[ $# -lt 2 ]]; then
-        echo "wrong check_tx parameters"
+        echo -e "${RED}wrong check_tx parameters${NOC}"
         exit 1
     fi
 
@@ -209,18 +209,18 @@ function check_tx() {
 
     ty=$(${CLI} tx query -s ${2} | jq .receipt.ty)
     if [[ ${ty} != 2 ]]; then
-        echo "check tx error, hash is ${2}"
+        echo -e "${RED}check tx error, hash is ${2}${NOC}"
         exit 1
     fi
 }
 
 function check_number() {
     if [[ $# -lt 2 ]]; then
-        echo "wrong check number parameters"
+        echo -e "${RED}wrong check number parameters${NOC}"
         exit 1
     fi
     if [[ ${1} != ${2} ]]; then
-        echo "error number, expect ${1}, get ${2}"
+        echo -e "${RED}error number, expect ${1}, get ${2}${NOC}"
         exit 1
     fi
 }
@@ -228,14 +228,14 @@ function check_number() {
 # 检查地址是否匹配 $1返回结果 $2匹配地址
 function check_addr() {
     if [[ $# -lt 2 ]]; then
-        echo "wrong check number parameters"
+        echo -e "${RED}wrong check number parameters${NOC}"
         exit 1
     fi
 
     addr=$(echo ${1} | jq -r ".acc.addr")
     if [[ ${addr} != ${2} ]]; then
-        echo "error addr, expect ${1}, get ${2}"
-     #   exit 1
+        echo -e "${RED}error addr, expect ${1}, get ${2}${NOC}"
+        exit 1
     fi
 }
 
@@ -246,17 +246,24 @@ function updata_relayer_toml() {
 
     local chain33Host=$(docker inspect build_chain33_1 | jq ".[].NetworkSettings.Networks.build_default.IPAddress" | sed 's/\"//g')
     if [[ "${chain33Host}" == "" ]]; then
-        echo "chain33Host is empty"
+        echo -e "${RED}chain33Host is empty${NOC}"
         exit 1
     fi
 
     local pushHost=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
     if [[ "${pushHost}" == "" ]]; then
-        pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+        pushHost=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}')
         if [[ "${pushHost}" == "" ]]; then
-            echo "pushHost is empty"
-            exit 1
+            pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+            if [[ "${pushHost}" == "" ]]; then
+                pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}')
+            fi
         fi
+    fi
+
+    if [[ "${pushHost}" == "" ]]; then
+        echo -e "${RED}pushHost is empty${NOC}"
+        exit 1
     fi
 
     local line=$(delete_line_show ${file} "chain33Host")
@@ -328,7 +335,7 @@ function wait_prophecy_finish() {
         fi
         count=$((${count}+1))
         if [[ "${count}" == 30 ]]; then
-            echo "failed to get balance"
+            echo -e "${RED}failed to get balance${NOC}"
             exit 1
         fi
 
@@ -341,7 +348,7 @@ function wait_prophecy_finish() {
 function eth_block_wait() {
     set +x
     if [[ $# -lt 0 ]]; then
-        echo "wrong block_wait parameter"
+        echo -e "${RED}wrong block_wait parameter${NOC}"
         exit 1
     fi
 
