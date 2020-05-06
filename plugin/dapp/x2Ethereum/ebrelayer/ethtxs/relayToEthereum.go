@@ -52,35 +52,3 @@ func RelayProphecyClaimToEthereum(oracleInstance *generated.Oracle, client *ethc
 	//}
 	return txhash, nil
 }
-
-// RelayOracleClaimToEthereum : relays the provided OracleClaim to Oracle contract on the Ethereum network
-func RelayOracleClaimToEthereum(provider string, sender, contractAddress common.Address, event events.Event, claim *OracleClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
-	// Initialize client service, validator's tx auth, and target contract address
-	//client, auth, target, err := initRelayConfig(provider, sender, contractAddress, event, privateKey)
-	//if nil != err {
-	//	return "", err
-	//}
-	//
-	//// Initialize Oracle instance
-	//oracleInstance, err := oracle.NewOracle(*target, client)
-	//if err != nil {
-	//	txslog.Error("RelayOracleClaimToEthereum", "NewOracle failed due to:", err.Error())
-	//	return "", err
-	//}
-	//
-	//// Send transaction
-	//tx, err := oracleInstance.NewOracleClaim(auth, claim.ProphecyID, claim.Message, claim.Signature)
-	//if err != nil {
-	//	txslog.Error("RelayOracleClaimToEthereum", "NewOracleClaim failed due to:", err.Error())
-	//	return "", err
-	//}
-	//txhash = tx.Hash().Hex()
-	//txslog.Info("RelayOracleClaimToEthereum", "NewOracleClaim tx hash:", txhash)
-	//err = waitEthTxFinished(client, tx.Hash(), "RelayOracleClaimToEthereum")
-	//if nil != err {
-	//	return txhash, err
-	//}
-
-	//return txhash, nil
-	return "", nil
-}
