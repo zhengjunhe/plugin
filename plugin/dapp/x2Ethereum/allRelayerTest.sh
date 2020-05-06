@@ -303,12 +303,8 @@ function TestETH2Chain33Erc20() {
     result=$(${CLIA} relayer ethereum balance -o "${bridgeBankAddr}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
-    # ETH 2 chain33 lock 前先审批一下
-    result=$(${CLIA} relayer ethereum approve -m 100 -k "${ethReceiverAddrKey1}" -t "${tokenAddr}")
-    cli_ret "${result}" "approve"
-
     # lock 100
-    result=$(${CLIA} relayer ethereum lock -m 100 -k "${ethReceiverAddrKey1}" -r "${chain33SenderAddr}" -t "${tokenAddr}")
+    result=$(${CLIA} relayer ethereum lock -m 100 -k "${ethReceiverAddrKey1}" -r "${chain33Validator1}" -t "${tokenAddr}")
     cli_ret "${result}" "lock"
 
     result=$(${CLIA} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
@@ -320,15 +316,15 @@ function TestETH2Chain33Erc20() {
     # eth 等待 10 个区块
     eth_block_wait $((${maturityDegree}+2))
 
-    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33Validator1}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
     balance_ret "${result}" "100"
 
     # chain33 burn 100
-    hash=$(${Chain33Cli} send x2ethereum burn -a 100 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33SenderAddr}")
+    hash=$(${Chain33Cli} send x2ethereum burn -a 100 -t "${tokenSymbol}"  -r ${ethReceiverAddr2} -q ${tokenAddr} -k "${chain33Validator1}")
     block_wait "${Chain33Cli}" $((${maturityDegree}+2))
     check_tx "${Chain33Cli}" "${hash}"
 
-    result=$(${Chain33Cli} x2ethereum balance -s "${chain33SenderAddr}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
+    result=$(${Chain33Cli} x2ethereum balance -s "${chain33Validator1}" -t "${tokenSymbol}" -a "${tokenAddr}" | jq ".res" | jq ".[]")
     balance_ret "${result}" "0"
 
     eth_block_wait 2
