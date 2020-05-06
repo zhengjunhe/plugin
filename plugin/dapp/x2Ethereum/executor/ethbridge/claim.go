@@ -53,6 +53,11 @@ func CreateOracleClaimFromEthClaim(ethClaim types.Eth2Chain33) (types.OracleClai
 		return types.OracleClaim{}, types.ErrInvalidClaimType
 	}
 	oracleID := strconv.Itoa(int(ethClaim.EthereumChainID)) + strconv.Itoa(int(ethClaim.Nonce)) + ethClaim.EthereumSender
+	if ethClaim.ClaimType == int64(types.LOCK_CLAIM_TYPE) {
+		oracleID = oracleID + "lock"
+	} else if ethClaim.ClaimType == int64(types.BURN_CLAIM_TYPE) {
+		oracleID = oracleID + "burn"
+	}
 	claimContent := NewOracleClaimContent(ethClaim.Chain33Receiver, ethClaim.Amount, ethClaim.ClaimType, ethClaim.Decimals)
 	claimBytes, err := json.Marshal(claimContent)
 	if err != nil {

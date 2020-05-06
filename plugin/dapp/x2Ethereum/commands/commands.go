@@ -262,7 +262,8 @@ func lock(cmd *cobra.Command, args []string) {
 	}
 
 	if contract == "" {
-		contract = "0x0000000000000000000000000000000000000000"
+		fmt.Println("get token address error")
+		return
 	}
 
 	params := &types3.Chain33ToEth{

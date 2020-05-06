@@ -106,7 +106,7 @@ func (a *action) procMsgEth2Chain33(ethBridgeClaim *types2.Eth2Chain33, defaultC
 		return nil, err
 	}
 
-	ID := strconv.Itoa(int(msgEthBridgeClaim.EthereumChainID)) + strconv.Itoa(int(msgEthBridgeClaim.Nonce)) + msgEthBridgeClaim.EthereumSender
+	ID := strconv.Itoa(int(msgEthBridgeClaim.EthereumChainID)) + strconv.Itoa(int(msgEthBridgeClaim.Nonce)) + msgEthBridgeClaim.EthereumSender + "lock"
 
 	//记录ethProphecy
 	bz, err := a.db.Get(types2.CalProphecyPrefix())
@@ -323,7 +323,7 @@ func (a *action) procWithdrawEth(withdrawEth *types2.Eth2Chain33, defaultCon boo
 		return nil, err
 	}
 
-	ID := strconv.Itoa(int(msgWithdrawEth.EthereumChainID)) + strconv.Itoa(int(msgWithdrawEth.Nonce)) + msgWithdrawEth.EthereumSender
+	ID := strconv.Itoa(int(msgWithdrawEth.EthereumChainID)) + strconv.Itoa(int(msgWithdrawEth.Nonce)) + msgWithdrawEth.EthereumSender + "burn"
 
 	//记录ethProphecy
 	bz, err := a.db.Get(types2.CalProphecyPrefix())
