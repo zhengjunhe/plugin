@@ -230,7 +230,7 @@ function TestChain33ToEthAssets() {
     eth_block_wait $((${maturityDegree}+2))
 
     result=$(${Chain33Cli} account balance -a "${chain33SenderAddr}" -e x2ethereum)
-    balance_ret "${result}" "5"
+    balance_ret "${result}" "5.0000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -343,7 +343,7 @@ function TestETH2Chain33Erc20() {
 }
 
 function main() {
-    echo -e "${GRE}===========$FILENAME $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}===========allTest $FUNCNAME begin ===========${NOC}"
 
     if [[ "${1}" != "" ]]; then
         maturityDegree=${1}
@@ -357,14 +357,7 @@ function main() {
     TestChain33ToEthAssets
     TestETH2Chain33Assets
     TestETH2Chain33Erc20
-    echo -e "${GRE}===========$FILENAME $FUNCNAME end ===========${NOC}"
+    echo -e "${GRE}===========allTest $FUNCNAME end ===========${NOC}"
 }
 
 main "${1}"
-
-
-
-
-
-
-

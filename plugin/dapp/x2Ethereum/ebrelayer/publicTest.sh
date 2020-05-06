@@ -38,7 +38,7 @@ function cli_ret() {
 
     msg=$(echo "${1}" | jq -r "${jqMsg}")
     if [[ $# -eq 4 ]]; then
-         if [[ "${msg}" != "${4}" ]]; then
+        if [ $(echo "$msg < $4"|bc) -eq 1 ] || [ $(echo "$msg > $4"|bc) -eq 1 ]; then
           echo -e "${RED}The balance is not correct${NOC}"
           exit 1
         fi
@@ -58,7 +58,7 @@ function balance_ret() {
 
 
     local balance=$(echo "${1}" | jq -r ".balance")
-    if [[ "${balance}" != "${2}" ]]; then
+    if [ $(echo "$balance < $2"|bc) -eq 1 ] || [ $(echo "$balance > $2"|bc) -eq 1 ]; then
         echo -e "${RED}The balance is not correct${NOC}"
         exit 1
     fi
