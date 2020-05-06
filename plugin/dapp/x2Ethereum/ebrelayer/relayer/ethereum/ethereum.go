@@ -528,8 +528,8 @@ func (ethRelayer *EthereumRelayer) procBridgeBankLogs(vLog types.Log) {
 }
 
 func (ethRelayer *EthereumRelayer) filterLogEvents() {
-	deployHeight := int64(1)
-	height4BridgeBankLogAt := int64(ethRelayer.getHeight4BridgeBankLogAt())
+	deployHeight, _ := ethtxs.GetDeployHeight(ethRelayer.client, ethRelayer.x2EthDeployInfo.BridgeRegistry.Address, ethRelayer.x2EthDeployInfo.BridgeRegistry.Address)
+    height4BridgeBankLogAt := int64(ethRelayer.getHeight4BridgeBankLogAt())
 
 	if height4BridgeBankLogAt < deployHeight {
 		height4BridgeBankLogAt = deployHeight
@@ -543,10 +543,6 @@ func (ethRelayer *EthereumRelayer) filterLogEvents() {
 	curHeight := int64(header.Number.Uint64())
 	relayerLog.Info("filterLogEvents", "curHeight:", curHeight)
 
-	if curHeight < height4BridgeBankLogAt {
-		return
-	}
-
 	bridgeBankSig := make(map[string]bool)
 	bridgeBankSig[ethRelayer.bridgeBankEventLockSig] = true
 	bridgeBankSig[ethRelayer.bridgeBankEventBurnSig] = true
@@ -554,20 +550,16 @@ func (ethRelayer *EthereumRelayer) filterLogEvents() {
 	done := make(chan int)
 	go ethRelayer.filterLogEventsProc(bridgeBankLog, done, "bridgeBank", curHeight, height4BridgeBankLogAt, ethRelayer.bridgeBankAddr, bridgeBankSig)
 
-	doneCnt := 0
+
 	for {
 		select {
 		case vLog := <-bridgeBankLog:
 			ethRelayer.storeBridgeBankLogs(vLog)
 		case <-done:
-			doneCnt++
-			if 1 == doneCnt {
-				relayerLog.Info("Finshed offline logs processed")
-				return
-			}
+            relayerLog.Info("Finshed offline logs processed")
+			return
 		}
 	}
-	relayerLog.Info("Finshed offline logs processed")
 }
 
 func (ethRelayer *EthereumRelayer) filterLogEventsProc(logchan chan<- types.Log, done chan<- int, title string, curHeight, heightLogProcAt int64, contractAddr common.Address, eventSig map[string]bool) {

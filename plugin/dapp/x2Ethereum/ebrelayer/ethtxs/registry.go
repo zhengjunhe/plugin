@@ -83,3 +83,35 @@ func GetAddressFromBridgeRegistry(client *ethclient.Client, sender, registry com
 		return nil, ebrelayerTypes.ErrInvalidContractAddress
 	}
 }
+
+// GetDeployHeight : 获取合约部署高度
+func GetDeployHeight(client *ethclient.Client, sender, registry common.Address) (height int64, err error) {
+	header, err := client.HeaderByNumber(context.Background(), nil)
+	if err != nil {
+		txslog.Error("GetAddressFromBridgeRegistry", "Failed to get HeaderByNumber due to:", err.Error())
+		return 0, err
+	}
+
+	// Set up CallOpts auth
+	callOpts := &bind.CallOpts{
+		Pending:     true,
+		From:        sender,
+		BlockNumber: header.Number,
+		Context:     context.Background(),
+	}
+
+	// Initialize BridgeRegistry instance
+	registryInstance, err := bridgeRegistry.NewBridgeRegistry(registry, client)
+	if err != nil {
+		txslog.Error("GetAddressFromBridgeRegistry", "Failed to NewBridgeRegistry to:", err.Error())
+		return 0, err
+	}
+	bgInt, err := registryInstance.DeployHeight(callOpts)
+	if nil != err {
+		return 0, err
+	}
+	height = bgInt.Int64()
+	txslog.Info("GetDeployHeight", "deploy height:", height)
+
+	return
+}

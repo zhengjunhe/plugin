@@ -28,18 +28,19 @@ var (
 )
 
 // BridgeRegistryABI is the input ABI used to generate the binding from.
-const BridgeRegistryABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"bridgeBank\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"oracle\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"valset\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"chain33Bridge\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_chain33Bridge\",\"type\":\"address\"},{\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"name\":\"_oracle\",\"type\":\"address\"},{\"name\":\"_valset\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_chain33Bridge\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_oracle\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_valset\",\"type\":\"address\"}],\"name\":\"LogContractsRegistered\",\"type\":\"event\"}]"
+const BridgeRegistryABI = "[{\"constant\":true,\"inputs\":[],\"name\":\"bridgeBank\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"deployHeight\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"oracle\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"valset\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"chain33Bridge\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"name\":\"_chain33Bridge\",\"type\":\"address\"},{\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"name\":\"_oracle\",\"type\":\"address\"},{\"name\":\"_valset\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_chain33Bridge\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_bridgeBank\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_oracle\",\"type\":\"address\"},{\"indexed\":false,\"name\":\"_valset\",\"type\":\"address\"}],\"name\":\"LogContractsRegistered\",\"type\":\"event\"}]"
 
 // BridgeRegistryFuncSigs maps the 4-byte function signature to its string representation.
 var BridgeRegistryFuncSigs = map[string]string{
 	"0e41f373": "bridgeBank()",
 	"eb355352": "chain33Bridge()",
+	"53d953b5": "deployHeight()",
 	"7dc0d1d0": "oracle()",
 	"7f54af0c": "valset()",
 }
 
 // BridgeRegistryBin is the compiled bytecode used for deploying new contracts.
-var BridgeRegistryBin = "0x608060405234801561001057600080fd5b5060405160808061027b8339810180604052608081101561003057600080fd5b50805160208083015160408085015160609586015160008054600160a060020a03808916600160a060020a0319928316179283905560018054828916908416179081905560028054838816908516179081905560038054848816951694909417938490558751948316855290821698840198909852968716828601529095169685019690965290519394919390927f039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a919081900360800190a15050505061017f806100fc6000396000f3fe6080604052600436106100615763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416630e41f37381146100665780637dc0d1d0146100a45780637f54af0c146100b9578063eb355352146100ce575b600080fd5b34801561007257600080fd5b5061007b6100e3565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b3480156100b057600080fd5b5061007b6100ff565b3480156100c557600080fd5b5061007b61011b565b3480156100da57600080fd5b5061007b610137565b60015473ffffffffffffffffffffffffffffffffffffffff1681565b60025473ffffffffffffffffffffffffffffffffffffffff1681565b60035473ffffffffffffffffffffffffffffffffffffffff1681565b60005473ffffffffffffffffffffffffffffffffffffffff168156fea165627a7a7230582045fe784d649b3aedfab8d948d046dbc905d6a1c8348e7ba42c7365f4f2322fed0029"
+var BridgeRegistryBin = "0x608060405234801561001057600080fd5b506040516080806102b78339810180604052608081101561003057600080fd5b50805160208083015160408085015160609586015160008054600160a060020a03808916600160a060020a031992831617928390556001805482891690841617908190556002805483881690851617908190556003805484881695169490941793849055436004558751948316855290821698840198909852968716828601529095169685019690965290519394919390927f039b733f31259b106f1d278c726870d5b28c7db22957d63df8dbaa70bd3a032a919081900360800190a1505050506101b7806101006000396000f3fe60806040526004361061006c5763ffffffff7c01000000000000000000000000000000000000000000000000000000006000350416630e41f373811461007157806353d953b5146100af5780637dc0d1d0146100d65780637f54af0c146100eb578063eb35535214610100575b600080fd5b34801561007d57600080fd5b50610086610115565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b3480156100bb57600080fd5b506100c4610131565b60408051918252519081900360200190f35b3480156100e257600080fd5b50610086610137565b3480156100f757600080fd5b50610086610153565b34801561010c57600080fd5b5061008661016f565b60015473ffffffffffffffffffffffffffffffffffffffff1681565b60045481565b60025473ffffffffffffffffffffffffffffffffffffffff1681565b60035473ffffffffffffffffffffffffffffffffffffffff1681565b60005473ffffffffffffffffffffffffffffffffffffffff168156fea165627a7a72305820bb308a31657002b318d16d39a635d309141c0cc5aef32e8c33b53192d1df4cbc0029"
 
 // DeployBridgeRegistry deploys a new Ethereum contract, binding an instance of BridgeRegistry to it.
 func DeployBridgeRegistry(auth *bind.TransactOpts, backend bind.ContractBackend, _chain33Bridge common.Address, _bridgeBank common.Address, _oracle common.Address, _valset common.Address) (common.Address, *types.Transaction, *BridgeRegistry, error) {
@@ -247,6 +248,32 @@ func (_BridgeRegistry *BridgeRegistrySession) Chain33Bridge() (common.Address, e
 // Solidity: function chain33Bridge() constant returns(address)
 func (_BridgeRegistry *BridgeRegistryCallerSession) Chain33Bridge() (common.Address, error) {
 	return _BridgeRegistry.Contract.Chain33Bridge(&_BridgeRegistry.CallOpts)
+}
+
+// DeployHeight is a free data retrieval call binding the contract method 0x53d953b5.
+//
+// Solidity: function deployHeight() constant returns(uint256)
+func (_BridgeRegistry *BridgeRegistryCaller) DeployHeight(opts *bind.CallOpts) (*big.Int, error) {
+	var (
+		ret0 = new(*big.Int)
+	)
+	out := ret0
+	err := _BridgeRegistry.contract.Call(opts, out, "deployHeight")
+	return *ret0, err
+}
+
+// DeployHeight is a free data retrieval call binding the contract method 0x53d953b5.
+//
+// Solidity: function deployHeight() constant returns(uint256)
+func (_BridgeRegistry *BridgeRegistrySession) DeployHeight() (*big.Int, error) {
+	return _BridgeRegistry.Contract.DeployHeight(&_BridgeRegistry.CallOpts)
+}
+
+// DeployHeight is a free data retrieval call binding the contract method 0x53d953b5.
+//
+// Solidity: function deployHeight() constant returns(uint256)
+func (_BridgeRegistry *BridgeRegistryCallerSession) DeployHeight() (*big.Int, error) {
+	return _BridgeRegistry.Contract.DeployHeight(&_BridgeRegistry.CallOpts)
 }
 
 // Oracle is a free data retrieval call binding the contract method 0x7dc0d1d0.

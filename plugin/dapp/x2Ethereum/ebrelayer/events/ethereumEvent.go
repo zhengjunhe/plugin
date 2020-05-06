@@ -81,30 +81,3 @@ func UnpackLogBurn(contractAbi abi.ABI, eventName string, eventData []byte) (bur
 		"Chain33Receiver", string(event.Chain33Receiver), "nonce", event.Nonce.String())
 	return event, nil
 }
-
-// UnpackLogNewProphecyClaim : Handles new LogNewProphecyClaim events
-func UnpackLogNewProphecyClaim(contractAbi abi.ABI, eventName string, eventData []byte) (event NewProphecyClaimEvent, err error) {
-	err = contractAbi.Unpack(&event, eventName, eventData)
-	if err != nil {
-		eventsLog.Error("UnpackLogNewProphecyClaim", "Failed to UnpackLogNewProphecyClaim due to:", err.Error(),
-			"eventName", eventName)
-		return
-	}
-	printProphecyClaimEvent(event)
-	return
-}
-
-func printProphecyClaimEvent(event NewProphecyClaimEvent) {
-	id := event.ProphecyID
-	claimType := event.ClaimType
-	sender := common.Bytes2Hex(event.Chain33Sender)
-	recipient := event.EthereumReceiver.Hex()
-	symbol := event.Symbol
-	token := event.TokenAddress.Hex()
-	amount := event.Amount
-	validator := event.ValidatorAddress.Hex()
-
-	eventsLog.Info("ProphecyClaimEvent", "Prophecy ID", id, "Claim Type", claimType, "Sender", sender,
-		"Recipient", recipient, "Symbol", symbol, "Token", token, "Amount", amount, "Validator", validator)
-	return
-}

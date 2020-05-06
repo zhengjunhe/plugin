@@ -6,6 +6,7 @@ contract BridgeRegistry {
     address public bridgeBank;
     address public oracle;
     address public valset;
+    uint256 public deployHeight;
 
     event LogContractsRegistered(
         address _chain33Bridge,
@@ -26,6 +27,7 @@ contract BridgeRegistry {
         bridgeBank = _bridgeBank;
         oracle = _oracle;
         valset = _valset;
+        deployHeight = block.number;
 
         emit LogContractsRegistered(
             chain33Bridge,
