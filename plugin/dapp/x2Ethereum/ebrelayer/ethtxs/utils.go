@@ -148,10 +148,8 @@ func GetEthTxStatus(client *ethclient.Client, txhash common.Hash) string {
 		return EthTxPending.String()
 	}
 	status := EthTxStatus(receipt.Status).String()
-	if status == EthTxFail.String() {
-		txslog.Error("GetEthTxStatus", "Failed eth tx with hash", txhash.String())
-	} else {
-		txslog.Info("GetEthTxStatus", "check status for eth txwith hash", txhash.String(), "status", status)
+	if status != EthTxPending.String() {
+		txslog.Info("GetEthTxStatus", "Eth tx hash", txhash.String(), "status", status, "BlockNum", receipt.BlockNumber.Int64())
 	}
 
 	return status

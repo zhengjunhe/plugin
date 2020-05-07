@@ -249,7 +249,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 	prophecyClaim := relayerTx.Chain33MsgToProphecyClaim(*chain33Msg)
 
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.oracleInstance, chain33Relayer.client, chain33Relayer.ethSender, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
+	txhash, err := relayerTx.RelayOracleClaimToEthereum(chain33Relayer.oracleInstance, chain33Relayer.client, chain33Relayer.ethSender, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
 	if nil != err {
 		return err
 	}
