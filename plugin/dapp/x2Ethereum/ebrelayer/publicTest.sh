@@ -2,6 +2,7 @@
 # shellcheck disable=SC2128
 # shellcheck source=/dev/null
 set -x
+set -e
 
 #color
 RED='\033[1;31m'
@@ -9,13 +10,13 @@ GRE='\033[1;32m'
 NOC='\033[0m'
 
 # 解锁
-function unlock_relayer() {
-    for name in A B C D
-    do
-        local CLI="../build/ebcli_$name"
-        ${CLI} relayer unlock -p 123456hzj
-    done
-}
+#function unlock_relayer() {
+#    for name in A B C D
+#    do
+#        local CLI="../build/ebcli_$name"
+#        ${CLI} relayer unlock -p 123456hzj
+#    done
+#}
 
 # 判断结果是否正确
 function cli_ret() {
@@ -149,13 +150,13 @@ function kill_ebrelayer() {
     sleep 1
 }
 
-function kill_all_ebrelayer() {
-    for name in A B C D
-    do
-        local ebrelayer="./../build/$name/ebrelayer"
-        kill_ebrelayer "${ebrelayer}"
-    done
-}
+#function kill_all_ebrelayer() {
+#    for name in A B C D
+#    do
+#        local ebrelayer="./../build/$name/ebrelayer"
+#        kill_ebrelayer "${ebrelayer}"
+#    done
+#}
 
 # chain33 区块等待 $1:cli 路径  $2:等待高度
 function block_wait() {
@@ -304,6 +305,7 @@ function updata_relayer_toml() {
 function updata_all_relayer_toml() {
     local port=9901
     local port2=20000
+#    local dockername=30
 
     for name in B C D
     do
@@ -325,17 +327,72 @@ function updata_all_relayer_toml() {
         sed -i 's/20000/'${port2}'/g' "${file}"
 
         sed -i 's/x2ethereum/x2ethereum'${name}'/g' "${file}"
+
+#        local chain33Host=$(docker inspect build_chain${dockername}_1 | jq ".[].NetworkSettings.Networks.build_default.IPAddress" | sed 's/\"//g')
+#        if [[ "${chain33Host}" == "" ]]; then
+#            echo -e "${RED}chain33Host is empty${NOC}"
+#            exit 1
+#        fi
+#        local line=$(delete_line_show ${file} "chain33Host")
+#        # 在第 line 行后面 新增合约地址
+#        sed -i ''${line}' a chain33Host="http://'${chain33Host}':8801"' "${file}"
+#
+#        dockername=$((${dockername} + 1))
+    done
+}
+
+# 更新 B C D 的配置文件
+function updata_all_relayer_toml2() {
+    local port=9901
+    local port2=20000
+#    local dockername=30
+
+    for name in B C D
+    do
+        local file="./"$name"/relayer.toml"
+        cp './A/relayer.toml' "${file}"
+        cp './ebrelayer' "./"$name"/ebrelayer"
+
+        # 删除配置文件中不需要的字段
+        for deleteName in "deployerPrivateKey" "operatorAddr" "validatorsAddr" "initPowers" "deployerPrivateKey" "\[deploy\]"
+        do
+            delete_line "${file}" "${deleteName}"
+        done
+
+        # 替换端口
+        port=$((${port} + 1))
+        sed -i 's/localhost:9901/localhost:'${port}'/g' "${file}"
+
+        port2=$((${port2} + 1))
+        sed -i 's/20000/'${port2}'/g' "${file}"
+
+        sed -i 's/x2ethereum/x2ethereum'${name}'/g' "${file}"
+
+#        local chain33Host=$(docker inspect build_chain${dockername}_1 | jq ".[].NetworkSettings.Networks.build_default.IPAddress" | sed 's/\"//g')
+#        if [[ "${chain33Host}" == "" ]]; then
+#            echo -e "${RED}chain33Host is empty${NOC}"
+#            exit 1
+#        fi
+#        local line=$(delete_line_show ${file} "chain33Host")
+#        # 在第 line 行后面 新增合约地址
+#        sed -i ''${line}' a chain33Host="http://'${chain33Host}':8801"' "${file}"
+#
+#        dockername=$((${dockername} + 1))
     done
 }
 
 # 启动 eth
 function start_trufflesuite() {
     # 如果原来存在先删除
-    docker stop ganachetest
-    docker rm ganachetest
+    local ganacheName=ganachetest
+    local isExit=$(docker inspect ${ganacheName} | jq ".[]")
+    if [[ "${isExit}" != "" ]]; then
+        docker stop ${ganacheName}
+        docker rm ${ganacheName}
+    fi
 
     # 启动 eth
-    docker run -d --name ganachetest -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 5 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
+    docker run -d --name ${ganacheName} -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 5 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
     sleep 1
 }
 
