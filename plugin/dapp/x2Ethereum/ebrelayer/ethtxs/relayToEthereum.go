@@ -16,7 +16,7 @@ var (
 
 const (
 	// GasLimit : the gas limit in Gwei used for transactions sent with TransactOpts
-	GasLimit        = uint64(600000)
+	GasLimit        = uint64(50 * 10000)
 	GasLimit4Deploy = uint64(0) //此处需要设置为0,让交易自行估计,否则将会导致部署失败,TODO:其他解决途径后续调研解决
 )
 
@@ -29,6 +29,8 @@ func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client *ethcli
 		txslog.Error("RelayProphecyClaimToEthereum", "PrepareAuth err", err.Error())
 		return "", err
 	}
+
+	auth.GasLimit = GasLimit
 
 	claimID := crypto.Keccak256Hash(chain33TxHash, claim.Chain33Sender, claim.EthereumReceiver.Bytes(), claim.TokenContractAddress.Bytes(), claim.Amount.Bytes())
 
