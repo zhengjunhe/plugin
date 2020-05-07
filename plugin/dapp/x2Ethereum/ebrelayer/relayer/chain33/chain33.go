@@ -152,7 +152,7 @@ func (chain33Relayer *Chain33Relayer) getCurrentHeight() int64 {
 }
 
 func (chain33Relayer *Chain33Relayer) onNewHeightProc(currentHeight int64) {
-    //检查已经提交的交易结果
+	//检查已经提交的交易结果
 	for chain33Relayer.statusCheckedIndex < chain33Relayer.totalTx4Chain33ToEth {
 		index := chain33Relayer.statusCheckedIndex + 1
 		txhash, err := chain33Relayer.getEthTxhash(index)
@@ -249,7 +249,7 @@ func (chain33Relayer *Chain33Relayer) handleBurnLockMsg(claimEvent events.Event,
 	prophecyClaim := relayerTx.Chain33MsgToProphecyClaim(*chain33Msg)
 
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := relayerTx.RelayOracleClaimToEthereum(chain33Relayer.oracleInstance, chain33Relayer.client, chain33Relayer.ethSender, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
+	txhash, err := relayerTx.RelayProphecyClaimToEthereum(chain33Relayer.oracleInstance, chain33Relayer.client, chain33Relayer.ethSender, claimEvent, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
 	if nil != err {
 		return err
 	}
