@@ -16,12 +16,12 @@ var (
 
 const (
 	// GasLimit : the gas limit in Gwei used for transactions sent with TransactOpts
-	GasLimit        = uint64(50 * 10000)
+	GasLimit        = uint64(600000)
 	GasLimit4Deploy = uint64(0) //此处需要设置为0,让交易自行估计,否则将会导致部署失败,TODO:其他解决途径后续调研解决
 )
 
-// RelayOracleClaimToEthereum : relays the provided burn or lock to Chain33Bridge contract on the Ethereum network
-func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client *ethclient.Client, sender common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey, chain33TxHash []byte) (txhash string, err error) {
+// RelayProphecyClaimToEthereum : relays the provided ProphecyClaim to Chain33Bridge contract on the Ethereum network
+func RelayProphecyClaimToEthereum(oracleInstance *generated.Oracle, client *ethclient.Client, sender common.Address, event events.Event, claim ProphecyClaim, privateKey *ecdsa.PrivateKey, chain33TxHash []byte) (txhash string, err error) {
 	txslog.Info("RelayProphecyClaimToEthereum", "sender", sender.String(), "event", event, "chain33Sender", common.ToHex(claim.Chain33Sender), "ethereumReceiver", claim.EthereumReceiver.String(), "TokenAddress", claim.TokenContractAddress.String(), "symbol", claim.Symbol, "Amount", claim.Amount.String(), "claimType", claim.ClaimType.String())
 
 	auth, err := PrepareAuth(client, privateKey, sender)
@@ -29,7 +29,6 @@ func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client *ethcli
 		txslog.Error("RelayProphecyClaimToEthereum", "PrepareAuth err", err.Error())
 		return "", err
 	}
-	auth.GasLimit = GasLimit
 
 	claimID := crypto.Keccak256Hash(chain33TxHash, claim.Chain33Sender, claim.EthereumReceiver.Bytes(), claim.TokenContractAddress.Bytes(), claim.Amount.Bytes())
 
@@ -46,6 +45,10 @@ func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client *ethcli
 	}
 
 	txhash = tx.Hash().Hex()
-	txslog.Info("RelayProphecyClaimToEthereum", "NewOracleClaim tx hash:", txhash)
+	txslog.Info("RelayProphecyClaimToEthereum", "NewProphecyClaim tx hash:", txhash)
+	//err = waitEthTxFinished(client, tx.Hash(), "ProphecyClaimToEthereum")
+	//if nil != err {
+	//	return txhash, err
+	//}
 	return txhash, nil
 }

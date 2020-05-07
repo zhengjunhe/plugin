@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	solsha3 "github.com/miguelmota/go-solidity-sha3"
 	"math/big"
+	"sync"
 	"time"
 
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2Ethereum/ebrelayer/types"
@@ -21,7 +22,12 @@ import (
 
 type EthTxStatus int32
 
-var addr2Nonce = make(map[common.Address]int64)
+type nonceMutex struct {
+	nonce int64
+	rw    *sync.RWMutex
+}
+
+var addr2Nonce = make(map[common.Address]nonceMutex)
 
 func (ethTxStatus EthTxStatus) String() string {
 	return [...]string{"Fail", "Success", "Pending"}[ethTxStatus]
@@ -29,9 +35,9 @@ func (ethTxStatus EthTxStatus) String() string {
 
 const (
 	PendingDuration4TxExeuction = 300
-	EthTxFail = EthTxStatus(0)
-	EthTxSuccess = EthTxStatus(1)
-	EthTxPending = EthTxStatus(2)
+	EthTxFail                   = EthTxStatus(0)
+	EthTxSuccess                = EthTxStatus(1)
+	EthTxPending                = EthTxStatus(2)
 )
 
 // GenerateClaimHash : Generates an OracleClaim hash from a ProphecyClaim's event data
@@ -81,11 +87,13 @@ func LoadSender(privateKey *ecdsa.PrivateKey) (address common.Address, err error
 }
 
 func getNonce(sender common.Address, backend bind.ContractBackend) (*big.Int, error) {
-	if nonce, exist := addr2Nonce[sender]; exist {
-		nonce += 1
-		addr2Nonce[sender] = nonce
-		txslog.Debug("getNonce", "address", sender.String(), "nonce", nonce)
-		return big.NewInt(nonce), nil
+	if nonceMutex, exist := addr2Nonce[sender]; exist {
+		nonceMutex.rw.Lock()
+		defer nonceMutex.rw.Unlock()
+		nonceMutex.nonce += 1
+		addr2Nonce[sender] = nonceMutex
+		txslog.Debug("getNonce", "address", sender.String(), "nonce", nonceMutex.nonce)
+		return big.NewInt(nonceMutex.nonce), nil
 	}
 
 	nonce, err := backend.PendingNonceAt(context.Background(), sender)
@@ -93,8 +101,23 @@ func getNonce(sender common.Address, backend bind.ContractBackend) (*big.Int, er
 		return nil, err
 	}
 	txslog.Debug("getNonce", "address", sender.String(), "nonce", nonce)
-	addr2Nonce[sender] = int64(nonce)
+	n := new(nonceMutex)
+	n.nonce = int64(nonce)
+	n.rw = new(sync.RWMutex)
+	addr2Nonce[sender] = *n
 	return big.NewInt(int64(nonce)), nil
+}
+
+func revokeNonce(sender common.Address) (*big.Int, error) {
+	if nonceMutex, exist := addr2Nonce[sender]; exist {
+		nonceMutex.rw.Lock()
+		defer nonceMutex.rw.Unlock()
+		nonceMutex.nonce -= 1
+		addr2Nonce[sender] = nonceMutex
+		txslog.Debug("revokeNonce", "address", sender.String(), "nonce", nonceMutex.nonce)
+		return big.NewInt(nonceMutex.nonce), nil
+	}
+	return nil, errors.New("Address doesn't exist tx")
 }
 
 func PrepareAuth(backend bind.ContractBackend, privateKey *ecdsa.PrivateKey, transactor common.Address) (*bind.TransactOpts, error) {
