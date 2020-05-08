@@ -42,6 +42,20 @@ ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
 ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
 maturityDegree=10
 
+function kill_ebrelayerC() {
+    kill_ebrelayer "./C/ebrelayer"
+}
+function kill_ebrelayerD() {
+    kill_ebrelayer "./D/ebrelayer"
+}
+function start_ebrelayerC() {
+    start_ebrelayer "./C/ebrelayer" "./C/ebrelayer.log"
+    ${CLIC} relayer unlock -p 123456hzj
+}
+function start_ebrelayerD() {
+    start_ebrelayer "./D/ebrelayer" "./D/ebrelayer.log"
+    ${CLID} relayer unlock -p 123456hzj
+}
 
 function InitAndDeploy() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
@@ -209,6 +223,9 @@ function TestChain33ToEthAssets() {
     result=$(${CLIA} relayer ethereum balance -o "${ethReceiverAddr1}" -t "${tokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
+    kill_ebrelayerC
+    kill_ebrelayerD
+
     # chain33 lock bty
     hash=$(${Chain33Cli} send x2ethereum lock -a 5 -t bty  -r ${ethReceiverAddr1} -q ${tokenAddr} -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
     block_wait "${Chain33Cli}" $((${maturityDegree}+2))
@@ -249,6 +266,9 @@ function TestETH2Chain33Assets() {
 
     result=$(${CLIA} relayer ethereum balance -o "${bridgeBankAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
+
+    kill_ebrelayerC
+    kill_ebrelayerD
 
     # eth lock 10
     result=$(${CLIA} relayer ethereum lock -m 10 -k "${ethReceiverAddrKey1}" -r 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv)
