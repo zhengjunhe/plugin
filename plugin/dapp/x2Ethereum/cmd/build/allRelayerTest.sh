@@ -383,6 +383,4 @@ function MainTest() {
     echo -e "${GRE}===========allTest $FUNCNAME end ===========${NOC}"
 }
 
-start_ebrelayerC
-
 #MainTest "${1}"
