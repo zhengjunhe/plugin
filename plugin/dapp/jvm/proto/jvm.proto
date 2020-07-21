@@ -1,0 +1,217 @@
+syntax = "proto3";
+
+package types;
+
+//合约对象信息
+message JVMContractObject {
+    string            addr  = 1;
+    JVMContractData  data  = 2;
+    JVMContractState state = 3;
+}
+
+// 存放合约固定数据
+message JVMContractData {
+    string creator  = 1;
+    string name     = 2;
+    string addr     = 4;
+    bytes  code     = 5;
+    bytes  codeHash = 6;
+    bytes  abi      = 7;
+}
+
+message LogJVMContractData {
+    string creator  = 1;
+    string name     = 2;
+    string addr     = 3;
+    string codeHash = 4;
+    string abiHash  = 5;
+}
+
+// 存放合约变化数据
+message JVMContractState {
+    uint64             nonce    = 1;
+    bool               suicided = 2;
+    map<string, bytes> storage  = 3;
+}
+
+message JVMContractAction {
+    oneof value {
+        CreateJvmContract createJvmContract = 1;
+        CallJvmContract   callJvmContract   = 2;
+        UpdateJvmContract updateJvmContract = 3;
+    }
+    int32 ty = 4;
+}
+
+// 创建JVM合约
+message CreateJvmContract {
+    // 合约数据
+    bytes code = 3;
+    // abi数据
+    string abi = 4;
+    // 用户自定义Jvm合约名字，必须是user.Jvm.xxx的风格，且xxx由a-z，0-9组成的4-16字符长度组成
+    string name = 5;
+    // 交易备注
+    string note = 6;
+}
+
+// 调用Jvm合约
+message CallJvmContract {
+    // 交易备注
+    string note = 1;
+    //执行动作名称
+    string actionName = 2;
+    //执行参数
+    bytes actionData = 3;
+}
+
+// 更新Jvm合约
+message UpdateJvmContract {
+    // 合约数据
+    bytes code = 3;
+    // abi数据
+    string abi = 4;
+    // 用户自定义Jvm合约名字，必须是user.Jvm.xxx的风格，且xxx由a-z，0-9组成的4-16字符长度组成
+    string name = 5;
+    // 交易备注
+    string note = 6;
+}
+
+// 存放本地数据库的数据
+message ReceiptLocalData {
+    bytes key      = 1;
+    bytes curValue = 2;
+    bytes preValue = 3;
+}
+
+// 合约创建/调用日志
+message ReceiptJVMContract {
+    string caller       = 1;
+    string contractName = 2;
+    string contractAddr = 3;
+}
+
+// 用于保存JVM只能合约中的状态数据变更
+message JVMStateChangeItem {
+    string key          = 1;
+    bytes  preValue     = 2;
+    bytes  currentValue = 3;
+}
+
+message CheckJVMContractNameReq {
+    string JvmContractName = 1;
+}
+message CheckJVMAddrResp {
+    bool existAlready = 1;
+}
+
+message JVMDebugReq {
+    // 0 query, 1 set, -1 clear
+    int32 optype = 1;
+}
+
+message JVMDebugResp {
+    string debugStatus = 1;
+}
+
+message JVMGetAbiResp {
+    bytes abi = 1;
+}
+
+message JVMQueryTableItem {
+    string tableName = 1;
+    string key       = 2;
+}
+
+message JVMQueryContractTableReq {
+    string   contractName             = 1;
+    repeated JVMQueryTableItem items = 2;
+}
+
+message JVMOutItem {
+    string ItemType = 1;
+    bytes  Data     = 2;
+}
+
+message QueryResultItem {
+    string ItemType   = 1;
+    string resultJSON = 2;
+    bool   found      = 3;
+}
+
+message JVMQueryResponse {
+    repeated QueryResultItem queryResultItems = 1;
+}
+
+message ConvertJson2AbiReq {
+    string ContractName  = 1;
+    string ActionName    = 2;
+    string AbiDataInJson = 3;
+}
+
+message Json2AbiResponse {
+    bytes AbiData = 1;
+}
+//模糊查找请求
+message JVMFuzzyQueryTableReq {
+    string contractName = 1;
+    string tableName    = 2;
+    string format       = 3;
+    int64  start        = 4;
+    int64  stop         = 5;
+}
+
+message FuzzyQueryResultItem {
+    //模糊查找索引
+    int64    index             = 1;
+    repeated string resultJSON = 2;
+}
+
+message JVMFuzzyQueryResponse {
+    string   contractName                          = 1;
+    string   tableName                             = 2;
+    repeated FuzzyQueryResultItem queryResultItems = 3;
+}
+
+message CreateContractReq {
+    // abi字符串
+    string Abi = 1;
+    // 合约别名，方便识别
+    string Name = 2;
+    // 交易备注
+    string Note = 3;
+    // 合约字节码
+    bytes Code = 4;
+    // Fee 交易手续费
+    int64 Fee = 5;
+}
+
+message CallContractReq {
+    // 合约别名，方便识别
+    string Name = 1;
+    // 交易备注
+    string Note = 2;
+    // abi 数据
+    string DataInJson = 3;
+    // 执行动作名称
+    string ActionName = 4;
+    // Fee 交易手续费
+    int64 Fee = 5;
+}
+
+message UpdateContractReq {
+    // abi字符串
+    string Abi = 1;
+    // 合约别名，方便识别
+    string Name = 2;
+    // 交易备注
+    string Note = 3;
+    // 合约字节码
+    bytes Code = 4;
+    // Fee 交易手续费
+    int64 Fee = 5;
+}
+
+message JVMLog {
+    repeated string LogInfo = 1;
+}
