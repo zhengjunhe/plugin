@@ -1,6 +1,7 @@
-package so
+package main
 
 import (
+	"C"
 	"flag"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -8,6 +9,7 @@ import (
 	"golang.org/x/net/context"
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/jvm/types"
+	chain33Types "github.com/33cn/chain33/types"
 )
 
 var (
@@ -26,10 +28,17 @@ type GrpcClientCfg struct {
 	Tls bool
 	CaFile string
 	ServerHostOverride string
-
 }
-//export: StartGrpcClient
-func StartGrpcClient(cfg GrpcClientCfg) bool {
+
+//export StartGrpcClient
+func StartGrpcClient(ServerAddr, CaFile, ServerHostOverride string, tls bool) bool {
+	cfg := GrpcClientCfg{
+		ServerAddr:ServerAddr,
+		Tls:tls,
+		CaFile:CaFile,
+		ServerHostOverride:ServerHostOverride,
+	}
+
 	if cfg.ServerAddr == serverAddrRunning && clientActive {
 		return true
 	}
@@ -61,14 +70,15 @@ func StartGrpcClient(cfg GrpcClientCfg) bool {
 	return true
 }
 
+//export StopGrpcClient
 func StopGrpcClient() {
 	_ = clientConn.Close()
 }
 
-func ExecFrozen(from, execAddr string, amount int64) bool {
+//export ExecFrozen
+func ExecFrozen(from string, amount int64) bool {
 	in := &types.TokenOperPara{
 		From:                 from,
-		ExecAddr:             execAddr,
 		Amount:               amount,
 	}
 	_ , err := jvmClient.ExecFrozen(context.Background(), in)
@@ -78,6 +88,7 @@ func ExecFrozen(from, execAddr string, amount int64) bool {
 	return true
 }
 
+//export ExecActive
 func ExecActive(from, execAddr string, amount int64) bool {
 	in := &types.TokenOperPara{
 		From:                 from,
@@ -91,6 +102,7 @@ func ExecActive(from, execAddr string, amount int64) bool {
 	return true
 }
 
+//export ExecTransfer
 func ExecTransfer(from, to, execAddr string, amount int64) bool {
 	in := &types.TokenOperPara{
 		From:                 from,
@@ -104,3 +116,105 @@ func ExecTransfer(from, to, execAddr string, amount int64) bool {
 	}
 	return true
 }
+
+//export GetRandom
+func GetRandom() []byte {
+	in := &chain33Types.ReqNil{}
+	random, err := jvmClient.GetRandom(context.Background(), in)
+	if nil != err {
+		return nil
+	}
+	return random.Random
+}
+
+//export GetFrom
+func GetFrom() string {
+	in := &chain33Types.ReqNil{}
+	from, err := jvmClient.GetFrom(context.Background(), in)
+	if nil != err {
+		return ""
+	}
+	return from.From
+}
+
+//export SetState
+func SetState(key, value []byte) bool {
+	in := &types.SetDBPara{
+		Key:key,
+		Value:value,
+	}
+	result , err := jvmClient.SetStateDB(context.Background(), in)
+	if nil != err {
+		return false
+	}
+	return result.Result
+}
+
+//export GetFromState
+func GetFromState(key, value []byte) bool {
+	in := &types.GetRequest{
+		Key:key,
+	}
+	result , err := jvmClient.GetFromStateDB(context.Background(), in)
+	if nil != err {
+		return false
+	}
+	copy(value, result.Value)
+	return true
+}
+
+//export GetValueSize
+func GetValueSize(key []byte) int32 {
+	in := &types.GetRequest{
+		Key:key,
+	}
+	result , err := jvmClient.GetValueSize(context.Background(), in)
+	if nil != err {
+		return 0
+	}
+	return result.Size
+}
+
+//export SetLocalDB
+func SetLocalDB(key, value []byte) bool {
+	in := &types.SetDBPara{
+		Key:key,
+		Value:value,
+	}
+	result , err := jvmClient.SetLocalDB(context.Background(), in)
+	if nil != err {
+		return false
+	}
+	return result.Result
+}
+
+//export GetFromLocalDB
+func GetFromLocalDB(key, value []byte) bool {
+	in := &types.GetRequest{
+		Key:key,
+	}
+	result , err := jvmClient.GetFromLocalDB(context.Background(), in)
+	if nil != err {
+		return false
+	}
+	copy(value, result.Value)
+	return true
+}
+
+//export GetLocalValueSize
+func GetLocalValueSize(key []byte) int32 {
+	in := &types.GetRequest{
+		Key:key,
+	}
+	result , err := jvmClient.GetLocalValueSize(context.Background(), in)
+	if nil != err {
+		return 0
+	}
+	return result.Size
+}
+
+func main() {}
+
+
+
+

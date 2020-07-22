@@ -200,9 +200,6 @@ func (m *MemoryStateDB) SetCodeAndAbi(addr string, code []byte, abi []byte) {
 	if acc != nil {
 		m.dataDirty[addr] = true
 		acc.SetCodeAndAbi(code, abi)
-		//不需要手动存数据库，交易执行完会存
-		//data, _ := proto.Marshal(&acc.Data)
-		//m.StateDB.Set(acc.GetDataKey(), data)
 	}
 }
 

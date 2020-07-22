@@ -69,8 +69,7 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	userJvmAddr := address.ExecAddress(string(tx.Execer))
 	contractAccount := jvm.mStateDB.GetAccount(userJvmAddr)
 	code := contractAccount.Data.GetCode()
-	abi := contractAccount.Data.GetAbi()
-	if len(code) == 0 || len(abi) == 0 {
+	if len(code) == 0 {
 		log.Error("call jvm contract ", "failed to get code&abi from contract", string(tx.Execer))
 		return nil, jvmTypes.ErrWrongContractAddr
 	}

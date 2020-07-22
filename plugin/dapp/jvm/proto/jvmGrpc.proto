@@ -38,11 +38,16 @@ message ValueSize {
     int32 size = 1;
 }
 
+message FromAddr {
+    string from = 1;
+}
+
 service jvm {
     rpc ExecFrozen(TokenOperPara) returns (OpResult) {}
     rpc ExecActive(TokenOperPara) returns (OpResult) {}
     rpc ExecTransfer(TokenOperPara) returns (OpResult) {}
     rpc GetRandom(ReqNil) returns (RandomData) {}
+    rpc GetFrom(ReqNil) returns (FromAddr) {}
     //state db 相关操作
     rpc SetStateDB(SetDBPara) returns (OpResult) {}
     rpc GetFromStateDB(GetRequest) returns (GetResponse) {}

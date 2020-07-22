@@ -50,10 +50,10 @@ func jvmAddCreateContractFlags(cmd *cobra.Command) {
 	jvmAddCommonFlags(cmd)
 
 	cmd.Flags().StringP("contract", "x", "", "contract name same with the code and abi file")
-	cmd.MarkFlagRequired("contract")
+	_ = cmd.MarkFlagRequired("contract")
 
 	cmd.Flags().StringP("path", "d", "", "path where stores jvm code and abi")
-	cmd.MarkFlagRequired("path")
+	_ = cmd.MarkFlagRequired("path")
 }
 
 func jvmCreateContract(cmd *cobra.Command, args []string) {
@@ -62,32 +62,24 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	//paraName, _ := cmd.Flags().GetString("paraName")
 
 	nameReg, _ := regexp.Compile(jvmTypes.NameRegExp)
 	if !nameReg.MatchString(contractName) {
-		fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
+		_, _ = fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
 		return
 	}
 
 	if len(contractName) > 16 || len(contractName) < 4 {
-		fmt.Fprintln(os.Stderr, "jvm contract name's length should be within range [4-16]")
+		_, _ = fmt.Fprintln(os.Stderr, "jvm contract name's length should be within range [4-16]")
 		return
 	}
 
 	feeInt64 := uint64(fee*1e4) * 1e4
 
-	codePath := path + "/" + contractName + ".jvm"
-	abiPath := path + "/" + contractName + ".abi"
+	codePath := path + "/" + contractName + ".class"
 	code, err := ioutil.ReadFile(codePath)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "read code error ", err)
-		return
-	}
-
-	abi, err := ioutil.ReadFile(abiPath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "read abi error ", err)
+		_, _ = fmt.Fprintln(os.Stderr, "read code error ", err)
 		return
 	}
 
@@ -95,7 +87,6 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 		Name: contractName,
 		Note: note,
 		Code: code,
-		Abi:  string(abi),
 		Fee:  int64(feeInt64),
 	}
 	var createResp = types.ReplyString{}
@@ -103,7 +94,7 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 	if query {
 		fmt.Println(createResp.Data)
 	} else {
-		fmt.Fprintln(os.Stderr, "get create to transaction error")
+		_, _ = fmt.Fprintln(os.Stderr, "get create to transaction error")
 		return
 	}
 }
@@ -123,10 +114,10 @@ func jvmAddUpdateContractFlags(cmd *cobra.Command) {
 	jvmAddCommonFlags(cmd)
 
 	cmd.Flags().StringP("contract", "x", "", "contract name same with the code and abi file")
-	cmd.MarkFlagRequired("contract")
+	_ = cmd.MarkFlagRequired("contract")
 
 	cmd.Flags().StringP("path", "d", "", "path where stores jvm code and abi")
-	cmd.MarkFlagRequired("path")
+	_ = cmd.MarkFlagRequired("path")
 }
 
 func jvmUpdateContract(cmd *cobra.Command, args []string) {
@@ -139,28 +130,21 @@ func jvmUpdateContract(cmd *cobra.Command, args []string) {
 
 	nameReg, _ := regexp.Compile(jvmTypes.NameRegExp)
 	if !nameReg.MatchString(contractName) {
-		fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
+		_, _ = fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
 		return
 	}
 
 	if len(contractName) > 16 || len(contractName) < 4 {
-		fmt.Fprintln(os.Stderr, "jvm contract name's length should be within range [4-16]")
+		_, _ = fmt.Fprintln(os.Stderr, "jvm contract name's length should be within range [4-16]")
 		return
 	}
 
 	feeInt64 := uint64(fee*1e4) * 1e4
 
-	codePath := path + "/" + contractName + ".jvm"
-	abiPath := path + "/" + contractName + ".abi"
+	codePath := path + "/" + contractName + ".class"
 	code, err := ioutil.ReadFile(codePath)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "read code error ", err)
-		return
-	}
-
-	abi, err := ioutil.ReadFile(abiPath)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "read abi error ", err)
+		_, _ = fmt.Fprintln(os.Stderr, "read code error ", err)
 		return
 	}
 
@@ -168,17 +152,15 @@ func jvmUpdateContract(cmd *cobra.Command, args []string) {
 		Name: contractName,
 		Note: note,
 		Code: code,
-		Abi:  string(abi),
 		Fee:  int64(feeInt64),
 	}
 	var createResp = types.ReplyString{}
-	query := sendQuery4jvm(rpcLaddr, jvmTypes.UpdateJvmContractStr, &createReq, &createResp)
-	if query {
+	ok := sendQuery4jvm(rpcLaddr, jvmTypes.UpdateJvmContractStr, &createReq, &createResp)
+	if ok {
 		fmt.Println(createResp.Data)
-	} else {
-		fmt.Fprintln(os.Stderr, "get update to transaction error")
 		return
 	}
+	_, _ = fmt.Fprintln(os.Stderr, "get update to transaction error")
 }
 
 //运行jvm合约的查询请求
@@ -210,20 +192,20 @@ func jvmQueryContract(cmd *cobra.Command, args []string) {
 			fmt.Println(jvmOutItem.ResultJSON)
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "get jvm query error")
+		_, _ = fmt.Fprintln(os.Stderr, "get jvm query error")
 		return
 	}
 }
 
 func jvmAddQueryContractFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "jvm contract name")
-	cmd.MarkFlagRequired("exec")
+	_ = cmd.MarkFlagRequired("exec")
 
 	cmd.Flags().StringP("table", "n", "", "one of jvm contract's table name")
-	cmd.MarkFlagRequired("table")
+	_ =  cmd.MarkFlagRequired("table")
 
 	cmd.Flags().StringP("key", "k", "", "key of the table info")
-	cmd.MarkFlagRequired("key")
+	_ = cmd.MarkFlagRequired("key")
 }
 
 // 调用jvm合约
@@ -260,7 +242,7 @@ func jvmCallContract(cmd *cobra.Command, args []string) {
 	if query {
 		fmt.Println(createResp.Data)
 	} else {
-		fmt.Fprintln(os.Stderr, "get call jvm to transaction error")
+		_, _ = fmt.Fprintln(os.Stderr, "get call jvm to transaction error")
 		return
 	}
 }
@@ -268,13 +250,13 @@ func jvmCallContract(cmd *cobra.Command, args []string) {
 func jvmAddCallContractFlags(cmd *cobra.Command) {
 	jvmAddCommonFlags(cmd)
 	cmd.Flags().StringP("exec", "e", "", "jvm contract name,like user.jvm.xxx")
-	cmd.MarkFlagRequired("exec")
+	_ = cmd.MarkFlagRequired("exec")
 
 	cmd.Flags().StringP("action", "x", "", "external contract action name")
-	cmd.MarkFlagRequired("action")
+	_ = cmd.MarkFlagRequired("action")
 
 	cmd.Flags().StringP("para", "r", "", "external contract execution parameter in json string")
-	cmd.MarkFlagRequired("para")
+	_ = cmd.MarkFlagRequired("para")
 }
 
 func jvmAddCommonFlags(cmd *cobra.Command) {
@@ -296,7 +278,7 @@ func jvmCheckContractNameCmd() *cobra.Command {
 
 func jvmAddCheckContractAddrFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "jvm contract name, like user.jvm.xxxxx(a-z0-9, within length [4-16])")
-	cmd.MarkFlagRequired("exec")
+	_ = cmd.MarkFlagRequired("exec")
 }
 
 func jvmCheckContractAddr(cmd *cobra.Command, args []string) {
@@ -307,7 +289,7 @@ func jvmCheckContractAddr(cmd *cobra.Command, args []string) {
 
 	match, _ := regexp.MatchString(jvmTypes.NameRegExp, name)
 	if !match {
-		fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
+		_, _ = fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
 		return
 	}
 
@@ -316,9 +298,9 @@ func jvmCheckContractAddr(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	query := sendQuery4jvm(rpcLaddr, jvmTypes.CheckNameExistsFunc, &checkAddrReq, &checkAddrResp)
 	if query {
-		fmt.Fprintln(os.Stdout, checkAddrResp.ExistAlready)
+		_, _ = fmt.Fprintln(os.Stdout, checkAddrResp.ExistAlready)
 	} else {
-		fmt.Fprintln(os.Stderr, "error")
+		_, _ = fmt.Fprintln(os.Stderr, "error")
 	}
 }
 
@@ -376,9 +358,9 @@ func jvmDebugRPC(cmd *cobra.Command, flag int32) {
 	query := sendQuery4jvm(rpcLaddr, "jvmDebug", &debugReq, &debugResp)
 
 	if query {
-		proto.MarshalText(os.Stdout, &debugResp)
+		_ = proto.MarshalText(os.Stdout, &debugResp)
 	} else {
-		fmt.Fprintln(os.Stderr, "error")
+		_, _ = fmt.Fprintln(os.Stderr, "error")
 	}
 }
 
@@ -391,13 +373,13 @@ func sendQuery4jvm(rpcAddr, funcName string, request types.Message, result proto
 
 	jsonrpc, err := jsonclient.NewJSONClient(rpcAddr)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		return false
 	}
 
 	err = jsonrpc.Call("Chain33.Query", params, result)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, _ = fmt.Fprintln(os.Stderr, err)
 		return false
 	}
 	return true

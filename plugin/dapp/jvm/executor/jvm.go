@@ -187,7 +187,6 @@ func ExecTransfer(from, to string, amount int64) bool {
 }
 
 // ExecTransferFrozen 冻结的转账
-//export ExecTransferFrozen
 func ExecTransferFrozen(from, to string, amount int64) bool {
 	jvmIndex := 0
 	if nil == pJvmMap[uint64(jvmIndex)] || nil == pJvmMap[uint64(jvmIndex)].mStateDB {
@@ -198,7 +197,6 @@ func ExecTransferFrozen(from, to string, amount int64) bool {
 }
 
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
-//export GetRandom
 func GetRandom() ([]byte, error) {
 	jvmIndex := 0
 	blockNum := int64(5)
@@ -213,6 +211,16 @@ func GetRandom() ([]byte, error) {
 		Hash:     pJvmMap[uint64(jvmIndex)].GetLastHash(),
 	}
 	return pJvmMap[uint64(jvmIndex)].GetExecutorAPI().GetRandNum(req)
+}
+
+func GetFrom() string {
+	jvmIndex := 0
+
+	if nil == pJvmMap[uint64(jvmIndex)] {
+		log.Error("GetFrom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
+		return ""
+	}
+	return pJvmMap[uint64(jvmIndex)].tx.From()
 }
 
 // GetDriverName 获取driver 名称

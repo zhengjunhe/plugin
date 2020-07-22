@@ -27,6 +27,11 @@ func (c *channelClient) GetRandom(ctx context.Context, para *types.ReqNil)(*jvmT
 	return &jvmTypes.RandomData{Random:random}, err
 }
 
+func (c *channelClient) GetFrom(ctx context.Context, para *types.ReqNil) (*jvmTypes.FromAddr, error) {
+	from := executor.GetFrom()
+	return &jvmTypes.FromAddr{From:from}, nil
+}
+
 func (c *channelClient) SetStateDB(ctx context.Context, para *jvmTypes.SetDBPara) (*jvmTypes.OpResult, error) {
 	result := executor.StateDBSetStateCallback(para.Key, para.Value)
 	return &jvmTypes.OpResult{Result: result}, nil
@@ -56,3 +61,5 @@ func (c *channelClient) GetLocalValueSize(ctx context.Context, para *jvmTypes.Ge
 	size := executor.GetValueSizeFromLocal(para.Key)
 	return &jvmTypes.ValueSize{Size:size}, nil
 }
+
+
