@@ -30,6 +30,12 @@ type GrpcClientCfg struct {
 	ServerHostOverride string
 }
 
+//export StartDefaultGrpcClient
+func StartDefaultGrpcClient(serverAddr string) bool {
+	//"127.0.0.1:8802"
+	return StartGrpcClient(serverAddr, "", "", false)
+}
+
 //export StartGrpcClient
 func StartGrpcClient(ServerAddr, CaFile, ServerHostOverride string, tls bool) bool {
 	cfg := GrpcClientCfg{
@@ -39,9 +45,6 @@ func StartGrpcClient(ServerAddr, CaFile, ServerHostOverride string, tls bool) bo
 		ServerHostOverride:ServerHostOverride,
 	}
 
-	if cfg.ServerAddr == serverAddrRunning && clientActive {
-		return true
-	}
 	flag.Parse()
 	var opts []grpc.DialOption
 	if cfg.Tls {

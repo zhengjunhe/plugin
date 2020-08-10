@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
@@ -75,6 +76,20 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 	}
 
 	feeInt64 := uint64(fee*1e4) * 1e4
+
+	files, err := ioutil.ReadDir(".")
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to list files in current directy")
+		return
+	}
+
+	var fileSuffix string = ".class"
+	for _, file := range files {
+		fileName := file.Name()
+		if strings.HasSuffix(fileName, fileSuffix) && strings.HasPrefix(fileName, "Chain33DBop") {
+			fmt.Println(file.Name())
+		}
+	}
 
 	codePath := path + "/" + contractName + ".class"
 	code, err := ioutil.ReadFile(codePath)

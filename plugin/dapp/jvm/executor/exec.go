@@ -85,7 +85,7 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 		"ActionName", callJvmContract.ActionName)
 	caller := tx.From()
 	actineInfo := string(callJvmContract.ActionData)
-	actineInfo = fmt.Sprintf("%s:from=%s", actineInfo, caller)
+	actineInfo = fmt.Sprintf("%s:%s:from=%s", callJvmContract.ActionName, actineInfo, caller)
 	//2nd step: just call contract
 	errinfo := runJava(code, jvm.cp, string(tx.Execer), actineInfo)
 	//合约执行失败
