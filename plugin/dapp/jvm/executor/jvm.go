@@ -81,8 +81,7 @@ func setJvm4CallbackWithIndex(jvm *JVMExecutor, index uint64) {
 }
 
 /////////////////////////LocalDB interface//////////////////////////////////////////
-// GetValueSizeFromLocal get value size from local
-//export GetValueSizeFromLocal
+
 func GetValueSizeFromLocal(key []byte) int32 {
 	log.Debug("Entering GetValueSizeFromLocal")
 	jvmIndex := 0
@@ -91,15 +90,13 @@ func GetValueSizeFromLocal(key []byte) int32 {
 	return int32(len(value))
 }
 
-// GetValueFromLocal get value form local for C
-//export GetValueFromLocal
 func GetValueFromLocal(key []byte) []byte {
 	log.Debug("Entering GetValueFromLocal")
 	jvmIndex := 0
 	contractAddrgo := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
 	value := pJvmMap[uint64(jvmIndex)].mStateDB.GetValueFromLocal(contractAddrgo, string(key))
 	if 0 == len(value) {
-		log.Debug("Entering Get StateDBGetStateCallback", "get null value for key", string(key))
+		log.Debug("Entering Get GetValueFromLocal", "get null value for key", string(key))
 		return nil
 	}
 	return value
@@ -120,22 +117,20 @@ func StateDBGetValueSizeCallback(contractAddr string, key []byte) int32 {
 	return int32(len(value))
 }
 
-// StateDBGetStateCallback get state db callback C
-//export StateDBGetStateCallback
-func StateDBGetStateCallback(key []byte) []byte {
-	log.Debug("Entering Get StateDBGetStateCallback")
+func StateDBGetState(key []byte) []byte {
+	log.Debug("Entering Get StateDBGetState")
 	jvmIndex := 0
 	contractAddrgo := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
 	value := pJvmMap[uint64(jvmIndex)].mStateDB.GetState(contractAddrgo, string(key))
 	if 0 == len(value) {
-		log.Debug("Entering Get StateDBGetStateCallback", "get null value for key", string(key))
+		log.Debug("Entering Get StateDBGetState", "get null value for key", string(key))
 		return nil
 	}
 
 	return value
 }
 
-func StateDBSetStateCallback(key, value []byte) bool {
+func StateDBSetState(key, value []byte) bool {
 	log.Debug("StateDBSetStateCallback", "key", string(key), "value in string:",
 		"value in slice:", value)
 	jvmIndex := 0
@@ -145,7 +140,6 @@ func StateDBSetStateCallback(key, value []byte) bool {
 }
 
 // Output2UserCallback 该接口用于返回查询结果的返回
-//export Output2UserCallback
 func Output2UserCallback(typeName string, value []byte) {
 	log.Debug("Entering Output2UserCallback")
 	jvmIndex := 0
@@ -197,12 +191,12 @@ func ExecTransferFrozen(from, to string, amount int64) bool {
 }
 
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
-func GetRandom() ([]byte, error) {
+func GetRandom() (string, error) {
 	jvmIndex := 0
 	blockNum := int64(5)
 	if nil == pJvmMap[uint64(jvmIndex)] {
 		log.Error("GetRandom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
-		return nil, errors.New("invalid index")
+		return "", errors.New("invalid index")
 	}
 
 	req := &types.ReqRandHash{
@@ -210,7 +204,12 @@ func GetRandom() ([]byte, error) {
 		BlockNum: blockNum,
 		Hash:     pJvmMap[uint64(jvmIndex)].GetLastHash(),
 	}
-	return pJvmMap[uint64(jvmIndex)].GetExecutorAPI().GetRandNum(req)
+	data, err := pJvmMap[uint64(jvmIndex)].GetExecutorAPI().GetRandNum(req)
+	if nil != err {
+		log.Error("GetRandom failed due to:", err.Error())
+		return "", err
+	}
+	return string(data), nil
 }
 
 func GetFrom() string {
@@ -221,6 +220,26 @@ func GetFrom() string {
 		return ""
 	}
 	return pJvmMap[uint64(jvmIndex)].tx.From()
+}
+
+func GetHeight() int64 {
+	jvmIndex := 0
+
+	if nil == pJvmMap[uint64(jvmIndex)] {
+		log.Error("GetFrom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
+		return 0
+	}
+	return pJvmMap[uint64(jvmIndex)].GetHeight()
+}
+
+func StopTransWithErrInfo(err string) int {
+	jvmIndex := 0
+
+	if nil == pJvmMap[uint64(jvmIndex)] {
+		log.Error("GetFrom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
+		return 0
+	}
+	return 0
 }
 
 // GetDriverName 获取driver 名称

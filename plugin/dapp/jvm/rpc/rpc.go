@@ -24,7 +24,7 @@ func (c *channelClient) ExecTransfer(ctx context.Context, para *jvmTypes.TokenOp
 
 func (c *channelClient) GetRandom(ctx context.Context, para *types.ReqNil)(*jvmTypes.RandomData, error) {
 	random, err := executor.GetRandom()
-	return &jvmTypes.RandomData{Random:random}, err
+	return &jvmTypes.RandomData{Random:[]byte(random)}, err
 }
 
 func (c *channelClient) GetFrom(ctx context.Context, para *types.ReqNil) (*jvmTypes.FromAddr, error) {
@@ -33,12 +33,12 @@ func (c *channelClient) GetFrom(ctx context.Context, para *types.ReqNil) (*jvmTy
 }
 
 func (c *channelClient) SetStateDB(ctx context.Context, para *jvmTypes.SetDBPara) (*jvmTypes.OpResult, error) {
-	result := executor.StateDBSetStateCallback(para.Key, para.Value)
+	result := executor.StateDBSetState(para.Key, para.Value)
 	return &jvmTypes.OpResult{Result: result}, nil
 }
 
 func (c *channelClient) GetFromStateDB(ctx context.Context, para *jvmTypes.GetRequest) (*jvmTypes.GetResponse, error) {
-	result := executor.StateDBGetStateCallback(para.Key)
+	result := executor.StateDBGetState(para.Key)
 	return &jvmTypes.GetResponse{Value: result}, nil
 }
 
