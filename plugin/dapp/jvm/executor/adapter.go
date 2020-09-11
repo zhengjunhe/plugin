@@ -69,11 +69,7 @@ func runJava(contract, action string, para []string, cp string, jvmHandleGo *JVM
 	defer freeArgument(argc, argv)
 	var exception1DPtr *C.char
 	exception := &exception1DPtr
-
-	value := unsafe.Pointer(uintptr(unsafe.Pointer(jvmHandleGo)))
-	ptr := C.GetVoidPtr((*C.char)(value))
-
-	result := C.JLI_Exec_Contract(argc, argv, exception, TX_EXEC_JOB, ptr)
+	result := C.JLI_Exec_Contract(argc, argv, exception, TX_EXEC_JOB, (*C.char)(unsafe.Pointer(jvmHandleGo)))
 	if int(result) != JLI_SUCCESS {
 		exInfo := C.GoString(*exception)
 		defer C.free(unsafe.Pointer(*exception))
