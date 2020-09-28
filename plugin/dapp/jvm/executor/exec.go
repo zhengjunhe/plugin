@@ -1,15 +1,14 @@
 package executor
 
+import "C"
 import (
-	"os"
-	"os/exec"
-	"fmt"
-
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/contract"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
+	"os"
+	"strings"
 )
 
 // Exec_CreateJvmContract 创建合约
@@ -66,42 +65,77 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 
 	log.Debug("jvm call", "Para CallJvmContract", callJvmContract)
 
-	userJvmAddr := address.ExecAddress(string(tx.Execer))
+	contractName := string(tx.Execer)
+	userJvmAddr := address.ExecAddress(contractName)
 	contractAccount := jvm.mStateDB.GetAccount(userJvmAddr)
-	code := contractAccount.Data.GetCode()
-	if len(code) == 0 {
-		log.Error("call jvm contract ", "failed to get code&abi from contract", string(tx.Execer))
-		return nil, jvmTypes.ErrWrongContractAddr
+	temp := strings.Split(contractName, ".")
+	//just keep the last name
+	contractName = temp[len(temp) - 1]
+	jarPath := "./" + contractName + ".jar"
+	jarFileExist := true
+	//判断jar文件是否存在
+	_, err := os.Stat(jarPath)
+	if err != nil && !os.IsExist(err) {
+		jarFileExist = false
+	}
+
+	if !jarFileExist {
+		javaClassfile, err := os.OpenFile(jarPath, os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+		    return nil, err
+		}
+		code := contractAccount.Data.GetCode()
+		if len(code) == 0 {
+			log.Error("call jvm contract ", "failed to get code&abi from contract", string(tx.Execer))
+			return nil, jvmTypes.ErrWrongContractAddr
+		}
+
+		writeLen, err := javaClassfile.Write(code)
+		if writeLen != len(code) {
+		    return nil, jvmTypes.ErrWriteJavaClass
+		}
+		if closeErr := javaClassfile.Close(); nil != closeErr {
+			return nil, closeErr
+		}
 	}
 
 	//将当前合约执行名字修改为user.jvm.xxx
 	jvm.mStateDB.SetCurrentExecutorName(string(jvm.GetAPI().GetConfig().GetParaExec(tx.Execer)))
 	snapshot := jvm.mStateDB.Snapshot()
-	setJvm4CallbackWithIndex(jvm, 0)
 
-	//1st step: create apply context
-	log.Debug("jvm call para", "ActionData", callJvmContract.ActionData,
-		"ContractName", string(tx.Execer),
-		"ActionName", callJvmContract.ActionName)
+	//1st step: create tx para
 	caller := tx.From()
-	actineInfo := string(callJvmContract.ActionData)
-	actineInfo = fmt.Sprintf("%s:%s:from=%s", callJvmContract.ActionName, actineInfo, caller)
+	actionData := callJvmContract.ActionData
+	log.Debug("jvm call para", "from", caller,
+		"ContractName", string(tx.Execer),
+		"ActionName", callJvmContract.ActionData[0],
+		"ActionData", callJvmContract.ActionData)
 	//2nd step: just call contract
-	errinfo := runJava(code, jvm.cp, string(tx.Execer), actineInfo)
-	//合约执行失败
-	if errinfo != nil {
+	//在此处将gojvm指针传递到c实现的jvm中，进行回调的时候用来区分是获取数据时，使用执行db还是查询db
+	errinfo := runJava(contractName, actionData, jdkPath, jvm, TX_EXEC_JOB)
+	//合约执行失败，有2种可能
+	//1.余额不足等原因被合约强制退出本次交易
+	//2.java合约本身的代码问题，抛出异常
+	if errinfo != nil  || jvm.excep.occurred {
 		jvm.mStateDB.RevertToSnapshot(snapshot)
-		log.Error("call jvm contract", "failed to call contract due to", errinfo)
-		return nil, errinfo
+		var exeErr error
+		if errinfo != nil {
+			exeErr = errinfo
+		} else {
+			exeErr = jvm.excep.info
+
+		}
+		log.Error("call jvm contract", "failed to call contract due to", exeErr.Error())
+		return nil, exeErr
 	}
 
-	receipt, err := jvm.GenerateExecReceipt(
+	receipt, _ := jvm.GenerateExecReceipt(
 		snapshot,
 		contractAccount.GetExecName(),
 		caller,
 		userJvmAddr,
 		jvmTypes.CallJvmContractAction)
-	log.Debug("jvm call", "receipt", receipt, "err info", err)
+	log.Debug("jvm call", "receipt", receipt)
 
 	return receipt, err
 }
@@ -153,32 +187,3 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(in *jvmTypes.UpdateJvmContract, t
 	return receipt, err
 }
 
-func runJava(code []byte, cp, contractName string, actionData string) error {
-	//java -cp .:../test/testclasses/src/main/java:/usr/lib/jdk/jdk1.8.0_251/jre/lib/jna.jar Chain33DBop
-	//cmd := exec.Command("ls", "-a")
-	//para := []string{"-cp .:../test/testclasses/src/main/java:/usr/lib/jdk/jdk1.8.0_251/jre/lib/jna.jar Chain33DBop"}
-	//cmd := exec.Command("java", para...)
-	//cmd := exec.Command("find", "-name", "runjava.go")
-	//cmd := exec.Command("java", "-cp", ".:../test/testclasses/src/main/java:/usr/lib/jdk/jdk1.8.0_251/jre/lib/jna.jar", "Chain33DBop")
-	javaClassfile, err := os.OpenFile("./"+contractName, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-	defer javaClassfile.Close()
-	writeLen, err := javaClassfile.Write(code)
-	if writeLen != len(code) {
-		return jvmTypes.ErrWriteJavaClass
-	}
-	//准备执行
-	//将当前临时保存javaclass的路径添加到cp中
-	cp = cp + ":./"
-	cmd := exec.Command("java", "-cp", cp, contractName, actionData)
-	//获取输出对象，可以从该对象中读取输出结果
-	out, err := cmd.Output()
-	if err != nil {
-		println("error:", err.Error())
-		return jvmTypes.ErrJavaExecFailed
-	}
-	log.Debug("runJava", "java contract result ", string(out))
-	return nil
-}

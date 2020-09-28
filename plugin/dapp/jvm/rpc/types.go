@@ -6,7 +6,6 @@ package rpc
 
 import (
 	"github.com/33cn/chain33/rpc/types"
-	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 )
 
 // Jrpc paracross jrpc interface
@@ -30,5 +29,5 @@ func Init(name string, s types.RPCServer) {
 	grpc := &Grpc{channelClient: cli}
 	cli.Init(name, s, jrpc, grpc)
 
-	jvmTypes.RegisterJvmServer(s.GRPC(), grpc)
+	//jvmTypes.RegisterJvmServer(s.GRPC(), grpc)
 }

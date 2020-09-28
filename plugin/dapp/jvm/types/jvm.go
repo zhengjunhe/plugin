@@ -24,7 +24,7 @@ const (
 	CallJvmContractStr       = "CallJvmContract"
 	UpdateJvmContractStr     = "UpdateJvmContract"
 	//NameRegExp             = "[a-z0-9]"^[a-z]+\[[0-9]+\]$
-	NameRegExp             = "^[a-z0-9]+$"
+	NameRegExp             = "^[a-zA-Z0-9]+$"
 	AccountOpFail          = false
 	AccountOpSuccess       = true
 	RetryNum               = int(10)

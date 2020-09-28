@@ -76,22 +76,7 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 	}
 
 	feeInt64 := uint64(fee*1e4) * 1e4
-
-	files, err := ioutil.ReadDir(".")
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Failed to list files in current directy")
-		return
-	}
-
-	var fileSuffix string = ".class"
-	for _, file := range files {
-		fileName := file.Name()
-		if strings.HasSuffix(fileName, fileSuffix) && strings.HasPrefix(fileName, "Chain33DBop") {
-			fmt.Println(file.Name())
-		}
-	}
-
-	codePath := path + "/" + contractName + ".class"
+	codePath := path + "/" + contractName + ".jar"
 	code, err := ioutil.ReadFile(codePath)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "read code error ", err)
@@ -182,7 +167,7 @@ func jvmUpdateContract(cmd *cobra.Command, args []string) {
 func jvmQueryContractCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "query",
-		Short: "query the jvm contract for specified table ",
+		Short: "query the jvm contract",
 		Run:   jvmQueryContract,
 	}
 	jvmAddQueryContractFlags(cmd)
@@ -191,36 +176,42 @@ func jvmQueryContractCmd() *cobra.Command {
 
 func jvmQueryContract(cmd *cobra.Command, args []string) {
 	contractName, _ := cmd.Flags().GetString("exec")
-	tableName, _ := cmd.Flags().GetString("table")
-	key, _ := cmd.Flags().GetString("key")
+	paraOneStr, _ := cmd.Flags().GetString("para")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
-	queryReq := jvmTypes.JVMQueryContractTableReq{
-		ContractName: contractName,
-		Items:        []*jvmTypes.JVMQueryTableItem{{TableName: tableName, Key: key}},
+	var paraParsed []string
+	paraOneStr = strings.TrimSpace(paraOneStr)
+	paraParsed = strings.Split(paraOneStr, " ")
+
+	queryReq := jvmTypes.JVMQueryReq{
+		Contract: contractName,
+		Para:     paraParsed,
 	}
 
 	var jvmQueryResponse jvmTypes.JVMQueryResponse
 	query := sendQuery4jvm(rpcLaddr, jvmTypes.JvmGetContractTable, &queryReq, &jvmQueryResponse)
-	if query {
-		for _, jvmOutItem := range jvmQueryResponse.QueryResultItems {
-			fmt.Println(jvmOutItem.ResultJSON)
-		}
-	} else {
+	if !query {
 		_, _ = fmt.Fprintln(os.Stderr, "get jvm query error")
 		return
 	}
+
+	if !jvmQueryResponse.Success {
+		fmt.Println("Exception occurred")
+		return
+	}
+
+	for _, info := range jvmQueryResponse.Result {
+		fmt.Println(info)
+	}
+	return
 }
 
 func jvmAddQueryContractFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "jvm contract name")
 	_ = cmd.MarkFlagRequired("exec")
 
-	cmd.Flags().StringP("table", "n", "", "one of jvm contract's table name")
-	_ =  cmd.MarkFlagRequired("table")
-
-	cmd.Flags().StringP("key", "k", "", "key of the table info")
-	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("para", "r", "", "multiple parameter splitted by space")
+	_ =  cmd.MarkFlagRequired("para")
 }
 
 // 调用jvm合约
@@ -239,16 +230,22 @@ func jvmCallContract(cmd *cobra.Command, args []string) {
 	fee, _ := cmd.Flags().GetFloat64("fee")
 	contractName, _ := cmd.Flags().GetString("exec")
 	actionName, _ := cmd.Flags().GetString("action")
-	abiPara, _ := cmd.Flags().GetString("para")
+	paraOneStr, _ := cmd.Flags().GetString("para")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	feeInt64 := uint64(fee*1e4) * 1e4
 
-	var createReq = jvmTypes.CallContractReq{
+	var paraParsed []string
+	paraOneStr = strings.TrimSpace(paraOneStr)
+	paraParsed = strings.Split(paraOneStr, " ")
+
+	var para  = []string{actionName}
+	para = append(para, paraParsed...)
+
+	var createReq = jvmTypes.CallJvmContract{
 		Name:       contractName,
 		Note:       note,
-		ActionName: actionName,
-		DataInJson: abiPara,
+		ActionData: para,
 		Fee:        int64(feeInt64),
 	}
 	var createResp = types.ReplyString{}
@@ -267,11 +264,10 @@ func jvmAddCallContractFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "jvm contract name,like user.jvm.xxx")
 	_ = cmd.MarkFlagRequired("exec")
 
-	cmd.Flags().StringP("action", "x", "", "external contract action name")
+	cmd.Flags().StringP("action", "x", "", "contract tx name")
 	_ = cmd.MarkFlagRequired("action")
 
-	cmd.Flags().StringP("para", "r", "", "external contract execution parameter in json string")
-	_ = cmd.MarkFlagRequired("para")
+	cmd.Flags().StringP("para", "r", "", "multiple contract execution parameter splitted by space(optional)")
 }
 
 func jvmAddCommonFlags(cmd *cobra.Command) {

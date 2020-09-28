@@ -57,19 +57,19 @@ var (
 )
 
 //调用java合约交易
-func runJava(contract, action string, para []string, cp string, jvmHandleGo *JVMExecutor) error {
+func runJava(contract string, para []string, cp string, jvmHandleGo *JVMExecutor, jobType C.int) error {
 	//第一次调用java合约时，进行jvm的初始化
 	initJvm(cp)
 
 	//执行合约
 	// -jar contract action para0 para1 ...
 	//tx2Exec := "PrintArgs debug chain33-jvm I am an Engineer !"
-	tx2Exec := append([]string{"-jar", contract, action}, para...)
+	tx2Exec := append([]string{contract}, para...)
 	argc, argv := buildJavaArgument(tx2Exec)
 	defer freeArgument(argc, argv)
 	var exception1DPtr *C.char
 	exception := &exception1DPtr
-	result := C.JLI_Exec_Contract(argc, argv, exception, TX_EXEC_JOB, (*C.char)(unsafe.Pointer(jvmHandleGo)))
+	result := C.JLI_Exec_Contract(argc, argv, exception, jobType, (*C.char)(unsafe.Pointer(jvmHandleGo)))
 	if int(result) != JLI_SUCCESS {
 		exInfo := C.GoString(*exception)
 		defer C.free(unsafe.Pointer(*exception))
@@ -85,7 +85,7 @@ func initJvm(cp string) {
 	}
 	const_cp := C.CString(cp)
 	defer C.free(unsafe.Pointer(const_cp))
-	result := C.JLI_Create_TxJVM(const_cp)
+	result := C.JLI_Create_JVM(const_cp)
 	if int(result) != JLI_SUCCESS {
 		panic("Failed to init JLI_Init_JVM")
 	}

@@ -3,6 +3,7 @@ package executor
 import (
 	"bytes"
 	"encoding/hex"
+	"os"
 	"regexp"
 
 	"github.com/33cn/chain33/common/address"
@@ -59,7 +60,7 @@ func (jvm *JVMExecutor) Query_CreateJvmContract(in *jvmTypes.CreateContractReq) 
 }
 
 // Query_CallJvmContract 调用创建的合约
-func (jvm *JVMExecutor) Query_CallJvmContract(in *jvmTypes.CallContractReq) (types.Message, error) {
+func (jvm *JVMExecutor) Query_CallJvmContract(in *jvmTypes.CallJvmContract) (types.Message, error) {
 	if in == nil {
 		return nil, types.ErrInvalidParam
 	}
@@ -74,8 +75,7 @@ func (jvm *JVMExecutor) Query_CallJvmContract(in *jvmTypes.CallContractReq) (typ
 		Value: &jvmTypes.JVMContractAction_CallJvmContract{
 			CallJvmContract: &jvmTypes.CallJvmContract{
 				Note:       in.Note,
-				ActionName: in.ActionName,
-				ActionData: []byte(in.DataInJson),
+				ActionData: in.ActionData,
 			},
 		},
 		Ty: jvmTypes.CallJvmContractAction,
@@ -123,6 +123,75 @@ func (jvm *JVMExecutor) Query_UpdateJvmContract(in *jvmTypes.UpdateContractReq) 
 	relpydata := &types.ReplyString{Data: result}
 	return relpydata, err
 }
+
+//查询java合约状态
+func (jvm *JVMExecutor) Query_JavaContract(in *jvmTypes.JVMQueryReq) (types.Message, error) {
+	if in == nil {
+		return nil, types.ErrInvalidParam
+	}
+	jvm.prepareQueryContext([]byte(jvmTypes.JvmX))
+	jvm.queryChan = make(chan QueryResult, 1)
+
+	execer := types.GetRealExecName([]byte(in.Contract))
+	if bytes.HasPrefix(execer, []byte(jvmTypes.UserJvmX)) {
+		execer = execer[len(jvmTypes.UserJvmX):]
+	}
+
+	jvm.mStateDB.SetCurrentExecutorName(jvmTypes.JvmX)
+
+	log.Debug("jvm call", "Para Query_JavaContract", in)
+
+	contractName := in.Contract
+	userJvmAddr := address.ExecAddress(contractName)
+	contractAccount := jvm.mStateDB.GetAccount(userJvmAddr)
+	jarPath := "./" + contractName + ".jar"
+	jarFileExist := true
+	//判断jar文件是否存在
+	_, err := os.Stat(jarPath)
+	if err != nil && !os.IsExist(err) {
+		jarFileExist = false
+	}
+
+	if !jarFileExist {
+		javaClassfile, err := os.OpenFile(jarPath, os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			return nil, err
+		}
+		code := contractAccount.Data.GetCode()
+		if len(code) == 0 {
+			log.Error("call jvm contract ", "failed to get code from contract", contractName)
+			return nil, jvmTypes.ErrWrongContractAddr
+		}
+
+		writeLen, err := javaClassfile.Write(code)
+		if writeLen != len(code) {
+			return nil, jvmTypes.ErrWriteJavaClass
+		}
+		if closeErr := javaClassfile.Close(); nil != closeErr {
+			return nil, closeErr
+		}
+	}
+
+	//将当前合约执行名字修改为user.jvm.xxx
+	jvm.mStateDB.SetCurrentExecutorName(string(jvm.GetAPI().GetConfig().GetParaExec([]byte(contractName))))
+
+	log.Debug("Query_JavaContract", "ContractName", contractName, "Para", in.Para)
+	//2nd step: just call contract
+	//在此处将gojvm指针传递到c实现的jvm中，进行回调的时候用来区分是获取数据时，使用执行db还是查询db
+	_ = runJava(contractName, in.Para, jdkPath, jvm, TX_EXEC_JOB)
+
+	//阻塞并等待查询结果的返回
+	queryResult := <-jvm.queryChan
+	log.Debug("Query_JavaContract::Finish query", "Success", !queryResult.exceptionOccurred, "info", queryResult.info)
+
+	response := &jvmTypes.JVMQueryResponse{
+		Success:!queryResult.exceptionOccurred,
+		Result:queryResult.info,
+	}
+	return response, nil
+}
+
+
 
 func createRawJvmTx(chain33Config *types.Chain33Config, action proto.Message, JvmName string, fee int64) (*types.Transaction, error) {
 	tx := &types.Transaction{

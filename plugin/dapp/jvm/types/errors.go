@@ -38,4 +38,5 @@ var (
 	ErrAbiNotFound              = errors.New("Jvm: abi not found due to wrong contract name")
 	ErrWriteJavaClass           = errors.New("Jvm: Failed to write java class to file")
 	ErrJavaExecFailed           = errors.New("Jvm: Failed to execute java contract")
+	ErrGetJvmFailed             = errors.New("Jvm: Failed to get go-jvm exector")
 )

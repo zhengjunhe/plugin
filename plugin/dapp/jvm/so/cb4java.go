@@ -4,6 +4,7 @@ package main
 //#include <stdlib.h>
 import "C"
 
+
 import (
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor"
 	//"github.com/33cn/plugin/plugin/dapp/jvm/so/test/executor"
@@ -14,6 +15,24 @@ const (
 	Bool_TRUE  = C.int(1)
 	Bool_FALSE = C.int(0)
 )
+
+//export SetQueryResult
+func SetQueryResult(jvmgo *C.char, exceptionOccurred C.int, info **C.char, count, sizePtr C.int) C.int {
+	jvmHandleUintptr := uintptr(unsafe.Pointer(jvmgo))
+	exceOcc := false
+	if Bool_TRUE == exceptionOccurred {
+		exceOcc = true
+	}
+	var query []string
+	for i:=0; i < int(count); i++ {
+		ptr := (uintptr)(unsafe.Pointer(info)) + (uintptr)(int(sizePtr) * i)
+		infoGO := C.GoString(*(**C.char)(unsafe.Pointer(ptr)))
+		query = append(query, infoGO)
+	}
+	executor.ForwardQueryResult(exceOcc, query, jvmHandleUintptr)
+
+	return 0
+}
 
 //用来保存txjvm或者是queryjvm中的env handle
 //export BindTxQueryJVMEnvHandle

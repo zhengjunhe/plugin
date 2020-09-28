@@ -57,12 +57,14 @@ message CreateJvmContract {
 
 // 调用Jvm合约
 message CallJvmContract {
-    // 交易备注
-    string note = 1;
-    //执行动作名称
-    string actionName = 2;
+    //合约名称
+    string Name = 1;
     //执行参数
-    bytes actionData = 3;
+    repeated string actionData = 2;
+    //手续费
+    int64 Fee = 3;
+    // 交易备注
+    string note = 4;
 }
 
 // 更新Jvm合约
@@ -101,6 +103,7 @@ message JVMStateChangeItem {
 message CheckJVMContractNameReq {
     string JvmContractName = 1;
 }
+
 message CheckJVMAddrResp {
     bool existAlready = 1;
 }
@@ -118,59 +121,15 @@ message JVMGetAbiResp {
     bytes abi = 1;
 }
 
-message JVMQueryTableItem {
-    string tableName = 1;
-    string key       = 2;
-}
 
-message JVMQueryContractTableReq {
-    string   contractName             = 1;
-    repeated JVMQueryTableItem items = 2;
-}
-
-message JVMOutItem {
-    string ItemType = 1;
-    bytes  Data     = 2;
-}
-
-message QueryResultItem {
-    string ItemType   = 1;
-    string resultJSON = 2;
-    bool   found      = 3;
+message JVMQueryReq {
+    string contract      = 1;
+    repeated string para = 2;
 }
 
 message JVMQueryResponse {
-    repeated QueryResultItem queryResultItems = 1;
-}
-
-message ConvertJson2AbiReq {
-    string ContractName  = 1;
-    string ActionName    = 2;
-    string AbiDataInJson = 3;
-}
-
-message Json2AbiResponse {
-    bytes AbiData = 1;
-}
-//模糊查找请求
-message JVMFuzzyQueryTableReq {
-    string contractName = 1;
-    string tableName    = 2;
-    string format       = 3;
-    int64  start        = 4;
-    int64  stop         = 5;
-}
-
-message FuzzyQueryResultItem {
-    //模糊查找索引
-    int64    index             = 1;
-    repeated string resultJSON = 2;
-}
-
-message JVMFuzzyQueryResponse {
-    string   contractName                          = 1;
-    string   tableName                             = 2;
-    repeated FuzzyQueryResultItem queryResultItems = 3;
+    bool            success    = 1;
+    repeated string result     = 2;
 }
 
 message CreateContractReq {
@@ -186,17 +145,15 @@ message CreateContractReq {
     int64 Fee = 5;
 }
 
-message CallContractReq {
+message QueryCallContractReq {
     // 合约别名，方便识别
     string Name = 1;
     // 交易备注
     string Note = 2;
-    // abi 数据
-    string DataInJson = 3;
-    // 执行动作名称
-    string ActionName = 4;
-    // Fee 交易手续费
-    int64 Fee = 5;
+
+    string ActionName = 3;
+
+    repeated string ParaData = 4;
 }
 
 message UpdateContractReq {

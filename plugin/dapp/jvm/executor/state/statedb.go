@@ -544,8 +544,13 @@ func (m *MemoryStateDB) SetCurrentExecutorName(executorName string) {
 
 // ExecFrozen exec frozen information
 func (m *MemoryStateDB) ExecFrozen(tx *types.Transaction, addr string, amount int64) bool {
+	if nil == tx {
+		log15.Error("ExecFrozen get nil tx")
+		return jvmTypes.AccountOpFail
+	}
+
 	if tx.From() != addr {
-		log15.Error("ExecFrozen not form own address", "tx.From()", tx.From(), "addr", addr)
+		log15.Error("ExecFrozen not from own address", "tx.From()", tx.From(), "addr", addr)
 		return jvmTypes.AccountOpFail
 	}
 
@@ -569,6 +574,10 @@ func (m *MemoryStateDB) ExecFrozen(tx *types.Transaction, addr string, amount in
 
 // ExecActive active exec
 func (m *MemoryStateDB) ExecActive(tx *types.Transaction, addr string, amount int64) bool {
+	if nil == tx {
+		log15.Error("ExecActive get nil tx")
+		return jvmTypes.AccountOpFail
+	}
 	execaddr := address.ExecAddress(string(tx.Execer))
 	ret, err := m.CoinsAccount.ExecActive(addr, execaddr, amount)
 	if err != nil {
@@ -591,6 +600,11 @@ func (m *MemoryStateDB) ExecActive(tx *types.Transaction, addr string, amount in
 // ExecTransfer transfer exec
 //export ExecTransfer
 func (m *MemoryStateDB) ExecTransfer(tx *types.Transaction, from, to string, amount int64) bool {
+	if nil == tx {
+		log15.Error("ExecTransfer get nil tx")
+		return jvmTypes.AccountOpFail
+	}
+
 	if tx.From() != from {
 		log15.Error("ExecTransfer not from own address", "tx.From()", tx.From(), "to", to)
 		return jvmTypes.AccountOpFail

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync/atomic"
+	"unsafe"
 
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
@@ -14,35 +16,55 @@ import (
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
+	lru "github.com/hashicorp/golang-lru"
 )
 
 type subConfig struct {
 	ParaRemoteGrpcClient string `json:"paraRemoteGrpcClient"`
 }
 
+type exception struct {
+	occurred bool
+	info error
+}
+
 // JVMExecutor 执行器结构
 type JVMExecutor struct {
 	drivers.DriverBase
-	mStateDB *state.MemoryStateDB
-	tx       *types.Transaction
-	txIndex  int
-	out2User []*jvmTypes.JVMOutItem
-	cp       string
+	mStateDB  *state.MemoryStateDB
+	tx        *types.Transaction
+	contract  string
+	txIndex   int
+	excep     exception
+	queryChan chan QueryResult
+}
+
+type QueryResult struct {
+	exceptionOccurred bool
+	info []string
 }
 
 var (
-	//pMemoryStateDB *state.MemoryStateDB
-	//pJvm          *JVMExecutor
-	pJvmIndex = uint64(1)
-	pJvmMap   map[uint64]*JVMExecutor
+	//jvm4txExec *JVMExecutor //
+	//jvm4txLocalExec *JVMExecutor
 	log        = log15.New("module", "execs.jvm")
 	cfg        subConfig
+	//TxJVMEnvHandle = int64(0)
+	jvmsCached *lru.Cache
+	jvmsCacheCreated = int32(0)
+	jdkPath string
 )
+
+const (
+	//DBIndex4Exec  = 0
+	//DBIndex4Query = 1
+	Bool_TRUE = int32(1)
+)
+
 
 func initExecType() {
 	ety := types.LoadExecutorType(jvmTypes.JvmX)
 	ety.InitFuncList(types.ListMethod(&JVMExecutor{}))
-	pJvmMap = make(map[uint64]*JVMExecutor)
 }
 
 // Init register function
@@ -52,6 +74,13 @@ func Init(name string, cfg *types.Chain33Config, sub []byte) {
 	}
 	drivers.Register(cfg, GetName(), newJVM, cfg.GetDappFork(jvmTypes.JvmX, "Enable"))
 	initExecType()
+
+	conf := types.ConfSub(cfg, jvmTypes.JvmX)
+	jdkPath = conf.GStr("jdkPath")
+	if "" == jdkPath {
+		panic("JDK path is not configured")
+	}
+	log.Info("jvm::Init", "JDK path is configured to:", jdkPath)
 }
 
 func newJVM() drivers.Driver {
@@ -73,28 +102,56 @@ func NewJVMExecutor() *JVMExecutor {
 	exec := &JVMExecutor{}
 	exec.SetChild(exec)
 	exec.SetExecutorType(types.LoadExecutorType(jvmTypes.JvmX))
+	atomic.LoadInt32(&jvmsCacheCreated)
+	if Bool_TRUE != atomic.LoadInt32(&jvmsCacheCreated) {
+		var err error
+		jvmsCached, err = lru.New(1000)
+		if nil != err {
+			panic("Failed to new lru for caching jvms due to:"+ err.Error())
+		}
+		atomic.StoreInt32(&jvmsCacheCreated, Bool_TRUE)
+	}
 	return exec
 }
 
-func setJvm4CallbackWithIndex(jvm *JVMExecutor, index uint64) {
-	pJvmMap[index] = jvm
+
+//func getDBIndex(envHandle int64) int {
+//	jvmIndex := DBIndex4Exec
+//	if TxJVMEnvHandle != envHandle {
+//		jvmIndex = DBIndex4Query
+//	}
+//	return jvmIndex
+//}
+
+func RecordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr ) bool {
+	//jvmExecutor := (*JVMExecutor)(unsafe.Pointer(goHandle))
+	return jvmsCached.Add(envHandle, jvm)
+}
+
+func getJvmExector(envHandle uintptr) (*JVMExecutor, bool) {
+	value, ok := jvmsCached.Get(envHandle)
+	if !ok {
+		log.Error("getJvmExector", "Failed to get JVMExecutor from lru cache with key", envHandle)
+		return nil, false
+	}
+
+	jvmExecutor, ok := value.(*JVMExecutor)
+	if !ok {
+		log.Error("getJvmExector", "Failed to get JVMExecutor for query with key", envHandle)
+		return nil, false
+	}
+	return jvmExecutor, true
 }
 
 /////////////////////////LocalDB interface//////////////////////////////////////////
-
-func GetValueSizeFromLocal(key []byte) int32 {
-	log.Debug("Entering GetValueSizeFromLocal")
-	jvmIndex := 0
-	contractAddrgo := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
-	value := pJvmMap[uint64(jvmIndex)].mStateDB.GetValueFromLocal(contractAddrgo, string(key))
-	return int32(len(value))
-}
-
-func GetValueFromLocal(key []byte) []byte {
+func GetValueFromLocal(key []byte, envHandle uintptr) []byte {
 	log.Debug("Entering GetValueFromLocal")
-	jvmIndex := 0
-	contractAddrgo := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
-	value := pJvmMap[uint64(jvmIndex)].mStateDB.GetValueFromLocal(contractAddrgo, string(key))
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return nil
+	}
+	contractAddrgo := jvmExecutor.GetContractAddr()
+	value := jvmExecutor.mStateDB.GetValueFromLocal(contractAddrgo, string(key))
 	if 0 == len(value) {
 		log.Debug("Entering Get GetValueFromLocal", "get null value for key", string(key))
 		return nil
@@ -102,26 +159,24 @@ func GetValueFromLocal(key []byte) []byte {
 	return value
 }
 
-func SetValue2Local(key, value []byte) bool {
+func SetValue2Local(key, value []byte, envHandle uintptr) bool {
 	log.Debug("StateDBSetStateCallback", "key", string(key))
-
-	jvmIndex := 0
-	contractAddrgo := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
-	return pJvmMap[uint64(jvmIndex)].mStateDB.SetValue2Local(contractAddrgo, string(key), value)
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	contractAddrgo :=  jvmExecutor.GetContractAddr()
+	return jvmExecutor.mStateDB.SetValue2Local(contractAddrgo, string(key), value)
 }
 
-func StateDBGetValueSizeCallback(contractAddr string, key []byte) int32 {
-	jvmIndex := 0
-	log.Debug("Entering StateDBGetValueSize")
-	value := pJvmMap[uint64(jvmIndex)].mStateDB.GetState(contractAddr, string(key))
-	return int32(len(value))
-}
-
-func StateDBGetState(key []byte) []byte {
+func StateDBGetState(key []byte, envHandle uintptr) []byte {
 	log.Debug("Entering Get StateDBGetState")
-	jvmIndex := 0
-	contractAddrgo := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
-	value := pJvmMap[uint64(jvmIndex)].mStateDB.GetState(contractAddrgo, string(key))
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return nil
+	}
+	contractAddrgo := jvmExecutor.GetContractAddr()
+	value := jvmExecutor.mStateDB.GetState(contractAddrgo, string(key))
 	if 0 == len(value) {
 		log.Debug("Entering Get StateDBGetState", "get null value for key", string(key))
 		return nil
@@ -130,81 +185,88 @@ func StateDBGetState(key []byte) []byte {
 	return value
 }
 
-func StateDBSetState(key, value []byte) bool {
+func StateDBSetState(key, value []byte, envHandle uintptr) bool {
 	log.Debug("StateDBSetStateCallback", "key", string(key), "value in string:",
 		"value in slice:", value)
-	jvmIndex := 0
-
-	contractAddr := address.GetExecAddress(string(pJvmMap[uint64(jvmIndex)].tx.Execer)).String()
-	return pJvmMap[uint64(jvmIndex)].mStateDB.SetState(contractAddr, string(key), value)
-}
-
-// Output2UserCallback 该接口用于返回查询结果的返回
-func Output2UserCallback(typeName string, value []byte) {
-	log.Debug("Entering Output2UserCallback")
-	jvmIndex := 0
-
-	jvmOutItem := &jvmTypes.JVMOutItem{
-		ItemType: typeName,
-		Data:     value,
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
 	}
-	pJvmMap[uint64(jvmIndex)].out2User = append(pJvmMap[uint64(jvmIndex)].out2User, jvmOutItem)
-
-	return
+	contractAddrgo :=  jvmExecutor.GetContractAddr()
+	return jvmExecutor.mStateDB.SetState(contractAddrgo, string(key), value)
 }
 
 ////////////以下接口用于user.jvm.xxx合约内部转账/////////////////////////////
-func ExecFrozen(from string, amount int64) bool {
-	if nil == pJvmMap[uint64(0)] || nil == pJvmMap[uint64(0)].mStateDB {
-		log.Error("ExecFrozen failed due to nil handle", "pJvm", pJvmMap[uint64(0)], "pJvmMap[uint64(jvmIndex)].mStateDB", pJvmMap[uint64(0)].mStateDB)
+//必须要使用回传的envhandle获取jvm结构指针，否则存在java合约跨合约操作的安全性问题,
+//比如在查询的时候，恶意发起数据库写（其中的账户操作就是）的操作，
+func ExecFrozen(from string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecFrozen failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
 		return jvmTypes.AccountOpFail
 	}
-	return pJvmMap[0].mStateDB.ExecFrozen(pJvmMap[0].tx, from, amount * jvmTypes.Coin_Precision)
+	return jvmExecutor.mStateDB.ExecFrozen(jvmExecutor.tx, from, amount * jvmTypes.Coin_Precision)
 }
 
 // ExecActive 激活user.jvm.xxx合约addr上的部分余额
-func ExecActive(from string, amount int64) bool {
-	if nil == pJvmMap[0] || nil == pJvmMap[0].mStateDB {
-		log.Error("ExecActive failed due to nil handle", "pJvm", pJvmMap[0], "pJvmMap[uint64(jvmIndex)].mStateDB", pJvmMap[0].mStateDB)
+func ExecActive(from string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecActive failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
 		return jvmTypes.AccountOpFail
 	}
-	return pJvmMap[0].mStateDB.ExecActive(pJvmMap[0].tx, from, amount*jvmTypes.Coin_Precision)
+	return jvmExecutor.mStateDB.ExecActive(jvmExecutor.tx, from, amount*jvmTypes.Coin_Precision)
 }
 
 // ExecTransfer transfer exec
-func ExecTransfer(from, to string, amount int64) bool {
-	if nil == pJvmMap[0] || nil == pJvmMap[0].mStateDB {
-		log.Error("ExecTransfer failed due to nil handle", "pJvm", pJvmMap[0], "pJvmMap[uint64(jvmIndex)].mStateDB", pJvmMap[0].mStateDB)
+func ExecTransfer(from, to string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecTransfer failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
 		return jvmTypes.AccountOpFail
 	}
-	return pJvmMap[0].mStateDB.ExecTransfer(pJvmMap[0].tx, from, to, amount * jvmTypes.Coin_Precision)
+	return jvmExecutor.mStateDB.ExecTransfer(jvmExecutor.tx, from, to, amount * jvmTypes.Coin_Precision)
 }
 
 // ExecTransferFrozen 冻结的转账
-func ExecTransferFrozen(from, to string, amount int64) bool {
-	jvmIndex := 0
-	if nil == pJvmMap[uint64(jvmIndex)] || nil == pJvmMap[uint64(jvmIndex)].mStateDB {
-		log.Error("ExecTransferFrozen failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)], "pJvmMap[uint64(jvmIndex)].mStateDB", pJvmMap[uint64(jvmIndex)].mStateDB)
+func ExecTransferFrozen(from, to string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecTransferFrozen failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
 		return jvmTypes.AccountOpFail
 	}
-	return pJvmMap[uint64(jvmIndex)].mStateDB.ExecTransferFrozen(pJvmMap[uint64(jvmIndex)].tx, from, to, int64(amount)*jvmTypes.Coin_Precision)
+	return jvmExecutor.mStateDB.ExecTransferFrozen(jvmExecutor.tx, from, to, int64(amount)*jvmTypes.Coin_Precision)
 }
 
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
-func GetRandom() (string, error) {
-	jvmIndex := 0
-	blockNum := int64(5)
-	if nil == pJvmMap[uint64(jvmIndex)] {
-		log.Error("GetRandom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
-		return "", errors.New("invalid index")
+func GetRandom(envHandle uintptr) (string, error) {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return "", jvmTypes.ErrGetJvmFailed
 	}
 
 	req := &types.ReqRandHash{
 		ExecName: "ticket",
-		BlockNum: blockNum,
-		Hash:     pJvmMap[uint64(jvmIndex)].GetLastHash(),
+		BlockNum: jvmExecutor.GetHeight(),
+		Hash:     jvmExecutor.GetLastHash(),
 	}
-	data, err := pJvmMap[uint64(jvmIndex)].GetExecutorAPI().GetRandNum(req)
+	data, err := jvmExecutor.GetExecutorAPI().GetRandNum(req)
 	if nil != err {
 		log.Error("GetRandom failed due to:", err.Error())
 		return "", err
@@ -212,34 +274,57 @@ func GetRandom() (string, error) {
 	return string(data), nil
 }
 
-func GetFrom() string {
-	jvmIndex := 0
-
-	if nil == pJvmMap[uint64(jvmIndex)] {
-		log.Error("GetFrom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
+func GetFrom(envHandle uintptr) string {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
 		return ""
 	}
-	return pJvmMap[uint64(jvmIndex)].tx.From()
+	if nil == jvmExecutor || nil == jvmExecutor.tx {
+		log.Error("GetFrom failed due to nil jvmExecutor or nil tx ", "pJvm", jvmExecutor)
+		return ""
+	}
+	return jvmExecutor.tx.From()
 }
 
-func GetHeight() int64 {
-	jvmIndex := 0
-
-	if nil == pJvmMap[uint64(jvmIndex)] {
-		log.Error("GetFrom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
+func GetHeight(envHandle uintptr) int64 {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
 		return 0
 	}
-	return pJvmMap[uint64(jvmIndex)].GetHeight()
+	if nil == jvmExecutor {
+		log.Error("GetFrom failed due to nil handle", "pJvm", jvmExecutor)
+		return 0
+	}
+	return jvmExecutor.GetHeight()
 }
 
-func StopTransWithErrInfo(err string) int {
-	jvmIndex := 0
-
-	if nil == pJvmMap[uint64(jvmIndex)] {
-		log.Error("GetFrom failed due to nil handle", "pJvm", pJvmMap[uint64(jvmIndex)])
-		return 0
+func StopTransWithErrInfo(err string, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
 	}
-	return 0
+	if nil == jvmExecutor {
+		log.Error("StopTransWithErrInfo failed due to nil handle", "pJvm", jvmExecutor)
+		return false
+	}
+	jvmExecutor.excep.occurred = true
+	jvmExecutor.excep.info = errors.New(err)
+
+	log.Info("StopTransWithErrInfo", "error info", err)
+
+	return true
+}
+
+//forward the query result to the corresponding jvm
+func ForwardQueryResult(exceptionOccurred bool, info []string, jvmHandle uintptr) bool {
+	queryResult := QueryResult{
+		exceptionOccurred:exceptionOccurred,
+		info:info,
+	}
+	jvm := (*JVMExecutor)(unsafe.Pointer(jvmHandle))
+	jvm.queryChan<-queryResult
+	log.Info("ForwardQueryResult get query result and forward it", "queryResult", queryResult)
+	return true
 }
 
 // GetDriverName 获取driver 名称
@@ -422,6 +507,13 @@ func (jvm *JVMExecutor) checkContractNameExists(req *jvmTypes.CheckJVMContractNa
 // GetMStateDB get memorystate db
 func (jvm *JVMExecutor) GetMStateDB() *state.MemoryStateDB {
 	return jvm.mStateDB
+}
+
+func (jvm *JVMExecutor) GetContractAddr() string {
+	if jvm.tx != nil {
+		return address.GetExecAddress(string(jvm.tx.Execer)).String()
+	}
+	return address.GetExecAddress(jvm.contract).String()
 }
 
 // 从交易信息中获取交易目标地址，在创建合约交易中，此地址为空
