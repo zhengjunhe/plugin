@@ -12,6 +12,11 @@ import (
     jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 )
 
+var (
+    IsPara bool
+    Title string
+)
+
 // MemoryStateDB 内存状态数据库，保存在区块操作时内部的数据变更操作
 // 本数据库不会直接写文件，只会暂存变更记录
 // 在区块打包完成后，这里的缓存变更数据会被清空（通过区块打包分别写入blockchain和statedb数据库）
@@ -546,11 +551,6 @@ func (m *MemoryStateDB) SetCurrentExecutorName(executorName string) {
 func (m *MemoryStateDB) ExecFrozen(tx *types.Transaction, addr string, amount int64) bool {
 	if nil == tx {
 		log15.Error("ExecFrozen get nil tx")
-		return jvmTypes.AccountOpFail
-	}
-
-	if tx.From() != addr {
-		log15.Error("ExecFrozen not from own address", "tx.From()", tx.From(), "addr", addr)
 		return jvmTypes.AccountOpFail
 	}
 

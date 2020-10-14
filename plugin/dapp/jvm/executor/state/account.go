@@ -31,8 +31,6 @@ type ContractAccount struct {
 	// 合约代码地址
 	Addr string
 
-	cfg *chain33Types.Chain33Config
-
 	// 合约固定数据
 	Data types.JVMContractData
 
@@ -273,8 +271,8 @@ func (c *ContractAccount) GetStateItemKey(addr, key string) string {
 
 // GetLocalDataKey get local data for key
 func (c *ContractAccount) GetLocalDataKey(addr, key string) string {
-	if c.cfg.IsPara() {
-		return fmt.Sprintf(string(chain33Types.LocalPrefix)+"-"+c.cfg.GetTitle()+c.mdb.ExecutorName+"-data-%v:%v", addr, key)
+	if IsPara {
+		return fmt.Sprintf(string(chain33Types.LocalPrefix)+"-"+Title+c.mdb.ExecutorName+"-data-%v:%v", addr, key)
 	}
 
 	return fmt.Sprintf(string(chain33Types.LocalPrefix)+"-"+c.mdb.ExecutorName+"-data-%v:%v", addr, key)

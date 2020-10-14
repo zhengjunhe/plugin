@@ -234,13 +234,13 @@ func jvmCallContract(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	feeInt64 := uint64(fee*1e4) * 1e4
-
-	var paraParsed []string
-	paraOneStr = strings.TrimSpace(paraOneStr)
-	paraParsed = strings.Split(paraOneStr, " ")
-
 	var para  = []string{actionName}
-	para = append(para, paraParsed...)
+	if "" != paraOneStr {
+		var paraParsed []string
+		paraOneStr = strings.TrimSpace(paraOneStr)
+		paraParsed = strings.Split(paraOneStr, " ")
+		para = append(para, paraParsed...)
+	}
 
 	var createReq = jvmTypes.CallJvmContract{
 		Name:       contractName,

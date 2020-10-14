@@ -45,22 +45,12 @@ type QueryResult struct {
 }
 
 var (
-	//jvm4txExec *JVMExecutor //
-	//jvm4txLocalExec *JVMExecutor
 	log        = log15.New("module", "execs.jvm")
-	cfg        subConfig
-	//TxJVMEnvHandle = int64(0)
 	jvmsCached *lru.Cache
+	jvmsCachedCreateOrigin *lru.Cache
 	jvmsCacheCreated = int32(0)
 	jdkPath string
 )
-
-const (
-	//DBIndex4Exec  = 0
-	//DBIndex4Query = 1
-	Bool_TRUE = int32(1)
-)
-
 
 func initExecType() {
 	ety := types.LoadExecutorType(jvmTypes.JvmX)
@@ -103,29 +93,35 @@ func NewJVMExecutor() *JVMExecutor {
 	exec.SetChild(exec)
 	exec.SetExecutorType(types.LoadExecutorType(jvmTypes.JvmX))
 	atomic.LoadInt32(&jvmsCacheCreated)
-	if Bool_TRUE != atomic.LoadInt32(&jvmsCacheCreated) {
+	if int32(Bool_TRUE) != atomic.LoadInt32(&jvmsCacheCreated) {
 		var err error
-		jvmsCached, err = lru.New(1000)
+		jvmsCachedCreateOrigin, err = lru.New(1000)
 		if nil != err {
 			panic("Failed to new lru for caching jvms due to:"+ err.Error())
 		}
-		atomic.StoreInt32(&jvmsCacheCreated, Bool_TRUE)
+		atomic.StoreInt32(&jvmsCacheCreated, int32(Bool_TRUE))
 	}
 	return exec
 }
 
-
-//func getDBIndex(envHandle int64) int {
-//	jvmIndex := DBIndex4Exec
-//	if TxJVMEnvHandle != envHandle {
-//		jvmIndex = DBIndex4Query
-//	}
-//	return jvmIndex
+//func setJVMsLRU(jvmsCached *C.char) C.int {
+//	jvmsCachedUintptr := uintptr(unsafe.Pointer(jvmsCached))
+//	jvmsCached4cb := (*lru.Cache)(unsafe.Pointer(jvmsCachedUintptr))
+//	fmt.Printf("SetJVMsLRU jvmsCachedUintptr 0x%x\n", jvmsCachedUintptr)
+//	setLRUBack(jvmsCached4cb)
+//	return 0
 //}
 
-func RecordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr ) bool {
-	//jvmExecutor := (*JVMExecutor)(unsafe.Pointer(goHandle))
-	return jvmsCached.Add(envHandle, jvm)
+func setLRUBack(jvmsCachedBack *lru.Cache) bool {
+	jvmsCached = jvmsCachedBack
+	fmt.Println("SetLRUBack keys", jvmsCached.Keys())
+	return true
+}
+
+func recordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr ) bool {
+	jvmsCached.Add(envHandle, jvm)
+	_, ok := jvmsCached.Get(envHandle)
+	return ok
 }
 
 func getJvmExector(envHandle uintptr) (*JVMExecutor, bool) {
@@ -144,13 +140,16 @@ func getJvmExector(envHandle uintptr) (*JVMExecutor, bool) {
 }
 
 /////////////////////////LocalDB interface//////////////////////////////////////////
-func GetValueFromLocal(key []byte, envHandle uintptr) []byte {
-	log.Debug("Entering GetValueFromLocal")
+func getValueFromLocal(key []byte, envHandle uintptr) []byte {
+	log.Debug("Entering GetValueFromLocal", "key", string(key))
+	fmt.Println("getValueFromLocal::getJvmExector::before")
 	jvmExecutor, ok := getJvmExector(envHandle)
+	fmt.Println("getValueFromLocal::getJvmExector::after", "exector", string(jvmExecutor.tx.Execer))
 	if !ok {
 		return nil
 	}
 	contractAddrgo := jvmExecutor.GetContractAddr()
+	fmt.Println("jvmExecutor.mStateDB.GetValueFromLocal")
 	value := jvmExecutor.mStateDB.GetValueFromLocal(contractAddrgo, string(key))
 	if 0 == len(value) {
 		log.Debug("Entering Get GetValueFromLocal", "get null value for key", string(key))
@@ -159,8 +158,9 @@ func GetValueFromLocal(key []byte, envHandle uintptr) []byte {
 	return value
 }
 
-func SetValue2Local(key, value []byte, envHandle uintptr) bool {
-	log.Debug("StateDBSetStateCallback", "key", string(key))
+func setValue2Local(key, value []byte, envHandle uintptr) bool {
+	log.Debug("setValue2Local", "key", string(key), "value in string:", string(value),
+		"value in slice:", value)
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return false
@@ -169,10 +169,11 @@ func SetValue2Local(key, value []byte, envHandle uintptr) bool {
 	return jvmExecutor.mStateDB.SetValue2Local(contractAddrgo, string(key), value)
 }
 
-func StateDBGetState(key []byte, envHandle uintptr) []byte {
-	log.Debug("Entering Get StateDBGetState")
+func stateDBGetState(key []byte, envHandle uintptr) []byte {
+	log.Debug("Entering StateDBGetState", "key", string(key))
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
+		log.Error("stateDBGetState", "Can't get jvmExecutor for key", string(key))
 		return nil
 	}
 	contractAddrgo := jvmExecutor.GetContractAddr()
@@ -182,11 +183,13 @@ func StateDBGetState(key []byte, envHandle uintptr) []byte {
 		return nil
 	}
 
+	log.Debug("StateDBGetState Succeed to get value", "value in string", string(value), "value in slice", value)
+
 	return value
 }
 
-func StateDBSetState(key, value []byte, envHandle uintptr) bool {
-	log.Debug("StateDBSetStateCallback", "key", string(key), "value in string:",
+func stateDBSetState(key, value []byte, envHandle uintptr) bool {
+	log.Debug("StateDBSetStateCallback", "key", string(key), "value in string:", string(value),
 		"value in slice:", value)
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
@@ -199,7 +202,7 @@ func StateDBSetState(key, value []byte, envHandle uintptr) bool {
 ////////////以下接口用于user.jvm.xxx合约内部转账/////////////////////////////
 //必须要使用回传的envhandle获取jvm结构指针，否则存在java合约跨合约操作的安全性问题,
 //比如在查询的时候，恶意发起数据库写（其中的账户操作就是）的操作，
-func ExecFrozen(from string, amount int64, envHandle uintptr) bool {
+func execFrozen(from string, amount int64, envHandle uintptr) bool {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return false
@@ -213,7 +216,7 @@ func ExecFrozen(from string, amount int64, envHandle uintptr) bool {
 }
 
 // ExecActive 激活user.jvm.xxx合约addr上的部分余额
-func ExecActive(from string, amount int64, envHandle uintptr) bool {
+func execActive(from string, amount int64, envHandle uintptr) bool {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return false
@@ -227,7 +230,7 @@ func ExecActive(from string, amount int64, envHandle uintptr) bool {
 }
 
 // ExecTransfer transfer exec
-func ExecTransfer(from, to string, amount int64, envHandle uintptr) bool {
+func execTransfer(from, to string, amount int64, envHandle uintptr) bool {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return false
@@ -241,7 +244,7 @@ func ExecTransfer(from, to string, amount int64, envHandle uintptr) bool {
 }
 
 // ExecTransferFrozen 冻结的转账
-func ExecTransferFrozen(from, to string, amount int64, envHandle uintptr) bool {
+func execTransferFrozen(from, to string, amount int64, envHandle uintptr) bool {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return false
@@ -255,10 +258,14 @@ func ExecTransferFrozen(from, to string, amount int64, envHandle uintptr) bool {
 }
 
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
-func GetRandom(envHandle uintptr) (string, error) {
+func getRandom(envHandle uintptr) (string, error) {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return "", jvmTypes.ErrGetJvmFailed
+	}
+
+	if consensusType != "ticket" {
+		return "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371", nil
 	}
 
 	req := &types.ReqRandHash{
@@ -274,7 +281,7 @@ func GetRandom(envHandle uintptr) (string, error) {
 	return string(data), nil
 }
 
-func GetFrom(envHandle uintptr) string {
+func getFrom(envHandle uintptr) string {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return ""
@@ -286,7 +293,7 @@ func GetFrom(envHandle uintptr) string {
 	return jvmExecutor.tx.From()
 }
 
-func GetHeight(envHandle uintptr) int64 {
+func getHeight(envHandle uintptr) int64 {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return 0
@@ -298,7 +305,7 @@ func GetHeight(envHandle uintptr) int64 {
 	return jvmExecutor.GetHeight()
 }
 
-func StopTransWithErrInfo(err string, envHandle uintptr) bool {
+func stopTransWithErrInfo(err string, envHandle uintptr) bool {
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
 		return false
