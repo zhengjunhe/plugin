@@ -47,7 +47,6 @@ type QueryResult struct {
 var (
 	log        = log15.New("module", "execs.jvm")
 	jvmsCached *lru.Cache
-	jvmsCachedCreateOrigin *lru.Cache
 	jvmsCacheCreated = int32(0)
 	jdkPath string
 )
@@ -95,27 +94,13 @@ func NewJVMExecutor() *JVMExecutor {
 	atomic.LoadInt32(&jvmsCacheCreated)
 	if int32(Bool_TRUE) != atomic.LoadInt32(&jvmsCacheCreated) {
 		var err error
-		jvmsCachedCreateOrigin, err = lru.New(1000)
+		jvmsCached, err = lru.New(1000)
 		if nil != err {
 			panic("Failed to new lru for caching jvms due to:"+ err.Error())
 		}
 		atomic.StoreInt32(&jvmsCacheCreated, int32(Bool_TRUE))
 	}
 	return exec
-}
-
-//func setJVMsLRU(jvmsCached *C.char) C.int {
-//	jvmsCachedUintptr := uintptr(unsafe.Pointer(jvmsCached))
-//	jvmsCached4cb := (*lru.Cache)(unsafe.Pointer(jvmsCachedUintptr))
-//	fmt.Printf("SetJVMsLRU jvmsCachedUintptr 0x%x\n", jvmsCachedUintptr)
-//	setLRUBack(jvmsCached4cb)
-//	return 0
-//}
-
-func setLRUBack(jvmsCachedBack *lru.Cache) bool {
-	jvmsCached = jvmsCachedBack
-	fmt.Println("SetLRUBack keys", jvmsCached.Keys())
-	return true
 }
 
 func recordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr ) bool {

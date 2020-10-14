@@ -24,7 +24,6 @@ import (
 	"errors"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
-	lru "github.com/hashicorp/golang-lru"
 	"unsafe"
 )
 
@@ -73,7 +72,7 @@ func initJvm(chain33Config *chain33Types.Chain33Config) {
 	const_jdkPath := C.CString(jdkPath)
 	defer C.free(unsafe.Pointer(const_jdkPath))
 
-	result := C.JLI_Create_JVM(const_jdkPath, (*C.char)(unsafe.Pointer(jvmsCachedCreateOrigin)))
+	result := C.JLI_Create_JVM(const_jdkPath)
 	if int(result) != JLI_SUCCESS {
 		panic("Failed to init JLI_Init_JVM")
 	}
@@ -103,14 +102,6 @@ func buildJavaArgument(execPara []string) (C.int, **C.char) {
 
 func freeArgument(argc C.int, argv **C.char) {
 	C.FreeArgv(argc, argv)
-}
-
-//export SetJVMsLRU
-func SetJVMsLRU(jvmsCached *C.char) C.int {
-	jvmsCachedUintptr := uintptr(unsafe.Pointer(jvmsCached))
-	jvmsCached4cb := (*lru.Cache)(unsafe.Pointer(jvmsCachedUintptr))
-	setLRUBack(jvmsCached4cb)
-	return 0
 }
 
 //export SetQueryResult
