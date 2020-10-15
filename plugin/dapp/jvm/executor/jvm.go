@@ -202,9 +202,11 @@ func execFrozen(from string, amount int64, envHandle uintptr) bool {
 
 // ExecActive 激活user.jvm.xxx合约addr上的部分余额
 func execActive(from string, amount int64, envHandle uintptr) bool {
+	log.Debug("Enter ExecActive", "from", from, "amount", amount)
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
-		return false
+		log.Error("ExecActive", "Failed to getJvmExector")
+		return jvmTypes.AccountOpFail
 	}
 	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
 		log.Error("ExecActive failed due to nil handle", "pJvm", jvmExecutor,
