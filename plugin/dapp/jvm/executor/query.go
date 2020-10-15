@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/types"
@@ -136,14 +137,16 @@ func (jvm *JVMExecutor) Query_JavaContract(in *jvmTypes.JVMQueryReq) (types.Mess
 	if bytes.HasPrefix(execer, []byte(jvmTypes.UserJvmX)) {
 		execer = execer[len(jvmTypes.UserJvmX):]
 	}
-
 	jvm.mStateDB.SetCurrentExecutorName(jvmTypes.JvmX)
 
 	log.Debug("jvm call", "Para Query_JavaContract", in)
 
 	contractName := in.Contract
+	jvm.contract = in.Contract
 	userJvmAddr := address.ExecAddress(contractName)
 	contractAccount := jvm.mStateDB.GetAccount(userJvmAddr)
+	temp := strings.Split(contractName, ".")
+	contractName = temp[len(temp) - 1]
 	jarPath := "./" + contractName + ".jar"
 	jarFileExist := true
 	//判断jar文件是否存在
@@ -178,7 +181,7 @@ func (jvm *JVMExecutor) Query_JavaContract(in *jvmTypes.JVMQueryReq) (types.Mess
 	log.Debug("Query_JavaContract", "ContractName", contractName, "Para", in.Para)
 	//2nd step: just call contract
 	//在此处将gojvm指针传递到c实现的jvm中，进行回调的时候用来区分是获取数据时，使用执行db还是查询db
-	_ = runJava(contractName, in.Para, jvm, TX_EXEC_JOB, jvm.GetAPI().GetConfig())
+	_ = runJava(contractName, in.Para, jvm, TX_QUERY_JOB, jvm.GetAPI().GetConfig())
 
 	//阻塞并等待查询结果的返回
 	queryResult := <-jvm.queryChan

@@ -189,7 +189,7 @@ func jvmQueryContract(cmd *cobra.Command, args []string) {
 	}
 
 	var jvmQueryResponse jvmTypes.JVMQueryResponse
-	query := sendQuery4jvm(rpcLaddr, jvmTypes.JvmGetContractTable, &queryReq, &jvmQueryResponse)
+	query := sendQuery4jvm(rpcLaddr, jvmTypes.QueryJvmContract, &queryReq, &jvmQueryResponse)
 	if !query {
 		_, _ = fmt.Fprintln(os.Stderr, "get jvm query error")
 		return

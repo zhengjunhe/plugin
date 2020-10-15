@@ -14,8 +14,6 @@ const (
 	JvmDebug                 = "JvmDebug"
 	JvmGetAbi                = "JvmGetAbi"
 	ConvertJSON2Abi           = "ConvertJson2Abi"
-	JvmGetContractTable      = "JvmGetContractTable"
-	JvmFuzzyGetContractTable = "JvmFuzzyGetContractTable"
 	Success                   = int(0)
 	Exception_Fail            = int(1)
 	JvmX                     = "jvm"
@@ -23,7 +21,7 @@ const (
 	CreateJvmContractStr     = "CreateJvmContract"
 	CallJvmContractStr       = "CallJvmContract"
 	UpdateJvmContractStr     = "UpdateJvmContract"
-	//NameRegExp             = "[a-z0-9]"^[a-z]+\[[0-9]+\]$
+	QueryJvmContract         = "JavaContract"
 	NameRegExp             = "^[a-zA-Z0-9]+$"
 	AccountOpFail          = false
 	AccountOpSuccess       = true

@@ -127,14 +127,11 @@ func getJvmExector(envHandle uintptr) (*JVMExecutor, bool) {
 /////////////////////////LocalDB interface//////////////////////////////////////////
 func getValueFromLocal(key []byte, envHandle uintptr) []byte {
 	log.Debug("Entering GetValueFromLocal", "key", string(key))
-	fmt.Println("getValueFromLocal::getJvmExector::before")
 	jvmExecutor, ok := getJvmExector(envHandle)
-	fmt.Println("getValueFromLocal::getJvmExector::after", "exector", string(jvmExecutor.tx.Execer))
 	if !ok {
 		return nil
 	}
 	contractAddrgo := jvmExecutor.GetContractAddr()
-	fmt.Println("jvmExecutor.mStateDB.GetValueFromLocal")
 	value := jvmExecutor.mStateDB.GetValueFromLocal(contractAddrgo, string(key))
 	if 0 == len(value) {
 		log.Debug("Entering Get GetValueFromLocal", "get null value for key", string(key))

@@ -46,12 +46,14 @@ func runJava(contract string, para []string, jvmHandleGo *JVMExecutor, jobType C
 	//第一次调用java合约时，进行jvm的初始化
 	initJvm(chain33Config)
 
-	//执行合约
-	// -jar contract action para0 para1 ...
-	//tx2Exec := "PrintArgs debug chain33-jvm I am an Engineer !"
+	//构建jdk的输入参数
 	tx2Exec := append([]string{contract}, para...)
 	argc, argv := buildJavaArgument(tx2Exec)
-	defer freeArgument(argc, argv)
+	if TX_EXEC_JOB == jobType {
+		//因为query的内在逻辑问题，参数的内存释放由jdk内部进行释放
+		defer freeArgument(argc, argv)
+	}
+
 	var exception1DPtr *C.char
 	exception := &exception1DPtr
 	result := C.JLI_Exec_Contract(argc, argv, exception, jobType, (*C.char)(unsafe.Pointer(jvmHandleGo)))
