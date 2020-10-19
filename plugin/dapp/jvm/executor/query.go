@@ -130,19 +130,20 @@ func (jvm *JVMExecutor) Query_JavaContract(in *jvmTypes.JVMQueryReq) (types.Mess
 	if in == nil {
 		return nil, types.ErrInvalidParam
 	}
-	jvm.prepareQueryContext([]byte(jvmTypes.JvmX))
-	jvm.queryChan = make(chan QueryResult, 1)
-
-	execer := types.GetRealExecName([]byte(in.Contract))
-	if bytes.HasPrefix(execer, []byte(jvmTypes.UserJvmX)) {
-		execer = execer[len(jvmTypes.UserJvmX):]
+	//兼容contract_name和user.jvm.contract_name
+	if !bytes.Contains([]byte(in.Contract), []byte(jvmTypes.UserJvmX)) {
+		in.Contract = jvmTypes.UserJvmX + in.Contract
 	}
-	jvm.mStateDB.SetCurrentExecutorName(jvmTypes.JvmX)
+
+	jvm.prepareQueryContext([]byte(in.Contract))
+	jvm.queryChan = make(chan QueryResult, 1)
 
 	log.Debug("jvm call", "Para Query_JavaContract", in)
 
 	contractName := in.Contract
 	jvm.contract = in.Contract
+	//将执行器名字设置为jvm，是为了能够获取java合约字节码
+	jvm.mStateDB.SetCurrentExecutorName(jvmTypes.JvmX)
 	userJvmAddr := address.ExecAddress(contractName)
 	contractAccount := jvm.mStateDB.GetAccount(userJvmAddr)
 	temp := strings.Split(contractName, ".")
@@ -176,7 +177,7 @@ func (jvm *JVMExecutor) Query_JavaContract(in *jvmTypes.JVMQueryReq) (types.Mess
 	}
 
 	//将当前合约执行名字修改为user.jvm.xxx
-	jvm.mStateDB.SetCurrentExecutorName(string(jvm.GetAPI().GetConfig().GetParaExec([]byte(contractName))))
+	jvm.mStateDB.SetCurrentExecutorName(string(jvm.GetAPI().GetConfig().GetParaExec([]byte(in.Contract))))
 
 	log.Debug("Query_JavaContract", "ContractName", contractName, "Para", in.Para)
 	//2nd step: just call contract

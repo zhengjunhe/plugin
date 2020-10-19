@@ -238,6 +238,7 @@ func (m *MemoryStateDB) GetAccount(addr string) *ContractAccount {
 	contract := NewContractAccount(addr, m)
 	contract.LoadContract(m.StateDB)
 	if contract.Empty() {
+		log15.Error("StateDBGetState GetAccount:contract.Empty()")
 		return nil
 	}
 	m.accounts[addr] = contract
@@ -293,6 +294,7 @@ func (m *MemoryStateDB) GetState(addr string, key string) []byte {
 	if acc != nil {
 		return acc.GetState(key)
 	}
+	log15.Error("StateDBGetState jvm query via GetState acc is nil:")
 	return nil
 }
 

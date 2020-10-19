@@ -145,6 +145,7 @@ func (c *ContractAccount) LoadContract(db db.KV) {
 	// 加载代码数据
 	data, err := db.Get(c.GetDataKey())
 	if err != nil {
+		log15.Error("StateDBGetState LoadContract:GetDataKey failed")
 		return
 	}
 	c.restoreData(data)
@@ -152,6 +153,7 @@ func (c *ContractAccount) LoadContract(db db.KV) {
 	// 加载状态数据
 	data, err = db.Get(c.GetStateKey())
 	if err != nil {
+		log15.Error("StateDBGetState LoadContract:GetStateKey failed")
 		return
 	}
 	c.resotreState(data)

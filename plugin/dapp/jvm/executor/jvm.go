@@ -161,7 +161,7 @@ func stateDBGetState(key []byte, envHandle uintptr) []byte {
 	contractAddrgo := jvmExecutor.GetContractAddr()
 	value := jvmExecutor.mStateDB.GetState(contractAddrgo, string(key))
 	if 0 == len(value) {
-		log.Debug("Entering Get StateDBGetState", "get null value for key", string(key))
+		log.Debug("StateDBGetState", "get null value for key", string(key))
 		return nil
 	}
 
@@ -323,6 +323,15 @@ func (jvm *JVMExecutor) GetDriverName() string {
 	return jvmTypes.JvmX
 }
 
+// ExecutorOrder 设置localdb的EnableRead
+func (jvm *JVMExecutor) ExecutorOrder() int64 {
+	cfg := jvm.GetAPI().GetConfig()
+	if cfg.IsFork(jvm.GetHeight(), "ForkLocalDBAccess") {
+		return drivers.ExecLocalSameTime
+	}
+	return jvm.DriverBase.ExecutorOrder()
+}
+
 // Allow 允许哪些交易在本命执行器执行
 func (jvm *JVMExecutor) Allow(tx *types.Transaction, index int) error {
 	err := jvm.DriverBase.Allow(tx, index)
@@ -342,6 +351,7 @@ func (jvm *JVMExecutor) Allow(tx *types.Transaction, index int) error {
 func (jvm *JVMExecutor) prepareExecContext(tx *types.Transaction, index int) {
 	paraExector := string(jvm.GetAPI().GetConfig().GetParaExec(tx.Execer))
 	if jvm.mStateDB == nil {
+		log.Info("prepareExecContext", "executorName", paraExector)
 		jvm.mStateDB = state.NewMemoryStateDB(paraExector, jvm.GetStateDB(), jvm.GetLocalDB(), jvm.GetCoinsAccount(), jvm.GetHeight())
 	}
 	// 合约具体分为jvm平台合约和基于平台合约的具体合约，如dice合约
@@ -362,6 +372,7 @@ func (jvm *JVMExecutor) prepareExecContext(tx *types.Transaction, index int) {
 
 func (jvm *JVMExecutor) prepareQueryContext(executorName []byte) {
 	if jvm.mStateDB == nil {
+		log.Info("prepareQueryContext", "executorName", string(jvm.GetAPI().GetConfig().GetParaExec(executorName)))
 		jvm.mStateDB = state.NewMemoryStateDB(string(jvm.GetAPI().GetConfig().GetParaExec(executorName)), jvm.GetStateDB(), jvm.GetLocalDB(), jvm.GetCoinsAccount(), jvm.GetHeight())
 	}
 }
