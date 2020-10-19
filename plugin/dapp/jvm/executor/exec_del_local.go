@@ -22,18 +22,10 @@ func (jvm *JVMExecutor) ExecDelLocal_UpdateJvmContract(payload *jvmTypes.UpdateJ
 
 func (Jvm *JVMExecutor) execDelLocal(tx *types.Transaction, receipt *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	set := &types.LocalDBSet{}
-	// 需要将Exec中生成的合约状态变更信息从localdb中恢复
-	for _, logItem := range receipt.Logs {
-		if jvmTypes.TyLogLocalDataJvm == logItem.Ty {
-			data := logItem.Log
-			var localData jvmTypes.ReceiptLocalData
-			err := types.Decode(data, &localData)
-			if err != nil {
-				return set, err
-			}
-			set.KV = append(set.KV, &types.KeyValue{Key: localData.Key, Value: localData.PreValue})
-		}
+	kvs, err := Jvm.DelRollbackKV(tx, tx.Execer)
+	if err != nil {
+		return nil, err
 	}
-
+	set.KV = kvs
 	return set, nil
 }

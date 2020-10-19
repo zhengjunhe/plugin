@@ -19,10 +19,6 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 )
 
-type subConfig struct {
-	ParaRemoteGrpcClient string `json:"paraRemoteGrpcClient"`
-}
-
 type exception struct {
 	occurred bool
 	info error
@@ -33,6 +29,7 @@ type JVMExecutor struct {
 	drivers.DriverBase
 	mStateDB  *state.MemoryStateDB
 	tx        *types.Transaction
+	txHash    string
 	contract  string
 	txIndex   int
 	excep     exception
@@ -132,7 +129,7 @@ func getValueFromLocal(key []byte, envHandle uintptr) []byte {
 		return nil
 	}
 	contractAddrgo := jvmExecutor.GetContractAddr()
-	value := jvmExecutor.mStateDB.GetValueFromLocal(contractAddrgo, string(key))
+	value := jvmExecutor.mStateDB.GetValueFromLocal(contractAddrgo, string(key), jvmExecutor.txHash)
 	if 0 == len(value) {
 		log.Debug("Entering Get GetValueFromLocal", "get null value for key", string(key))
 		return nil
@@ -148,7 +145,7 @@ func setValue2Local(key, value []byte, envHandle uintptr) bool {
 		return false
 	}
 	contractAddrgo :=  jvmExecutor.GetContractAddr()
-	return jvmExecutor.mStateDB.SetValue2Local(contractAddrgo, string(key), value)
+	return jvmExecutor.mStateDB.SetValue2Local(contractAddrgo, string(key), value, jvmExecutor.txHash)
 }
 
 func stateDBGetState(key []byte, envHandle uintptr) []byte {
@@ -367,6 +364,7 @@ func (jvm *JVMExecutor) prepareExecContext(tx *types.Transaction, index int) {
 	}
 
 	jvm.tx = tx
+	jvm.txHash = common.ToHex(tx.Hash())
 	jvm.txIndex = index
 }
 

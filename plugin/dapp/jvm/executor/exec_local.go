@@ -3,6 +3,7 @@ package executor
 import (
 	"github.com/33cn/chain33/types"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
+	jvmState "github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 )
 
 // ExecLocal_CreateJvmContract 本地执行创建Jvm合约
@@ -22,18 +23,7 @@ func (jvm *JVMExecutor) ExecLocal_UpdateJvmContract(payload *jvmTypes.UpdateJvmC
 
 func (Jvm *JVMExecutor) execLocal(tx *types.Transaction, receipt *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	set := &types.LocalDBSet{}
-	for _, logItem := range receipt.Logs {
-		if jvmTypes.TyLogLocalDataJvm == logItem.Ty {
-			data := logItem.Log
-			var localData jvmTypes.ReceiptLocalData
-			err := types.Decode(data, &localData)
-			if err != nil {
-				return set, err
-			}
-			set.KV = append(set.KV, &types.KeyValue{Key: localData.Key, Value: localData.CurValue})
-			log.Debug("execLocal_setkv", "key=", string(localData.Key))
-		}
-	}
-
+	kvs := jvmState.GetAllLocalKeyValues()
+	set.KV = Jvm.AddRollbackKV(tx, tx.Execer, kvs)
 	return set, nil
 }

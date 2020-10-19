@@ -73,15 +73,19 @@ func (c *ContractAccount) GetState(key string) []byte {
 }
 
 // SetValue2Local 设置本地数据，用于帮助辅助查找
-func (c *ContractAccount) SetValue2Local(key string, value []byte) error {
-	keyStr := c.GetLocalDataKey(c.Addr, key)
+func (c *ContractAccount) SetValue2Local(key string, value []byte, txHash string) error {
+	keyGen := []byte(c.GetLocalDataKey(c.Addr, key))
 	c.mdb.addChange(localStorageChange{
 		baseChange: baseChange{},
 		account:    c.Addr,
-		key:        []byte(keyStr),
+		key:        keyGen,
 		data:       value,
 	})
-	return c.mdb.LocalDB.Set([]byte(keyStr), value)
+	if "" == txHash {
+		return types.ErrSelLocalNotAllowed
+	}
+	//return c.mdb.LocalDB.Set(keyGen, value)
+	return setLocalValue(keyGen, value, txHash)
 }
 
 // SetState 设置状态数据

@@ -1,4 +1,4 @@
-package executor
+package state
 
 import (
 	"github.com/33cn/chain33/types"
@@ -37,16 +37,16 @@ func setLocalValue(key, value []byte, txHash string) error {
 	return localDB.Set(key, value)
 }
 
-func getAllLocalKeyValues() []types.KeyValue {
+func GetAllLocalKeyValues() []*types.KeyValue {
 	goMemDB, ok := localDB.(*chain33db.GoMemDB)
 	if !ok {
 		return nil
 	}
 
-	var kvs []types.KeyValue
+	var kvs []*types.KeyValue
 	it := goMemDB.DB().NewIterator(nil)
 	for it.Next() {
-		kvs = append(kvs, types.KeyValue{Key:it.Key(), Value:it.Value()})
+		kvs = append(kvs, &types.KeyValue{Key:it.Key(), Value:it.Value()})
 	}
 	return kvs
 }

@@ -259,14 +259,23 @@ func (m *MemoryStateDB) List(prefix []byte) [][]byte {
 }
 
 // GetValueFromLocal 从本地数据库获取值
-func (m *MemoryStateDB) GetValueFromLocal(addr string, key string) []byte {
+func (m *MemoryStateDB) GetValueFromLocal(addr, key, txhash string) []byte {
 	// 先从合约缓存中获取
 	acc := m.GetAccount(addr)
 	if acc == nil {
 		return nil
 	}
-	localkey := acc.GetLocalDataKey(addr, key)
-	value, err := m.LocalDB.Get([]byte(localkey))
+	localkey := []byte(acc.GetLocalDataKey(addr, key))
+
+	//交易执行过程中的查询,优先在本地缓存中进行查询,而普通的查询则直接在历史数据库中进行查询
+	if "" != txhash {
+		value, _ := getLocalValue(localkey, txhash)
+		if value != nil {
+			return value
+		}
+	}
+	//如果在本地缓存中没有找到，再继续在历史数据库中进行查询
+	value, err := m.LocalDB.Get(localkey)
 	if err != nil {
 		log15.Debug("GetValueFromLocal failed", "key", key, "err", err)
 		return nil
@@ -275,16 +284,16 @@ func (m *MemoryStateDB) GetValueFromLocal(addr string, key string) []byte {
 }
 
 // SetValue2Local 设置数据存储到本地
-func (m *MemoryStateDB) SetValue2Local(addr, key string, value []byte) bool {
+func (m *MemoryStateDB) SetValue2Local(addr, key string, value []byte, txHash string) bool {
 	acc := m.GetAccount(addr)
-	if acc != nil {
-		if nil != acc.SetValue2Local(key, value) {
-			return jvmTypes.AccountOpFail
-		}
-		return jvmTypes.AccountOpSuccess
+	if acc == nil {
+		return jvmTypes.AccountOpFail
 	}
 
-	return jvmTypes.AccountOpFail
+	if nil != acc.SetValue2Local(key, value, txHash) {
+		return jvmTypes.AccountOpFail
+	}
+	return jvmTypes.AccountOpSuccess
 }
 
 // GetState SLOAD 指令加载合约状态数据
