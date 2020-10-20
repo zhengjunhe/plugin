@@ -179,6 +179,9 @@ paraConsensusStopBlocks=30000
 total="16htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
 useBalance=false
 
+[exec.sub.jvm]
+jdkPath="/root/j2sdk-image"
+
 
 #系统中所有的fork,默认用chain33的测试网络的
 #但是我们可以替换
