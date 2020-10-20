@@ -1,23 +1,10 @@
 package executor
 
-//#cgo CFLAGS: -DTARGET_ARCH_x86 -DLINUX -DTARGET_COMPILER_gcc -DFULL_VERSION=1.8.0_262-internal-hezhengjun_2020_08_04_23_54-b00 -DJDK_MAJOR_VERSION=1 -DJDK_MINOR_VERSION=8
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/hotspot/src/share/vm
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/hotspot/src/share/vm/prims
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/hotspot/src/cpu/x86/vm
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/share/javavm/export
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/solaris/javavm/export
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/share/native/common
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/solaris/native/common
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/share/bin
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/solaris/bin
-//#cgo CFLAGS: -I/home/hezhengjun/work/c_code/openjdk/jvm4chain33/jdk/src/linux/bin
-//#cgo LDFLAGS: -L/home/hezhengjun/work/go/src/github.com/33cn/plugin/plugin/dapp/jvm/so -ljli
+//#cgo CFLAGS: -I../openjdk/header
+//#cgo LDFLAGS: -L../openjdk -ljli
 //#cgo LDFLAGS: -ldl -lpthread -lc
-//#include <stdio.h>
 //#include <stdlib.h>
-//#include <string.h>
-//#include <stdint.h>
-//#include <defines.h>
+//#include <jli.h>
 import "C"
 
 import (
