@@ -4,6 +4,7 @@ import (
 	"github.com/33cn/chain33/types"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	jvmState "github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
+	"github.com/33cn/chain33/common"
 )
 
 // ExecLocal_CreateJvmContract 本地执行创建Jvm合约
@@ -23,7 +24,7 @@ func (jvm *JVMExecutor) ExecLocal_UpdateJvmContract(payload *jvmTypes.UpdateJvmC
 
 func (Jvm *JVMExecutor) execLocal(tx *types.Transaction, receipt *types.ReceiptData, index int) (*types.LocalDBSet, error) {
 	set := &types.LocalDBSet{}
-	kvs := jvmState.GetAllLocalKeyValues()
+	kvs := jvmState.GetAllLocalKeyValues(common.ToHex(tx.Hash()))
 	set.KV = Jvm.AddRollbackKV(tx, tx.Execer, kvs)
 	return set, nil
 }

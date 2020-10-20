@@ -37,7 +37,12 @@ func setLocalValue(key, value []byte, txHash string) error {
 	return localDB.Set(key, value)
 }
 
-func GetAllLocalKeyValues() []*types.KeyValue {
+//注意该接口只能在执行本地交易查询时使用，否则会破坏数据
+func GetAllLocalKeyValues(txhashNew string) []*types.KeyValue {
+	if txhashNew != currentExecTxHash {
+		return nil
+	}
+
 	goMemDB, ok := localDB.(*chain33db.GoMemDB)
 	if !ok {
 		return nil
@@ -48,6 +53,7 @@ func GetAllLocalKeyValues() []*types.KeyValue {
 	for it.Next() {
 		kvs = append(kvs, &types.KeyValue{Key:it.Key(), Value:it.Value()})
 	}
+	it.Release()
 	return kvs
 }
 
