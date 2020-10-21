@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	chain33Types "github.com/33cn/chain33/types"
+	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 	"unsafe"
 )
@@ -306,4 +307,223 @@ func GetFromLocalInStr(key *C.char, size *C.int, envHandle *C.char) *C.char {
 	}
 	*size = C.int(valSize)
 	return C.CString(string(valueSlice))
+}
+
+
+///////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+
+func recordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr ) bool {
+	jvmsCached.Add(envHandle, jvm)
+	_, ok := jvmsCached.Get(envHandle)
+	return ok
+}
+
+func getJvmExector(envHandle uintptr) (*JVMExecutor, bool) {
+	value, ok := jvmsCached.Get(envHandle)
+	if !ok {
+		log.Error("getJvmExector", "Failed to get JVMExecutor from lru cache with key", envHandle)
+		return nil, false
+	}
+
+	jvmExecutor, ok := value.(*JVMExecutor)
+	if !ok {
+		log.Error("getJvmExector", "Failed to get JVMExecutor for query with key", envHandle)
+		return nil, false
+	}
+	return jvmExecutor, true
+}
+
+/////////////////////////LocalDB interface//////////////////////////////////////////
+func getValueFromLocal(key []byte, envHandle uintptr) []byte {
+	log.Debug("Entering GetValueFromLocal", "key", string(key))
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return nil
+	}
+	contractAddrgo := jvmExecutor.GetContractAddr()
+	value := jvmExecutor.mStateDB.GetValueFromLocal(contractAddrgo, string(key), jvmExecutor.txHash)
+	if 0 == len(value) {
+		log.Debug("Entering Get GetValueFromLocal", "get null value for key", string(key))
+		return nil
+	}
+	return value
+}
+
+func setValue2Local(key, value []byte, envHandle uintptr) bool {
+	log.Debug("setValue2Local", "key", string(key), "value in string:", string(value),
+		"value in slice:", value)
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	contractAddrgo :=  jvmExecutor.GetContractAddr()
+	return jvmExecutor.mStateDB.SetValue2Local(contractAddrgo, string(key), value, jvmExecutor.txHash)
+}
+
+func stateDBGetState(key []byte, envHandle uintptr) []byte {
+	log.Debug("Entering StateDBGetState", "key", string(key))
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		log.Error("stateDBGetState", "Can't get jvmExecutor for key", string(key))
+		return nil
+	}
+	contractAddrgo := jvmExecutor.GetContractAddr()
+	value := jvmExecutor.mStateDB.GetState(contractAddrgo, string(key))
+	if 0 == len(value) {
+		log.Debug("StateDBGetState", "get null value for key", string(key))
+		return nil
+	}
+
+	log.Debug("StateDBGetState Succeed to get value", "value in string", string(value), "value in slice", value)
+
+	return value
+}
+
+func stateDBSetState(key, value []byte, envHandle uintptr) bool {
+	log.Debug("StateDBSetStateCallback", "key", string(key), "value in string:", string(value),
+		"value in slice:", value)
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	contractAddrgo :=  jvmExecutor.GetContractAddr()
+	return jvmExecutor.mStateDB.SetState(contractAddrgo, string(key), value)
+}
+
+////////////以下接口用于user.jvm.xxx合约内部转账/////////////////////////////
+//必须要使用回传的envhandle获取jvm结构指针，否则存在java合约跨合约操作的安全性问题,
+//比如在查询的时候，恶意发起数据库写（其中的账户操作就是）的操作，
+func execFrozen(from string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecFrozen failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
+		return jvmTypes.AccountOpFail
+	}
+	return jvmExecutor.mStateDB.ExecFrozen(jvmExecutor.tx, from, amount * jvmTypes.Coin_Precision)
+}
+
+// ExecActive 激活user.jvm.xxx合约addr上的部分余额
+func execActive(from string, amount int64, envHandle uintptr) bool {
+	log.Debug("Enter ExecActive", "from", from, "amount", amount)
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		log.Error("ExecActive", "Failed to getJvmExector")
+		return jvmTypes.AccountOpFail
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecActive failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
+		return jvmTypes.AccountOpFail
+	}
+	return jvmExecutor.mStateDB.ExecActive(jvmExecutor.tx, from, amount*jvmTypes.Coin_Precision)
+}
+
+// ExecTransfer transfer exec
+func execTransfer(from, to string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecTransfer failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
+		return jvmTypes.AccountOpFail
+	}
+	return jvmExecutor.mStateDB.ExecTransfer(jvmExecutor.tx, from, to, amount * jvmTypes.Coin_Precision)
+}
+
+// ExecTransferFrozen 冻结的转账
+func execTransferFrozen(from, to string, amount int64, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
+		log.Error("ExecTransferFrozen failed due to nil handle", "pJvm", jvmExecutor,
+			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
+		return jvmTypes.AccountOpFail
+	}
+	return jvmExecutor.mStateDB.ExecTransferFrozen(jvmExecutor.tx, from, to, int64(amount)*jvmTypes.Coin_Precision)
+}
+
+// GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
+func getRandom(envHandle uintptr) (string, error) {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return "", jvmTypes.ErrGetJvmFailed
+	}
+
+	if consensusType != "ticket" {
+		return "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371", nil
+	}
+
+	req := &chain33Types.ReqRandHash{
+		ExecName: "ticket",
+		BlockNum: jvmExecutor.GetHeight(),
+		Hash:     jvmExecutor.GetLastHash(),
+	}
+	data, err := jvmExecutor.GetExecutorAPI().GetRandNum(req)
+	if nil != err {
+		log.Error("GetRandom failed due to:", err.Error())
+		return "", err
+	}
+	return string(data), nil
+}
+
+func getFrom(envHandle uintptr) string {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return ""
+	}
+	if nil == jvmExecutor || nil == jvmExecutor.tx {
+		log.Error("GetFrom failed due to nil jvmExecutor or nil tx ", "pJvm", jvmExecutor)
+		return ""
+	}
+	return jvmExecutor.tx.From()
+}
+
+func getHeight(envHandle uintptr) int64 {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return 0
+	}
+	if nil == jvmExecutor {
+		log.Error("GetFrom failed due to nil handle", "pJvm", jvmExecutor)
+		return 0
+	}
+	return jvmExecutor.GetHeight()
+}
+
+func stopTransWithErrInfo(err string, envHandle uintptr) bool {
+	jvmExecutor, ok := getJvmExector(envHandle)
+	if !ok {
+		return false
+	}
+	if nil == jvmExecutor {
+		log.Error("StopTransWithErrInfo failed due to nil handle", "pJvm", jvmExecutor)
+		return false
+	}
+	jvmExecutor.excep.occurred = true
+	jvmExecutor.excep.info = errors.New(err)
+
+	log.Info("StopTransWithErrInfo", "error info", err)
+
+	return true
+}
+
+//forward the query result to the corresponding jvm
+func ForwardQueryResult(exceptionOccurred bool, info []string, jvmHandle uintptr) bool {
+	queryResult := QueryResult{
+		exceptionOccurred:exceptionOccurred,
+		info:info,
+	}
+	jvm := (*JVMExecutor)(unsafe.Pointer(jvmHandle))
+	jvm.queryChan<-queryResult
+	log.Info("ForwardQueryResult get query result and forward it", "queryResult", queryResult)
+	return true
 }
