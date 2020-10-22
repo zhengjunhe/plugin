@@ -16,4 +16,5 @@ var (
 	ErrWriteJavaClass           = errors.New("Jvm: Failed to write java class to file")
 	ErrGetJvmFailed             = errors.New("Jvm: Failed to get go-jvm exector")
 	ErrSelLocalNotAllowed       = errors.New("Jvm: Set Local DB only Allowed during tx exec")
+	ErrJvmCodeString            = errors.New("Jvm: Wrong jvm code string")
 )

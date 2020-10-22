@@ -31,9 +31,6 @@ type Contract struct {
 	// 但是，二般情况下（外部账户通过CallCode直接调用合约代码时，此地址会设置为外部账户的地址，就是和caller一样）
 	self ContractRef
 
-	// 存储跳转信息，供JUMP和JUMPI指令使用
-	//Jumpdests Destinations
-
 	// 合约代码和代码哈希
 	Code     []byte
 	CodeHash common.Hash

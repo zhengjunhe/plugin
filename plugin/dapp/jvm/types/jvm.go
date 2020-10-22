@@ -54,12 +54,6 @@ const (
 	TyLogUpdateUserJvmContract
 	// TyLogLocalDataJvm 合约本地数据日志
 	TyLogLocalDataJvm
-
-	// TyLogOutputItemJvm 用于Jvm合约输出可读信息的日志记录，尤其是query的相关信息
-	// 为什么不将该种信息类型的获取不放置在query中呢，因为query的操作
-	// 中是不含交易费的，如果碰到恶意的Jvm合约，输出无限长度的信息，
-	// 会对我们的Jvm合约系统的安全性造成威胁，基于这样的考虑我们
-	TyLogOutputItemJvm
 )
 
 // ContractLog 合约在日志，对应EVM中的Log指令，可以生成指定的日志信息
@@ -181,7 +175,6 @@ func (jvm *JvmType) GetLogMap() map[int64]*types.LogInfo {
 		TyLogCreateUserJvmContract: {Ty: reflect.TypeOf(ReceiptJVMContract{}), Name: "LogCreateUserJvmContract"},
 		TyLogUpdateUserJvmContract: {Ty: reflect.TypeOf(ReceiptJVMContract{}), Name: "LogUpdateUserJvmContract"},
 		TyLogLocalDataJvm:          {Ty: reflect.TypeOf(ReceiptLocalData{}), Name: "LogLocalDataJvm"},
-		TyLogOutputItemJvm:         {Ty: reflect.TypeOf(JVMLog{}), Name: "LogOutputItemJvm"},
 	}
 	return logInfo
 }

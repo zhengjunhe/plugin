@@ -16,13 +16,13 @@ func (jvm *JVMExecutor) Exec_CreateJvmContract(createJvmContract *jvmTypes.Creat
 	jvm.prepareExecContext(tx, index)
 	// 使用随机生成的地址作为合约地址（这个可以保证每次创建的合约地址不会重复，不存在冲突的情况）
 
+	log.Debug("Exec_CreateJvmContract", "createJvmContract.Name", createJvmContract.Name)
 	contractAddr := address.GetExecAddress(createJvmContract.Name)
 	contractAddrInStr := contractAddr.String()
+	log.Debug("Exec_CreateJvmContract", "new created jvm jvmContract addr =", contractAddrInStr)
 	if !jvm.mStateDB.Empty(contractAddrInStr) {
 		return nil, jvmTypes.ErrContractAddressCollisionJvm
 	}
-
-	log.Debug("jvm create", "new created jvm contract addr =", contractAddrInStr)
 
 	codeSize := len(createJvmContract.GetCode())
 	if codeSize > jvmTypes.MaxCodeSize {
@@ -38,17 +38,21 @@ func (jvm *JVMExecutor) Exec_CreateJvmContract(createJvmContract *jvmTypes.Creat
 	snapshot := jvm.mStateDB.Snapshot()
 
 	// 创建新的合约对象，包含双方地址以及合约代码，可用Gas信息
-	contract := contract.NewContract(contract.AccountRef(*from), contract.AccountRef(*contractAddr), 0)
-	contract.SetCallCode(*contractAddr, common.BytesToHash(common.Sha256(createJvmContract.Code)), createJvmContract.Code)
+	code, err := common.FromHex(createJvmContract.Code)
+	if nil != err {
+		return nil, jvmTypes.ErrJvmCodeString
+	}
+	jvmContract := contract.NewContract(contract.AccountRef(*from), contract.AccountRef(*contractAddr), 0)
+	jvmContract.SetCallCode(*contractAddr, common.BytesToHash(common.Sha256(code)), code)
 
 	// 创建一个新的账户对象（合约账户）
-	jvm.mStateDB.CreateAccount(contractAddrInStr, contract.CallerAddress.String(), createJvmContract.Name)
-	jvm.mStateDB.SetCodeAndAbi(contractAddrInStr, createJvmContract.Code, []byte(createJvmContract.Abi))
+	jvm.mStateDB.CreateAccount(contractAddrInStr, jvmContract.CallerAddress.String(), createJvmContract.Name)
+	jvm.mStateDB.SetCodeAndAbi(contractAddrInStr, code, nil)
 
 	receipt, err := jvm.GenerateExecReceipt(
 		snapshot,
 		createJvmContract.Name,
-		contract.CallerAddress.String(),
+		jvmContract.CallerAddress.String(),
 		contractAddrInStr,
 		jvmTypes.CreateJvmContractAction)
 	log.Debug("jvm create", "receipt", receipt, "err info", err)
@@ -63,7 +67,8 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	//所以需要先将其合约名字设置为Jvm
 	jvm.mStateDB.SetCurrentExecutorName(jvmTypes.JvmX)
 
-	log.Debug("jvm call", "Para CallJvmContract", callJvmContract)
+	log.Debug("jvm call", "Para CallJvmContract", callJvmContract,
+		"string(tx.Execer)", string(tx.Execer))
 
 	contractName := string(tx.Execer)
 	userJvmAddr := address.ExecAddress(contractName)
@@ -141,11 +146,11 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 }
 
 // Exec_UpdateJvmContract 创建合约
-func (jvm *JVMExecutor) Exec_UpdateJvmContract(in *jvmTypes.UpdateJvmContract, tx *types.Transaction, index int) (*types.Receipt, error) {
+func (jvm *JVMExecutor) Exec_UpdateJvmContract(updateJvmContract *jvmTypes.UpdateJvmContract, tx *types.Transaction, index int) (*types.Receipt, error) {
 	jvm.prepareExecContext(tx, index)
 
 	// 使用随机生成的地址作为合约地址（这个可以保证每次创建的合约地址不会重复，不存在冲突的情况）
-	contractAddr := address.GetExecAddress(in.Name)
+	contractAddr := address.GetExecAddress(updateJvmContract.Name)
 	contractAddrInStr := contractAddr.String()
 	if !jvm.mStateDB.Exist(contractAddrInStr) {
 		return nil, jvmTypes.ErrContractNotExists
@@ -153,12 +158,12 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(in *jvmTypes.UpdateJvmContract, t
 	//只有创建合约的人可以更新合约
 	manager := jvm.mStateDB.GetAccount(contractAddrInStr).GetCreator()
 	if tx.From() != manager {
-		log.Error("update contract", "tx from:", tx.From(), "manager:", manager)
+		log.Error("update jvmContract", "tx from:", tx.From(), "manager:", manager)
 		return nil, jvmTypes.ErrNoPermission
 	}
-	log.Debug("jvm update", "updated jvm contract addr =", contractAddrInStr)
+	log.Debug("jvm update", "updated jvm jvmContract addr =", contractAddrInStr)
 
-	codeSize := len(in.GetCode())
+	codeSize := len(updateJvmContract.GetCode())
 	if codeSize > jvmTypes.MaxCodeSize {
 		return nil, jvmTypes.ErrMaxCodeSizeExceededJvm
 	}
@@ -171,15 +176,19 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(in *jvmTypes.UpdateJvmContract, t
 	}
 
 	snapshot := jvm.mStateDB.Snapshot()
-	// 创建新的合约对象，包含双方地址以及合约代码，可用Gas信息
-	contract := contract.NewContract(contract.AccountRef(*from), contract.AccountRef(*contractAddr), 0)
-	contract.SetCallCode(*contractAddr, common.BytesToHash(common.Sha256(in.Code)), in.Code)
-	jvm.mStateDB.SetCodeAndAbi(contractAddrInStr, in.Code, []byte(in.Abi))
+	// 更新合约对象，包含双方地址以及合约代码，可用Gas信息
+	code, err := common.FromHex(updateJvmContract.Code)
+	if nil != err {
+		return nil, jvmTypes.ErrJvmCodeString
+	}
+	jvmContract := contract.NewContract(contract.AccountRef(*from), contract.AccountRef(*contractAddr), 0)
+	jvmContract.SetCallCode(*contractAddr, common.BytesToHash(common.Sha256(code)), code)
+	jvm.mStateDB.SetCodeAndAbi(contractAddrInStr, code, nil)
 
 	receipt, err := jvm.GenerateExecReceipt(
 		snapshot,
-		in.Name,
-		contract.CallerAddress.String(),
+		updateJvmContract.Name,
+		jvmContract.CallerAddress.String(),
 		contractAddrInStr,
 		jvmTypes.UpdateJvmContractAction)
 	log.Debug("jvm create", "receipt", receipt, "err info", err)

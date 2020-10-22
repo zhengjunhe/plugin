@@ -157,7 +157,7 @@ func (c *ContractAccount) LoadContract(db db.KV) {
 	// 加载状态数据
 	data, err = db.Get(c.GetStateKey())
 	if err != nil {
-		log15.Error("StateDBGetState LoadContract:GetStateKey failed")
+		log15.Debug("StateDBGetState LoadContract:GetStateKey", "No state get for key", c.GetStateKey())
 		return
 	}
 	c.resotreState(data)

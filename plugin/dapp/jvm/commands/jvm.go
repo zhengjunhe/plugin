@@ -2,7 +2,9 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/33cn/chain33/common"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -27,10 +29,9 @@ func JvmCmd() *cobra.Command {
 	cmd.AddCommand(
 		jvmCheckContractNameCmd(),
 		jvmCreateContractCmd(),
-		jvmUpdateContractCmd(),
 		jvmCallContractCmd(),
+		jvmUpdateContractCmd(),
 		jvmQueryContractCmd(),
-		jvmDebugCmd(),
 	)
 
 	return cmd
@@ -43,25 +44,24 @@ func jvmCreateContractCmd() *cobra.Command {
 		Short: "Create a new jvm contract",
 		Run:   jvmCreateContract,
 	}
-	jvmAddCreateContractFlags(cmd)
+	jvmAddCreateUpdateContractFlags(cmd)
 	return cmd
 }
 
-func jvmAddCreateContractFlags(cmd *cobra.Command) {
-	jvmAddCommonFlags(cmd)
-
-	cmd.Flags().StringP("contract", "x", "", "contract name same with the code and abi file")
+func jvmAddCreateUpdateContractFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("contract", "x", "", "contract name same with the jar file")
 	_ = cmd.MarkFlagRequired("contract")
 
-	cmd.Flags().StringP("path", "d", "", "path where stores jvm code and abi")
+	cmd.Flags().StringP("path", "d", "", "path where stores jar file")
 	_ = cmd.MarkFlagRequired("path")
 }
 
 func jvmCreateContract(cmd *cobra.Command, args []string) {
+	title, _ := cmd.Flags().GetString("title")
+	cfg := types.GetCliSysParam(title)
+
 	contractName, _ := cmd.Flags().GetString("contract")
 	path, _ := cmd.Flags().GetString("path")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	nameReg, _ := regexp.Compile(jvmTypes.NameRegExp)
@@ -75,7 +75,6 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	feeInt64 := uint64(fee*1e4) * 1e4
 	codePath := path + "/" + contractName + ".jar"
 	code, err := ioutil.ReadFile(codePath)
 	if err != nil {
@@ -83,50 +82,49 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	var createReq = jvmTypes.CreateContractReq{
-		Name: contractName,
-		Note: note,
-		Code: code,
-		Fee:  int64(feeInt64),
+	if !strings.Contains(contractName, jvmTypes.UserJvmX) {
+		contractName = jvmTypes.UserJvmX + contractName
 	}
-	var createResp = types.ReplyString{}
-	query := sendQuery4jvm(rpcLaddr, jvmTypes.CreateJvmContractStr, &createReq, &createResp)
-	if query {
-		fmt.Println(createResp.Data)
-	} else {
-		_, _ = fmt.Fprintln(os.Stderr, "get create to transaction error")
+
+	codeInstr := common.ToHex(code)
+	var createReq = &jvmTypes.CreateJvmContract{
+		Name: cfg.ExecName(contractName),
+		Code: codeInstr,
+	}
+
+	payLoad, err := json.Marshal(createReq)
+	if err != nil {
 		return
 	}
+	parameter := &rpctypes.CreateTxIn{
+		Execer:     cfg.ExecName(jvmTypes.JvmX),
+		ActionName: jvmTypes.CreateJvmContractStr,
+		Payload:    payLoad,
+	}
+
+	var res string
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", parameter, &res)
+	ctx.RunWithoutMarshal()
 }
 
 // 更新jvm合约
 func jvmUpdateContractCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update",
-		Short: "Update a old jvm contract",
+		Short: "Update an old jvm contract",
 		Run:   jvmUpdateContract,
 	}
-	jvmAddUpdateContractFlags(cmd)
+	jvmAddCreateUpdateContractFlags(cmd)
 	return cmd
 }
 
-func jvmAddUpdateContractFlags(cmd *cobra.Command) {
-	jvmAddCommonFlags(cmd)
-
-	cmd.Flags().StringP("contract", "x", "", "contract name same with the code and abi file")
-	_ = cmd.MarkFlagRequired("contract")
-
-	cmd.Flags().StringP("path", "d", "", "path where stores jvm code and abi")
-	_ = cmd.MarkFlagRequired("path")
-}
-
 func jvmUpdateContract(cmd *cobra.Command, args []string) {
+	title, _ := cmd.Flags().GetString("title")
+	cfg := types.GetCliSysParam(title)
+
 	contractName, _ := cmd.Flags().GetString("contract")
 	path, _ := cmd.Flags().GetString("path")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	//paraName, _ := cmd.Flags().GetString("paraName")
 
 	nameReg, _ := regexp.Compile(jvmTypes.NameRegExp)
 	if !nameReg.MatchString(contractName) {
@@ -139,35 +137,39 @@ func jvmUpdateContract(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	feeInt64 := uint64(fee*1e4) * 1e4
-
-	codePath := path + "/" + contractName + ".class"
+	codePath := path + "/" + contractName + ".jar"
 	code, err := ioutil.ReadFile(codePath)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "read code error ", err)
 		return
 	}
 
-	var createReq = jvmTypes.UpdateContractReq{
+	codeInstr := common.ToHex(code)
+	var updateReq = &jvmTypes.UpdateJvmContract{
 		Name: contractName,
-		Note: note,
-		Code: code,
-		Fee:  int64(feeInt64),
+		Code: codeInstr,
 	}
-	var createResp = types.ReplyString{}
-	ok := sendQuery4jvm(rpcLaddr, jvmTypes.UpdateJvmContractStr, &createReq, &createResp)
-	if ok {
-		fmt.Println(createResp.Data)
+
+	payLoad, err := json.Marshal(updateReq)
+	if err != nil {
 		return
 	}
-	_, _ = fmt.Fprintln(os.Stderr, "get update to transaction error")
+	parameter := &rpctypes.CreateTxIn{
+		Execer:     cfg.ExecName(jvmTypes.JvmX),
+		ActionName: jvmTypes.UpdateJvmContractStr,
+		Payload:    payLoad,
+	}
+
+	var res string
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", parameter, &res)
+	ctx.RunWithoutMarshal()
 }
 
 //运行jvm合约的查询请求
 func jvmQueryContractCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "query",
-		Short: "query the jvm contract",
+		Short: "Query the jvm contract",
 		Run:   jvmQueryContract,
 	}
 	jvmAddQueryContractFlags(cmd)
@@ -226,14 +228,14 @@ func jvmCallContractCmd() *cobra.Command {
 }
 
 func jvmCallContract(cmd *cobra.Command, args []string) {
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
+	title, _ := cmd.Flags().GetString("title")
+	cfg := types.GetCliSysParam(title)
+
 	contractName, _ := cmd.Flags().GetString("exec")
 	actionName, _ := cmd.Flags().GetString("action")
 	paraOneStr, _ := cmd.Flags().GetString("para")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
-	feeInt64 := uint64(fee*1e4) * 1e4
 	var para  = []string{actionName}
 	if "" != paraOneStr {
 		var paraParsed []string
@@ -242,21 +244,29 @@ func jvmCallContract(cmd *cobra.Command, args []string) {
 		para = append(para, paraParsed...)
 	}
 
-	var createReq = jvmTypes.CallJvmContract{
-		Name:       contractName,
-		Note:       note,
-		ActionData: para,
-		Fee:        int64(feeInt64),
+	if !strings.Contains(contractName, jvmTypes.UserJvmX) {
+		contractName = jvmTypes.UserJvmX + contractName
 	}
-	var createResp = types.ReplyString{}
 
-	query := sendQuery4jvm(rpcLaddr, jvmTypes.CallJvmContractStr, &createReq, &createResp)
-	if query {
-		fmt.Println(createResp.Data)
-	} else {
-		_, _ = fmt.Fprintln(os.Stderr, "get call jvm to transaction error")
+	var callJvmContract = &jvmTypes.CallJvmContract{
+		Name:       cfg.ExecName(contractName),
+		ActionData: para,
+	}
+
+	payLoad, err := json.Marshal(callJvmContract)
+	if err != nil {
 		return
 	}
+
+	parameter := &rpctypes.CreateTxIn{
+		Execer:     cfg.ExecName(contractName),
+		ActionName: jvmTypes.CallJvmContractStr,
+		Payload:    payLoad,
+	}
+
+	var res string
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", parameter, &res)
+	ctx.RunWithoutMarshal()
 }
 
 func jvmAddCallContractFlags(cmd *cobra.Command) {
@@ -272,8 +282,6 @@ func jvmAddCallContractFlags(cmd *cobra.Command) {
 
 func jvmAddCommonFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
-
-	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 }
 
 // 检查地址是否为Jvm合约
@@ -315,65 +323,7 @@ func jvmCheckContractAddr(cmd *cobra.Command, args []string) {
 	}
 }
 
-// 查询或设置Jvm调试开关
-func jvmDebugCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "debug",
-		Short: "Query or set external debug status",
-	}
-	cmd.AddCommand(
-		jvmDebugQueryCmd(),
-		jvmDebugSetCmd(),
-		jvmDebugClearCmd())
 
-	return cmd
-}
-
-func jvmDebugQueryCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "query",
-		Short: "Query external debug status",
-		Run:   jvmDebugQuery,
-	}
-}
-func jvmDebugSetCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "set",
-		Short: "Set external debug to ON",
-		Run:   jvmDebugSet,
-	}
-}
-func jvmDebugClearCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "clear",
-		Short: "Set external debug to OFF",
-		Run:   jvmDebugClear,
-	}
-}
-
-func jvmDebugQuery(cmd *cobra.Command, args []string) {
-	jvmDebugRPC(cmd, 0)
-}
-
-func jvmDebugSet(cmd *cobra.Command, args []string) {
-	jvmDebugRPC(cmd, 1)
-}
-
-func jvmDebugClear(cmd *cobra.Command, args []string) {
-	jvmDebugRPC(cmd, -1)
-}
-func jvmDebugRPC(cmd *cobra.Command, flag int32) {
-	var debugReq = jvmTypes.JVMDebugReq{Optype: flag}
-	var debugResp jvmTypes.JVMDebugResp
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	query := sendQuery4jvm(rpcLaddr, "jvmDebug", &debugReq, &debugResp)
-
-	if query {
-		_ = proto.MarshalText(os.Stdout, &debugResp)
-	} else {
-		_, _ = fmt.Fprintln(os.Stderr, "error")
-	}
-}
 
 func sendQuery4jvm(rpcAddr, funcName string, request types.Message, result proto.Message) bool {
 	params := rpctypes.Query4Jrpc{
