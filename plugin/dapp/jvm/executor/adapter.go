@@ -27,6 +27,7 @@ const (
 var (
 	jvm_init_alreay = false
 	consensusType = ""
+	Chain33LoaderJarPath = "." //路径信息不需要包含字符‘/’，C语言中拼接时，会添加
 )
 
 //调用java合约交易
@@ -62,7 +63,10 @@ func initJvm(chain33Config *chain33Types.Chain33Config) {
 	const_jdkPath := C.CString(jdkPath)
 	defer C.free(unsafe.Pointer(const_jdkPath))
 
-	result := C.JLI_Create_JVM(const_jdkPath)
+	const_jarPath := C.CString(Chain33LoaderJarPath)
+	defer C.free(unsafe.Pointer(const_jarPath))
+
+	result := C.JLI_Create_JVM(const_jdkPath, const_jarPath)
 	if int(result) != JLI_SUCCESS {
 		panic("Failed to init JLI_Init_JVM")
 	}

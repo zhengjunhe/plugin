@@ -179,16 +179,6 @@ func (jvm *JVMExecutor) GenerateExecReceipt(snapshot int, execName, caller, cont
 		runLog.Ty = jvmTypes.TyLogUpdateUserJvmContract
 	}
 
-	//jvm子合约的debug信息
-	//if len(debugInfo) != 0 {
-	//	debugLog := &jvmTypes.JVMLog{LogInfo: debugInfo}
-	//	runLog2 := &types.ReceiptLog{
-	//		Ty:  jvmTypes.TyLogOutputItemJvm,
-	//		Log: types.Encode(debugLog),
-	//	}
-	//	logs = append(logs, runLog2)
-	//}
-
 	logs = append(logs, runLog)
 	logs = append(logs, jvm.mStateDB.GetReceiptLogs(contractAddr)...)
 
