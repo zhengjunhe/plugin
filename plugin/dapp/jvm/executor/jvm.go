@@ -189,7 +189,7 @@ func (jvm *JVMExecutor) GenerateExecReceipt(snapshot int, execName, caller, cont
 		jvm.mStateDB.WritePreimages(jvm.GetHeight())
 	}
 
-	jvm.collectJvmTxLog(jvm.tx, contractReceipt, receipt)
+	//jvm.collectJvmTxLog(jvm.tx, contractReceipt, receipt)
 
 	return receipt, nil
 }
@@ -208,76 +208,19 @@ func (jvm *JVMExecutor) collectJvmTxLog(tx *types.Transaction, cr *jvmTypes.Rece
 	log.Debug("jvm collect end")
 }
 
-// ExecLocal 执行本地的transaction, 并写入localdb
-func (jvm *JVMExecutor) ExecLocal(tx *types.Transaction, receipt *types.ReceiptData, index int) (*types.LocalDBSet, error) {
-	set, err := jvm.DriverBase.ExecLocal(tx, receipt, index)
-	if err != nil {
-		return nil, err
-	}
-	if receipt.GetTy() != types.ExecOk {
-		return set, nil
-	}
-
-	// 需要将Exec中生成的合约状态变更信息写入localdb
-	for _, logItem := range receipt.Logs {
-		if jvmTypes.TyLogStateChangeItemJvm == logItem.Ty {
-			data := logItem.Log
-			var changeItem jvmTypes.JVMStateChangeItem
-			err = types.Decode(data, &changeItem)
-			if err != nil {
-				return set, err
-			}
-			set.KV = append(set.KV, &types.KeyValue{Key: []byte(changeItem.Key), Value: changeItem.CurrentValue})
-		}
-	}
-
-	return set, err
-}
-
-// ExecDelLocal 撤销本地的执行
-func (jvm *JVMExecutor) ExecDelLocal(tx *types.Transaction, receipt *types.ReceiptData, index int) (*types.LocalDBSet, error) {
-	set, err := jvm.DriverBase.ExecDelLocal(tx, receipt, index)
-	if err != nil {
-		return nil, err
-	}
-	if receipt.GetTy() != types.ExecOk {
-		return set, nil
-	}
-
-	// 需要将Exec中生成的合约状态变更信息从localdb中恢复
-	for _, logItem := range receipt.Logs {
-		if jvmTypes.TyLogStateChangeItemJvm == logItem.Ty {
-			data := logItem.Log
-			var changeItem jvmTypes.JVMStateChangeItem
-			err = types.Decode(data, &changeItem)
-			if err != nil {
-				return set, err
-			}
-			set.KV = append(set.KV, &types.KeyValue{Key: []byte(changeItem.Key), Value: changeItem.PreValue})
-		}
-	}
-
-	return set, err
-}
-
 // 检查合约地址是否存在，此操作不会改变任何状态，所以可以直接从statedb查询
 func (jvm *JVMExecutor) checkContractNameExists(req *jvmTypes.CheckJVMContractNameReq) (types.Message, error) {
 	contractName := req.JvmContractName
 	if len(contractName) == 0 {
-		return nil, jvmTypes.ErrAddrNotExists
+		return nil, jvmTypes.ErrNullContractName
 	}
 
 	if !bytes.Contains([]byte(contractName), []byte(jvmTypes.UserJvmX)) {
 		contractName = jvmTypes.UserJvmX + contractName
 	}
-	exists := jvm.GetMStateDB().Exist(address.ExecAddress(jvm.GetAPI().GetConfig().ExecName(contractName)))
+	exists := jvm.mStateDB.Exist(address.ExecAddress(jvm.GetAPI().GetConfig().ExecName(contractName)))
 	ret := &jvmTypes.CheckJVMAddrResp{ExistAlready: exists}
 	return ret, nil
-}
-
-// GetMStateDB get memorystate db
-func (jvm *JVMExecutor) GetMStateDB() *state.MemoryStateDB {
-	return jvm.mStateDB
 }
 
 func (jvm *JVMExecutor) GetContractAddr() string {
@@ -285,19 +228,4 @@ func (jvm *JVMExecutor) GetContractAddr() string {
 		return address.GetExecAddress(string(jvm.tx.Execer)).String()
 	}
 	return address.GetExecAddress(jvm.contract).String()
-}
-
-// 从交易信息中获取交易目标地址，在创建合约交易中，此地址为空
-func getReceiver(tx *types.Transaction) *address.Address {
-	if tx.To == "" {
-		return nil
-	}
-
-	addr, err := address.NewAddrFromString(tx.To)
-	if err != nil {
-		log.Error("create address form string error", "string:", tx.To)
-		return nil
-	}
-
-	return addr
 }

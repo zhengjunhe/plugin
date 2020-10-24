@@ -7,8 +7,6 @@ import (
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/contract"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
-	"os"
-	"strings"
 )
 
 // Exec_CreateJvmContract 创建合约
@@ -28,13 +26,13 @@ func (jvm *JVMExecutor) Exec_CreateJvmContract(createJvmContract *jvmTypes.Creat
 	if codeSize > jvmTypes.MaxCodeSize {
 		return nil, jvmTypes.ErrMaxCodeSizeExceededJvm
 	}
-	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
-	from := address.PubKeyToAddress(jvm.tx.GetSignature().GetPubkey())
-	to := getReceiver(jvm.tx)
-	if to == nil {
-		return nil, types.ErrInvalidAddress
+
+	if 0 == codeSize {
+		return nil, jvmTypes.ErrNUllJvmContract
 	}
 
+	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
+	from := address.PubKeyToAddress(jvm.tx.GetSignature().GetPubkey())
 	snapshot := jvm.mStateDB.Snapshot()
 
 	// 创建新的合约对象，包含双方地址以及合约代码，可用Gas信息
@@ -70,38 +68,9 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	log.Debug("jvm call", "Para CallJvmContract", callJvmContract,
 		"string(tx.Execer)", string(tx.Execer))
 
-	contractName := string(tx.Execer)
-	userJvmAddr := address.ExecAddress(contractName)
-	contractAccount := jvm.mStateDB.GetAccount(userJvmAddr)
-	temp := strings.Split(contractName, ".")
-	//just keep the last name
-	contractName = temp[len(temp) - 1]
-	jarPath := "./" + contractName + ".jar"
-	jarFileExist := true
-	//判断jar文件是否存在
-	_, err := os.Stat(jarPath)
-	if err != nil && !os.IsExist(err) {
-		jarFileExist = false
-	}
-
-	if !jarFileExist {
-		javaClassfile, err := os.OpenFile(jarPath, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-		    return nil, err
-		}
-		code := contractAccount.Data.GetCode()
-		if len(code) == 0 {
-			log.Error("call jvm contract ", "failed to get code&abi from contract", string(tx.Execer))
-			return nil, jvmTypes.ErrWrongContractAddr
-		}
-
-		writeLen, err := javaClassfile.Write(code)
-		if writeLen != len(code) {
-		    return nil, jvmTypes.ErrWriteJavaClass
-		}
-		if closeErr := javaClassfile.Close(); nil != closeErr {
-			return nil, closeErr
-		}
+	userJvmAddr, contractName, contractAccount, err := jvm.creatJarFileWithCode(string(tx.Execer))
+	if nil != err {
+		return nil, err
 	}
 
 	//将当前合约执行名字修改为user.jvm.xxx
@@ -142,7 +111,7 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 		jvmTypes.CallJvmContractAction)
 	log.Debug("jvm call", "receipt", receipt)
 
-	return receipt, err
+	return receipt, nil
 }
 
 // Exec_UpdateJvmContract 创建合约
@@ -153,7 +122,7 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(updateJvmContract *jvmTypes.Updat
 	contractAddr := address.GetExecAddress(updateJvmContract.Name)
 	contractAddrInStr := contractAddr.String()
 	if !jvm.mStateDB.Exist(contractAddrInStr) {
-		return nil, jvmTypes.ErrContractNotExists
+		return nil, jvmTypes.ErrContractNotExist
 	}
 	//只有创建合约的人可以更新合约
 	manager := jvm.mStateDB.GetAccount(contractAddrInStr).GetCreator()
@@ -168,13 +137,12 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(updateJvmContract *jvmTypes.Updat
 		return nil, jvmTypes.ErrMaxCodeSizeExceededJvm
 	}
 
-	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
-	from := address.PubKeyToAddress(jvm.tx.GetSignature().GetPubkey())
-	to := getReceiver(jvm.tx)
-	if to == nil {
-		return nil, types.ErrInvalidAddress
+	if 0 == codeSize {
+		return nil, jvmTypes.ErrNUllJvmContract
 	}
 
+	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
+	from := address.PubKeyToAddress(jvm.tx.GetSignature().GetPubkey())
 	snapshot := jvm.mStateDB.Snapshot()
 	// 更新合约对象，包含双方地址以及合约代码，可用Gas信息
 	code, err := common.FromHex(updateJvmContract.Code)
