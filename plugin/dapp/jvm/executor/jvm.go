@@ -2,7 +2,6 @@ package executor
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/common/log/log15"
@@ -15,7 +14,7 @@ import (
 	"sync/atomic"
 )
 
-type exception struct {
+type stopWithError struct {
 	occurred bool
 	info error
 }
@@ -23,13 +22,13 @@ type exception struct {
 // JVMExecutor 执行器结构
 type JVMExecutor struct {
 	drivers.DriverBase
-	mStateDB  *state.MemoryStateDB
-	tx        *types.Transaction
-	txHash    string
-	contract  string
-	txIndex   int
-	excep     exception
-	queryChan chan QueryResult
+	mStateDB      *state.MemoryStateDB
+	tx            *types.Transaction
+	txHash        string
+	contract      string
+	txIndex       int
+	forceStopInfo stopWithError
+	queryChan     chan QueryResult
 }
 
 type QueryResult struct {
@@ -194,19 +193,19 @@ func (jvm *JVMExecutor) GenerateExecReceipt(snapshot int, execName, caller, cont
 	return receipt, nil
 }
 
-func (jvm *JVMExecutor) collectJvmTxLog(tx *types.Transaction, cr *jvmTypes.ReceiptJVMContract, receipt *types.Receipt) {
-	log.Debug("jvm collect begin")
-	log.Debug("Tx info", "txHash", common.ToHex(tx.Hash()), "height", jvm.GetHeight())
-	log.Debug("ReceiptJVMContract", "data", fmt.Sprintf("caller=%v, name=%v, addr=%v", cr.Caller, cr.ContractName, cr.ContractAddr))
-	log.Debug("receipt data", "type", receipt.Ty)
-	for _, kv := range receipt.KV {
-		log.Debug("KeyValue", "key", common.ToHex(kv.Key), "value", common.ToHex(kv.Value))
-	}
-	for _, kv := range receipt.Logs {
-		log.Debug("ReceiptLog", "Type", kv.Ty, "log", common.ToHex(kv.Log))
-	}
-	log.Debug("jvm collect end")
-}
+//func (jvm *JVMExecutor) collectJvmTxLog(tx *types.Transaction, cr *jvmTypes.ReceiptJVMContract, receipt *types.Receipt) {
+//	log.Debug("jvm collect begin")
+//	log.Debug("Tx info", "txHash", common.ToHex(tx.Hash()), "height", jvm.GetHeight())
+//	log.Debug("ReceiptJVMContract", "data", fmt.Sprintf("caller=%v, name=%v, addr=%v", cr.Caller, cr.ContractName, cr.ContractAddr))
+//	log.Debug("receipt data", "type", receipt.Ty)
+//	for _, kv := range receipt.KV {
+//		log.Debug("KeyValue", "key", common.ToHex(kv.Key), "value", common.ToHex(kv.Value))
+//	}
+//	for _, kv := range receipt.Logs {
+//		log.Debug("ReceiptLog", "Type", kv.Ty, "log", common.ToHex(kv.Log))
+//	}
+//	log.Debug("jvm collect end")
+//}
 
 // 检查合约地址是否存在，此操作不会改变任何状态，所以可以直接从statedb查询
 func (jvm *JVMExecutor) checkContractNameExists(req *jvmTypes.CheckJVMContractNameReq) (types.Message, error) {

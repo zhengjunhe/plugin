@@ -57,4 +57,9 @@ func GetAllLocalKeyValues(txhashNew string) []*types.KeyValue {
 	return kvs
 }
 
+//该函数只是方便用来帮助进行单元测试，不可以在正常业务逻辑中使用
+func SetCurrentTx4UT(txhashNew string) {
+	currentExecTxHash = txhashNew
+}
+
 

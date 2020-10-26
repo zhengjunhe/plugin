@@ -49,7 +49,7 @@ func runJava(contract string, para []string, jvmHandleGo *JVMExecutor, jobType C
 	if int(result) != JLI_SUCCESS {
 		exInfo := C.GoString(*exception)
 		defer C.free(unsafe.Pointer(*exception))
-		log.Debug("adapter::runJava", "java exception", exInfo)
+		log.Debug("adapter::runJava", "java stopWithError", exInfo)
 		return errors.New(exInfo)
 	}
 	return nil
@@ -101,9 +101,9 @@ func freeArgument(argc C.int, argv **C.char) {
 //export SetQueryResult
 func SetQueryResult(jvmgo *C.char, exceptionOccurred C.int, info **C.char, count, sizePtr C.int) C.int {
 	jvmHandleUintptr := uintptr(unsafe.Pointer(jvmgo))
-	exceOcc := false
+	exceptionOccur := false
 	if Bool_TRUE == exceptionOccurred {
-		exceOcc = true
+		exceptionOccur = true
 	}
 	var query []string
 	for i:=0; i < int(count); i++ {
@@ -111,7 +111,7 @@ func SetQueryResult(jvmgo *C.char, exceptionOccurred C.int, info **C.char, count
 		infoGO := C.GoString(*(**C.char)(unsafe.Pointer(ptr)))
 		query = append(query, infoGO)
 	}
-	ForwardQueryResult(exceOcc, query, jvmHandleUintptr)
+	ForwardQueryResult(exceptionOccur, query, jvmHandleUintptr)
 
 	return 0
 }
@@ -192,7 +192,6 @@ func GetCurrentHeight(envHandle *C.char) C.long {
 
 //export StopTransWithErrInfo
 func StopTransWithErrInfo(errInfo *C.char, envHandle *C.char) C.int {
-	defer C.free(unsafe.Pointer(errInfo))
 	errInfoStr := C.GoString(errInfo)
 	envHandleUintptr := uintptr(unsafe.Pointer(envHandle))
 	stopTransWithErrInfo(errInfoStr, envHandleUintptr)
@@ -441,20 +440,6 @@ func execTransfer(from, to string, amount int64, envHandle uintptr) bool {
 	return jvmExecutor.mStateDB.ExecTransfer(jvmExecutor.tx, from, to, amount * jvmTypes.Coin_Precision)
 }
 
-// ExecTransferFrozen 冻结的转账
-func execTransferFrozen(from, to string, amount int64, envHandle uintptr) bool {
-	jvmExecutor, ok := getJvmExector(envHandle)
-	if !ok {
-		return false
-	}
-	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
-		log.Error("ExecTransferFrozen failed due to nil handle", "pJvm", jvmExecutor,
-			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
-		return jvmTypes.AccountOpFail
-	}
-	return jvmExecutor.mStateDB.ExecTransferFrozen(jvmExecutor.tx, from, to, int64(amount)*jvmTypes.Coin_Precision)
-}
-
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
 func getRandom(envHandle uintptr) (string, error) {
 	jvmExecutor, ok := getJvmExector(envHandle)
@@ -496,10 +481,6 @@ func getHeight(envHandle uintptr) int64 {
 	if !ok {
 		return 0
 	}
-	if nil == jvmExecutor {
-		log.Error("GetFrom failed due to nil handle", "pJvm", jvmExecutor)
-		return 0
-	}
 	return jvmExecutor.GetHeight()
 }
 
@@ -508,12 +489,8 @@ func stopTransWithErrInfo(err string, envHandle uintptr) bool {
 	if !ok {
 		return false
 	}
-	if nil == jvmExecutor {
-		log.Error("StopTransWithErrInfo failed due to nil handle", "pJvm", jvmExecutor)
-		return false
-	}
-	jvmExecutor.excep.occurred = true
-	jvmExecutor.excep.info = errors.New(err)
+	jvmExecutor.forceStopInfo.occurred = true
+	jvmExecutor.forceStopInfo.info = errors.New(err)
 
 	log.Info("StopTransWithErrInfo", "error info", err)
 

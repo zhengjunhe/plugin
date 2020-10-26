@@ -609,7 +609,6 @@ func (m *MemoryStateDB) ExecActive(tx *types.Transaction, addr string, amount in
 }
 
 // ExecTransfer transfer exec
-//export ExecTransfer
 func (m *MemoryStateDB) ExecTransfer(tx *types.Transaction, from, to string, amount int64) bool {
 	if nil == tx {
 		log15.Error("ExecTransfer get nil tx")
@@ -635,7 +634,6 @@ func (m *MemoryStateDB) ExecTransfer(tx *types.Transaction, from, to string, amo
 }
 
 // ExecTransferFrozen transfer frozen exec
-//export ExecTransferFrozen
 func (m *MemoryStateDB) ExecTransferFrozen(tx *types.Transaction, from, to string, amount int64) bool {
 	execaddr := address.ExecAddress(string(tx.Execer))
 	ret, err := m.CoinsAccount.ExecTransferFrozen(from, to, execaddr, amount)

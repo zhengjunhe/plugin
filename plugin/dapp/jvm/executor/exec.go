@@ -90,16 +90,17 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	//合约执行失败，有2种可能
 	//1.余额不足等原因被合约强制退出本次交易
 	//2.java合约本身的代码问题，抛出异常
-	if errinfo != nil  || jvm.excep.occurred {
+	if errinfo != nil  || jvm.forceStopInfo.occurred {
 		jvm.mStateDB.RevertToSnapshot(snapshot)
 		var exeErr error
 		if errinfo != nil {
 			exeErr = errinfo
+			log.Error("call jvm contract", "failed to call contract due to stopWithError", exeErr.Error())
 		} else {
-			exeErr = jvm.excep.info
-
+			exeErr = jvm.forceStopInfo.info
+			log.Error("call jvm contract", "failed to call contract due to stop with error", exeErr.Error())
 		}
-		log.Error("call jvm contract", "failed to call contract due to", exeErr.Error())
+
 		return nil, exeErr
 	}
 
