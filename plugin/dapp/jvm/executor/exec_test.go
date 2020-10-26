@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 
@@ -169,9 +170,16 @@ func Test_Create_CallJvmContract(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt.Ty)
 
+	receiptData0 :=  &types.ReceiptData{}
+	localDBSet0, err := jvmTestEnv.jvm.ExecLocal_CreateJvmContract(createJvmContract, tx, receiptData0, 0)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, len(localDBSet0.KV), 0)
+
+
 	////////////////////////////////////
 	//2nd step: call Guess contract
 	////////////////////////////////////
+	createJarLib(t)
 	callJvmContract := &jvmTypes.CallJvmContract{
 		Name:"user.jvm.Dice",
 		ActionData:[]string{"startGame"},
@@ -184,6 +192,28 @@ func Test_Create_CallJvmContract(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
 	removeFile("./Dice.jar")
+	removeJarLib(t)
+
+	receiptData :=  &types.ReceiptData{}
+	localDBSet, err := jvmTestEnv.jvm.ExecLocal_CallJvmContract(callJvmContract, tx2call, receiptData, 0)
+	assert.Equal(t, nil, err)
+	assert.Greater(t, len(localDBSet.KV), 0)
+	for _, keyValue := range localDBSet.KV {
+		_ = jvmTestEnv.jvm.GetLocalDB().Set(keyValue.Key, keyValue.Value)
+	}
+
+	localDBSetDel, err := jvmTestEnv.jvm.ExecDelLocal_CallJvmContract(callJvmContract, tx2call, receiptData, 0)
+	assert.Equal(t, nil, err)
+	assert.Greater(t, len(localDBSetDel.KV), 0)
+	for _, keyValue := range localDBSetDel.KV {
+		if bytes.Equal(localDBSet.KV[0].Key, keyValue.Key) {
+			//fmt.Println("keyValue", string(keyValue.Key), "value", keyValue.Value)
+			//fmt.Println("keyValue", string(localDBSet.KV[0].Key), "value", localDBSet.KV[0].Value)
+			if nil != keyValue.Value {
+				assert.Equal(t, nil,  keyValue.Value)
+			}
+		}
+	}
 }
 
 func Test_CallJvmContract_errorBranch(t *testing.T) {
@@ -302,6 +332,11 @@ func Test_Create_Update_CallJvmContract(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2update.Ty)
 
+	receiptData0 :=  &types.ReceiptData{}
+	localDBSet, err := jvmTestEnv.jvm.ExecLocal_UpdateJvmContract(updateJvmContract, tx2update, receiptData0, 0)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, len(localDBSet.KV), 0)
+
 	////////////////////////////////////
 	//3rd step: call the updated Guess contract
 	////////////////////////////////////
@@ -316,7 +351,6 @@ func Test_Create_Update_CallJvmContract(t *testing.T) {
 	receipt2call, err := jvmTestEnv.jvm.Exec_CallJvmContract(callJvmContract, tx2call, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
-
 	removeFile("./Guess.jar")
 }
 
