@@ -42,8 +42,6 @@ const (
 const (
 	// TyLogContractDataJvm 合约代码日志
 	TyLogContractDataJvm = iota + 100
-	// TyLogContractStateJvm 合约状态数据日志
-	TyLogContractStateJvm
 	// TyLogCallContractJvm 合约调用日志
 	TyLogCallContractJvm
 	// TyLogStateChangeItemJvm 合约状态变化的日志
@@ -169,7 +167,6 @@ func (jvm JvmType) Amount(tx *types.Transaction) (int64, error) {
 func (jvm *JvmType) GetLogMap() map[int64]*types.LogInfo {
 	logInfo := map[int64]*types.LogInfo{
 		TyLogContractDataJvm:       {Ty: reflect.TypeOf(LogJVMContractData{}), Name: "LogContractDataJvm"},
-		TyLogContractStateJvm:      {Ty: reflect.TypeOf(JVMContractState{}), Name: "LogContractStateJvm"},
 		TyLogCallContractJvm:       {Ty: reflect.TypeOf(ReceiptJVMContract{}), Name: "LogCallContractJvm"},
 		TyLogStateChangeItemJvm:    {Ty: reflect.TypeOf(JVMStateChangeItem{}), Name: "LogStateChangeItemJvm"},
 		TyLogCreateUserJvmContract: {Ty: reflect.TypeOf(ReceiptJVMContract{}), Name: "LogCreateUserJvmContract"},

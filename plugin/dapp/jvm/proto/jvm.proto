@@ -6,7 +6,6 @@ package types;
 message JVMContractObject {
     string            addr  = 1;
     JVMContractData  data  = 2;
-    JVMContractState state = 3;
 }
 
 // 存放合约固定数据
@@ -25,13 +24,6 @@ message LogJVMContractData {
     string addr     = 3;
     string codeHash = 4;
     string abiHash  = 5;
-}
-
-// 存放合约变化数据
-message JVMContractState {
-    uint64             nonce    = 1;
-    bool               suicided = 2;
-    map<string, bytes> storage  = 3;
 }
 
 message JVMContractAction {
