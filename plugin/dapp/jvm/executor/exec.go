@@ -33,7 +33,7 @@ func (jvm *JVMExecutor) Exec_CreateJvmContract(createJvmContract *jvmTypes.Creat
 
 	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
 	from := address.PubKeyToAddress(jvm.tx.GetSignature().GetPubkey())
-	snapshot := jvm.mStateDB.Snapshot()
+	_ = jvm.mStateDB.Snapshot()
 
 	// 创建新的合约对象，包含双方地址以及合约代码，可用Gas信息
 	code, err := common.FromHex(createJvmContract.Code)
@@ -48,7 +48,6 @@ func (jvm *JVMExecutor) Exec_CreateJvmContract(createJvmContract *jvmTypes.Creat
 	jvm.mStateDB.SetCodeAndAbi(contractAddrInStr, code, nil)
 
 	receipt, err := jvm.GenerateExecReceipt(
-		snapshot,
 		createJvmContract.Name,
 		jvmContract.CallerAddress.String(),
 		contractAddrInStr,
@@ -75,7 +74,7 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 
 	//将当前合约执行名字修改为user.jvm.xxx
 	jvm.mStateDB.SetCurrentExecutorName(string(jvm.GetAPI().GetConfig().GetParaExec(tx.Execer)))
-	snapshot := jvm.mStateDB.Snapshot()
+	_ = jvm.mStateDB.Snapshot()
 
 	//1st step: create tx para
 	caller := tx.From()
@@ -91,7 +90,6 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	//1.余额不足等原因被合约强制退出本次交易
 	//2.java合约本身的代码问题，抛出异常
 	if errinfo != nil  || jvm.forceStopInfo.occurred {
-		jvm.mStateDB.RevertToSnapshot(snapshot)
 		var exeErr error
 		if errinfo != nil {
 			exeErr = errinfo
@@ -105,7 +103,6 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	}
 
 	receipt, _ := jvm.GenerateExecReceipt(
-		snapshot,
 		contractAccount.GetExecName(),
 		caller,
 		userJvmAddr,
@@ -144,7 +141,7 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(updateJvmContract *jvmTypes.Updat
 
 	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
 	from := address.PubKeyToAddress(jvm.tx.GetSignature().GetPubkey())
-	snapshot := jvm.mStateDB.Snapshot()
+	_ = jvm.mStateDB.Snapshot()
 	// 更新合约对象，包含双方地址以及合约代码，可用Gas信息
 	code, err := common.FromHex(updateJvmContract.Code)
 	if nil != err {
@@ -155,7 +152,6 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(updateJvmContract *jvmTypes.Updat
 	jvm.mStateDB.SetCodeAndAbi(contractAddrInStr, code, nil)
 
 	receipt, err := jvm.GenerateExecReceipt(
-		snapshot,
 		updateJvmContract.Name,
 		jvmContract.CallerAddress.String(),
 		contractAddrInStr,

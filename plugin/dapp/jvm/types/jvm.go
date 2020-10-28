@@ -73,7 +73,7 @@ type ContractLog struct {
 
 // PrintLog 合约日志打印格式
 func (log *ContractLog) PrintLog() {
-	log15.Debug("!Contract Log!", "Contract address", log.Address.String(), "TxHash", log.TxHash.Bytes(), "Log Index", log.Index, "Log Topics", log.Topics, "Log Data", common.ToHex(log.Data))
+	log15.Debug("!Contract Log!", "Contract address", log.Address.String(), "TxHash", log.TxHash.Bytes(), "Log Index", log.Index, "Log Topics", log.Topics)
 }
 
 var (

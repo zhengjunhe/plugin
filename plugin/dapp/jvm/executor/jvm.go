@@ -10,7 +10,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	lru "github.com/hashicorp/golang-lru"
-	"strings"
 	"sync/atomic"
 )
 
@@ -131,17 +130,6 @@ func (jvm *JVMExecutor) prepareExecContext(tx *types.Transaction, index int) {
 		log.Info("prepareExecContext", "executorName", paraExector)
 		jvm.mStateDB = state.NewMemoryStateDB(paraExector, jvm.GetStateDB(), jvm.GetLocalDB(), jvm.GetCoinsAccount(), jvm.GetHeight())
 	}
-	// 合约具体分为jvm平台合约和基于平台合约的具体合约，如dice合约
-	// 获取字节码时通过jvm合约获取，具体执行时要通过具体的合约如dice
-	// 每一个区块中会对执行器对象进行缓存，而jvm和user.jvm.dice是两个不同的执行器，因此会产生两个执行器缓存对象，两个对象的accounts字段是互相独立的
-	// 更新合约会调用update接口，该接口会更新合约字节码和abi，并缓存在accounts字段中，但只会更新jvm执行器的缓存，而不会更新dice执行器的缓存，因此需要手动从数据库获取数据更新dice缓存
-	if strings.HasPrefix(paraExector, jvmTypes.UserJvmX) {
-		//create和update接口的执行器名都是jvm, call的执行器名是user.jvm.XXX
-		oldExecName := jvm.mStateDB.ExecutorName
-		jvm.mStateDB.SetCurrentExecutorName(jvmTypes.JvmX)
-		jvm.mStateDB.UpdateAccounts()
-		jvm.mStateDB.SetCurrentExecutorName(oldExecName)
-	}
 
 	jvm.tx = tx
 	jvm.txHash = common.ToHex(tx.Hash())
@@ -156,7 +144,7 @@ func (jvm *JVMExecutor) prepareQueryContext(executorName []byte) {
 }
 
 // GenerateExecReceipt generate exec receipt
-func (jvm *JVMExecutor) GenerateExecReceipt(snapshot int, execName, caller, contractAddr string, opType jvmTypes.JvmContratOpType) (*types.Receipt, error) {
+func (jvm *JVMExecutor) GenerateExecReceipt(execName, caller, contractAddr string, opType jvmTypes.JvmContratOpType) (*types.Receipt, error) {
 	curVer := jvm.mStateDB.GetLastSnapshot()
 
 	// 打印合约中生成的日志
@@ -182,11 +170,6 @@ func (jvm *JVMExecutor) GenerateExecReceipt(snapshot int, execName, caller, cont
 	logs = append(logs, jvm.mStateDB.GetReceiptLogs(contractAddr)...)
 
 	receipt := &types.Receipt{Ty: types.ExecOk, KV: data, Logs: logs}
-
-	// 返回之前，把本次交易在区块中生成的合约日志集中打印出来
-	if jvm.mStateDB != nil {
-		jvm.mStateDB.WritePreimages(jvm.GetHeight())
-	}
 
 	//jvm.collectJvmTxLog(jvm.tx, contractReceipt, receipt)
 

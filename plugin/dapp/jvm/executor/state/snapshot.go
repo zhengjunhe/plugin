@@ -2,8 +2,6 @@ package state
 
 import (
 	"sort"
-
-	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/types"
 	jvmtypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 )
@@ -66,7 +64,9 @@ func (ver *Snapshot) getData() (kvSet []*types.KeyValue, logs []*types.ReceiptLo
 		}
 	}
 
-	// 这里也可能会引起数据顺序不一致的问题，需要修改（目前看KV的顺序不会影响哈希计算，但代码最好保证顺序一致）
+	// 因为需要进行去重处理，使用了容器map，
+	// 这里可能会引起数据顺序不一致的问题，从而导致共识共识过程中的hash不一致问题，
+	// 解决办法就是先list所有的name，然后再排序
 	names := make([]string, 0, len(dataMap))
 	for name := range dataMap {
 		names = append(names, name)
@@ -90,20 +90,6 @@ type (
 	createAccountChange struct {
 		baseChange
 		account string
-	}
-
-	// 自杀事件
-	suicideChange struct {
-		baseChange
-		account string
-		prev    bool // whether account had already suicided
-	}
-
-	// nonce变更事件
-	nonceChange struct {
-		baseChange
-		account string
-		prev    uint64
 	}
 
 	// 存储状态变更事件
@@ -132,12 +118,6 @@ type (
 		prevabi  []byte
 	}
 
-	// 返还金额变更事件
-	refundChange struct {
-		baseChange
-		prev uint64
-	}
-
 	// 转账事件
 	// 合约转账动作不执行回滚，失败后数据不会写入区块
 	balanceChange struct {
@@ -145,18 +125,6 @@ type (
 		amount int64
 		data   []*types.KeyValue
 		logs   []*types.ReceiptLog
-	}
-
-	// 合约生成日志事件
-	addLogChange struct {
-		baseChange
-		txhash common.Hash
-	}
-
-	// 合约生成sha3事件
-	addPreimageChange struct {
-		baseChange
-		hash common.Hash
 	}
 )
 
@@ -182,48 +150,8 @@ func (ch createAccountChange) getData(s *MemoryStateDB) (kvset []*types.KeyValue
 	acc := s.accounts[ch.account]
 	if acc != nil {
 		kvset = append(kvset, acc.GetDataKV()...)
-		kvset = append(kvset, acc.GetStateKV()...)
 		return kvset
 	}
-	return nil
-}
-
-func (ch suicideChange) revert(mdb *MemoryStateDB) {
-	// 如果已经自杀过了，不处理
-	if ch.prev {
-		return
-	}
-	acc := mdb.accounts[ch.account]
-	if acc != nil {
-		acc.State.Suicided = ch.prev
-	}
-}
-
-func (ch suicideChange) getData(mdb *MemoryStateDB) []*types.KeyValue {
-	// 如果已经自杀过了，不处理
-	if ch.prev {
-		return nil
-	}
-	acc := mdb.accounts[ch.account]
-	if acc != nil {
-		return acc.GetStateKV()
-	}
-	return nil
-}
-
-func (ch nonceChange) revert(mdb *MemoryStateDB) {
-	acc := mdb.accounts[ch.account]
-	if acc != nil {
-		acc.State.Nonce = ch.prev
-	}
-}
-
-func (ch nonceChange) getData(mdb *MemoryStateDB) []*types.KeyValue {
-	// nonce目前没有应用场景，而且每次调用都会变更，暂时先不写到状态数据库中
-	//acc := mdb.accounts[ch.account]
-	//if acc != nil {
-	//	return acc.GetStateKV()
-	//}
 	return nil
 }
 
@@ -239,7 +167,6 @@ func (ch codeChange) getData(mdb *MemoryStateDB) (kvset []*types.KeyValue) {
 	acc := mdb.accounts[ch.account]
 	if acc != nil {
 		kvset = append(kvset, acc.GetDataKV()...)
-		kvset = append(kvset, acc.GetStateKV()...)
 		return kvset
 	}
 	return nil
@@ -276,24 +203,6 @@ func (ch storageChange) getDataFromLocalDB(mdb *MemoryStateDB) []*types.KeyValue
 		return kvSet
 	}
 	return nil
-}
-
-func (ch refundChange) revert(mdb *MemoryStateDB) {
-	mdb.refund = ch.prev
-}
-
-func (ch addLogChange) revert(mdb *MemoryStateDB) {
-	logs := mdb.logs[ch.txhash]
-	if len(logs) == 1 {
-		delete(mdb.logs, ch.txhash)
-	} else {
-		mdb.logs[ch.txhash] = logs[:len(logs)-1]
-	}
-	mdb.logSize--
-}
-
-func (ch addPreimageChange) revert(mdb *MemoryStateDB) {
-	delete(mdb.preimages, ch.hash)
 }
 
 func (ch balanceChange) getData(mdb *MemoryStateDB) []*types.KeyValue {

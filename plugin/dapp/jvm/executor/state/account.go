@@ -34,9 +34,6 @@ type ContractAccount struct {
 	// 合约固定数据
 	Data types.JVMContractData
 
-	// 合约状态数据
-	State types.JVMContractState
-
 	// 当前的状态数据缓存
 	stateCache map[string][]byte
 }
@@ -50,7 +47,6 @@ func NewContractAccount(addr string, db *MemoryStateDB) *ContractAccount {
 		return nil
 	}
 	ca := &ContractAccount{Addr: addr, mdb: db}
-	ca.State.Storage = make(map[string][]byte)
 	ca.stateCache = make(map[string][]byte)
 	return ca
 }
@@ -82,7 +78,7 @@ func (c *ContractAccount) SetValue2Local(key string, value []byte, txHash string
 		data:       value,
 	})
 	if "" == txHash {
-		return types.ErrSelLocalNotAllowed
+		return types.ErrSetLocalNotAllowed
 	}
 	//return c.mdb.LocalDB.Set(keyGen, value)
 	return setLocalValue(keyGen, value, txHash)
@@ -101,23 +97,6 @@ func (c *ContractAccount) SetState(key string, value []byte) error {
 	return c.mdb.StateDB.Set([]byte(keyStr), value)
 }
 
-// TransferState 从原有的存储在一个对象，将状态数据分散存储到多个KEY，保证合约可以支撑大量状态数据
-func (c *ContractAccount) TransferState() {
-	if len(c.State.Storage) > 0 {
-		storage := c.State.Storage
-		// 为了保证不会造成新、旧数据并存的情况，需要将旧的状态数据清空
-		c.State.Storage = make(map[string][]byte)
-
-		// 从旧的区块迁移状态数据到新的区块，模拟状态数据变更的操作
-		for key, value := range storage {
-			c.SetState(key, value)
-		}
-		// 更新本合约的状态数据（删除旧的map存储信息）
-		c.mdb.UpdateState(c.Addr)
-		return
-	}
-}
-
 // 从外部恢复合约数据
 func (c *ContractAccount) restoreData(data []byte) {
 	var content types.JVMContractData
@@ -130,20 +109,6 @@ func (c *ContractAccount) restoreData(data []byte) {
 	c.Data = content
 }
 
-// 从外部恢复合约状态
-func (c *ContractAccount) resotreState(data []byte) {
-	var content types.JVMContractState
-	err := proto.Unmarshal(data, &content)
-	if err != nil {
-		log15.Error("read contract state error", c.Addr)
-		return
-	}
-	c.State = content
-	if c.State.Storage == nil {
-		c.State.Storage = make(map[string][]byte)
-	}
-}
-
 // LoadContract 从数据库中加载合约信息（在只有合约地址的情况下）
 func (c *ContractAccount) LoadContract(db db.KV) {
 	// 加载代码数据
@@ -153,14 +118,6 @@ func (c *ContractAccount) LoadContract(db db.KV) {
 		return
 	}
 	c.restoreData(data)
-
-	// 加载状态数据
-	data, err = db.Get(c.GetStateKey())
-	if err != nil {
-		log15.Debug("StateDBGetState LoadContract:GetStateKey", "No state get for key", c.GetStateKey())
-		return
-	}
-	c.resotreState(data)
 }
 
 // SetCodeAndAbi 设置合约二进制代码
@@ -220,17 +177,6 @@ func (c *ContractAccount) GetDataKV() (kvSet []*chain33Types.KeyValue) {
 	return
 }
 
-// GetStateKV 获取合约状态数据，包含nonce、是否自杀、存储哈希、存储数据
-func (c *ContractAccount) GetStateKV() (kvSet []*chain33Types.KeyValue) {
-	datas, err := proto.Marshal(&c.State)
-	if err != nil {
-		log15.Error("marshal contract state error!", "addr", c.Addr, "error", err)
-		return
-	}
-	kvSet = append(kvSet, &chain33Types.KeyValue{Key: c.GetStateKey(), Value: datas})
-	return
-}
-
 // BuildDataLog 构建变更日志
 func (c *ContractAccount) BuildDataLog() (log *chain33Types.ReceiptLog) {
 	logjvmContractData := types.LogJVMContractData{
@@ -247,17 +193,6 @@ func (c *ContractAccount) BuildDataLog() (log *chain33Types.ReceiptLog) {
 		return
 	}
 	return &chain33Types.ReceiptLog{Ty: types.TyLogContractDataJvm, Log: logdatas}
-}
-
-// BuildStateLog 构建变更日志
-func (c *ContractAccount) BuildStateLog() (log *chain33Types.ReceiptLog) {
-	datas, err := proto.Marshal(&c.State)
-	if err != nil {
-		log15.Error("marshal contract state log error!", "addr", c.Addr, "error", err)
-		return
-	}
-
-	return &chain33Types.ReceiptLog{Ty: types.TyLogContractStateJvm, Log: datas}
 }
 
 // GetDataKey get data for key
@@ -284,33 +219,7 @@ func (c *ContractAccount) GetLocalDataKey(addr, key string) string {
 	return fmt.Sprintf(string(chain33Types.LocalPrefix)+"-"+c.mdb.ExecutorName+"-data-%v:%v", addr, key)
 }
 
-// Suicide contract suicide
-func (c *ContractAccount) Suicide() bool {
-	c.State.Suicided = true
-	return true
-}
-
-// HasSuicided return suicided
-func (c *ContractAccount) HasSuicided() bool {
-	return c.State.GetSuicided()
-}
-
 // Empty judge empty or not
 func (c *ContractAccount) Empty() bool {
 	return c.Data.GetCodeHash() == nil || len(c.Data.GetCodeHash()) == 0
-}
-
-// SetNonce set nonce
-func (c *ContractAccount) SetNonce(nonce uint64) {
-	c.mdb.addChange(nonceChange{
-		baseChange: baseChange{},
-		account:    c.Addr,
-		prev:       c.State.GetNonce(),
-	})
-	c.State.Nonce = nonce
-}
-
-// GetNonce get nonce
-func (c *ContractAccount) GetNonce() uint64 {
-	return c.State.GetNonce()
 }
