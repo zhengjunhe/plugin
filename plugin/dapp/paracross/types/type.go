@@ -49,6 +49,7 @@ func init() {
 
 }
 
+//InitFork ...
 func InitFork(cfg *types.Chain33Config) {
 	cfg.RegisterDappFork(ParaX, "Enable", 0)
 	cfg.RegisterDappFork(ParaX, "ForkParacrossWithdrawFromParachain", 1298600)
@@ -60,6 +61,7 @@ func InitFork(cfg *types.Chain33Config) {
 	cfg.RegisterDappFork(ParaX, ForkParaSelfConsStages, types.MaxHeight)
 }
 
+//InitExecutor ...
 func InitExecutor(cfg *types.Chain33Config) {
 	types.RegistorExecutor(ParaX, NewType(cfg))
 }
@@ -107,6 +109,8 @@ func (p *ParacrossType) GetLogMap() map[int64]*types.LogInfo {
 		TyLogParaSelfConsStageConfig:   {Ty: reflect.TypeOf(ReceiptSelfConsStageConfig{}), Name: "LogParaSelfConsStageConfig"},
 		TyLogParaStageVoteDone:         {Ty: reflect.TypeOf(ReceiptSelfConsStageVoteDone{}), Name: "LogParaSelfConfStageVoteDoen"},
 		TyLogParaStageGroupUpdate:      {Ty: reflect.TypeOf(ReceiptSelfConsStagesUpdate{}), Name: "LogParaSelfConfStagesUpdate"},
+		TyLogParaBindMinerAddr:         {Ty: reflect.TypeOf(ReceiptParaBindMinerInfo{}), Name: "TyLogParaBindMinerAddrUpdate"},
+		TyLogParaBindMinerNode:         {Ty: reflect.TypeOf(ReceiptParaNodeBindListUpdate{}), Name: "TyLogParaBindNodeListUpdate"},
 	}
 }
 
@@ -124,6 +128,7 @@ func (p *ParacrossType) GetTypeMap() map[string]int32 {
 		"NodeConfig":         ParacrossActionNodeConfig,
 		"NodeGroupConfig":    ParacrossActionNodeGroupApply,
 		"SelfStageConfig":    ParacrossActionSelfStageConfig,
+		"ParaBindMiner":      ParacrossActionParaBindMiner,
 	}
 }
 

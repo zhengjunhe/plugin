@@ -7,7 +7,7 @@ path="${2}"
 
 function filterLinter() {
     res=$(
-        golangci-lint run --no-config --issues-exit-code=1 --deadline=2m --disable-all \
+        golangci-lint run --no-config --issues-exit-code=0 --deadline=2m --disable-all \
             --enable=gofmt \
             --enable=gosimple \
             --enable=deadcode \
@@ -18,7 +18,9 @@ function filterLinter() {
             --enable=goimports \
             --enable=misspell \
             --enable=golint \
-            --exclude=underscores
+            --skip-dirs=["plugin/dapp/evm/executor/vm/common/crypto"] \
+            --exclude=underscores \
+            --exclude-use-default=false
     )
     if [[ ${#res} -gt "0" ]]; then
         echo -e "${res}"
@@ -39,6 +41,8 @@ function testLinter() {
         --enable=goimports \
         --enable=misspell \
         --enable=golint \
+        --enable=nolintlint \
+        --skip-dirs=["plugin/dapp/evm/executor/vm/common/crypto"] \
         --exclude=underscores
 
     cd - >/dev/null || exit

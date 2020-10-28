@@ -32,6 +32,7 @@ func init() {
 	types.RegExec(ExecutorName, InitExecutor)
 }
 
+//InitFork ...
 func InitFork(cfg *types.Chain33Config) {
 	cfg.RegisterDappFork(ExecutorName, EVMEnable, 500000)
 	// EVM合约中的数据分散存储，支持大数据量
@@ -42,8 +43,11 @@ func InitFork(cfg *types.Chain33Config) {
 	cfg.RegisterDappFork(ExecutorName, ForkEVMABI, 1250000)
 	// EEVM合约用户金额冻结
 	cfg.RegisterDappFork(ExecutorName, ForkEVMFrozen, 1300000)
+	// EEVM 黄皮v1分叉高度
+	cfg.RegisterDappFork(ExecutorName, ForkEVMYoloV1, 9500000)
 }
 
+//InitExecutor ...
 func InitExecutor(cfg *types.Chain33Config) {
 	types.RegistorExecutor(ExecutorName, NewType(cfg))
 }

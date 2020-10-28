@@ -227,6 +227,7 @@ func makeDoneReceipt(cfg *types.Chain33Config, execMainHeight, execHeight int64,
 	}
 }
 
+//GetMostCommit ...
 func GetMostCommit(commits [][]byte) (int, string) {
 	stats := make(map[string]int)
 	n := len(commits)
@@ -297,6 +298,18 @@ func (a *action) getNodesGroup(title string) (map[string]struct{}, []string, err
 	nodes, nodesArray, _, err := getConfigNodes(a.db, title)
 	return nodes, nodesArray, err
 
+}
+
+func (a *action) isValidSuperNode(addr string) error {
+	cfg := a.api.GetConfig()
+	nodes, _, err := getParacrossNodes(a.db, cfg.GetTitle())
+	if err != nil {
+		return errors.Wrapf(err, "getNodes for title:%s", cfg.GetTitle())
+	}
+	if !validNode(addr, nodes) {
+		return errors.Wrapf(pt.ErrParaNodeAddrNotExisted, "invalid node=%s", addr)
+	}
+	return nil
 }
 
 //相同的BlockHash，只保留一份数据

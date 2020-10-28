@@ -12,11 +12,44 @@ RED='\033[1;31m'
 GRE='\033[1;32m'
 NOC='\033[0m'
 
-function kill_all_ebrelayer() {
-    for name in A B C D; do
-        local ebrelayer="./../build/$name/ebrelayer"
-        kill_ebrelayer "${ebrelayer}"
+# 出错退出前拷贝日志文件
+function exit_cp_file() {
+    # shellcheck disable=SC2116
+    #    dirNameFa=$(echo ~)
+    dirName="/x2ethereumlogs"
+
+    if [ ! -d "${dirName}" ]; then
+        # shellcheck disable=SC2086
+        mkdir -p ${dirName}
+    fi
+
+    for name in a b c d; do
+        # shellcheck disable=SC2154
+        docker cp "${dockerNamePrefix}_ebrelayer${name}_1":/root/logs/x2Ethereum_relayer.log "${dirName}/ebrelayer${name}.log"
     done
+    docker cp "${dockerNamePrefix}_chain33_1":/root/logs/chain33.log "${dirName}/chain33.log"
+
+    exit 1
+}
+
+function copyErrLogs() {
+    if [ -n "$CASE_ERR" ]; then
+        # /var/lib/jenkins
+        # shellcheck disable=SC2116
+        #        dirNameFa=$(echo ~)
+        dirName="/x2ethereumlogs"
+
+        if [ ! -d "${dirName}" ]; then
+            # shellcheck disable=SC2086
+            mkdir -p ${dirName}
+        fi
+
+        for name in a b c d; do
+            # shellcheck disable=SC2154
+            docker cp "${dockerNamePrefix}_ebrelayer${name}_rpc_1":/root/logs/x2Ethereum_relayer.log "${dirName}/ebrelayer${name}_rpc.log"
+        done
+        docker cp "${dockerNamePrefix}_chain33_1":/root/logs/chain33.log "${dirName}/chain33_rpc.log"
+    fi
 }
 
 # 判断结果是否正确
@@ -24,13 +57,13 @@ function cli_ret() {
     set +x
     if [[ $# -lt 2 ]]; then
         echo -e "${RED}wrong parameter${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     ok=$(echo "${1}" | jq -r .isOK)
     if [[ ${ok} != "true" ]]; then
         echo -e "${RED}failed to ${2}${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     local jqMsg=".msg"
@@ -42,7 +75,7 @@ function cli_ret() {
     if [[ $# -eq 4 ]]; then
         if [ "$(echo "$msg < $4" | bc)" -eq 1 ] || [ "$(echo "$msg > $4" | bc)" -eq 1 ]; then
             echo -e "${RED}The balance is not correct${NOC}"
-            exit 1
+            exit_cp_file
         fi
     fi
 
@@ -55,29 +88,17 @@ function balance_ret() {
     set +x
     if [[ $# -lt 2 ]]; then
         echo -e "${RED}wrong parameter${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     local balance=$(echo "${1}" | jq -r ".balance")
     if [ "$(echo "$balance < $2" | bc)" -eq 1 ] || [ "$(echo "$balance > $2" | bc)" -eq 1 ]; then
         echo -e "${RED}The balance is not correct${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     set -x
     echo "${balance}"
-}
-
-# 判断结果是否错误
-function cli_ret_err() {
-    #set +x
-    ok=$(echo "${1}" | jq -r .isOK)
-    echo "${ok}"
-    if [[ ${ok} == "true" ]]; then
-        echo -e "${RED}isOK is true${NOC}"
-        exit 1
-    fi
-    #set -x
 }
 
 # 查询关键字所在行然后删除 ${1}文件名称 ${2}关键字
@@ -98,18 +119,48 @@ function delete_line_show() {
     echo "${line}"
 }
 
+# 后台启动 ebrelayer 进程 $1 docker 名称 $2进程名称 $3进程信息输出重定向文件
+function start_docker_ebrelayer() {
+    # 参数如果小于 3 直接报错
+    if [[ $# -lt 3 ]]; then
+        echo -e "${RED}wrong parameter${NOC}"
+        exit_cp_file
+    fi
+
+    # 后台启动程序
+    docker exec "$1" nohup "${2}" >"${3}" 2>&1 &
+    sleep 2
+
+    # shellcheck disable=SC2009
+    pid=$(docker exec "$1" ps -ef | grep "$2" | grep -v 'grep' | awk '{print $2}')
+    local count=0
+    while [ "${pid}" == "" ]; do
+        docker exec "$1" nohup "${2}" >"${3}" 2>&1 &
+        sleep 2
+
+        count=$((count + 1))
+        if [[ ${count} -ge 20 ]]; then
+            echo -e "${RED}start ${1} ${2} failed${NOC}"
+            exit_cp_file
+        fi
+
+        # shellcheck disable=SC2009
+        pid=$(docker exec "$1" ps -ef | grep "$2" | grep -v 'grep' | awk '{print $2}')
+    done
+}
+
 # 后台启动 ebrelayer 进程 $1进程名称 $2进程信息输出重定向文件
 function start_ebrelayer() {
     # 参数如果小于 2 直接报错
     if [[ $# -lt 2 ]]; then
         echo -e "${RED}wrong parameter${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     # 判断可执行文件是否存在
     if [ ! -x "${1}" ]; then
         echo -e "${RED}${1} not exist${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     # 后台启动程序
@@ -126,7 +177,7 @@ function start_ebrelayer() {
         count=$((count + 1))
         if [[ ${count} -ge 20 ]]; then
             echo -e "${RED}start ${1} failed${NOC}"
-            exit 1
+            exit_cp_file
         fi
 
         # shellcheck disable=SC2009
@@ -150,7 +201,7 @@ function start_ebrelayer_and_unlock() {
         count=$((count + 1))
         if [[ ${count} == 5 ]]; then
             echo -e "${RED}failed to unlock${NOC}"
-            exit 1
+            exit_cp_file
         fi
 
         sleep 1
@@ -173,7 +224,7 @@ function start_ebrelayer_and_setpwd_unlock() {
         count=$((count + 1))
         if [[ ${count} == 5 ]]; then
             echo -e "${RED}failed to set_pwd${NOC}"
-            exit 1
+            exit_cp_file
         fi
 
         sleep 1
@@ -189,11 +240,30 @@ function start_ebrelayer_and_setpwd_unlock() {
         count=$((count + 1))
         if [[ ${count} == 5 ]]; then
             echo -e "${RED}failed to unlock${NOC}"
-            exit 1
+            exit_cp_file
         fi
 
         sleep 1
     done
+}
+
+# 杀死进程 ebrelayer 进程 docker ebrelayer 名称
+function kill_docker_ebrelayer() {
+    # shellcheck disable=SC2009
+    pid=$(docker exec "$1" ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}')
+    if [ "${pid}" == "" ]; then
+        echo "not find ${1} pid"
+        return
+    fi
+
+    docker exec "$1" kill "${pid}"
+    # shellcheck disable=SC2009
+    pid=$(docker exec "$1" ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}')
+    if [ "${pid}" != "" ]; then
+        echo "kill ${1} failed"
+        docker exec "$1" kill -9 "${pid}"
+    fi
+    sleep 1
 }
 
 # 杀死进程ebrelayer 进程 $1进程名称
@@ -222,7 +292,7 @@ function block_wait() {
 
     if [[ $# -lt 1 ]]; then
         echo -e "${RED}wrong block_wait parameter${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     local cur_height=$(${CLI} block last_header | jq ".height")
@@ -250,12 +320,12 @@ function check_tx() {
 
     if [[ $# -lt 2 ]]; then
         echo -e "${RED}wrong check_tx parameters${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     if [[ ${2} == "" ]]; then
         echo -e "${RED}wrong check_tx txHash is empty${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     local count=0
@@ -279,19 +349,19 @@ function check_tx() {
     ty=$(${CLI} tx query -s "${2}" | jq .receipt.ty)
     if [[ ${ty} != 2 ]]; then
         echo -e "${RED}check tx error, hash is ${2}${NOC}"
-        exit 1
+        exit_cp_file
     fi
 }
 
 function check_number() {
     if [[ $# -lt 2 ]]; then
         echo -e "${RED}wrong check number parameters${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     if [ "$(echo "$1 < $2" | bc)" -eq 1 ] || [ "$(echo "$1 > $2" | bc)" -eq 1 ]; then
         echo -e "${RED}error number, expect ${1}, get ${2}${NOC}"
-        exit 1
+        exit_cp_file
     fi
 }
 
@@ -299,14 +369,54 @@ function check_number() {
 function check_addr() {
     if [[ $# -lt 2 ]]; then
         echo -e "${RED}wrong check number parameters${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     addr=$(echo "${1}" | jq -r ".acc.addr")
     if [[ ${addr} != "${2}" ]]; then
         echo -e "${RED}error addr, expect ${1}, get ${2}${NOC}"
-        exit 1
+        exit_cp_file
     fi
+}
+
+# $1 dockerName
+function get_docker_addr() {
+    local dockerAddr=$(docker inspect "${1}" | jq ".[].NetworkSettings.Networks" | grep "IPAddress" | awk '{ print $2}' | sed 's/\"//g' | sed 's/,//g')
+    echo "${dockerAddr}"
+}
+
+# $1 dockerAddr; $2 docker ebrelayer name; $2 relayer.toml 地址
+function updata_relayer_a_toml() {
+    local dockerAddr=${1}
+    local ebrelayer=${2}
+    local file=${3}
+
+    # shellcheck disable=SC2155
+    local line=$(delete_line_show "${file}" 'EthProvider="ws:')
+    sed -i ''"${line}"' a EthProvider="ws://'"${dockerAddr}"':8545/"' "${file}"
+
+    line=$(delete_line_show "${file}" 'EthProviderCli="http:')
+    sed -i ''"${line}"' a EthProviderCli="http://'"${dockerAddr}"':8545"' "${file}"
+
+    pushHost=$(get_docker_addr "${ebrelayer}")
+    line=$(delete_line_show "${file}" "pushHost")
+    sed -i ''"${line}"' a pushHost="http://'"${pushHost}"':20000"' "${file}"
+
+    line=$(delete_line_show "${file}" "pushBind")
+    sed -i ''"${line}"' a pushBind="'"${pushHost}"':20000"' "${file}"
+
+    local chain33Host=$(get_docker_addr "${dockerNamePrefix}_chain33_1")
+    if [[ ${chain33Host} == "" ]]; then
+        echo -e "${RED}chain33Host is empty${NOC}"
+        exit_cp_file
+    fi
+
+    local line=$(delete_line_show "${file}" "chain33Host")
+    # 在第 line 行后面 新增合约地址
+    sed -i ''"${line}"' a chain33Host="http://'"${chain33Host}"':8801"' "${file}"
+
+    sed -i 's/^EthBlockFetchPeriod=.*/EthBlockFetchPeriod=500/g' "${file}"
+    sed -i 's/^fetchHeightPeriodMs=.*/fetchHeightPeriodMs=500/g' "${file}"
 }
 
 # 更新配置文件 $1 为 BridgeRegistry 合约地址; $2 等待区块 默认10; $3 relayer.toml 地址
@@ -315,48 +425,11 @@ function updata_relayer_toml() {
     local maturityDegree=${2}
     local file=${3}
 
-    #    local chain33Host=$(docker inspect "${NODE3}" | jq ".[].NetworkSettings.Networks.${PROJ}_default.IPAddress" | sed 's/\"//g')
-    local chain33Host=$(docker inspect "${NODE3}" | jq ".[].NetworkSettings.Networks" | grep "IPAddress" | awk '{ print $2}' | sed 's/\"//g' | sed 's/,//g')
-    if [[ ${chain33Host} == "" ]]; then
-        echo -e "${RED}chain33Host is empty${NOC}"
-        exit 1
-    fi
-
-    local pushHost=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
-    if [[ ${pushHost} == "" ]]; then
-        pushHost=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}')
-        if [[ ${pushHost} == "" ]]; then
-            pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
-            if [[ ${pushHost} == "" ]]; then
-                pushHost=$(ifconfig eth0 | grep "inet " | awk '{ print $2}')
-                if [[ ${pushHost} == "" ]]; then
-                    ip addr show eth0
-                    pushHost=$(ip addr show eth0 | grep "inet " | awk '{ print $2}' | head -c-4)
-                fi
-            fi
-        fi
-    fi
-
-    if [[ ${pushHost} == "" ]]; then
-        echo -e "${RED}pushHost is empty${NOC}"
-        exit 1
-    fi
-
-    local line=$(delete_line_show "${file}" "chain33Host")
-    # 在第 line 行后面 新增合约地址
-    sed -i ''"${line}"' a chain33Host="http://'"${chain33Host}"':8801"' "${file}"
-
-    line=$(delete_line_show "${file}" "pushHost")
-    sed -i ''"${line}"' a pushHost="http://'"${pushHost}"':20000"' "${file}"
-
     line=$(delete_line_show "${file}" "BridgeRegistry")
     sed -i ''"${line}"' a BridgeRegistry="'"${BridgeRegistry}"'"' "${file}"
 
     sed -i 's/EthMaturityDegree=10/'EthMaturityDegree="${maturityDegree}"'/g' "${file}"
     sed -i 's/maturityDegree=10/'maturityDegree="${maturityDegree}"'/g' "${file}"
-
-    sed -i 's/^EthBlockFetchPeriod=.*/EthBlockFetchPeriod=500/g' "${file}"
-    sed -i 's/^fetchHeightPeriodMs=.*/fetchHeightPeriodMs=500/g' "${file}"
 }
 
 # 更新配置文件 $1 为 BridgeRegistry 合约地址; $2 等待区块 默认10; $3 relayer.toml 地址
@@ -382,31 +455,24 @@ function updata_relayer_toml_ropston() {
     sed -i 's/maturityDegree=10/'maturityDegree="${maturityDegree}"'/g' "${file}"
 }
 
-# 更新 B C D 的配置文件
-function updata_all_relayer_toml() {
-    local port=9901
-    local port2=20000
-    #    local dockername=30
+# 获取本机 IP
+function get_inet_addr() {
+    inetAddr=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+    if [[ ${inetAddr} == "" ]]; then
+        inetAddr=$(ifconfig wlp2s0 | grep "inet " | awk '{ print $2}')
+        if [[ ${inetAddr} == "" ]]; then
+            inetAddr=$(ifconfig eth0 | grep "inet " | awk '{ print $2}' | awk -F: '{print $2}')
+            if [[ ${inetAddr} == "" ]]; then
+                inetAddr=$(ifconfig eth0 | grep "inet " | awk '{ print $2}')
+                if [[ ${inetAddr} == "" ]]; then
+                    ip addr show eth0
+                    inetAddr=$(ip addr show eth0 | grep "inet " | awk '{ print $2}' | head -c-4)
+                fi
+            fi
+        fi
+    fi
 
-    for name in B C D; do
-        local file="./$name/relayer.toml"
-        cp './A/relayer.toml' "${file}"
-        cp './ebrelayer' "./$name/ebrelayer"
-
-        # 删除配置文件中不需要的字段
-        for deleteName in "deployerPrivateKey" "operatorAddr" "validatorsAddr" "initPowers" "deployerPrivateKey" "deploy"; do
-            delete_line "${file}" "${deleteName}"
-        done
-
-        # 替换端口
-        port=$((port + 1))
-        sed -i 's/localhost:9901/localhost:'${port}'/g' "${file}"
-
-        port2=$((port2 + 1))
-        sed -i 's/20000/'${port2}'/g' "${file}"
-
-        sed -i 's/x2ethereum/x2ethereum'${name}'/g' "${file}"
-    done
+    echo "${inetAddr}"
 }
 
 # 启动 eth
@@ -420,47 +486,16 @@ function start_trufflesuite() {
     #fi
 
     # 启动 eth
-    docker run -d --name ${ganacheName} -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 2 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
+    docker run -d --name ${ganacheName} -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 1 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"
     sleep 1
 }
 
-# $1 CLI
-function wait_prophecy_finish() {
-    local CLI=${1}
-    set +x
-    local count=0
-    while true; do
-        if [[ $# -eq 4 ]]; then
-            ${CLI} relayer ethereum balance -o "${2}" -t "${3}"
-            balance=$(${CLI} relayer ethereum balance -o "${2}" -t "${3}" | jq -r .balance)
-            if [[ ${balance} == "${4}" ]]; then
-                break
-            fi
-        fi
-        if [[ $# -eq 3 ]]; then
-            ${CLI} relayer ethereum balance -o "${2}"
-            balance=$(${CLI} relayer ethereum balance -o "${2}" | jq -r .balance)
-            if [[ ${balance} == "${3}" ]]; then
-                break
-            fi
-        fi
-        count=$((count + 1))
-        if [[ ${count} == 30 ]]; then
-            echo -e "${RED}failed to get balance${NOC}"
-            exit 1
-        fi
-
-        sleep 1
-    done
-    set -x
-}
-
-# eth 区块等待 $1:等待高度 $2:url地址，默认为 http://localhost:7545,测试网络用 https://ropsten-rpc.linkpool.io/
+# eth 区块等待 $1:等待高度  $2:url地址，默认为 http://localhost:7545,测试网络用 https://ropsten-rpc.linkpool.io/
 function eth_block_wait() {
     set +x
     if [[ $# -lt 0 ]]; then
         echo -e "${RED}wrong block_wait parameter${NOC}"
-        exit 1
+        exit_cp_file
     fi
 
     local cur_height=""

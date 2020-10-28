@@ -460,9 +460,13 @@ func (p *Paracross) Query_GetSelfConsStages(in *types.ReqNil) (types.Message, er
 //Query_GetSelfConsOneStage get self consensus one stage
 func (p *Paracross) Query_GetSelfConsOneStage(in *types.Int64) (types.Message, error) {
 	stage, err := getSelfConsOneStage(p.GetStateDB(), in.Data)
+	if errors.Cause(err) == pt.ErrKeyNotExist {
+		return &pt.SelfConsensStage{StartHeight: in.Data}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	return stage, nil
 }
 
@@ -471,6 +475,7 @@ func (p *Paracross) Query_ListSelfStages(in *pt.ReqQuerySelfStages) (types.Messa
 	return p.listSelfStages(in)
 }
 
+//Query_GetBlock2MainInfo ...
 func (p *Paracross) Query_GetBlock2MainInfo(req *types.ReqBlocks) (*pt.ParaBlock2MainInfo, error) {
 	ret := &pt.ParaBlock2MainInfo{}
 	details, err := p.GetAPI().GetBlocks(req)
@@ -491,6 +496,7 @@ func (p *Paracross) Query_GetBlock2MainInfo(req *types.ReqBlocks) (*pt.ParaBlock
 	return ret, nil
 }
 
+//Query_GetHeight ...
 func (p *Paracross) Query_GetHeight(req *types.ReqString) (*pt.ParacrossConsensusStatus, error) {
 	cfg := p.GetAPI().GetConfig()
 	if req == nil || req.Data == "" {
@@ -526,4 +532,65 @@ func (p *Paracross) Query_GetHeight(req *types.ReqString) (*pt.ParacrossConsensu
 		}, nil
 	}
 	return nil, types.ErrDecode
+}
+
+func getMinerListResp(db dbm.KV, list *pt.ParaNodeBindList) (types.Message, error) {
+	var resp pt.RespParaNodeBindList
+	resp.List = list
+
+	for _, n := range list.Miners {
+		info, err := getBindAddrInfo(db, n.SuperNode, n.Miner)
+		if err != nil {
+			clog.Error("Query_GetNodeBindMinerList get addr", "err", err, "node", n.SuperNode, "addr", n.Miner)
+			return nil, errors.Cause(err)
+		}
+		resp.Details = append(resp.Details, info)
+	}
+	return &resp, nil
+}
+
+// Query_GetNodeBindMinerList query get super node bind miner list
+func (p *Paracross) Query_GetNodeBindMinerList(in *pt.ParaNodeBindOne) (types.Message, error) {
+	if in == nil {
+		return nil, types.ErrInvalidParam
+	}
+
+	list, err := getBindNodeInfo(p.GetStateDB())
+	if err != nil {
+		clog.Error("Query_GetNodeBindMinerList get node", "err", err)
+		return nil, errors.Cause(err)
+	}
+
+	var newList pt.ParaNodeBindList
+	//按node query
+	if len(in.SuperNode) != 0 && len(in.Miner) == 0 {
+		for _, n := range list.Miners {
+			if n.SuperNode == in.SuperNode {
+				newList.Miners = append(newList.Miners, n)
+			}
+		}
+		return getMinerListResp(p.GetStateDB(), &newList)
+	}
+
+	//按miner query
+	if len(in.SuperNode) == 0 && len(in.Miner) != 0 {
+		for _, n := range list.Miners {
+			if n.Miner == in.Miner {
+				newList.Miners = append(newList.Miners, n)
+			}
+		}
+		return getMinerListResp(p.GetStateDB(), &newList)
+	}
+	//按唯一绑定查询
+	if len(in.SuperNode) != 0 && len(in.Miner) != 0 {
+		for _, n := range list.Miners {
+			if n.SuperNode == in.SuperNode && n.Miner == in.Miner {
+				newList.Miners = append(newList.Miners, n)
+			}
+		}
+		return getMinerListResp(p.GetStateDB(), &newList)
+	}
+
+	//获取所有
+	return getMinerListResp(p.GetStateDB(), list)
 }
