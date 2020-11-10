@@ -108,6 +108,7 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 		userJvmAddr,
 		jvmTypes.CallJvmContractAction)
 	log.Debug("jvm call", "receipt", receipt)
+	log.Debug("jvm call succeed", "tx hash", jvm.txHash)
 
 	return receipt, nil
 }

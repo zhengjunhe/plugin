@@ -9,9 +9,10 @@ import "C"
 
 import (
 	"errors"
+	"github.com/33cn/chain33/common"
 	chain33Types "github.com/33cn/chain33/types"
-	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
+	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	"unsafe"
 )
 
@@ -70,6 +71,7 @@ func initJvm(chain33Config *chain33Types.Chain33Config) {
 	if int(result) != JLI_SUCCESS {
 		panic("Failed to init JLI_Init_JVM")
 	}
+	log.Info("JVM is created successfully")
 
 	state.IsPara = chain33Config.IsPara()
 	state.Title = chain33Config.GetTitle()
@@ -120,6 +122,8 @@ func SetQueryResult(jvmgo *C.char, exceptionOccurred C.int, info **C.char, count
 
 //export BindTxQueryJVMEnvHandle
 func BindTxQueryJVMEnvHandle(jvmGoHandle, envHandle *C.char) C.int {
+	log.Debug("debug jvm panic: BindTxQueryJVMEnvHandle begin")
+	defer log.Debug("debug jvm panic: BindTxQueryJVMEnvHandle end")
 	envHandleUintptr := uintptr(unsafe.Pointer(envHandle))
 	jvmExecutor := (*JVMExecutor)(unsafe.Pointer(jvmGoHandle))
 	if !recordTxJVMEnv(jvmExecutor, envHandleUintptr) {
@@ -225,8 +229,8 @@ func GetFromState(key *C.char, keySize C.int, valueSize *C.int, envHandle *C.cha
 
 //export SetStateInStr
 func SetStateInStr(key *C.char, value *C.char, envHandle *C.char) C.int {
-	defer C.free(unsafe.Pointer(key))
-	defer C.free(unsafe.Pointer(value))
+	log.Debug("debug jvm panic: SetStateInStr begin")
+	defer log.Debug("debug jvm panic: SetStateInStr end")
 	keyStr := C.GoString(key)
 	valueStr := C.GoString(value)
 	envHandleUintptr := uintptr(unsafe.Pointer(envHandle))
@@ -239,7 +243,8 @@ func SetStateInStr(key *C.char, value *C.char, envHandle *C.char) C.int {
 //调用者负责释放返回指针内存
 //export GetFromStateInStr
 func GetFromStateInStr(key *C.char, size *C.int, envHandle *C.char) *C.char {
-	defer C.free(unsafe.Pointer(key))
+	log.Debug("debug jvm panic: GetFromStateInStr begin")
+	defer log.Debug("debug jvm panic: GetFromStateInStr end")
 	keyStr := C.GoString(key)
 	if "" == keyStr {
 		*size = C.int(0)
@@ -281,8 +286,8 @@ func GetFromLocal(key *C.char, keySize C.int, valueSize *C.int, envHandle *C.cha
 
 //export SetLocalInStr
 func SetLocalInStr(key *C.char, value *C.char, envHandle *C.char) C.int {
-	defer C.free(unsafe.Pointer(key))
-	defer C.free(unsafe.Pointer(value))
+	log.Debug("debug jvm panic: SetLocalInStr begin")
+	defer log.Debug("debug jvm panic: SetLocalInStr end")
 	keyStr := C.GoString(key)
 	valueStr := C.GoString(value)
 	envHandleUintptr := uintptr(unsafe.Pointer(envHandle))
@@ -295,7 +300,8 @@ func SetLocalInStr(key *C.char, value *C.char, envHandle *C.char) C.int {
 //调用者负责释放返回指针内存
 //export GetFromLocalInStr
 func GetFromLocalInStr(key *C.char, size *C.int, envHandle *C.char) *C.char {
-	defer C.free(unsafe.Pointer(key))
+	log.Debug("debug jvm panic: GetFromLocalInStr begin")
+	defer log.Debug("debug jvm panic: GetFromLocalInStr end")
 	keyStr := C.GoString(key)
 	if "" == keyStr {
 		*size = C.int(0)
@@ -447,7 +453,8 @@ func getRandom(envHandle uintptr) (string, error) {
 		return "", jvmTypes.ErrGetJvmFailed
 	}
 
-	if consensusType != "ticket" {
+	//if consensusType != "ticket" {
+	if consensusType == "ticket" || consensusType == "solo" {
 		return "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371", nil
 	}
 
@@ -461,7 +468,9 @@ func getRandom(envHandle uintptr) (string, error) {
 		log.Error("GetRandom failed due to:", err.Error())
 		return "", err
 	}
-	return string(data), nil
+	randomStr := common.ToHex(data)
+	log.Debug("getRandom", "Random is ", randomStr)
+	return randomStr, nil
 }
 
 func getFrom(envHandle uintptr) string {

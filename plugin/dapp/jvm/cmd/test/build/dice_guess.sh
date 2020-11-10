@@ -1,12 +1,34 @@
 #!/usr/bin/env bash
 #set -x
 
-#cli="docker exec build_chain33_1 ./chain33-cli"
-cli="./chain33-cli"
+RED='\033[1;31m'
+GRE='\033[1;32m'
+NOC='\033[0m'
+
+cli="docker exec build_chain33_1 ./chain33-cli"
+#cli="./chain33-cli"
+
+# 判断 chain33 金额是否正确
+#addr amount
+function balance_enough() {
+    if [[ $# -lt 2 ]]; then
+        echo -e "${RED}wrong parameter${NOC}"
+    fi
+
+    while true; do
+        result=$(${cli} account balance -a ${1} -e coins)
+        local balance=$(echo "${result}" | jq -r ".balance")
+        if [ "$(echo "$balance > $2" | bc)" -eq 1 ]; then
+            echo -e "${GRE}The balance is engout now, and is:${balance}${NOC}"
+            return
+        fi
+        block_wait "${cli}" 1
+    done
+}
 
 # chain33 区块等待 $1:cli 路径  $2:等待高度
 function block_wait() {
-    set +x
+#    set +x
     local CLI=${1}
 
     if [[ $# -lt 1 ]]; then
@@ -28,7 +50,7 @@ function block_wait() {
     done
 
     count=$((count + 1))
-    set -x
+#    set -x
     echo -e "${GRE}chain33 wait new block $count s, cur height=$expect,old=$cur_height${NOC}"
 }
 
@@ -36,10 +58,12 @@ function block_wait() {
 function setupAccount() {
     $cli account import_key -l player -k 0x7b2800cdecd978ab0e877f7e3734b9d0b11d864fa51d9b623d7bdbd76c16a40d
 
+    balance_enough 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv 1010
     echo "transfer to 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
     $cli send  coins transfer -a 1000 -n "t1000" -t 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
     echo 'transfer to 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU'
-    $cli send  coins transfer -a 100 -n "t100" -t 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+    balance_enough 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt 800
+    $cli send  coins transfer -a 800 -n "t100" -t 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
 }
 
 #部署合约
@@ -47,25 +71,30 @@ function deployJavaContract() {
     for contract in Guess Dice
     do
         echo "Deploy contract for $contract"
-        $cli send jvm create -x $contract -n "deploy $contract" -d . -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+        $cli send jvm create -x $contract -d . -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     done
 }
 
 function depositAndStartGame() {
+#    for contract in Guess Dice
     for contract in Guess Dice
     do
         echo "transfer to user.jvm.$contract"
-        $cli send coins send_exec -a 20 -e user.jvm.$contract -n send2exec -k 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU
+        $cli send coins send_exec -a 300 -e user.jvm.$contract -n send2exec -k 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU
+        #如果不等一个块，有可能区块打包的时候，乱序，导致执行失败
+        block_wait "${cli}" 1
 
         #开始游戏
-        echo 'send tx to startGame'
-        $cli send jvm call -e $contract -x startGame -n "call $contract startGame" -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+        echo "send tx to startGame for user.jvm.$contract"
+        $cli send jvm call -e $contract -x startGame -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+        block_wait "${cli}" 1
 
         #投注
-        echo 'send tx to playGame'
-        $cli send jvm call -e $contract -x playGame -r "6 2" -n "call $contract playGame" -k 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU
+        echo "send tx to playGame for user.jvm.$contract"
+        $cli send jvm call -e $contract -x playGame -r "6 2" -k 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU
+        echo "                 "
     done
-    block_wait $cli 12
+    block_wait "${cli}" 12
 }
 
 
@@ -74,9 +103,9 @@ function closeGame() {
     for contract in Guess Dice
     do
         echo "close $contract"
-        $cli send jvm call -e $contract -x closeGame -n "call $contract closeGame" -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+        $cli send jvm call -e $contract -x closeGame -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     done
-    block_wait $cli 1
+    block_wait "${cli}" 10
 }
 
 expectQueryRes[0]="guessNum=6,ticketNum=2"
@@ -88,10 +117,10 @@ function queryGame() {
     do
         echo "query get${contract}RecordByRound"
         result=$($cli jvm query -e user.jvm.$contract -r "get${contract}RecordByRound 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU 1")
-        if [ "${result}" == "${privateKeys[i]}" ]; then
-            echo "Succeed to do query from user.jvm.$contract"
+        if [ "${result}" == "${expectQueryRes[i]}" ]; then
+            echo -e "${GRE}Succeed to do query from user.jvm.$contract, and get ${result}${NOC}"
         else
-            echo -e "${RED}error query via get${contract}RecordByRound, expect "${privateKeys[i]}", get ${result}${NOC}"
+            echo -e "${RED}error query via get${contract}RecordByRound, expect "${expectQueryRes[i]}", get ${result}${NOC}"
         fi
         let i++
 
@@ -103,10 +132,28 @@ function queryGame() {
     done
 }
 
+function playGameInfinite() {
+#    for contract in Guess Dice
+    while true; do
+        #投注
+        echo "send tx to playGame for user.jvm.Guess"
+        $cli send jvm call -e Guess -x playGame -r "8 1" -k 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU
+        echo "                 "
+
+        echo "send tx to playGame for user.jvm.Dice"
+        $cli send jvm call -e Dice -x playGame -r "3 1" -k 1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU
+        echo "                 "
+        block_wait "${cli}" 1
+    done
+}
+
 function dice_game_test() {
     setupAccount
     deployJavaContract
     depositAndStartGame
     closeGame
     queryGame
+    playGameInfinite
 }
+
+dice_game_test
