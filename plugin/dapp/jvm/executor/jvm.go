@@ -61,6 +61,7 @@ func Init(name string, cfg *types.Chain33Config, sub []byte) {
 		panic("JDK path is not configured")
 	}
 	log.Info("jvm::Init", "JDK path is configured to:", jdkPath)
+	initJvm(cfg)
 }
 
 func newJVM() drivers.Driver {

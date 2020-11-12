@@ -11,5 +11,6 @@ COPY j2sdk-image j2sdk-image
 COPY jarlib jarlib
 
 ENV _JAVA_LAUNCHER_DEBUG=1
+ENV GOTRACEBACK=crash
 
 CMD ["/root/chain33", "-f", "/root/chain33.toml"]

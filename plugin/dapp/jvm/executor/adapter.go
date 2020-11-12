@@ -8,11 +8,15 @@ package executor
 import "C"
 
 import (
+	"bytes"
 	"errors"
-	"github.com/33cn/chain33/common"
 	chain33Types "github.com/33cn/chain33/types"
+	"github.com/33cn/chain33/common"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
+	_ "github.com/ianlancetaylor/cgosymbolizer"
+	"os/signal"
+	"syscall"
 	"unsafe"
 )
 
@@ -29,12 +33,34 @@ var (
 	jvm_init_alreay = false
 	consensusType = ""
 	Chain33LoaderJarPath = "." //路径信息不需要包含字符‘/’，C语言中拼接时，会添加
+	//初始化random仅作为solo模式下的测试使用，没有其他用途
+	randomStr = "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371"
+	lastBlockNum4Random = int64(0)
+	lastHash4Random = []byte{}
 )
 
 //调用java合约交易
-func runJava(contract string, para []string, jvmHandleGo *JVMExecutor, jobType C.int,  chain33Config *chain33Types.Chain33Config) error {
-	//第一次调用java合约时，进行jvm的初始化
-	initJvm(chain33Config)
+func runJava(contract string, para []string, jvmHandleGo *JVMExecutor, jobType C.int) error {
+	if TX_EXEC_JOB == jobType {
+		height := jvmHandleGo.GetHeight()
+		lastHash := jvmHandleGo.GetLastHash()
+		//当共识类型为ticket，且产生新的区块时，需要重新获取random数据
+		if consensusType == "ticket" && height != lastBlockNum4Random || !bytes.Equal(lastHash4Random, lastHash)  {
+			req := &chain33Types.ReqRandHash{
+				ExecName: "ticket",
+				BlockNum: jvmHandleGo.GetHeight(),
+				Hash:     jvmHandleGo.GetLastHash(),
+			}
+			data, err := jvmHandleGo.GetExecutorAPI().GetRandNum(req)
+			if nil != err {
+				log.Error("getRandom", "GetRandom failed due to:", err.Error())
+				return  err
+			}
+			randomStr = common.ToHex(data)
+			lastBlockNum4Random = height
+			lastHash4Random = lastHash
+		}
+	}
 
 	//构建jdk的输入参数
 	tx2Exec := append([]string{contract}, para...)
@@ -71,6 +97,7 @@ func initJvm(chain33Config *chain33Types.Chain33Config) {
 	if int(result) != JLI_SUCCESS {
 		panic("Failed to init JLI_Init_JVM")
 	}
+	signal.Ignore(syscall.SIGPIPE)
 	log.Info("JVM is created successfully")
 
 	state.IsPara = chain33Config.IsPara()
@@ -421,7 +448,7 @@ func execActive(from string, amount int64, envHandle uintptr) bool {
 	log.Debug("Enter ExecActive", "from", from, "amount", amount)
 	jvmExecutor, ok := getJvmExector(envHandle)
 	if !ok {
-		log.Error("ExecActive", "Failed to getJvmExector")
+		log.Error("ExecActive", "Failed to getJvmExector with envHandle", envHandle)
 		return jvmTypes.AccountOpFail
 	}
 	if nil == jvmExecutor || nil == jvmExecutor.mStateDB {
@@ -448,28 +475,6 @@ func execTransfer(from, to string, amount int64, envHandle uintptr) bool {
 
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
 func getRandom(envHandle uintptr) (string, error) {
-	jvmExecutor, ok := getJvmExector(envHandle)
-	if !ok {
-		return "", jvmTypes.ErrGetJvmFailed
-	}
-
-	//if consensusType != "ticket" {
-	if consensusType == "ticket" || consensusType == "solo" {
-		return "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371", nil
-	}
-
-	req := &chain33Types.ReqRandHash{
-		ExecName: "ticket",
-		BlockNum: jvmExecutor.GetHeight(),
-		Hash:     jvmExecutor.GetLastHash(),
-	}
-	data, err := jvmExecutor.GetExecutorAPI().GetRandNum(req)
-	if nil != err {
-		log.Error("GetRandom failed due to:", err.Error())
-		return "", err
-	}
-	randomStr := common.ToHex(data)
-	log.Debug("getRandom", "Random is ", randomStr)
 	return randomStr, nil
 }
 
