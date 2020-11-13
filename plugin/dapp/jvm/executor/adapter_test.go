@@ -1,18 +1,19 @@
 package executor
 
 import (
+	"testing"
+	"unsafe"
+
 	"github.com/33cn/chain33/common/address"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"unsafe"
 )
 
 var (
-	//privOpener = getprivkey("CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944") //opener
-	//privPlayer = getprivkey("4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01") //player
-	//opener     = "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-	//player     = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+//privOpener = getprivkey("CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944") //opener
+//privPlayer = getprivkey("4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01") //player
+//opener     = "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
+//player     = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 )
 
 func Test_getJvmExector_fail(t *testing.T) {
@@ -109,11 +110,3 @@ func Test_stopTransWithErrInfo_fail(t *testing.T) {
 	ok := stopTransWithErrInfo("err", envHandleUintptr)
 	assert.Equal(t, false, ok)
 }
-
-
-
-
-
-
-
-

@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/33cn/chain33/common"
 	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
 
+	"github.com/33cn/chain33/common"
+
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/types"
+	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
-	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 )
 
 // JvmCmd jvm command
@@ -213,7 +214,7 @@ func jvmAddQueryContractFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("exec")
 
 	cmd.Flags().StringP("para", "r", "", "multiple parameter splitted by space")
-	_ =  cmd.MarkFlagRequired("para")
+	_ = cmd.MarkFlagRequired("para")
 }
 
 // 调用jvm合约
@@ -236,7 +237,7 @@ func jvmCallContract(cmd *cobra.Command, args []string) {
 	paraOneStr, _ := cmd.Flags().GetString("para")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
-	var para  = []string{actionName}
+	var para = []string{actionName}
 	if "" != paraOneStr {
 		var paraParsed []string
 		paraOneStr = strings.TrimSpace(paraOneStr)
@@ -322,8 +323,6 @@ func jvmCheckContractAddr(cmd *cobra.Command, args []string) {
 		_, _ = fmt.Fprintln(os.Stderr, "error")
 	}
 }
-
-
 
 func sendQuery4jvm(rpcAddr, funcName string, request types.Message, result proto.Message) bool {
 	params := rpctypes.Query4Jrpc{

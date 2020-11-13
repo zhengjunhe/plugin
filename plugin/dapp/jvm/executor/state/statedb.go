@@ -11,8 +11,8 @@ import (
 )
 
 var (
-    IsPara bool
-    Title string
+	IsPara bool
+	Title  string
 )
 
 // MemoryStateDB 内存状态数据库，保存在区块操作时内部的数据变更操作

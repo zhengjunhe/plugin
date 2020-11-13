@@ -10,33 +10,34 @@ import "C"
 import (
 	"bytes"
 	"errors"
-	chain33Types "github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
-	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
-	_ "github.com/ianlancetaylor/cgosymbolizer"
 	"os/signal"
 	"syscall"
 	"unsafe"
+
+	"github.com/33cn/chain33/common"
+	chain33Types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
+	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
+	_ "github.com/ianlancetaylor/cgosymbolizer"
 )
 
 const (
-	JLI_SUCCESS = int(0)
-	JLI_FAIL    = int(-1)
-	TX_EXEC_JOB = C.int(0)
+	JLI_SUCCESS  = int(0)
+	JLI_FAIL     = int(-1)
+	TX_EXEC_JOB  = C.int(0)
 	TX_QUERY_JOB = C.int(1)
-	Bool_TRUE  = C.int(1)
-	Bool_FALSE = C.int(0)
+	Bool_TRUE    = C.int(1)
+	Bool_FALSE   = C.int(0)
 )
 
 var (
-	jvm_init_alreay = false
-	consensusType = ""
+	jvm_init_alreay      = false
+	consensusType        = ""
 	Chain33LoaderJarPath = "." //路径信息不需要包含字符‘/’，C语言中拼接时，会添加
 	//初始化random仅作为solo模式下的测试使用，没有其他用途
-	randomStr = "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371"
+	randomStr           = "0x42f4eada40e876c476204dfb0749b2cda90020c68992dcacba6ea5a0fa75a371"
 	lastBlockNum4Random = int64(0)
-	lastHash4Random = []byte{}
+	lastHash4Random     = []byte{}
 )
 
 //调用java合约交易
@@ -45,7 +46,7 @@ func runJava(contract string, para []string, jvmHandleGo *JVMExecutor, jobType C
 		height := jvmHandleGo.GetHeight()
 		lastHash := jvmHandleGo.GetLastHash()
 		//当共识类型为ticket，且产生新的区块时，需要重新获取random数据
-		if consensusType == "ticket" && height != lastBlockNum4Random || !bytes.Equal(lastHash4Random, lastHash)  {
+		if consensusType == "ticket" && height != lastBlockNum4Random || !bytes.Equal(lastHash4Random, lastHash) {
 			req := &chain33Types.ReqRandHash{
 				ExecName: "ticket",
 				BlockNum: jvmHandleGo.GetHeight(),
@@ -54,7 +55,7 @@ func runJava(contract string, para []string, jvmHandleGo *JVMExecutor, jobType C
 			data, err := jvmHandleGo.GetExecutorAPI().GetRandNum(req)
 			if nil != err {
 				log.Error("getRandom", "GetRandom failed due to:", err.Error())
-				return  err
+				return err
 			}
 			randomStr = common.ToHex(data)
 			lastBlockNum4Random = height
@@ -129,18 +130,19 @@ func freeArgument(argc C.int, argv **C.char) {
 
 //export SetQueryResult
 func SetQueryResult(jvmgo *C.char, exceptionOccurred C.int, info **C.char, count, sizePtr C.int) C.int {
-	jvmHandleUintptr := uintptr(unsafe.Pointer(jvmgo))
 	exceptionOccur := false
 	if Bool_TRUE == exceptionOccurred {
 		exceptionOccur = true
 	}
 	var query []string
-	for i:=0; i < int(count); i++ {
-		ptr := (uintptr)(unsafe.Pointer(info)) + (uintptr)(int(sizePtr) * i)
-		infoGO := C.GoString(*(**C.char)(unsafe.Pointer(ptr)))
+	tmpslice := (*[1 << 11]*C.char)(unsafe.Pointer(info))[:count:count]
+	for i := 0; i < int(count); i++ {
+		//ptr := (uintptr)(unsafe.Pointer(info)) + (uintptr)(int(sizePtr)*i)
+		//infoGO := C.GoString(*(**C.char)(unsafe.Pointer(ptr)))
+		infoGO := C.GoString(tmpslice[i])
 		query = append(query, infoGO)
 	}
-	ForwardQueryResult(exceptionOccur, query, jvmHandleUintptr)
+	ForwardQueryResult(exceptionOccur, query, jvmgo)
 
 	return 0
 }
@@ -345,11 +347,10 @@ func GetFromLocalInStr(key *C.char, size *C.int, envHandle *C.char) *C.char {
 	return C.CString(string(valueSlice))
 }
 
-
 ///////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
-func recordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr ) bool {
+func recordTxJVMEnv(jvm *JVMExecutor, envHandle uintptr) bool {
 	jvmsCached.Add(envHandle, jvm)
 	_, ok := jvmsCached.Get(envHandle)
 	return ok
@@ -393,7 +394,7 @@ func setValue2Local(key, value []byte, envHandle uintptr) bool {
 	if !ok {
 		return false
 	}
-	contractAddrgo :=  jvmExecutor.GetContractAddr()
+	contractAddrgo := jvmExecutor.GetContractAddr()
 	return jvmExecutor.mStateDB.SetValue2Local(contractAddrgo, string(key), value, jvmExecutor.txHash)
 }
 
@@ -423,7 +424,7 @@ func stateDBSetState(key, value []byte, envHandle uintptr) bool {
 	if !ok {
 		return false
 	}
-	contractAddrgo :=  jvmExecutor.GetContractAddr()
+	contractAddrgo := jvmExecutor.GetContractAddr()
 	return jvmExecutor.mStateDB.SetState(contractAddrgo, string(key), value)
 }
 
@@ -440,7 +441,7 @@ func execFrozen(from string, amount int64, envHandle uintptr) bool {
 			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
 		return jvmTypes.AccountOpFail
 	}
-	return jvmExecutor.mStateDB.ExecFrozen(jvmExecutor.tx, from, amount * jvmTypes.Coin_Precision)
+	return jvmExecutor.mStateDB.ExecFrozen(jvmExecutor.tx, from, amount*jvmTypes.Coin_Precision)
 }
 
 // ExecActive 激活user.jvm.xxx合约addr上的部分余额
@@ -470,7 +471,7 @@ func execTransfer(from, to string, amount int64, envHandle uintptr) bool {
 			"pJvmMap[uint64(jvmIndex)].mStateDB", jvmExecutor.mStateDB)
 		return jvmTypes.AccountOpFail
 	}
-	return jvmExecutor.mStateDB.ExecTransfer(jvmExecutor.tx, from, to, amount * jvmTypes.Coin_Precision)
+	return jvmExecutor.mStateDB.ExecTransfer(jvmExecutor.tx, from, to, amount*jvmTypes.Coin_Precision)
 }
 
 // GetRandom 为jvm用户自定义合约提供随机数，该随机数是64位hash值,返回值为实际返回的长度
@@ -512,13 +513,13 @@ func stopTransWithErrInfo(err string, envHandle uintptr) bool {
 }
 
 //forward the query result to the corresponding jvm
-func ForwardQueryResult(exceptionOccurred bool, info []string, jvmHandle uintptr) bool {
+func ForwardQueryResult(exceptionOccurred bool, info []string, jvmgo *C.char) bool {
 	queryResult := QueryResult{
-		exceptionOccurred:exceptionOccurred,
-		info:info,
+		exceptionOccurred: exceptionOccurred,
+		info:              info,
 	}
-	jvm := (*JVMExecutor)(unsafe.Pointer(jvmHandle))
-	jvm.queryChan<-queryResult
+	jvm := (*JVMExecutor)(unsafe.Pointer(jvmgo))
+	jvm.queryChan <- queryResult
 	log.Info("ForwardQueryResult get query result and forward it", "queryResult", queryResult)
 	return true
 }

@@ -2,6 +2,7 @@ package executor
 
 import (
 	"bytes"
+
 	"github.com/33cn/chain33/types"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 )
@@ -51,8 +52,8 @@ func (jvm *JVMExecutor) Query_JavaContract(in *jvmTypes.JVMQueryReq) (types.Mess
 	log.Debug("Query_JavaContract::Finish query", "Success", !queryResult.exceptionOccurred, "info", queryResult.info)
 
 	response := &jvmTypes.JVMQueryResponse{
-		Success:!queryResult.exceptionOccurred,
-		Result:queryResult.info,
+		Success: !queryResult.exceptionOccurred,
+		Result:  queryResult.info,
 	}
 	return response, nil
 }

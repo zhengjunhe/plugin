@@ -1,11 +1,12 @@
 package executor
 
 import (
+	"os"
+	"strings"
+
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
-	"os"
-	"strings"
 )
 
 func (jvm *JVMExecutor) creatJarFileWithCode(contractName string) (string, string, *state.ContractAccount, error) {
@@ -16,7 +17,7 @@ func (jvm *JVMExecutor) creatJarFileWithCode(contractName string) (string, strin
 	}
 	temp := strings.Split(contractName, ".")
 	//just keep the last name
-	contractName = temp[len(temp) - 1]
+	contractName = temp[len(temp)-1]
 	jarPath := "./" + contractName + ".jar"
 	jarFileExist := true
 	//判断jar文件是否存在

@@ -78,7 +78,7 @@ ineffassign:
 race: ## Run data race detector
 	@go test -parallel=8 -race -short `go list ./... | grep -v "pbft"`
 
-test: ## Run unittests
+test: depends ## Run unittests
 	@go test -parallel=8 -race  `go list ./...| grep -v "pbft"`
 
 testq: ## Run unittests
@@ -155,7 +155,7 @@ protobuf: ## Generate protbuf file of types package
 #	@cd ${CHAIN33_PATH}/types/proto && ./create_protobuf.sh && cd ../..
 	@find ./plugin/dapp -maxdepth 2 -type d  -name proto -exec make -C {} \;
 
-depends: addjvm  ## Generate depends file of types package
+depends: ## Generate depends file of types package
 	@find ./plugin/dapp -maxdepth 2 -type d  -name cmd -exec make -C {} OUT="$(MKDIR)build/ci" FLAG= \;
 
 
@@ -234,20 +234,6 @@ sync:
 	git checkout master
 	git merge upstream/master
 	git push origin master
-
-
-addjvm: #Get files related to jvm exec env
-	@cd build && if ! [ -d bigfile ]; then \
-	echo "Going to get files related to jvm exec env" ; \
-	git clone git@gitlab.33.cn:root/bigfile.git ; \
-	cp bigfile/jvm/contract_loader/Chain33Loader.jar ./ ; \
-	mkdir jarlib ; \
-	cp bigfile/jvm/jarlib/Gson.jar ./jarlib ; \
-	cp bigfile/jvm/java_contract/* ./ ; \
-	cp -r bigfile/jvm/j2sdk-image ./ ; \
-	cp bigfile/jvm/jli_static_lib/libjli.a ../plugin/dapp/jvm/openjdk/ ; \
-	cd ../ ; \
-	fi;
 
 branch:
 	make sync

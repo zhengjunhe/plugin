@@ -2,6 +2,8 @@ package executor
 
 import (
 	"bytes"
+	"sync/atomic"
+
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/common/log/log15"
@@ -10,12 +12,11 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor/state"
 	jvmTypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	lru "github.com/hashicorp/golang-lru"
-	"sync/atomic"
 )
 
 type stopWithError struct {
 	occurred bool
-	info error
+	info     error
 }
 
 // JVMExecutor 执行器结构
@@ -32,14 +33,14 @@ type JVMExecutor struct {
 
 type QueryResult struct {
 	exceptionOccurred bool
-	info []string
+	info              []string
 }
 
 var (
-	log        = log15.New("module", "execs.jvm")
-	jvmsCached *lru.Cache
+	log              = log15.New("module", "execs.jvm")
+	jvmsCached       *lru.Cache
 	jvmsCacheCreated = int32(0)
-	jdkPath string
+	jdkPath          string
 )
 
 func initExecType() {
@@ -88,7 +89,7 @@ func NewJVMExecutor() *JVMExecutor {
 		var err error
 		jvmsCached, err = lru.New(1000)
 		if nil != err {
-			panic("Failed to new lru for caching jvms due to:"+ err.Error())
+			panic("Failed to new lru for caching jvms due to:" + err.Error())
 		}
 		atomic.StoreInt32(&jvmsCacheCreated, int32(Bool_TRUE))
 	}

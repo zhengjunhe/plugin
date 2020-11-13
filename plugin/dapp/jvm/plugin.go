@@ -3,8 +3,8 @@ package jvm
 import (
 	"github.com/33cn/chain33/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/jvm/executor"
-	jvmtypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 	"github.com/33cn/plugin/plugin/dapp/jvm/rpc"
+	jvmtypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 
 	// init auto test
 	"github.com/33cn/plugin/plugin/dapp/jvm/commands"

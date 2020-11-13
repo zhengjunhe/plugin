@@ -2,6 +2,8 @@ package state
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/33cn/chain33/account"
 	apimock "github.com/33cn/chain33/client/mocks"
 	"github.com/33cn/chain33/common/address"
@@ -12,40 +14,38 @@ import (
 	"github.com/33cn/chain33/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 type statedb_test struct {
 	stateDB dbm.KV
 	localDB dbm.KVDB
-	base *drivers.DriverBase
+	base    *drivers.DriverBase
 }
 
 var (
-	opener     = "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-	player     = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
-    chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
+	opener       = "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
+	player       = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+	chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
 )
 
-func setupTestEnv() *statedb_test{
+func setupTestEnv() *statedb_test {
 	sdb, _ := db.NewGoMemDB("JvmTestDb", "test", 128)
 	_, _, kvdb := util.CreateTestDB()
 
 	api := new(apimock.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(chainTestCfg, nil)
 
-
 	statedb_test_env := &statedb_test{
-		stateDB:sdb,
-		localDB:kvdb,
-		base:&drivers.DriverBase{},
+		stateDB: sdb,
+		localDB: kvdb,
+		base:    &drivers.DriverBase{},
 	}
 	statedb_test_env.base.SetAPI(api)
 	statedb_test_env.base.SetStateDB(sdb)
 	return statedb_test_env
 }
 
-func deposit2contract(t *testing.T, acc *account.DB,  contractName, addr string) {
+func deposit2contract(t *testing.T, acc *account.DB, contractName, addr string) {
 	account2operate := &types.Account{
 		Balance: 1000 * 1e8,
 		Addr:    addr,
@@ -92,7 +92,7 @@ func Test_SetCodeAndGet(t *testing.T) {
 	addr := address.ExecAddress(exectorName)
 	memoryStateDB.CreateAccount(addr, opener, exectorName)
 
-	code := []byte{1,2,3,4}
+	code := []byte{1, 2, 3, 4}
 	memoryStateDB.SetCodeAndAbi(addr, code, nil)
 	codeGet := memoryStateDB.GetCode(addr)
 	assert.Equal(t, code, codeGet)
@@ -143,7 +143,7 @@ func Test_ExecTransferFrozen(t *testing.T) {
 	assert.Equal(t, int64(openerBalanceInContract), int64(200*1e8))
 
 	tx := &types.Transaction{
-		Execer:[]byte(exectorName),
+		Execer: []byte(exectorName),
 	}
 	//在合约内部的opener冻结 200
 	memoryStateDB.ExecFrozen(tx, opener, int64(200*1e8))
@@ -151,7 +151,6 @@ func Test_ExecTransferFrozen(t *testing.T) {
 	assert.Equal(t, openerAccount.Frozen, int64(200*1e8))
 	playerAccount := memoryStateDB.CoinsAccount.LoadExecAccount(player, addr)
 	assert.Equal(t, playerAccount.Balance, int64(0))
-
 
 	memoryStateDB.ExecTransferFrozen(tx, opener, player, int64(100*1e8))
 	openerAccount = memoryStateDB.CoinsAccount.LoadExecAccount(opener, addr)
@@ -168,7 +167,7 @@ func Test_AccountOpErrorBranch(t *testing.T) {
 	memoryStateDB.CreateAccount(addr, opener, exectorName)
 
 	tx := &types.Transaction{
-		Execer:[]byte(exectorName),
+		Execer: []byte(exectorName),
 	}
 
 	result := memoryStateDB.ExecFrozen(nil, opener, int64(100*1e8))
@@ -192,7 +191,3 @@ func Test_AccountOpErrorBranch(t *testing.T) {
 	assert.Equal(t, false, result)
 
 }
-
-
-
-

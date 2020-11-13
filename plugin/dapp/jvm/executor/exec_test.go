@@ -27,6 +27,8 @@ import (
 var chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
 
 func init() {
+	Chain33LoaderJarPath = "../../../../build/ci"
+	jvm_init_alreay = true
 	Init(jvmTypes.JvmX, chainTestCfg, nil)
 }
 
@@ -38,11 +40,11 @@ var (
 )
 
 type JvmTestEnv struct {
-	kvdb      *mocks.KVDB
-	jvm       *JVMExecutor
+	kvdb *mocks.KVDB
+	jvm  *JVMExecutor
 }
 
-func setupTestEnv() *JvmTestEnv{
+func setupTestEnv() *JvmTestEnv {
 	jvmTestEnv := &JvmTestEnv{}
 	jvmTestEnv.kvdb = new(mocks.KVDB)
 	jvmExecutor := &JVMExecutor{DriverBase: drivers.DriverBase{}}
@@ -59,8 +61,6 @@ func setupTestEnv() *JvmTestEnv{
 	jvmExecutor.SetChild(jvmExecutor)
 	jvmTestEnv.jvm = jvmExecutor
 
-	Chain33LoaderJarPath = "../../../../build"
-
 	return jvmTestEnv
 }
 
@@ -68,11 +68,11 @@ func setupTestEnv() *JvmTestEnv{
 func Test_CreateJvmContract(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
-	code := readJarFile("Guess")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Guess", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -85,7 +85,7 @@ func Test_CreateJvmContract(t *testing.T) {
 	currentStateDb := jvmTestEnv.jvm.mStateDB
 	jvmTestEnv.jvm.mStateDB = nil
 	in := &jvmTypes.CheckJVMContractNameReq{
-		JvmContractName:"user.jvm.Guess",
+		JvmContractName: "user.jvm.Guess",
 	}
 	msg, err := jvmTestEnv.jvm.Query_CheckContractNameExist(in)
 	resp := msg.(*jvmTypes.CheckJVMAddrResp)
@@ -110,23 +110,22 @@ func Test_CreateJvmContract(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, false, resp.ExistAlready)
 
-
-	msg, err = jvmTestEnv.jvm.Query_CheckContractNameExist(nil)
+	_, err = jvmTestEnv.jvm.Query_CheckContractNameExist(nil)
 	assert.Equal(t, types.ErrInvalidParam, err)
 
 	in.JvmContractName = ""
-	msg, err = jvmTestEnv.jvm.Query_CheckContractNameExist(in)
+	_, err = jvmTestEnv.jvm.Query_CheckContractNameExist(in)
 	assert.Equal(t, jvmTypes.ErrNullContractName, err)
 }
 
 func Test_CreateJvmContract_errorbranch(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
-	code := readJarFile("Guess")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Guess", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -141,19 +140,19 @@ func Test_CreateJvmContract_errorbranch(t *testing.T) {
 	assert.Equal(t, jvmTypes.ErrContractAddressCollisionJvm, err)
 
 	var bigcode = []byte("hello")
-	for i := 0; i < jvmTypes.MaxCodeSize + 2; i++ {
+	for i := 0; i < jvmTypes.MaxCodeSize+2; i++ {
 		bigcode = append(bigcode, []byte("1")...)
 	}
 
 	bigSizeContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Bigsize",
-		Code:common.ToHex(bigcode),
+		Name: "user.jvm.Bigsize",
+		Code: common.ToHex(bigcode),
 	}
 	_, err = jvmTestEnv.jvm.Exec_CreateJvmContract(bigSizeContract, tx, 0)
 	assert.Equal(t, jvmTypes.ErrMaxCodeSizeExceededJvm, err)
 
 	zeroSizeContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Zerosize",
+		Name: "user.jvm.Zerosize",
 	}
 	_, err = jvmTestEnv.jvm.Exec_CreateJvmContract(zeroSizeContract, tx, 0)
 	assert.Equal(t, jvmTypes.ErrNUllJvmContract, err)
@@ -163,11 +162,11 @@ func Test_Create_CallJvmContract(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
 	//1st step: create Guess contract
-	code := readJarFile("Dice")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Dice", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Dice",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Dice",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -177,36 +176,36 @@ func Test_Create_CallJvmContract(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt.Ty)
 
-	receiptData0 :=  &types.ReceiptData{}
+	receiptData0 := &types.ReceiptData{}
 	localDBSet0, err := jvmTestEnv.jvm.ExecLocal_CreateJvmContract(createJvmContract, tx, receiptData0, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, len(localDBSet0.KV), 0)
 
-
 	localDBSet0Del, err := jvmTestEnv.jvm.ExecDelLocal_CreateJvmContract(createJvmContract, tx, receiptData0, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, len(localDBSet0Del.KV), 0)
-
 
 	////////////////////////////////////
 	//2nd step: call Guess contract
 	////////////////////////////////////
 	createJarLib(t)
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Dice",
-		ActionData:[]string{"startGame"},
+		Name:       "user.jvm.Dice",
+		ActionData: []string{"startGame"},
 	}
 
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Dice"))
 
+	jvm_init_alreay = false
+	initJvm(chainTestCfg)
 	receipt2call, err := jvmTestEnv.jvm.Exec_CallJvmContract(callJvmContract, tx2call, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
 	removeFile("./Dice.jar")
 	removeJarLib(t)
 
-	receiptData :=  &types.ReceiptData{}
+	receiptData := &types.ReceiptData{}
 	localDBSet, err := jvmTestEnv.jvm.ExecLocal_CallJvmContract(callJvmContract, tx2call, receiptData, 0)
 	assert.Equal(t, nil, err)
 	assert.Greater(t, len(localDBSet.KV), 0)
@@ -222,7 +221,7 @@ func Test_Create_CallJvmContract(t *testing.T) {
 			//fmt.Println("keyValue", string(keyValue.Key), "value", keyValue.Value)
 			//fmt.Println("keyValue", string(localDBSet.KV[0].Key), "value", localDBSet.KV[0].Value)
 			if nil != keyValue.Value {
-				assert.Equal(t, nil,  keyValue.Value)
+				assert.Equal(t, nil, keyValue.Value)
 			}
 		}
 	}
@@ -233,8 +232,8 @@ func Test_CallJvmContract_errorBranch(t *testing.T) {
 
 	//1st step: contract not exist
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Guess",
-		ActionData:[]string{"startGame"},
+		Name:       "user.jvm.Guess",
+		ActionData: []string{"startGame"},
 	}
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Guess"))
@@ -247,7 +246,7 @@ func Test_UpdateJvmContract_errorBranch(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
 	updateJvmContract := &jvmTypes.UpdateJvmContract{
-		Name:"user.jvm.Guess",
+		Name: "user.jvm.Guess",
 	}
 
 	payload2update := types.Encode(updateJvmContract)
@@ -258,11 +257,11 @@ func Test_UpdateJvmContract_errorBranch(t *testing.T) {
 	assert.Equal(t, jvmTypes.ErrContractNotExist, err)
 
 	//创建合约
-	code := readJarFile("Guess")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Guess", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -274,8 +273,8 @@ func Test_UpdateJvmContract_errorBranch(t *testing.T) {
 
 	//更新合约
 	updateJvmContract2 := &jvmTypes.UpdateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(code),
 	}
 
 	payload2update2 := types.Encode(updateJvmContract2)
@@ -287,13 +286,13 @@ func Test_UpdateJvmContract_errorBranch(t *testing.T) {
 
 	//合约超大
 	var bigcode []byte = []byte("hello")
-	for i := 0; i < jvmTypes.MaxCodeSize + 2; i++ {
+	for i := 0; i < jvmTypes.MaxCodeSize+2; i++ {
 		bigcode = append(bigcode, []byte("1")...)
 	}
 
 	bigSizeContract := &jvmTypes.UpdateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(bigcode),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(bigcode),
 	}
 	payloadBigsize := types.Encode(bigSizeContract)
 	txBigsize := createTx(jvmTypes.UpdateJvmContractAction, payloadBigsize, []byte(jvmTypes.JvmX))
@@ -302,7 +301,7 @@ func Test_UpdateJvmContract_errorBranch(t *testing.T) {
 
 	//空合约
 	zeroSizeContract := &jvmTypes.UpdateJvmContract{
-		Name:"user.jvm.Guess",
+		Name: "user.jvm.Guess",
 	}
 	payloadZero := types.Encode(zeroSizeContract)
 	txZerosize := createTx(jvmTypes.UpdateJvmContractAction, payloadZero, []byte(jvmTypes.JvmX))
@@ -315,11 +314,11 @@ func Test_Create_Update_CallJvmContract(t *testing.T) {
 
 	//1st step: create Guess contract
 	//创建时，使用dice合约，更新时使用guess
-	code := readJarFile("Dice")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Dice", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -333,8 +332,8 @@ func Test_Create_Update_CallJvmContract(t *testing.T) {
 	//2nd step: update Guess contract
 	////////////////////////////////////
 	updateJvmContract := &jvmTypes.UpdateJvmContract{
-		Name:"user.jvm.Guess",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Guess",
+		Code: common.ToHex(code),
 	}
 
 	payload2update := types.Encode(updateJvmContract)
@@ -344,11 +343,10 @@ func Test_Create_Update_CallJvmContract(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2update.Ty)
 
-	receiptData0 :=  &types.ReceiptData{}
+	receiptData0 := &types.ReceiptData{}
 	localDBSet, err := jvmTestEnv.jvm.ExecLocal_UpdateJvmContract(updateJvmContract, tx2update, receiptData0, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, len(localDBSet.KV), 0)
-
 
 	localDBSetDel, err := jvmTestEnv.jvm.ExecDelLocal_UpdateJvmContract(updateJvmContract, tx2update, receiptData0, 0)
 	assert.Equal(t, nil, err)
@@ -358,13 +356,15 @@ func Test_Create_Update_CallJvmContract(t *testing.T) {
 	//3rd step: call the updated Guess contract
 	////////////////////////////////////
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Guess",
-		ActionData:[]string{"startGame"},
+		Name:       "user.jvm.Guess",
+		ActionData: []string{"startGame"},
 	}
 
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Guess"))
 
+	jvm_init_alreay = false
+	initJvm(chainTestCfg)
 	receipt2call, err := jvmTestEnv.jvm.Exec_CallJvmContract(callJvmContract, tx2call, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
@@ -380,7 +380,7 @@ func Test_Allow(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Guess",
+		Name: "user.jvm.Guess",
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -389,8 +389,8 @@ func Test_Allow(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Dice",
-		ActionData:[]string{"startGame"},
+		Name:       "user.jvm.Dice",
+		ActionData: []string{"startGame"},
 	}
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Dice"))
@@ -398,8 +398,8 @@ func Test_Allow(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	callJvmContract2 := &jvmTypes.CallJvmContract{
-		Name:"user.wasm.Dice",
-		ActionData:[]string{"startGame"},
+		Name:       "user.wasm.Dice",
+		ActionData: []string{"startGame"},
 	}
 	payload2call2 := types.Encode(callJvmContract2)
 	tx2call2 := createTx(jvmTypes.CallJvmContractAction, payload2call2, []byte("user.wasm.Dice"))
@@ -411,11 +411,11 @@ func Test_QueryContractRun(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
 	//1st step: create Guess contract
-	code := readJarFile("Dice")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Dice", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Dice",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Dice",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -430,25 +430,26 @@ func Test_QueryContractRun(t *testing.T) {
 	////////////////////////////////////
 	createJarLib(t)
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Dice",
-		ActionData:[]string{"startGame"},
+		Name:       "user.jvm.Dice",
+		ActionData: []string{"startGame"},
 	}
 
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Dice"))
 
+	jvm_init_alreay = false
+	initJvm(chainTestCfg)
 	receipt2call, err := jvmTestEnv.jvm.Exec_CallJvmContract(callJvmContract, tx2call, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
-
 
 	//////////////////////////////////////
 	////3rd step: call Guess contract to play game
 	////////////////////////////////////
 	deposit2contract(t, jvmTestEnv.jvm, "user.jvm.Dice", player)
 	playGame := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Dice",
-		ActionData:[]string{"playGame", "6", "2"},
+		Name:       "user.jvm.Dice",
+		ActionData: []string{"playGame", "6", "2"},
 	}
 
 	payload2play := types.Encode(playGame)
@@ -464,8 +465,8 @@ func Test_QueryContractRun(t *testing.T) {
 	jvmTestEnv.jvm.SetEnv(30, 200, 1)
 
 	closeGame := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Dice",
-		ActionData:[]string{"closeGame"},
+		Name:       "user.jvm.Dice",
+		ActionData: []string{"closeGame"},
 	}
 
 	payload2close := types.Encode(closeGame)
@@ -483,8 +484,8 @@ func Test_QueryContractRun(t *testing.T) {
 
 	removeFile("./Dice.jar")
 	jvmQueryReq := &jvmTypes.JVMQueryReq{
-		Contract:"Dice",
-		Para: []string{"getDiceRecordByRound", "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv", "1"},
+		Contract: "Dice",
+		Para:     []string{"getDiceRecordByRound", "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv", "1"},
 	}
 	jvmTestEnv.jvm.tx = nil
 	msg, err := jvmTestEnv.jvm.Query_JavaContract(jvmQueryReq)
@@ -500,11 +501,11 @@ func Test_dbAccessInSlice(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
 	//1st step: create Guess contract
-	code := readJarFile("Adapter")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Adapter", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Adapter",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Adapter",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -518,21 +519,23 @@ func Test_dbAccessInSlice(t *testing.T) {
 	//2nd step: call Adapter contract
 	////////////////////////////////////
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Adapter",
-		ActionData:[]string{"dbTest"},
+		Name:       "user.jvm.Adapter",
+		ActionData: []string{"dbTest"},
 	}
 
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Adapter"))
 
+	jvm_init_alreay = false
+	initJvm(chainTestCfg)
 	receipt2call, err := jvmTestEnv.jvm.Exec_CallJvmContract(callJvmContract, tx2call, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
 
 	//查询
 	jvmQueryReq := &jvmTypes.JVMQueryReq{
-		Contract:"Adapter",
-		Para: []string{"localdbQuery"},
+		Contract: "Adapter",
+		Para:     []string{"localdbQuery"},
 	}
 	jvmTestEnv.jvm.tx = nil
 	msg, err := jvmTestEnv.jvm.Query_JavaContract(jvmQueryReq)
@@ -542,8 +545,8 @@ func Test_dbAccessInSlice(t *testing.T) {
 	assert.Equal(t, true, resp.Success)
 
 	jvmQueryReq = &jvmTypes.JVMQueryReq{
-		Contract:"Adapter",
-		Para: []string{"statedbQuery"},
+		Contract: "Adapter",
+		Para:     []string{"statedbQuery"},
 	}
 	jvmTestEnv.jvm.tx = nil
 	msg, err = jvmTestEnv.jvm.Query_JavaContract(jvmQueryReq)
@@ -554,8 +557,8 @@ func Test_dbAccessInSlice(t *testing.T) {
 
 	//运行不支持的交易类型
 	callJvmContract = &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Adapter",
-		ActionData:[]string{"transfer"},
+		Name:       "user.jvm.Adapter",
+		ActionData: []string{"transfer"},
 	}
 
 	payload2call = types.Encode(callJvmContract)
@@ -573,11 +576,11 @@ func Test_frozenActive(t *testing.T) {
 	jvmTestEnv := setupTestEnv()
 
 	//1st step: create Guess contract
-	code := readJarFile("Adapter")
-	assert.NotEqual(t,nil, code)
+	code := readJarFile("Adapter", t)
+	assert.NotEqual(t, nil, code)
 	createJvmContract := &jvmTypes.CreateJvmContract{
-		Name:"user.jvm.Adapter",
-		Code:common.ToHex(code),
+		Name: "user.jvm.Adapter",
+		Code: common.ToHex(code),
 	}
 
 	payload := types.Encode(createJvmContract)
@@ -592,13 +595,15 @@ func Test_frozenActive(t *testing.T) {
 	////////////////////////////////////
 	deposit2contract(t, jvmTestEnv.jvm, "user.jvm.Adapter", opener)
 	callJvmContract := &jvmTypes.CallJvmContract{
-		Name:"user.jvm.Adapter",
-		ActionData:[]string{"accountTest"},
+		Name:       "user.jvm.Adapter",
+		ActionData: []string{"accountTest"},
 	}
 
 	payload2call := types.Encode(callJvmContract)
 	tx2call := createTx(jvmTypes.CallJvmContractAction, payload2call, []byte("user.jvm.Adapter"))
 
+	jvm_init_alreay = false
+	initJvm(chainTestCfg)
 	receipt2call, err := jvmTestEnv.jvm.Exec_CallJvmContract(callJvmContract, tx2call, 0)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, int32(types.ExecOk), receipt2call.Ty)
@@ -619,11 +624,11 @@ func createJarLib(t *testing.T) {
 	err := os.Mkdir("./jarlib", 0775)
 	assert.Equal(t, nil, err)
 
-	codePath := "../../../../build/jarlib/Gson.jar"
+	codePath := "../../../../build/ci/jarlib/Gson.jar"
 	code, _ := ioutil.ReadFile(codePath)
 	jarfile, err := os.OpenFile("./jarlib/Gson.jar", os.O_WRONLY|os.O_CREATE, 0666)
 	assert.Equal(t, nil, err)
-	writeLen, err := jarfile.Write(code)
+	writeLen, _ := jarfile.Write(code)
 	assert.Equal(t, writeLen, len(code))
 	closeErr := jarfile.Close()
 	assert.Equal(t, nil, closeErr)
@@ -640,41 +645,42 @@ func createTx(txType int, payload []byte, execer []byte) *types.Transaction {
 	case jvmTypes.CreateJvmContractAction:
 		tx := &types.Transaction{
 			//Execer:[]byte(jvmTypes.JvmX),
-			Execer:execer,
-			Payload:payload,
-			To:address.ExecAddress(string(execer)),
-			Nonce:1,
+			Execer:  execer,
+			Payload: payload,
+			To:      address.ExecAddress(string(execer)),
+			Nonce:   1,
 		}
 		tx.Sign(types.SECP256K1, privOpener)
 		return tx
 	case jvmTypes.CallJvmContractAction:
 		tx := &types.Transaction{
 			//Execer:[]byte("user.jvm.Guess"),
-			Execer:execer,
-			Payload:payload,
-			To:address.ExecAddress(string(execer)),
-			Nonce:1,
+			Execer:  execer,
+			Payload: payload,
+			To:      address.ExecAddress(string(execer)),
+			Nonce:   1,
 		}
 		tx.Sign(types.SECP256K1, privOpener)
 		return tx
 	case jvmTypes.UpdateJvmContractAction:
 		tx := &types.Transaction{
 			//Execer:[]byte(jvmTypes.JvmX),
-			Execer:execer,
-			Payload:payload,
-			To:address.ExecAddress(string(execer)),
-			Nonce:1,
+			Execer:  execer,
+			Payload: payload,
+			To:      address.ExecAddress(string(execer)),
+			Nonce:   1,
 		}
 		tx.Sign(types.SECP256K1, privOpener)
 		return tx
 	default:
 		return nil
-    }
+	}
 }
 
-func readJarFile(jarName string) []byte {
-	codePath := "../../../../build/" + jarName + ".jar"
-	code, _ := ioutil.ReadFile(codePath)
+func readJarFile(jarName string, t *testing.T) []byte {
+	codePath := "../../../../build/ci/" + jarName + ".jar"
+	code, err := ioutil.ReadFile(codePath)
+	assert.Equal(t, nil, err)
 	return code
 }
 
@@ -694,7 +700,7 @@ func getprivkey(key string) crypto.PrivKey {
 	return priv
 }
 
-func deposit2contract(t *testing.T, jvm *JVMExecutor,  contractName, addr string, ) {
+func deposit2contract(t *testing.T, jvm *JVMExecutor, contractName, addr string) {
 	acc := jvm.GetCoinsAccount()
 
 	account := &types.Account{

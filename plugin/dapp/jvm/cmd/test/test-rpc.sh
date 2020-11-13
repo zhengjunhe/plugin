@@ -16,15 +16,14 @@ exector="jvm"
 main_addr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 jvm_addr="1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU"
 
-
 function init() {
-#    cli="/home/lyh/go/src/github.com/33cn/plugin/build/chain33-cli"
-#    #初始化
-#    $cli seed save -p hzjhzj123 -s "hurdle civil burden caught lamp spoon confirm admit plug gate bracket paddle eight merry repair"
-#    $cli wallet unlock -p hzjhzj123
-#
-#    req='{"method":"Chain33.ImportPrivkey", "params":[{"privkey":"'${privkey}'", "label":"opener"}]}'
-#    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.label=="opener") and (.result.acc.addr == "'${main_addr}'")' "$FUNCNAME"
+    #    cli="/home/lyh/go/src/github.com/33cn/plugin/build/chain33-cli"
+    #    #初始化
+    #    $cli seed save -p hzjhzj123 -s "hurdle civil burden caught lamp spoon confirm admit plug gate bracket paddle eight merry repair"
+    #    $cli wallet unlock -p hzjhzj123
+    #
+    #    req='{"method":"Chain33.ImportPrivkey", "params":[{"privkey":"'${privkey}'", "label":"opener"}]}'
+    #    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.label=="opener") and (.result.acc.addr == "'${main_addr}'")' "$FUNCNAME"
 
     req='{"method":"Chain33.ImportPrivkey", "params":[{"privkey":"'${jvm_privkey}'", "label":"player"}]}'
     chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.label=="player") and (.result.acc.addr == "'${jvm_addr}'")' "$FUNCNAME"
@@ -43,7 +42,6 @@ function transfer() {
     #转账
     echo "send coins transfer -a 1000"
     chain33_SendToAddress "${main_addr}" "${jvm_addr}" 100000000000 ${MAIN_HTTP}
-
 
     echo "send coins send_exec -a 30"
     contract_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'${contract}'"}]}' ${MAIN_HTTP} | jq -r ".result")
@@ -70,8 +68,7 @@ function play_game() {
 
 function close_game() {
     #转账，增加高度
-    for ((a=0;a<=12;a++))
-    do
+    for ((a = 0; a <= 12; a++)); do
         echo "$a" tx to transfer
         chain33_SendToAddress "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt" "${jvm_addr}" 100000000 ${MAIN_HTTP}
     done
@@ -96,7 +93,6 @@ function query() {
     local req='{"method":"Chain33.Query","params":[{"execer":"'"${exector}"'", "funcName":"JavaContract","payload":{"contract": "'"${contract}"'","para":["getLuckNumByRound","1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU","1"]}}]}'
     chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "Query" ".result"
 }
-
 
 function rpc_test() {
     set +e

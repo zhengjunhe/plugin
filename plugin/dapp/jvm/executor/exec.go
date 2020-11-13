@@ -89,7 +89,7 @@ func (jvm *JVMExecutor) Exec_CallJvmContract(callJvmContract *jvmTypes.CallJvmCo
 	//合约执行失败，有2种可能
 	//1.余额不足等原因被合约强制退出本次交易
 	//2.java合约本身的代码问题，抛出异常
-	if errinfo != nil  || jvm.forceStopInfo.occurred {
+	if errinfo != nil || jvm.forceStopInfo.occurred {
 		var exeErr error
 		if errinfo != nil {
 			exeErr = errinfo
@@ -161,4 +161,3 @@ func (jvm *JVMExecutor) Exec_UpdateJvmContract(updateJvmContract *jvmTypes.Updat
 
 	return receipt, err
 }
-

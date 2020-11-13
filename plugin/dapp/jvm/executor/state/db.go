@@ -1,14 +1,15 @@
 package state
 
 import (
-	"github.com/33cn/chain33/types"
-	chain33db "github.com/33cn/chain33/common/db"
 	"strings"
+
+	chain33db "github.com/33cn/chain33/common/db"
+	"github.com/33cn/chain33/types"
 )
 
 var (
 	currentExecTxHash string
-	localDB chain33db.DB
+	localDB           chain33db.DB
 )
 
 func newMemDB() chain33db.DB {
@@ -51,7 +52,7 @@ func GetAllLocalKeyValues(txhashNew string) []*types.KeyValue {
 	var kvs []*types.KeyValue
 	it := goMemDB.DB().NewIterator(nil)
 	for it.Next() {
-		kvs = append(kvs, &types.KeyValue{Key:it.Key(), Value:it.Value()})
+		kvs = append(kvs, &types.KeyValue{Key: it.Key(), Value: it.Value()})
 	}
 	it.Release()
 	return kvs
@@ -61,5 +62,3 @@ func GetAllLocalKeyValues(txhashNew string) []*types.KeyValue {
 func SetCurrentTx4UT(txhashNew string) {
 	currentExecTxHash = txhashNew
 }
-
-

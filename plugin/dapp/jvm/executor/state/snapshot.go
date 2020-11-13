@@ -2,6 +2,7 @@ package state
 
 import (
 	"sort"
+
 	"github.com/33cn/chain33/types"
 	jvmtypes "github.com/33cn/plugin/plugin/dapp/jvm/types"
 )

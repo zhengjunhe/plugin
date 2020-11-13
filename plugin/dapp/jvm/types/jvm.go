@@ -1,37 +1,39 @@
 package types
 
 import (
+	"reflect"
+
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
-	"reflect"
 )
 
 const (
-	CheckNameExistsFunc       = "CheckContractNameExist"
-	EstimateGasJvm           = "EstimateGasJvm"
-	JvmDebug                 = "JvmDebug"
-	JvmGetAbi                = "JvmGetAbi"
-	ConvertJSON2Abi           = "ConvertJson2Abi"
-	Success                   = int(0)
-	Exception_Fail            = int(1)
-	JvmX                     = "jvm"
-	UserJvmX                 = "user.jvm."
-	CreateJvmContractStr     = "CreateJvmContract"
-	CallJvmContractStr       = "CallJvmContract"
-	UpdateJvmContractStr     = "UpdateJvmContract"
-	QueryJvmContract         = "JavaContract"
-	NameRegExp             = "^[a-zA-Z0-9]+$"
-	AccountOpFail          = false
-	AccountOpSuccess       = true
-	RetryNum               = int(10)
-	GRPCRecSize            = 5 * 30 * 1024 * 1024
-	Coin_Precision   int64 = (1e4)
-	MaxCodeSize            = 2 * 1024 * 1024
+	CheckNameExistsFunc        = "CheckContractNameExist"
+	EstimateGasJvm             = "EstimateGasJvm"
+	JvmDebug                   = "JvmDebug"
+	JvmGetAbi                  = "JvmGetAbi"
+	ConvertJSON2Abi            = "ConvertJson2Abi"
+	Success                    = int(0)
+	Exception_Fail             = int(1)
+	JvmX                       = "jvm"
+	UserJvmX                   = "user.jvm."
+	CreateJvmContractStr       = "CreateJvmContract"
+	CallJvmContractStr         = "CallJvmContract"
+	UpdateJvmContractStr       = "UpdateJvmContract"
+	QueryJvmContract           = "JavaContract"
+	NameRegExp                 = "^[a-zA-Z0-9]+$"
+	AccountOpFail              = false
+	AccountOpSuccess           = true
+	RetryNum                   = int(10)
+	GRPCRecSize                = 5 * 30 * 1024 * 1024
+	Coin_Precision       int64 = (1e4)
+	MaxCodeSize                = 2 * 1024 * 1024
 )
 
 type JvmContratOpType int
+
 const (
 	CreateJvmContractAction = 1 + iota
 	CallJvmContractAction
@@ -175,5 +177,3 @@ func (jvm *JvmType) GetLogMap() map[int64]*types.LogInfo {
 	}
 	return logInfo
 }
-
-
