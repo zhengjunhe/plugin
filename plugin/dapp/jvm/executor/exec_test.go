@@ -25,11 +25,13 @@ import (
 )
 
 var chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
+var testResourcePath = "../../../../build/ci"
 
 func init() {
-	Chain33LoaderJarPath = "../../../../build/ci"
+	Chain33LoaderJarPath = testResourcePath
 	jvm_init_alreay = true
 	Init(jvmTypes.JvmX, chainTestCfg, nil)
+	jdkPath = testResourcePath + "j2sdk-image"
 }
 
 var (

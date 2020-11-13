@@ -33,8 +33,19 @@ func JvmCmd() *cobra.Command {
 		jvmCallContractCmd(),
 		jvmUpdateContractCmd(),
 		jvmQueryContractCmd(),
+		jvmShowJarCodeCmd(),
 	)
 
+	return cmd
+}
+
+func jvmShowJarCodeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "code",
+		Short: "show me the jar code ",
+		Run:   jvmShowJarCode,
+	}
+	jvmAddCreateUpdateContractFlags(cmd)
 	return cmd
 }
 
@@ -106,6 +117,45 @@ func jvmCreateContract(cmd *cobra.Command, args []string) {
 	var res string
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", parameter, &res)
 	ctx.RunWithoutMarshal()
+}
+
+func jvmShowJarCode(cmd *cobra.Command, args []string) {
+	contractName, _ := cmd.Flags().GetString("contract")
+	path, _ := cmd.Flags().GetString("path")
+
+	nameReg, _ := regexp.Compile(jvmTypes.NameRegExp)
+	if !nameReg.MatchString(contractName) {
+		_, _ = fmt.Fprintln(os.Stderr, "Wrong jvm contract name format, which should be a-z and 0-9 ")
+		return
+	}
+
+	if len(contractName) > 16 || len(contractName) < 4 {
+		_, _ = fmt.Fprintln(os.Stderr, "jvm contract name's length should be within range [4-16]")
+		return
+	}
+
+	codePath := path + "/" + contractName + ".jar"
+	code, err := ioutil.ReadFile(codePath)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "read code error ", err)
+		return
+	}
+
+	if !strings.Contains(contractName, jvmTypes.UserJvmX) {
+		contractName = jvmTypes.UserJvmX + contractName
+	}
+
+	codeInstr := common.ToHex(code)
+	var createReq = &jvmTypes.CreateJvmContract{
+		Name: contractName,
+		Code: codeInstr,
+	}
+	data, err := json.MarshalIndent(createReq, "", "    ")
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	fmt.Println(string(data))
 }
 
 // 更新jvm合约
