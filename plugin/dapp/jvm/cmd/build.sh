@@ -17,7 +17,7 @@ cp ./test/* "${OUT_TESTDIR}"
 cd "${strpwd}" || exit
 if ! [ -d bigfile ]; then
     echo "Going to get files related to jvm exec env"
-    git clone git@gitlab.33.cn:root/bigfile.git
+    git clone https://gitlab.33.cn/root/bigfile.git
 fi
 cp bigfile/jvm/contract_loader/Chain33Loader.jar "${OUT_DIR}"
 cp bigfile/jvm/contract_loader/Chain33Loader.jar "${1}"
