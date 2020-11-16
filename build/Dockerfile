@@ -4,11 +4,11 @@ WORKDIR /root
 COPY chain33 chain33
 COPY chain33-cli chain33-cli
 COPY chain33.toml ./
-COPY Chain33Loader.jar Chain33Loader.jar
-COPY Dice.jar Dice.jar
-COPY Guess.jar Guess.jar
-COPY j2sdk-image j2sdk-image
-COPY jarlib jarlib
+COPY jvm/Chain33Loader.jar Chain33Loader.jar
+COPY jvm/Dice.jar Dice.jar
+COPY jvm/Guess.jar Guess.jar
+COPY jvm/j2sdk-image j2sdk-image
+COPY jvm/jarlib jarlib
 
 ENV _JAVA_LAUNCHER_DEBUG=1
 ENV GOTRACEBACK=crash
