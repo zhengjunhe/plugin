@@ -3,8 +3,11 @@
 #shellcheck source=/dev/null
 set -x
 source ../dapp-test-common.sh
+source /home/lyh/go/src/github.com/33cn/plugin/build/dapp-test-common.sh
 
-contract="user.jvm.Guess"
+contractName="Dice"
+contractname="dice"
+contract="user.jvm.${contractName}"
 #privkey="CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944"
 privkey="0x4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
 jvm_privkey="0x7b2800cdecd978ab0e877f7e3734b9d0b11d864fa51d9b623d7bdbd76c16a40d"
@@ -36,10 +39,12 @@ function create_contract() {
 
 function transfer() {
     echo "send coins send_exec -a 30"
-    contract_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'${contract}'"}]}' ${MAIN_HTTP} | jq -r ".result")
+#    contract_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'${contract}'"}]}' ${MAIN_HTTP} | jq -r ".result")
     #2  存钱到合约地址
-    tx_hash=$(curl -ksd '{"method":"Chain33.CreateRawTransaction","params":[{"to":"'"$contract_addr"'","amount":3000000000,"note":"send2exec"}]}' ${MAIN_HTTP} | jq -r ".result")
-    chain33_SignAndSendTx "$tx_hash" "$jvm_privkey" ${MAIN_HTTP}
+#    chain33_SendToAddress "$jvm_addr" "$contract_addr" 3000000000 ${MAIN_HTTP}
+
+    local CLI="docker exec ${dockerNamePrefix}_chain33_1 /root/chain33-cli"
+    ${CLI} send coins send_exec -a 300 -e $contract -n send2exec -k $jvm_addr
 }
 
 function start_game() {
@@ -71,11 +76,11 @@ function close_game() {
 
 function query() {
     #查看信息
-    local req='{"method":"Chain33.Query","params":[{"execer":"'"${exector}"'", "funcName":"JavaContract","payload":{"contract": "'"${contract}"'","para":["getGuessRecordByRound","1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU","1"]}}]}'
+    local req='{"method":"Chain33.Query","params":[{"execer":"'"${exector}"'", "funcName":"JavaContract","payload":{"contract": "'"${contract}"'","para":["get'${contractName}'RecordByRound","1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU","1"]}}]}'
     chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "Query" ".result"
     check=$(echo "${RETURN_RESP}" | jq -r ".result")
-    if [ "${check}" != "["'guessNum=6,ticketNum=2'"]" ]; then
-        echo -e "${RED}error query via get${contract}RecordByRound, expect guessNum=6,ticketNum=2 , get $RETURN_RESP${NOC}"
+    if [ "${check}" != "["''${contractname}'Num=6,ticketNum=2'"]" ]; then
+        echo -e "${RED}error query via get${contract}RecordByRound, expect ["''${contractname}'Num=6,ticketNum=2'"] , get $RETURN_RESP${NOC}"
     fi
 
     local req='{"method":"Chain33.Query","params":[{"execer":"'"${exector}"'", "funcName":"JavaContract","payload":{"contract": "'"${contract}"'","para":["getBonusByRound","1PrTWtT1Bzhg2L8jjVKU7ohxHVXLU4NMEU","1"]}}]}'
@@ -95,16 +100,12 @@ function rpc_test() {
 
     ispara=$(echo '"'"${MAIN_HTTP}"'"' | jq '.|contains("8901")')
     if [ "$ispara" == false ]; then
-#        local req='{"method":"Chain33.Query","params":[{"execer":"'"${exector}"'", "funcName":"CheckContractNameExist","payload":{"JvmContractName": "'"${contract}"'"}}]}'
-#        contract_exist=$(curl -ksd "$req" ${MAIN_HTTP} | jq -r ".result.existAlready")
-#        if [ "${contract_exist}" != "true" ]; then
-            init
-            create_contract
-            transfer
-            start_game
-            play_game
-            close_game
-#        fi
+        init
+        create_contract
+        transfer
+        start_game
+        play_game
+        close_game
         query
     fi
     chain33_RpcTestRst jvm "$CASE_ERR"
