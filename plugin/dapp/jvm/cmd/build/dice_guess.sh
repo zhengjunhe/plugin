@@ -20,7 +20,7 @@ function balance_enough() {
         local balance
         balance=$(echo "${result}" | jq -r ".balance")
         if [ "$(echo "$balance > $2" | bc)" -eq 1 ]; then
-            echo -e "${GRE}The balance is engout now, and is:${balance}${NOC}"
+            echo -e "${GRE}The balance is enough now, and is:${balance}${NOC}"
             return
         fi
         block_wait "${cli}" 1
@@ -119,6 +119,7 @@ function queryGame() {
             echo -e "${GRE}Succeed to do query from user.jvm.$contract, and get ${result}${NOC}"
         else
             echo -e "${RED}error query via get${contract}RecordByRound, expect ${expectQueryRes[i]}, get ${result}${NOC}"
+            exit
         fi
         let i++
 
@@ -151,7 +152,7 @@ function dice_game_test() {
     depositAndStartGame
     closeGame
     queryGame
-    playGameInfinite
+#    playGameInfinite
 }
 
-dice_game_test
+#dice_game_test

@@ -25,7 +25,7 @@ import (
 )
 
 var chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
-var testResourcePath = "../../../../build/ci"
+var testResourcePath = "../../../../build/ci/jvm/"
 
 func init() {
 	Chain33LoaderJarPath = testResourcePath
@@ -626,7 +626,7 @@ func createJarLib(t *testing.T) {
 	err := os.Mkdir("./jarlib", 0775)
 	assert.Equal(t, nil, err)
 
-	codePath := "../../../../build/ci/jarlib/Gson.jar"
+	codePath := testResourcePath + "jarlib/Gson.jar"
 	code, _ := ioutil.ReadFile(codePath)
 	jarfile, err := os.OpenFile("./jarlib/Gson.jar", os.O_WRONLY|os.O_CREATE, 0666)
 	assert.Equal(t, nil, err)
@@ -680,7 +680,7 @@ func createTx(txType int, payload []byte, execer []byte) *types.Transaction {
 }
 
 func readJarFile(jarName string, t *testing.T) []byte {
-	codePath := "../../../../build/ci/" + jarName + ".jar"
+	codePath := testResourcePath + jarName + ".jar"
 	code, err := ioutil.ReadFile(codePath)
 	assert.Equal(t, nil, err)
 	return code
