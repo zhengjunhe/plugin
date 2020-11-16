@@ -119,7 +119,7 @@ function queryGame() {
             echo -e "${GRE}Succeed to do query from user.jvm.$contract, and get ${result}${NOC}"
         else
             echo -e "${RED}error query via get${contract}RecordByRound, expect ${expectQueryRes[i]}, get ${result}${NOC}"
-            exit
+            exit 1
         fi
         let i++
 
@@ -147,6 +147,7 @@ function playGameInfinite() {
 }
 
 function dice_game_test() {
+  set -x
     setupAccount
     deployJavaContract
     depositAndStartGame
