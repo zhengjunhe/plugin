@@ -15,9 +15,9 @@ privateKey = "22968d29c6de695381a8719ef7bf00e2edb6cce500bb59a4fc73c41887610962"
 publicKey = ""
 address = ""
 
-[chain33]
-id = "chain33"
-host = "chain33:8802"
+[dplatform]
+id = "dplatform"
+host = "dplatform:8802"
 user = ""
 pass = ""
 disableAutoReconnect = true

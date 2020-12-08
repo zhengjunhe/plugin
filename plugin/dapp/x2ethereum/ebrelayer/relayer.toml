@@ -10,7 +10,7 @@ EthBlockFetchPeriod=5000
 #BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
 
 [SyncTxConfig]
-chain33Host="http://172.18.0.7:8801"
+dplatformHost="http://172.18.0.7:8801"
 pushHost="http://192.168.0.125:20000"
 pushName="x2ethereum"
 pushBind="0.0.0.0:20000"
