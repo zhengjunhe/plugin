@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/types"
 	x2eTy "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 

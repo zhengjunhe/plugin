@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/client/mocks"
-	dbm "github.com/33cn/chain33/common/db"
-	_ "github.com/33cn/chain33/system"
-	chain33Types "github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/client/mocks"
+	dbm "github.com/33cn/dplatform/common/db"
+	_ "github.com/33cn/dplatform/system"
+	dplatformTypes "github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethcontract/generated"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethcontract/test/setup"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethinterface"
@@ -35,10 +35,10 @@ import (
 
 var (
 	configPath           = flag.String("f", "./../../relayer.toml", "configfile")
-	chain33PrivateKeyStr = "0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
-	chain33AccountAddr   = "1GTxrmuWiXavhcvsaH5w9whgVxUrWsUMdV"
+	dplatformPrivateKeyStr = "0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
+	dplatformAccountAddr   = "1GTxrmuWiXavhcvsaH5w9whgVxUrWsUMdV"
 	passphrase           = "123456hzj"
-	chainTestCfg         = chain33Types.NewChain33Config(chain33Types.GetDefaultCfgstring())
+	chainTestCfg         = dplatformTypes.NewDplatformConfig(dplatformTypes.GetDefaultCfgstring())
 
 	// 0x8AFDADFC88a1087c9A1D6c0F5Dd04634b87F303a
 	deployerPrivateKey = "8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
@@ -50,8 +50,8 @@ var (
 )
 
 func Test_LockAndBurn(t *testing.T) {
-	var tx chain33Types.Transaction
-	var ret chain33Types.Reply
+	var tx dplatformTypes.Transaction
+	var ret dplatformTypes.Reply
 	ret.IsOk = true
 
 	mockapi := &mocks.QueueProtocolAPI{}
@@ -82,7 +82,7 @@ func Test_GetValidatorAddr(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	_, _, err = ethRelayer.NewAccount("123")
@@ -90,23 +90,23 @@ func Test_GetValidatorAddr(t *testing.T) {
 
 	privateKey, _, err := ethRelayer.GetAccount("123")
 	require.Nil(t, err)
-	assert.NotEqual(t, privateKey, chain33PrivateKeyStr)
+	assert.NotEqual(t, privateKey, dplatformPrivateKeyStr)
 
 	privateKey, addr, err := ethRelayer.GetAccount(passphrase)
 	require.Nil(t, err)
-	assert.Equal(t, privateKey, chain33PrivateKeyStr)
-	assert.Equal(t, addr, chain33AccountAddr)
+	assert.Equal(t, privateKey, dplatformPrivateKeyStr)
+	assert.Equal(t, addr, dplatformAccountAddr)
 
 	validators, err := ethRelayer.GetValidatorAddr()
 	require.Nil(t, err)
-	assert.Equal(t, validators.Chain33Validator, chain33AccountAddr)
+	assert.Equal(t, validators.DplatformValidator, dplatformAccountAddr)
 }
 
 func Test_IsValidatorActive(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	is, err := ethRelayer.IsValidatorActive(para.InitValidators[0].String())
@@ -127,7 +127,7 @@ func Test_ShowAddr(t *testing.T) {
 		relayer := &Relayer4Ethereum{
 			provider:            cfg.EthProvider,
 			unlockchan:          make(chan int, 2),
-			rpcURL2Chain33:      cfg.SyncTxConfig.Chain33Host,
+			rpcURL2Dplatform:      cfg.SyncTxConfig.DplatformHost,
 			maturityDegree:      cfg.EthMaturityDegree,
 			fetchHeightPeriodMs: cfg.EthBlockFetchPeriod,
 		}
@@ -141,7 +141,7 @@ func Test_ShowAddr(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	ethRelayer.prePareSubscribeEvent()
@@ -170,7 +170,7 @@ func Test_DeployContrcts(t *testing.T) {
 		provider:            cfg.EthProvider,
 		db:                  db,
 		unlockchan:          make(chan int, 2),
-		rpcURL2Chain33:      cfg.SyncTxConfig.Chain33Host,
+		rpcURL2Dplatform:      cfg.SyncTxConfig.DplatformHost,
 		maturityDegree:      cfg.EthMaturityDegree,
 		fetchHeightPeriodMs: cfg.EthBlockFetchPeriod,
 		deployInfo:          cfg.Deploy,
@@ -193,7 +193,7 @@ func Test_SetBridgeRegistryAddr(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	_ = ethRelayer.setBridgeRegistryAddr(x2EthDeployInfo.BridgeRegistry.Address.String())
@@ -206,7 +206,7 @@ func Test_CreateBridgeToken(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	balance, err := ethRelayer.GetBalance("", para.InitValidators[0].String())
@@ -226,10 +226,10 @@ func Test_CreateBridgeToken(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, decimals, uint8(8))
 
-	_, err = ethRelayer.Burn(para.InitValidators[0].String(), tokenAddrbty, chain33AccountAddr, "10")
+	_, err = ethRelayer.Burn(para.InitValidators[0].String(), tokenAddrbty, dplatformAccountAddr, "10")
 	require.Error(t, err)
 
-	_, err = ethRelayer.BurnAsync(para.InitValidators[0].String(), tokenAddrbty, chain33AccountAddr, "10")
+	_, err = ethRelayer.BurnAsync(para.InitValidators[0].String(), tokenAddrbty, dplatformAccountAddr, "10")
 	require.Error(t, err)
 }
 
@@ -237,7 +237,7 @@ func testLockEth(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	ctx := context.Background()
@@ -249,10 +249,10 @@ func testLockEth(t *testing.T) {
 	require.Nil(t, err)
 
 	//lock 50 eth
-	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+	dplatformSender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
 	ethAmount := big.NewInt(50)
 	userOneAuth.Value = ethAmount
-	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, chain33Sender, common.Address{}, ethAmount)
+	_, err = x2EthContracts.BridgeBank.Lock(userOneAuth, dplatformSender, common.Address{}, ethAmount)
 	require.Nil(t, err)
 	sim.Commit()
 
@@ -277,7 +277,7 @@ func testCreateERC20Token(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	tokenErc20Addr, err := ethRelayer.CreateERC20Token("testcc")
@@ -316,7 +316,7 @@ func testCreateERC20Token(t *testing.T) {
 	tx1 := ethRelayer.QueryTxhashRelay2Eth()
 	require.Empty(t, tx1)
 
-	tx2 := ethRelayer.QueryTxhashRelay2Chain33()
+	tx2 := ethRelayer.QueryTxhashRelay2Dplatform()
 	require.Empty(t, tx2)
 
 	tokenErc20Addrtestc, err := ethRelayer.CreateERC20Token("testc")
@@ -332,8 +332,8 @@ func testCreateERC20Token(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, balance, "10000000000000")
 
-	chain33Receiver := "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-	_, err = ethRelayer.LockEthErc20Asset(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "100", chain33Receiver)
+	dplatformReceiver := "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
+	_, err = ethRelayer.LockEthErc20Asset(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "100", dplatformReceiver)
 	require.Nil(t, err)
 	sim.Commit()
 
@@ -345,7 +345,7 @@ func testCreateERC20Token(t *testing.T) {
 	require.Nil(t, err)
 	sim.Commit()
 
-	_, err = ethRelayer.LockEthErc20AssetAsync(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "100", chain33Receiver)
+	_, err = ethRelayer.LockEthErc20AssetAsync(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "100", dplatformReceiver)
 	require.Nil(t, err)
 	sim.Commit()
 
@@ -363,7 +363,7 @@ func testBurnBty(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	tokenAddrbty, err := ethRelayer.CreateBridgeToken("bty")
@@ -371,10 +371,10 @@ func testBurnBty(t *testing.T) {
 	require.NotEmpty(t, tokenAddrbty)
 	sim.Commit()
 
-	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+	dplatformSender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
 	amount := int64(100)
 	ethReceiver := para.InitValidators[2]
-	claimID := crypto.Keccak256Hash(chain33Sender, ethReceiver.Bytes(), big.NewInt(amount).Bytes())
+	claimID := crypto.Keccak256Hash(dplatformSender, ethReceiver.Bytes(), big.NewInt(amount).Bytes())
 	authOracle, err := ethtxs.PrepareAuth(ethRelayer.clientSpec, para.ValidatorPriKey[0], para.InitValidators[0])
 	require.Nil(t, err)
 	signature, err := ethtxs.SignClaim4Eth(claimID, para.ValidatorPriKey[0])
@@ -383,7 +383,7 @@ func testBurnBty(t *testing.T) {
 	_, err = x2EthContracts.Oracle.NewOracleClaim(
 		authOracle,
 		events.ClaimTypeLock,
-		chain33Sender,
+		dplatformSender,
 		ethReceiver,
 		common.HexToAddress(tokenAddrbty),
 		"bty",
@@ -397,7 +397,7 @@ func testBurnBty(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "100")
 
-	_, err = ethRelayer.Burn(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, chain33AccountAddr, "10")
+	_, err = ethRelayer.Burn(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, dplatformAccountAddr, "10")
 	require.NoError(t, err)
 	sim.Commit()
 
@@ -409,7 +409,7 @@ func testBurnBty(t *testing.T) {
 	require.Nil(t, err)
 	sim.Commit()
 
-	_, err = ethRelayer.BurnAsync(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, chain33AccountAddr, "10")
+	_, err = ethRelayer.BurnAsync(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, dplatformAccountAddr, "10")
 	require.NoError(t, err)
 	sim.Commit()
 
@@ -432,7 +432,7 @@ func Test_RestorePrivateKeys(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	_ = ethRelayer.ImportChain33PrivateKey(passphrase, chain33PrivateKeyStr)
+	_ = ethRelayer.ImportDplatformPrivateKey(passphrase, dplatformPrivateKeyStr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	go func() {
@@ -440,18 +440,18 @@ func Test_RestorePrivateKeys(t *testing.T) {
 		}
 	}()
 	ethRelayer.rwLock.RLock()
-	temp := ethRelayer.privateKey4Chain33
+	temp := ethRelayer.privateKey4Dplatform
 	ethRelayer.rwLock.RUnlock()
 
 	err = ethRelayer.RestorePrivateKeys("123")
 	ethRelayer.rwLock.RLock()
-	assert.NotEqual(t, hex.EncodeToString(temp.Bytes()), hex.EncodeToString(ethRelayer.privateKey4Chain33.Bytes()))
+	assert.NotEqual(t, hex.EncodeToString(temp.Bytes()), hex.EncodeToString(ethRelayer.privateKey4Dplatform.Bytes()))
 	ethRelayer.rwLock.RUnlock()
 	require.Nil(t, err)
 
 	err = ethRelayer.RestorePrivateKeys(passphrase)
 	ethRelayer.rwLock.RLock()
-	assert.Equal(t, hex.EncodeToString(temp.Bytes()), hex.EncodeToString(ethRelayer.privateKey4Chain33.Bytes()))
+	assert.Equal(t, hex.EncodeToString(temp.Bytes()), hex.EncodeToString(ethRelayer.privateKey4Dplatform.Bytes()))
 	ethRelayer.rwLock.RUnlock()
 	require.Nil(t, err)
 
@@ -460,14 +460,14 @@ func Test_RestorePrivateKeys(t *testing.T) {
 
 	err = ethRelayer.RestorePrivateKeys("new123")
 	ethRelayer.rwLock.RLock()
-	assert.Equal(t, hex.EncodeToString(temp.Bytes()), hex.EncodeToString(ethRelayer.privateKey4Chain33.Bytes()))
+	assert.Equal(t, hex.EncodeToString(temp.Bytes()), hex.EncodeToString(ethRelayer.privateKey4Dplatform.Bytes()))
 	ethRelayer.rwLock.RUnlock()
 	require.Nil(t, err)
 }
 
 func newEthRelayer(para *ethtxs.DeployPara, sim *ethinterface.SimExtend, x2EthContracts *ethtxs.X2EthContracts, x2EthDeployInfo *ethtxs.X2EthDeployInfo) *Relayer4Ethereum {
 	cfg := initCfg(*configPath)
-	cfg.SyncTxConfig.Chain33Host = "http://127.0.0.1:8801"
+	cfg.SyncTxConfig.DplatformHost = "http://127.0.0.1:8801"
 	cfg.BridgeRegistry = x2EthDeployInfo.BridgeRegistry.Address.String()
 	cfg.SyncTxConfig.PushBind = "127.0.0.1:60000"
 	cfg.SyncTxConfig.FetchHeightPeriodMs = 50
@@ -480,7 +480,7 @@ func newEthRelayer(para *ethtxs.DeployPara, sim *ethinterface.SimExtend, x2EthCo
 		provider:            cfg.EthProvider,
 		db:                  db,
 		unlockchan:          make(chan int, 2),
-		rpcURL2Chain33:      cfg.SyncTxConfig.Chain33Host,
+		rpcURL2Dplatform:      cfg.SyncTxConfig.DplatformHost,
 		bridgeRegistryAddr:  x2EthDeployInfo.BridgeRegistry.Address,
 		maturityDegree:      cfg.EthMaturityDegree,
 		fetchHeightPeriodMs: cfg.EthBlockFetchPeriod,

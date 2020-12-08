@@ -5,7 +5,7 @@
 package model
 
 import (
-	"github.com/33cn/chain33/common/log/log15"
+	"github.com/33cn/dplatform/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 )
 

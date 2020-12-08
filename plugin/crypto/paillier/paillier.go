@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/33cn/chain33/common"
+	"github.com/33cn/dplatform/common"
 )
 
 func CiphertextAdd(ciphertext1, ciphertext2 string) (string, error) {

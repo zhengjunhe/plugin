@@ -12,11 +12,11 @@ import (
 
 	"strings"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	cmdtypes "github.com/33cn/chain33/system/dapp/commands/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	cmdtypes "github.com/33cn/dplatform/system/dapp/commands/types"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/spf13/cobra"
 )
@@ -375,7 +375,7 @@ func showAmountOfUTXO(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&reqPrivacyToken)
 
 	var res pty.ReplyPrivacyAmounts
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseShowAmountOfUTXORes)
 	ctx.Run()
 }
@@ -422,7 +422,7 @@ func showUTXOs4SpecifiedAmount(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&reqPrivacyToken)
 
 	var res pty.ReplyUTXOsOfAmount
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseShowUTXOs4SpecifiedAmountRes)
 	ctx.Run()
 }

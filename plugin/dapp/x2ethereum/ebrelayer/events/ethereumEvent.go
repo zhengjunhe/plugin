@@ -29,7 +29,7 @@ type BurnEvent struct {
 	Symbol          string
 	Amount          *big.Int
 	OwnerFrom       common.Address
-	Chain33Receiver []byte
+	DplatformReceiver []byte
 	Nonce           *big.Int
 }
 
@@ -37,7 +37,7 @@ type BurnEvent struct {
 type NewProphecyClaimEvent struct {
 	ProphecyID       *big.Int
 	ClaimType        uint8
-	Chain33Sender    []byte
+	DplatformSender    []byte
 	EthereumReceiver common.Address
 	ValidatorAddress common.Address
 	TokenAddress     common.Address
@@ -80,6 +80,6 @@ func UnpackLogBurn(contractAbi abi.ABI, eventName string, eventData []byte) (bur
 
 	eventsLog.Info("UnpackLogBurn", "token addr", event.Token.Hex(), "symbol", event.Symbol,
 		"Amount", event.Amount.String(), "OwnerFrom", event.OwnerFrom.String(),
-		"Chain33Receiver", string(event.Chain33Receiver), "nonce", event.Nonce.String())
+		"DplatformReceiver", string(event.DplatformReceiver), "nonce", event.Nonce.String())
 	return event, nil
 }

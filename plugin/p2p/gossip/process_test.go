@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/common/merkle"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/merkle"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,7 +22,7 @@ type versionData struct {
 }
 
 func Test_processP2P(t *testing.T) {
-	cfg := types.NewChain33Config(types.ReadFile("../../../chain33.toml"))
+	cfg := types.NewDplatformConfig(types.ReadFile("../../../dplatform.toml"))
 	q := queue.New("channel")
 	q.SetConfig(cfg)
 	go q.Start()

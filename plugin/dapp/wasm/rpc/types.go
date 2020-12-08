@@ -5,7 +5,7 @@
 package rpc
 
 import (
-	"github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/dplatform/rpc/types"
 )
 
 // Jrpc json rpc struct

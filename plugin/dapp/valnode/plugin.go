@@ -5,7 +5,7 @@
 package valnode
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/valnode/commands"
 	"github.com/33cn/plugin/plugin/dapp/valnode/executor"
 	"github.com/33cn/plugin/plugin/dapp/valnode/rpc"

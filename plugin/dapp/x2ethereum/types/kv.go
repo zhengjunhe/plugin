@@ -20,9 +20,9 @@ func CalProphecyPrefix(id string) []byte {
 	return []byte(KeyPrefixStateDB + string(ProphecyKey) + id)
 }
 
-//CalEth2Chain33Prefix ...
-func CalEth2Chain33Prefix() []byte {
-	return []byte(KeyPrefixStateDB + string(Eth2Chain33Key))
+//CalEth2DplatformPrefix ...
+func CalEth2DplatformPrefix() []byte {
+	return []byte(KeyPrefixStateDB + string(Eth2DplatformKey))
 }
 
 //CalWithdrawEthPrefix ...
@@ -30,14 +30,14 @@ func CalWithdrawEthPrefix() []byte {
 	return []byte(KeyPrefixStateDB + string(WithdrawEthKey))
 }
 
-//CalChain33ToEthPrefix ...
-func CalChain33ToEthPrefix() []byte {
-	return []byte(KeyPrefixStateDB + string(Chain33ToEthKey))
+//CalDplatformToEthPrefix ...
+func CalDplatformToEthPrefix() []byte {
+	return []byte(KeyPrefixStateDB + string(DplatformToEthKey))
 }
 
-//CalWithdrawChain33Prefix ...
-func CalWithdrawChain33Prefix() []byte {
-	return []byte(KeyPrefixStateDB + string(WithdrawChain33Key))
+//CalWithdrawDplatformPrefix ...
+func CalWithdrawDplatformPrefix() []byte {
+	return []byte(KeyPrefixStateDB + string(WithdrawDplatformKey))
 }
 
 //CalValidatorMapsPrefix ...

@@ -7,18 +7,18 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common"
-	commonlog "github.com/33cn/chain33/common/log"
-	drivers "github.com/33cn/chain33/system/dapp"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common"
+	commonlog "github.com/33cn/dplatform/common/log"
+	drivers "github.com/33cn/dplatform/system/dapp"
 	"github.com/stretchr/testify/assert"
 
-	apimock "github.com/33cn/chain33/client/mocks"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	dbmock "github.com/33cn/chain33/common/db/mocks"
-	"github.com/33cn/chain33/types"
+	apimock "github.com/33cn/dplatform/client/mocks"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	dbmock "github.com/33cn/dplatform/common/db/mocks"
+	"github.com/33cn/dplatform/types"
 	mty "github.com/33cn/plugin/plugin/dapp/multisig/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -55,7 +55,7 @@ var (
 	PrintFlag                    = false
 	InAmount              int64  = 10
 	OutAmount             int64  = 5
-	chainTestCfg                 = types.NewChain33Config(types.GetDefaultCfgstring())
+	chainTestCfg                 = types.NewDplatformConfig(types.GetDefaultCfgstring())
 )
 
 func init() {

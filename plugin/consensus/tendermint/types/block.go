@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/merkle"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/merkle"
+	"github.com/33cn/dplatform/types"
 	tmtypes "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )
 

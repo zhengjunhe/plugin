@@ -3,10 +3,10 @@ package types
 import (
 	"fmt"
 
-	"github.com/33cn/chain33/common/db"
+	"github.com/33cn/dplatform/common/db"
 
-	"github.com/33cn/chain33/common/db/table"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/db/table"
+	"github.com/33cn/dplatform/types"
 )
 
 var opt = &table.Option{

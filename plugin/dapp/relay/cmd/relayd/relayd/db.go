@@ -7,8 +7,8 @@ package relayd
 import (
 	"fmt"
 
-	"github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 )
 

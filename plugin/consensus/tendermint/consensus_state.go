@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/chain33/common/merkle"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/merkle"
+	"github.com/33cn/dplatform/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/tendermint/types"
 	tmtypes "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )

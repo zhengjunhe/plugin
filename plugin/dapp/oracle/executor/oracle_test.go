@@ -6,20 +6,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/queue"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/queue"
 	oty "github.com/33cn/plugin/plugin/dapp/oracle/types"
 	"github.com/stretchr/testify/assert"
 
-	//"github.com/33cn/chain33/types/jsonpb"
+	//"github.com/33cn/dplatform/types/jsonpb"
 	"strings"
 )
 
@@ -47,7 +47,7 @@ func init() {
 	r = rand.New(rand.NewSource(types.Now().UnixNano()))
 }
 func TestOrace(t *testing.T) {
-	cfg := types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 	Init(oty.OracleX, cfg, nil)
 	total := 100 * types.Coin
 	accountA := types.Account{

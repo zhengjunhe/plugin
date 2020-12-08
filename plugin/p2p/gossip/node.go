@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/33cn/chain33/p2p"
+	"github.com/33cn/dplatform/p2p"
 
 	//"strings"
 	"sync/atomic"
@@ -16,9 +16,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/33cn/chain33/common/pubsub"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/pubsub"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/p2p/gossip/nat"
 )
 
@@ -80,7 +80,7 @@ type Node struct {
 	cfgSeeds   sync.Map
 	closed     int32
 	pubsub     *pubsub.PubSub
-	chainCfg   *types.Chain33Config
+	chainCfg   *types.DplatformConfig
 	p2pMgr     *p2p.Manager
 }
 

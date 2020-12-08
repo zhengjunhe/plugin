@@ -5,10 +5,10 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/common/address"
-	log "github.com/33cn/chain33/common/log/log15"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/address"
+	log "github.com/33cn/dplatform/common/log/log15"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 )
 
@@ -26,7 +26,7 @@ var (
 )
 
 // Init 重命名执行器名称
-func Init(name string, cfg *types.Chain33Config, sub []byte) {
+func Init(name string, cfg *types.DplatformConfig, sub []byte) {
 	if sub != nil {
 		types.MustDecode(sub, &subcfg)
 	}

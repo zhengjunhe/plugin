@@ -1,7 +1,7 @@
 package multisig
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	_ "github.com/33cn/plugin/plugin/dapp/multisig/autotest" //register auto test
 	"github.com/33cn/plugin/plugin/dapp/multisig/commands"
 	"github.com/33cn/plugin/plugin/dapp/multisig/executor"

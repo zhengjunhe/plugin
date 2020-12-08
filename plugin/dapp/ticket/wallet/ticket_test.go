@@ -12,17 +12,17 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	wcom "github.com/33cn/chain33/wallet/common"
+	wcom "github.com/33cn/dplatform/wallet/common"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/client/mocks"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/db"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/client/mocks"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/db"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 )
 
 func TestForceCloseTicketList(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 
 	ticket := &ticketPolicy{mtx: &sync.Mutex{}}
@@ -58,7 +58,7 @@ func TestForceCloseTicketList(t *testing.T) {
 }
 
 func TestCloseTicketsByAddr(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 
 	pk, err := hex.DecodeString("CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944")
@@ -89,7 +89,7 @@ func TestCloseTicketsByAddr(t *testing.T) {
 }
 
 func TestBuyTicketOne(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 
 	ticket := &ticketPolicy{mtx: &sync.Mutex{}}
@@ -112,7 +112,7 @@ func TestBuyTicketOne(t *testing.T) {
 }
 
 func TestBuyMinerAddrTicketOne(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 
 	pk, err := hex.DecodeString("CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944")

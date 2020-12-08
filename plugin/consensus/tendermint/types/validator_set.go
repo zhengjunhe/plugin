@@ -11,8 +11,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/merkle"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/merkle"
 	"github.com/pkg/errors"
 )
 

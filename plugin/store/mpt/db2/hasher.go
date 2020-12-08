@@ -24,8 +24,8 @@ import (
 	"hash"
 	"sync"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto/sha3"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto/sha3"
 	"github.com/33cn/plugin/plugin/store/mpt/db2/rlp"
 )
 

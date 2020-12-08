@@ -5,7 +5,7 @@
 package para
 
 import (
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/pkg/errors"
 )
 

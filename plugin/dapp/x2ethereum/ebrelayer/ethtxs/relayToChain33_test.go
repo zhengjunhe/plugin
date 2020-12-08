@@ -4,24 +4,24 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/33cn/chain33/client/mocks"
-	chain33Common "github.com/33cn/chain33/common"
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/system/crypto/secp256k1"
-	chain33Types "github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/client/mocks"
+	dplatformCommon "github.com/33cn/dplatform/common"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/system/crypto/secp256k1"
+	dplatformTypes "github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	chainTestCfg = chain33Types.NewChain33Config(chain33Types.GetDefaultCfgstring())
+	chainTestCfg = dplatformTypes.NewDplatformConfig(dplatformTypes.GetDefaultCfgstring())
 )
 
-func Test_RelayToChain33(t *testing.T) {
-	var tx chain33Types.Transaction
-	var ret chain33Types.Reply
+func Test_RelayToDplatform(t *testing.T) {
+	var tx dplatformTypes.Transaction
+	var ret dplatformTypes.Reply
 	ret.IsOk = true
 
 	mockapi := &mocks.QueueProtocolAPI{}
@@ -40,9 +40,9 @@ func Test_RelayToChain33(t *testing.T) {
 	rpcCfg.JrpcBindAddr = "127.0.0.1:8801"
 	mock33.GetRPC().Listen()
 
-	chain33PrivateKeyStr := "0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
+	dplatformPrivateKeyStr := "0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
 	var driver secp256k1.Driver
-	privateKeySli, err := chain33Common.FromHex(chain33PrivateKeyStr)
+	privateKeySli, err := dplatformCommon.FromHex(dplatformPrivateKeyStr)
 	require.Nil(t, err)
 
 	priKey, err := driver.PrivKeyFromBytes(privateKeySli)
@@ -50,11 +50,11 @@ func Test_RelayToChain33(t *testing.T) {
 
 	claim := &ebrelayerTypes.EthBridgeClaim{}
 
-	fmt.Println("======================= testRelayLockToChain33 =======================")
-	_, err = RelayLockToChain33(priKey, claim, "http://127.0.0.1:8801")
+	fmt.Println("======================= testRelayLockToDplatform =======================")
+	_, err = RelayLockToDplatform(priKey, claim, "http://127.0.0.1:8801")
 	require.Nil(t, err)
 
-	fmt.Println("======================= testRelayBurnToChain33 =======================")
-	_, err = RelayBurnToChain33(priKey, claim, "http://127.0.0.1:8801")
+	fmt.Println("======================= testRelayBurnToDplatform =======================")
+	_, err = RelayBurnToDplatform(priKey, claim, "http://127.0.0.1:8801")
 	require.Nil(t, err)
 }

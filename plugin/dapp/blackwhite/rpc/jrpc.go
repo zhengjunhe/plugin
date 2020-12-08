@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	bw "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 )
 

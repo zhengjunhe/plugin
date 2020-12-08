@@ -15,12 +15,12 @@ import (
 	"sync"
 	"syscall"
 
-	dbm "github.com/33cn/chain33/common/db"
-	logf "github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/common/log/log15"
-	chain33Types "github.com/33cn/chain33/types"
+	dbm "github.com/33cn/dplatform/common/db"
+	logf "github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/common/log/log15"
+	dplatformTypes "github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer"
-	chain33Relayer "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer/chain33"
+	dplatformRelayer "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer/dplatform"
 	ethRelayer "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	tml "github.com/BurntSushi/toml"
@@ -60,7 +60,7 @@ func main() {
 		panic(err)
 	}
 	cfg := initCfg(*configPath)
-	log.Info("Starting FUZAMEI Chain33-X-Ethereum relayer software:", "\n     Name: ", cfg.Title)
+	log.Info("Starting FUZAMEI Dplatform-X-Ethereum relayer software:", "\n     Name: ", cfg.Title)
 	logf.SetFileLog(convertLogCfg(cfg.Log))
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -70,10 +70,10 @@ func main() {
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
 
-	chain33RelayerService := chain33Relayer.StartChain33Relayer(ctx, cfg.SyncTxConfig, cfg.BridgeRegistry, cfg.EthProvider, db)
-	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy, cfg.EthMaturityDegree, cfg.EthBlockFetchPeriod)
+	dplatformRelayerService := dplatformRelayer.StartDplatformRelayer(ctx, cfg.SyncTxConfig, cfg.BridgeRegistry, cfg.EthProvider, db)
+	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.DplatformHost, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy, cfg.EthMaturityDegree, cfg.EthBlockFetchPeriod)
 
-	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
+	relayerManager := relayer.NewRelayerManager(dplatformRelayerService, ethRelayerService, db)
 
 	log.Info("cfg.JrpcBindAddr = ", cfg.JrpcBindAddr)
 	startRPCServer(cfg.JrpcBindAddr, relayerManager)
@@ -88,8 +88,8 @@ func main() {
 	}()
 }
 
-func convertLogCfg(log *relayerTypes.Log) *chain33Types.Log {
-	return &chain33Types.Log{
+func convertLogCfg(log *relayerTypes.Log) *dplatformTypes.Log {
+	return &dplatformTypes.Log{
 		Loglevel:        log.Loglevel,
 		LogConsoleLevel: log.LogConsoleLevel,
 		LogFile:         log.LogFile,

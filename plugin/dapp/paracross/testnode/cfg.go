@@ -11,7 +11,7 @@ CoinSymbol="bty"
 loglevel = "debug"
 logConsoleLevel = "info"
 # 日志文件名，可带目录，所有生成的日志文件都放到此目录下
-logFile = "logs/chain33.para.log"
+logFile = "logs/dplatform.para.log"
 # 单个日志文件的最大值（单位：兆）
 maxFileSize = 300
 # 最多保存的历史日志文件个数

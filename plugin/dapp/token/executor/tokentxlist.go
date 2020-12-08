@@ -7,9 +7,9 @@ package executor
 import (
 	"fmt"
 
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	tp "github.com/33cn/plugin/plugin/dapp/token/types"
 )
 

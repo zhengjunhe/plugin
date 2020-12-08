@@ -12,14 +12,14 @@ import (
 
 	"math/rand"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/queue"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/queue"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	pty "github.com/33cn/plugin/plugin/dapp/hashlock/types"
 )
 
@@ -113,7 +113,7 @@ func TestExecHashsend(t *testing.T) {
 }
 
 func constructHashlockInstance() drivers.Driver {
-	chainTestCfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	chainTestCfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	Init(pty.HashlockX, chainTestCfg, nil)
 	h := newHashlock()
 	q := queue.New("channel")

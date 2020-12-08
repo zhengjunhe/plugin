@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/chain33/common/crypto"
+	"github.com/33cn/dplatform/common/crypto"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 )
 

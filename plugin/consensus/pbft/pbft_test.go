@@ -13,21 +13,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/blockchain"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/limits"
-	"github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/executor"
-	"github.com/33cn/chain33/mempool"
-	"github.com/33cn/chain33/p2p"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/store"
-	cty "github.com/33cn/chain33/system/dapp/coins/types"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/wallet"
+	"github.com/33cn/dplatform/blockchain"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/limits"
+	"github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/executor"
+	"github.com/33cn/dplatform/mempool"
+	"github.com/33cn/dplatform/p2p"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/store"
+	cty "github.com/33cn/dplatform/system/dapp/coins/types"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/wallet"
 
-	_ "github.com/33cn/chain33/system"
+	_ "github.com/33cn/dplatform/system"
 	_ "github.com/33cn/plugin/plugin/dapp/init"
 	_ "github.com/33cn/plugin/plugin/store/init"
 )
@@ -64,26 +64,26 @@ func TestPbft(t *testing.T) {
 
 func initEnvPbft() (queue.Queue, *blockchain.BlockChain, *p2p.Manager, queue.Module, queue.Module, *executor.Executor, queue.Module, queue.Module) {
 	flag.Parse()
-	chain33Cfg := types.NewChain33Config(types.ReadFile("chain33.test.toml"))
+	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
 	var q = queue.New("channel")
-	q.SetConfig(chain33Cfg)
-	cfg := chain33Cfg.GetModuleConfig()
-	sub := chain33Cfg.GetSubConfig()
+	q.SetConfig(dplatformCfg)
+	cfg := dplatformCfg.GetModuleConfig()
+	sub := dplatformCfg.GetSubConfig()
 
-	chain := blockchain.New(chain33Cfg)
+	chain := blockchain.New(dplatformCfg)
 	chain.SetQueueClient(q.Client())
-	mem := mempool.New(chain33Cfg)
+	mem := mempool.New(dplatformCfg)
 	mem.SetQueueClient(q.Client())
-	exec := executor.New(chain33Cfg)
+	exec := executor.New(dplatformCfg)
 	exec.SetQueueClient(q.Client())
-	chain33Cfg.SetMinFee(0)
-	s := store.New(chain33Cfg)
+	dplatformCfg.SetMinFee(0)
+	s := store.New(dplatformCfg)
 	s.SetQueueClient(q.Client())
 	cs := NewPbft(cfg.Consensus, sub.Consensus["pbft"])
 	cs.SetQueueClient(q.Client())
-	p2pnet := p2p.NewP2PMgr(chain33Cfg)
+	p2pnet := p2p.NewP2PMgr(dplatformCfg)
 	p2pnet.SetQueueClient(q.Client())
-	walletm := wallet.New(chain33Cfg)
+	walletm := wallet.New(dplatformCfg)
 	walletm.SetQueueClient(q.Client())
 
 	return q, chain, p2pnet, s, mem, exec, cs, walletm

@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	"github.com/spf13/cobra"
 )
@@ -86,7 +86,7 @@ func showBtcHeadHeightList(cmd *cobra.Command, args []string) {
 	}
 
 	var res ty.ReplyRelayBtcHeadHeightList
-	err = rpc.Call("Chain33.Query", params, &res)
+	err = rpc.Call("Dplatform.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -95,7 +95,7 @@ func showBtcHeadHeightList(cmd *cobra.Command, args []string) {
 	parseRelayBtcHeadHeightList(res)
 }
 
-// ShowBTCHeadCurHeightCmd show BTC head current height in chain33
+// ShowBTCHeadCurHeightCmd show BTC head current height in dplatform
 func ShowBTCHeadCurHeightCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "btc_cur_height",
@@ -130,7 +130,7 @@ func showBtcHeadCurHeight(cmd *cobra.Command, args []string) {
 	}
 
 	var res ty.ReplayRelayQryBTCHeadHeight
-	err = rpc.Call("Chain33.Query", params, &res)
+	err = rpc.Call("Dplatform.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -181,7 +181,7 @@ func showOnesRelayOrders(cmd *cobra.Command, args []string) {
 	}
 
 	var res ty.ReplyRelayOrders
-	err = rpc.Call("Chain33.Query", params, &res)
+	err = rpc.Call("Dplatform.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -231,7 +231,7 @@ func showRelayAcceptOrders(cmd *cobra.Command, args []string) {
 	}
 
 	var res ty.ReplyRelayOrders
-	err = rpc.Call("Chain33.Query", params, &res)
+	err = rpc.Call("Dplatform.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -286,7 +286,7 @@ func showCoinRelayOrders(cmd *cobra.Command, args []string) {
 	}
 
 	var res ty.ReplyRelayOrders
-	err = rpc.Call("Chain33.Query", params, &res)
+	err = rpc.Call("Dplatform.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -418,7 +418,7 @@ func createTx(cmd *cobra.Command, payLoad []byte, action string) {
 	}
 
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 

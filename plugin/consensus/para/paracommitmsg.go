@@ -19,9 +19,9 @@ import (
 
 	"bytes"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/types"
 	paracross "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/pkg/errors"

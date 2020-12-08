@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"io"
 
-	chain33Common "github.com/33cn/chain33/common"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/crypto/secp256k1"
-	chain33Types "github.com/33cn/chain33/types"
-	wcom "github.com/33cn/chain33/wallet/common"
+	dplatformCommon "github.com/33cn/dplatform/common"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/system/crypto/secp256k1"
+	dplatformTypes "github.com/33cn/dplatform/types"
+	wcom "github.com/33cn/dplatform/wallet/common"
 	x2ethTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	chain33AccountKey = []byte("Chain33Account4EthRelayer")
+	dplatformAccountKey = []byte("DplatformAccount4EthRelayer")
 	start             = int(1)
 )
 
@@ -48,48 +48,48 @@ func (ethRelayer *Relayer4Ethereum) NewAccount(passphrase string) (privateKeystr
 
 //GetAccount ...
 func (ethRelayer *Relayer4Ethereum) GetAccount(passphrase string) (privateKey, addr string, err error) {
-	accountInfo, err := ethRelayer.db.Get(chain33AccountKey)
+	accountInfo, err := ethRelayer.db.Get(dplatformAccountKey)
 	if nil != err {
 		return "", "", err
 	}
-	Chain33Account := &x2ethTypes.Account4Relayer{}
-	if err := chain33Types.Decode(accountInfo, Chain33Account); nil != err {
+	DplatformAccount := &x2ethTypes.Account4Relayer{}
+	if err := dplatformTypes.Decode(accountInfo, DplatformAccount); nil != err {
 		return "", "", err
 	}
-	decryptered := wcom.CBCDecrypterPrivkey([]byte(passphrase), Chain33Account.Privkey)
-	privateKey = chain33Common.ToHex(decryptered)
-	addr = Chain33Account.Addr
+	decryptered := wcom.CBCDecrypterPrivkey([]byte(passphrase), DplatformAccount.Privkey)
+	privateKey = dplatformCommon.ToHex(decryptered)
+	addr = DplatformAccount.Addr
 	return
 }
 
 //GetValidatorAddr ...
 func (ethRelayer *Relayer4Ethereum) GetValidatorAddr() (validators x2ethTypes.ValidatorAddr4EthRelayer, err error) {
-	var chain33AccountAddr string
-	accountInfo, err := ethRelayer.db.Get(chain33AccountKey)
+	var dplatformAccountAddr string
+	accountInfo, err := ethRelayer.db.Get(dplatformAccountKey)
 	if nil == err {
 		ethAccount := &x2ethTypes.Account4Relayer{}
-		if err := chain33Types.Decode(accountInfo, ethAccount); nil == err {
-			chain33AccountAddr = ethAccount.Addr
+		if err := dplatformTypes.Decode(accountInfo, ethAccount); nil == err {
+			dplatformAccountAddr = ethAccount.Addr
 		}
 	}
 
-	if 0 == len(chain33AccountAddr) {
+	if 0 == len(dplatformAccountAddr) {
 		return x2ethTypes.ValidatorAddr4EthRelayer{}, x2ethTypes.ErrNoValidatorConfigured
 	}
 
 	validators = x2ethTypes.ValidatorAddr4EthRelayer{
-		Chain33Validator: chain33AccountAddr,
+		DplatformValidator: dplatformAccountAddr,
 	}
 	return
 }
 
 //RestorePrivateKeys ...
 func (ethRelayer *Relayer4Ethereum) RestorePrivateKeys(passPhase string) (err error) {
-	accountInfo, err := ethRelayer.db.Get(chain33AccountKey)
+	accountInfo, err := ethRelayer.db.Get(dplatformAccountKey)
 	if nil == err {
-		Chain33Account := &x2ethTypes.Account4Relayer{}
-		if err := chain33Types.Decode(accountInfo, Chain33Account); nil == err {
-			decryptered := wcom.CBCDecrypterPrivkey([]byte(passPhase), Chain33Account.Privkey)
+		DplatformAccount := &x2ethTypes.Account4Relayer{}
+		if err := dplatformTypes.Decode(accountInfo, DplatformAccount); nil == err {
+			decryptered := wcom.CBCDecrypterPrivkey([]byte(passPhase), DplatformAccount.Privkey)
 			var driver secp256k1.Driver
 			priKey, err := driver.PrivKeyFromBytes(decryptered)
 			if nil != err {
@@ -98,13 +98,13 @@ func (ethRelayer *Relayer4Ethereum) RestorePrivateKeys(passPhase string) (err er
 				return errors.New(errInfo)
 			}
 			ethRelayer.rwLock.Lock()
-			ethRelayer.privateKey4Chain33 = priKey
+			ethRelayer.privateKey4Dplatform = priKey
 			ethRelayer.rwLock.Unlock()
 		}
 	}
 
 	ethRelayer.rwLock.RLock()
-	if nil != ethRelayer.privateKey4Chain33 {
+	if nil != ethRelayer.privateKey4Dplatform {
 		ethRelayer.unlockchan <- start
 	}
 	ethRelayer.rwLock.RUnlock()
@@ -114,26 +114,26 @@ func (ethRelayer *Relayer4Ethereum) RestorePrivateKeys(passPhase string) (err er
 
 //StoreAccountWithNewPassphase ...
 func (ethRelayer *Relayer4Ethereum) StoreAccountWithNewPassphase(newPassphrase, oldPassphrase string) error {
-	accountInfo, err := ethRelayer.db.Get(chain33AccountKey)
+	accountInfo, err := ethRelayer.db.Get(dplatformAccountKey)
 	if nil != err {
 		relayerLog.Info("StoreAccountWithNewPassphase", "pls check account is created already, err", err)
 		return err
 	}
-	Chain33Account := &x2ethTypes.Account4Relayer{}
-	if err := chain33Types.Decode(accountInfo, Chain33Account); nil != err {
+	DplatformAccount := &x2ethTypes.Account4Relayer{}
+	if err := dplatformTypes.Decode(accountInfo, DplatformAccount); nil != err {
 		return err
 	}
-	decryptered := wcom.CBCDecrypterPrivkey([]byte(oldPassphrase), Chain33Account.Privkey)
+	decryptered := wcom.CBCDecrypterPrivkey([]byte(oldPassphrase), DplatformAccount.Privkey)
 	encryptered := wcom.CBCEncrypterPrivkey([]byte(newPassphrase), decryptered)
-	Chain33Account.Privkey = encryptered
-	encodedInfo := chain33Types.Encode(Chain33Account)
-	return ethRelayer.db.SetSync(chain33AccountKey, encodedInfo)
+	DplatformAccount.Privkey = encryptered
+	encodedInfo := dplatformTypes.Encode(DplatformAccount)
+	return ethRelayer.db.SetSync(dplatformAccountKey, encodedInfo)
 }
 
-//ImportChain33PrivateKey ...
-func (ethRelayer *Relayer4Ethereum) ImportChain33PrivateKey(passphrase, privateKeyStr string) error {
+//ImportDplatformPrivateKey ...
+func (ethRelayer *Relayer4Ethereum) ImportDplatformPrivateKey(passphrase, privateKeyStr string) error {
 	var driver secp256k1.Driver
-	privateKeySli, err := chain33Common.FromHex(privateKeyStr)
+	privateKeySli, err := dplatformCommon.FromHex(privateKeyStr)
 	if nil != err {
 		return err
 	}
@@ -143,7 +143,7 @@ func (ethRelayer *Relayer4Ethereum) ImportChain33PrivateKey(passphrase, privateK
 	}
 
 	ethRelayer.rwLock.Lock()
-	ethRelayer.privateKey4Chain33 = priKey
+	ethRelayer.privateKey4Dplatform = priKey
 	ethRelayer.rwLock.Unlock()
 	ethRelayer.unlockchan <- start
 	addr, err := pubKeyToAddress4Bty(priKey.PubKey().Bytes())
@@ -156,8 +156,8 @@ func (ethRelayer *Relayer4Ethereum) ImportChain33PrivateKey(passphrase, privateK
 		Privkey: encryptered,
 		Addr:    addr,
 	}
-	encodedInfo := chain33Types.Encode(account)
-	return ethRelayer.db.SetSync(chain33AccountKey, encodedInfo)
+	encodedInfo := dplatformTypes.Encode(account)
+	return ethRelayer.db.SetSync(dplatformAccountKey, encodedInfo)
 }
 
 //checksum: first four bytes of double-SHA256.
@@ -220,7 +220,7 @@ func newKeyAndStore(db dbm.DB, rand io.Reader, passphrase string) (privateKey *e
 	}
 	_ = db
 
-	privateKeyStr = chain33Common.ToHex(privateKeyBytes)
+	privateKeyStr = dplatformCommon.ToHex(privateKeyBytes)
 	addr = ethAccount.Addr
 	return
 }

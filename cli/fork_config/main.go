@@ -6,13 +6,13 @@ import (
 	"sort"
 	"strings"
 
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
 	_ "github.com/33cn/plugin/plugin"
 )
 
 func main() {
-	cfg := types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 	forks, err := cfg.GetForks()
 	if err != nil {
 		fmt.Printf("clone fork failed: %v", err)

@@ -5,7 +5,7 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/unfreeze/types"
 )
 
@@ -15,7 +15,7 @@ type Means interface {
 	calcFrozen(unfreeze *pty.Unfreeze, now int64) (int64, error)
 }
 
-func newMeans(cfg *types.Chain33Config, means string, height int64) (Means, error) {
+func newMeans(cfg *types.DplatformConfig, means string, height int64) (Means, error) {
 	if cfg.IsDappFork(height, pty.UnfreezeX, "ForkTerminatePart") {
 		if means == "FixAmount" {
 			return &fixAmountV2{}, nil

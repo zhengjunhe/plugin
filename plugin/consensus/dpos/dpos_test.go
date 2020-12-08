@@ -18,22 +18,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/util"
 
-	"github.com/33cn/chain33/blockchain"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/limits"
-	"github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/executor"
-	"github.com/33cn/chain33/mempool"
-	"github.com/33cn/chain33/p2p"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/rpc"
-	"github.com/33cn/chain33/store"
-	_ "github.com/33cn/chain33/system"
-	cty "github.com/33cn/chain33/system/dapp/coins/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/blockchain"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/limits"
+	"github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/executor"
+	"github.com/33cn/dplatform/mempool"
+	"github.com/33cn/dplatform/p2p"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/rpc"
+	"github.com/33cn/dplatform/store"
+	_ "github.com/33cn/dplatform/system"
+	cty "github.com/33cn/dplatform/system/dapp/coins/types"
+	"github.com/33cn/dplatform/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"
 	_ "github.com/33cn/plugin/plugin/dapp/init"
@@ -46,7 +46,7 @@ var (
 	random    *rand.Rand
 	loopCount = 10
 	conn      *grpc.ClientConn
-	c         types.Chain33Client
+	c         types.DplatformClient
 	strPubkey = "03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"
 	pubkey    []byte
 
@@ -373,27 +373,27 @@ func DposPerf() {
 
 func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Module, *executor.Executor, queue.Module, queue.Module) {
 	flag.Parse()
-	chain33Cfg := types.NewChain33Config(types.ReadFile("chain33.test.toml"))
+	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
 	var q = queue.New("channel")
-	q.SetConfig(chain33Cfg)
-	cfg := chain33Cfg.GetModuleConfig()
-	sub := chain33Cfg.GetSubConfig()
+	q.SetConfig(dplatformCfg)
+	cfg := dplatformCfg.GetModuleConfig()
+	sub := dplatformCfg.GetSubConfig()
 
-	chain := blockchain.New(chain33Cfg)
+	chain := blockchain.New(dplatformCfg)
 	chain.SetQueueClient(q.Client())
 
-	exec := executor.New(chain33Cfg)
+	exec := executor.New(dplatformCfg)
 	exec.SetQueueClient(q.Client())
-	chain33Cfg.SetMinFee(0)
-	s := store.New(chain33Cfg)
+	dplatformCfg.SetMinFee(0)
+	s := store.New(dplatformCfg)
 	s.SetQueueClient(q.Client())
 
 	cs := New(cfg.Consensus, sub.Consensus["dpos"])
 	cs.SetQueueClient(q.Client())
 
-	mem := mempool.New(chain33Cfg)
+	mem := mempool.New(dplatformCfg)
 	mem.SetQueueClient(q.Client())
-	network := p2p.NewP2PMgr(chain33Cfg)
+	network := p2p.NewP2PMgr(dplatformCfg)
 
 	network.SetQueueClient(q.Client())
 
@@ -403,7 +403,7 @@ func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Mod
 	return q, chain, s, mem, exec, cs, network
 }
 
-func createConn(url string) (*grpc.ClientConn, types.Chain33Client, error) {
+func createConn(url string) (*grpc.ClientConn, types.DplatformClient, error) {
 	var err error
 	//url := "127.0.0.1:8802"
 	fmt.Println("grpc url:", url)
@@ -412,7 +412,7 @@ func createConn(url string) (*grpc.ClientConn, types.Chain33Client, error) {
 		fmt.Fprintln(os.Stderr, err)
 		return conn1, nil, err
 	}
-	c1 := types.NewChain33Client(conn)
+	c1 := types.NewDplatformClient(conn)
 	//r = rand.New(rand.NewSource(types.Now().UnixNano()))
 	return conn1, c1, nil
 }
@@ -426,7 +426,7 @@ func createConn2() error {
 		fmt.Fprintln(os.Stderr, err)
 		return err
 	}
-	c = types.NewChain33Client(conn)
+	c = types.NewDplatformClient(conn)
 	return nil
 }
 
@@ -576,7 +576,7 @@ func sendRegistVrfRPTx(cs *ConsensusState, info *dty.DposVrfRPRegist) bool {
 	return true
 }
 
-func sendTransferTx(cfg *types.Chain33Config, fromKey, to string, amount int64) bool {
+func sendTransferTx(cfg *types.DplatformConfig, fromKey, to string, amount int64) bool {
 	signer := util.HexToPrivkey(fromKey)
 	var tx *types.Transaction
 	transfer := &cty.CoinsAction{}
@@ -610,7 +610,7 @@ func sendTransferTx(cfg *types.Chain33Config, fromKey, to string, amount int64) 
 	return true
 }
 
-func sendTransferToExecTx(cfg *types.Chain33Config, fromKey, execName string, amount int64) bool {
+func sendTransferToExecTx(cfg *types.DplatformConfig, fromKey, execName string, amount int64) bool {
 	signer := util.HexToPrivkey(fromKey)
 	var tx *types.Transaction
 	transfer := &cty.CoinsAction{}
@@ -647,7 +647,7 @@ func sendTransferToExecTx(cfg *types.Chain33Config, fromKey, execName string, am
 	return true
 }
 
-func sendRegistCandidatorTx(cfg *types.Chain33Config, ppubkey, addr, ip, privKey string) bool {
+func sendRegistCandidatorTx(cfg *types.DplatformConfig, ppubkey, addr, ip, privKey string) bool {
 	signer := util.HexToPrivkey(privKey)
 	var tx *types.Transaction
 	action := &dty.DposVoteAction{}

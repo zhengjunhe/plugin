@@ -16,9 +16,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 
-	"github.com/33cn/chain33/common/crypto"
+	"github.com/33cn/dplatform/common/crypto"
 	dpostype "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"

@@ -8,10 +8,10 @@ package rpc_test
 import (
 	"testing"
 
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	_ "github.com/33cn/plugin/plugin"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ import (
 
 func TestNewTicket(t *testing.T) {
 	//选票(可以用hotwallet 关闭选票)
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 	mocker := testnode.NewWithConfig(cfg, nil)
 	mocker.Listen()

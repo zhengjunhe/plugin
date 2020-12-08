@@ -13,14 +13,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	dbm "github.com/33cn/chain33/common/db"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	dbm "github.com/33cn/dplatform/common/db"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 )
 
@@ -36,7 +36,7 @@ type DB struct {
 }
 
 //GetRealPrice 获取真实的价格
-func (t *DB) GetRealPrice(cfg *types.Chain33Config) int64 {
+func (t *DB) GetRealPrice(cfg *types.DplatformConfig) int64 {
 	if t.GetPrice() == 0 {
 		cfg := ty.GetTicketMinerParam(cfg, cfg.GetFork("ForkChainParamV1"))
 		return cfg.TicketPrice
@@ -45,7 +45,7 @@ func (t *DB) GetRealPrice(cfg *types.Chain33Config) int64 {
 }
 
 // NewDB new instance
-func NewDB(cfg *types.Chain33Config, id, minerAddress, returnWallet string, blocktime, height, price int64, isGenesis bool) *DB {
+func NewDB(cfg *types.DplatformConfig, id, minerAddress, returnWallet string, blocktime, height, price int64, isGenesis bool) *DB {
 	t := &DB{}
 	t.TicketId = id
 	t.MinerAddress = minerAddress
@@ -140,15 +140,15 @@ func NewAction(t *Ticket, tx *types.Transaction) *Action {
 
 // GenesisInit init genesis
 func (action *Action) GenesisInit(genesis *ty.TicketGenesis) (*types.Receipt, error) {
-	chain33Cfg := action.api.GetConfig()
+	dplatformCfg := action.api.GetConfig()
 	prefix := common.ToHex(action.txhash)
 	prefix = genesis.MinerAddress + ":" + prefix + ":"
 	var logs []*types.ReceiptLog
 	var kv []*types.KeyValue
-	cfg := ty.GetTicketMinerParam(chain33Cfg, action.height)
+	cfg := ty.GetTicketMinerParam(dplatformCfg, action.height)
 	for i := 0; i < int(genesis.Count); i++ {
 		id := prefix + fmt.Sprintf("%010d", i)
-		t := NewDB(chain33Cfg, id, genesis.MinerAddress, genesis.ReturnAddress, action.blocktime, action.height, cfg.TicketPrice, true)
+		t := NewDB(dplatformCfg, id, genesis.MinerAddress, genesis.ReturnAddress, action.blocktime, action.height, cfg.TicketPrice, true)
 		//冻结子账户资金
 		receipt, err := action.coinsAccount.ExecFrozen(genesis.ReturnAddress, action.execaddr, cfg.TicketPrice)
 		if err != nil {
@@ -228,7 +228,7 @@ func (action *Action) TicketBind(tbind *ty.TicketBind) (*types.Receipt, error) {
 
 // TicketOpen ticket open
 func (action *Action) TicketOpen(topen *ty.TicketOpen) (*types.Receipt, error) {
-	chain33Cfg := action.api.GetConfig()
+	dplatformCfg := action.api.GetConfig()
 	prefix := common.ToHex(action.txhash)
 	prefix = topen.MinerAddress + ":" + prefix + ":"
 	var logs []*types.ReceiptLog
@@ -244,17 +244,17 @@ func (action *Action) TicketOpen(topen *ty.TicketOpen) (*types.Receipt, error) {
 		}
 	}
 	//action.fromaddr == topen.ReturnAddress or mineraddr == action.fromaddr
-	cfg := ty.GetTicketMinerParam(chain33Cfg, action.height)
+	cfg := ty.GetTicketMinerParam(dplatformCfg, action.height)
 	for i := 0; i < int(topen.Count); i++ {
 		id := prefix + fmt.Sprintf("%010d", i)
 		//add pubHash
-		if chain33Cfg.IsDappFork(action.height, ty.TicketX, "ForkTicketId") {
+		if dplatformCfg.IsDappFork(action.height, ty.TicketX, "ForkTicketId") {
 			if len(topen.PubHashes) == 0 {
 				return nil, ty.ErrOpenTicketPubHash
 			}
 			id = id + ":" + fmt.Sprintf("%x:%d", topen.PubHashes[i], topen.RandSeed)
 		}
-		t := NewDB(chain33Cfg, id, topen.MinerAddress, topen.ReturnAddress, action.blocktime, action.height, cfg.TicketPrice, false)
+		t := NewDB(dplatformCfg, id, topen.MinerAddress, topen.ReturnAddress, action.blocktime, action.height, cfg.TicketPrice, false)
 
 		//冻结子账户资金
 		receipt, err := action.coinsAccount.ExecFrozen(topen.ReturnAddress, action.execaddr, cfg.TicketPrice)
@@ -300,7 +300,7 @@ func (action *Action) TicketMiner(miner *ty.TicketMiner, index int) (*types.Rece
 	if index != 0 {
 		return nil, types.ErrCoinBaseIndex
 	}
-	chain33Cfg := action.api.GetConfig()
+	dplatformCfg := action.api.GetConfig()
 	ticket, err := readTicket(action.db, miner.TicketId)
 	if err != nil {
 		return nil, err
@@ -308,7 +308,7 @@ func (action *Action) TicketMiner(miner *ty.TicketMiner, index int) (*types.Rece
 	if ticket.Status != ty.TicketOpened {
 		return nil, types.ErrCoinBaseTicketStatus
 	}
-	cfg := ty.GetTicketMinerParam(chain33Cfg, action.height)
+	cfg := ty.GetTicketMinerParam(dplatformCfg, action.height)
 	if !ticket.IsGenesis {
 		if action.blocktime-ticket.GetCreateTime() < cfg.TicketFrozenTime {
 			return nil, ty.ErrTime
@@ -319,7 +319,7 @@ func (action *Action) TicketMiner(miner *ty.TicketMiner, index int) (*types.Rece
 		return nil, types.ErrFromAddr
 	}
 	//check pubHash and privHash
-	if !chain33Cfg.IsDappFork(action.height, ty.TicketX, "ForkTicketId") {
+	if !dplatformCfg.IsDappFork(action.height, ty.TicketX, "ForkTicketId") {
 		miner.PrivHash = nil
 	}
 	if len(miner.PrivHash) != 0 {
@@ -332,7 +332,7 @@ func (action *Action) TicketMiner(miner *ty.TicketMiner, index int) (*types.Rece
 	prevstatus := ticket.Status
 	ticket.Status = ty.TicketMined
 	ticket.MinerValue = miner.Reward
-	if chain33Cfg.IsFork(action.height, "ForkMinerTime") {
+	if dplatformCfg.IsFork(action.height, "ForkMinerTime") {
 		ticket.MinerTime = action.blocktime
 	}
 	t := &DB{*ticket, prevstatus}
@@ -346,18 +346,18 @@ func (action *Action) TicketMiner(miner *ty.TicketMiner, index int) (*types.Rece
 	}
 	//fund
 	var receipt2 *types.Receipt
-	if chain33Cfg.IsFork(action.height, "ForkTicketFundAddrV1") {
+	if dplatformCfg.IsFork(action.height, "ForkTicketFundAddrV1") {
 		// issue coins to exec addr
-		addr := chain33Cfg.MGStr("mver.consensus.fundKeyAddr", action.height)
+		addr := dplatformCfg.MGStr("mver.consensus.fundKeyAddr", action.height)
 		receipt2, err = action.coinsAccount.ExecIssueCoins(addr, cfg.CoinDevFund)
 		if err != nil {
 			tlog.Error("TicketMiner.ExecDepositFrozen fund to autonomy fund", "addr", addr, "error", err)
 			return nil, err
 		}
 	} else {
-		receipt2, err = action.coinsAccount.ExecDepositFrozen(chain33Cfg.GetFundAddr(), action.execaddr, cfg.CoinDevFund)
+		receipt2, err = action.coinsAccount.ExecDepositFrozen(dplatformCfg.GetFundAddr(), action.execaddr, cfg.CoinDevFund)
 		if err != nil {
-			tlog.Error("TicketMiner.ExecDepositFrozen fund", "addr", chain33Cfg.GetFundAddr(), "execaddr", action.execaddr, "error", err)
+			tlog.Error("TicketMiner.ExecDepositFrozen fund", "addr", dplatformCfg.GetFundAddr(), "execaddr", action.execaddr, "error", err)
 			return nil, err
 		}
 	}
@@ -374,9 +374,9 @@ func (action *Action) TicketMiner(miner *ty.TicketMiner, index int) (*types.Rece
 
 // TicketClose close tick
 func (action *Action) TicketClose(tclose *ty.TicketClose) (*types.Receipt, error) {
-	chain33Cfg := action.api.GetConfig()
+	dplatformCfg := action.api.GetConfig()
 	tickets := make([]*DB, len(tclose.TicketId))
-	cfg := ty.GetTicketMinerParam(chain33Cfg, action.height)
+	cfg := ty.GetTicketMinerParam(dplatformCfg, action.height)
 	for i := 0; i < len(tclose.TicketId); i++ {
 		ticket, err := readTicket(action.db, tclose.TicketId[i])
 		if err != nil {
@@ -415,7 +415,7 @@ func (action *Action) TicketClose(tclose *ty.TicketClose) (*types.Receipt, error
 		if t.prevstatus == 1 {
 			t.MinerValue = 0
 		}
-		retValue := t.GetRealPrice(chain33Cfg) + t.MinerValue
+		retValue := t.GetRealPrice(dplatformCfg) + t.MinerValue
 		receipt1, err := action.coinsAccount.ExecActive(t.ReturnAddress, action.execaddr, retValue)
 		if err != nil {
 			tlog.Error("TicketClose.ExecActive user", "addr", t.ReturnAddress, "execaddr", action.execaddr, "value", retValue)
@@ -427,10 +427,10 @@ func (action *Action) TicketClose(tclose *ty.TicketClose) (*types.Receipt, error
 		kv = append(kv, receipt1.KV...)
 		//如果ticket 已经挖矿成功了，那么要解冻发展基金部分币
 		if t.prevstatus == 2 {
-			if !chain33Cfg.IsFork(action.height, "ForkTicketFundAddrV1") {
-				receipt2, err := action.coinsAccount.ExecActive(chain33Cfg.GetFundAddr(), action.execaddr, cfg.CoinDevFund)
+			if !dplatformCfg.IsFork(action.height, "ForkTicketFundAddrV1") {
+				receipt2, err := action.coinsAccount.ExecActive(dplatformCfg.GetFundAddr(), action.execaddr, cfg.CoinDevFund)
 				if err != nil {
-					tlog.Error("TicketClose.ExecActive fund", "addr", chain33Cfg.GetFundAddr(), "execaddr", action.execaddr, "value", retValue)
+					tlog.Error("TicketClose.ExecActive fund", "addr", dplatformCfg.GetFundAddr(), "execaddr", action.execaddr, "value", retValue)
 					return nil, err
 				}
 				logs = append(logs, receipt2.Logs...)

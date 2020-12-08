@@ -331,7 +331,7 @@ function kvcreator(dbtype) {
     } else if (dbtype == "query") {
 		this.getdb = this.getlocal
 	} else {
-		throw new Error("chain33.js: dbtype error")
+		throw new Error("dplatform.js: dbtype error")
 	}
 }
 
@@ -488,14 +488,14 @@ function callcode(context, f, args, loglist) {
 	}
     var farr = f.split("_", 2)
     if (farr.length !=  2) {
-        throw new Error("chain33.js: invalid function name format")
+        throw new Error("dplatform.js: invalid function name format")
     }
     var prefix = farr[0]
     var funcname = farr[1]
     var runobj = {}
     var logs = []
     if (!Array.isArray(loglist)) {
-        throw new Error("chain33.js: loglist must be array")
+        throw new Error("dplatform.js: loglist must be array")
     }
     for (var i = 0; i < loglist.length; i++) {
         logs.push(JSON.parse(loglist[i]))
@@ -507,11 +507,11 @@ function callcode(context, f, args, loglist) {
 	} else if (prefix == "query") {
 		runobj = new Query(JSON.parse(context))
 	} else {
-        throw new Error("chain33.js: invalid function prefix format")
+        throw new Error("dplatform.js: invalid function prefix format")
     }
     var arg = JSON.parse(args)
     if (typeof runobj[funcname] != "function") {
-        throw new Error("chain33.js: invalid function name not found->" + funcname)
+        throw new Error("dplatform.js: invalid function name not found->" + funcname)
     }
     return runobj[funcname](arg)
 }

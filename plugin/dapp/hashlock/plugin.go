@@ -5,7 +5,7 @@
 package hashlock
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/hashlock/commands"
 	"github.com/33cn/plugin/plugin/dapp/hashlock/executor"
 	"github.com/33cn/plugin/plugin/dapp/hashlock/types"

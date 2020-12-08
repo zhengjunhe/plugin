@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	commonlog "github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	commonlog "github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/chain33/system"
+	_ "github.com/33cn/dplatform/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 

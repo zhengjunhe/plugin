@@ -15,10 +15,10 @@ import (
 
 	"strings"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -32,8 +32,8 @@ var (
 var (
 	mainNetgrpcAddr = "localhost:8802"
 	ParaNetgrpcAddr = "localhost:8902"
-	mainClient      types.Chain33Client
-	paraClient      types.Chain33Client
+	mainClient      types.DplatformClient
+	paraClient      types.DplatformClient
 	r               *rand.Rand
 
 	ErrTest = errors.New("ErrTest")
@@ -83,13 +83,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	mainClient = types.NewChain33Client(conn)
+	mainClient = types.NewDplatformClient(conn)
 
 	conn, err = grpc.Dial(ParaNetgrpcAddr, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
-	paraClient = types.NewChain33Client(conn)
+	paraClient = types.NewDplatformClient(conn)
 
 	r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	addrexec = address.ExecAddress("user.p.guodun.token")
@@ -424,7 +424,7 @@ func getprivkey(key string) crypto.PrivKey {
 }
 
 func TestToken_validSymbolWithHeight(t *testing.T) {
-	cfg := types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 	forkBadTokenSymbol := cfg.GetDappFork(pty.TokenX, pty.ForkBadTokenSymbolX)
 	forkTokenSymbolWithNumber := cfg.GetDappFork(pty.TokenX, pty.ForkTokenSymbolWithNumberX)
 	t.Log("x", "1", forkBadTokenSymbol, "2", forkTokenSymbolWithNumber)

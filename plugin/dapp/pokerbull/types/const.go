@@ -4,7 +4,7 @@
 
 package types
 
-import "github.com/33cn/chain33/types"
+import "github.com/33cn/dplatform/types"
 
 //game action ty
 const (

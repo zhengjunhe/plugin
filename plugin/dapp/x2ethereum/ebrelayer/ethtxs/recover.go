@@ -19,13 +19,13 @@ func RecoverContractHandler(client ethinterface.EthClientSpec, sender, registry 
 		return nil, nil, errors.New("failed to NewBridgeBank")
 	}
 
-	chain33BridgeAddr, err := GetAddressFromBridgeRegistry(client, sender, registry, Chain33Bridge)
+	dplatformBridgeAddr, err := GetAddressFromBridgeRegistry(client, sender, registry, DplatformBridge)
 	if nil != err {
-		return nil, nil, errors.New("failed to get addr for chain33BridgeAddr from registry")
+		return nil, nil, errors.New("failed to get addr for dplatformBridgeAddr from registry")
 	}
-	chain33Bridge, err := generated.NewChain33Bridge(*chain33BridgeAddr, client)
+	dplatformBridge, err := generated.NewDplatformBridge(*dplatformBridgeAddr, client)
 	if nil != err {
-		return nil, nil, errors.New("failed to NewChain33Bridge")
+		return nil, nil, errors.New("failed to NewDplatformBridge")
 	}
 
 	oracleAddr, err := GetAddressFromBridgeRegistry(client, sender, registry, Oracle)
@@ -50,7 +50,7 @@ func RecoverContractHandler(client ethinterface.EthClientSpec, sender, registry 
 	x2EthContracts := &X2EthContracts{
 		BridgeRegistry: registryInstance,
 		BridgeBank:     bridgeBank,
-		Chain33Bridge:  chain33Bridge,
+		DplatformBridge:  dplatformBridge,
 		Oracle:         oracle,
 		Valset:         valset,
 	}
@@ -58,7 +58,7 @@ func RecoverContractHandler(client ethinterface.EthClientSpec, sender, registry 
 	x2EthDeployInfo := &X2EthDeployInfo{
 		BridgeRegistry: &DeployResult{Address: registry},
 		BridgeBank:     &DeployResult{Address: *bridgeBankAddr},
-		Chain33Bridge:  &DeployResult{Address: *chain33BridgeAddr},
+		DplatformBridge:  &DeployResult{Address: *dplatformBridgeAddr},
 		Oracle:         &DeployResult{Address: *oracleAddr},
 		Valset:         &DeployResult{Address: *valsetAddr},
 	}

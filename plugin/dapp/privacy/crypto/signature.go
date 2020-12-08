@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/33cn/chain33/common/crypto"
+	"github.com/33cn/dplatform/common/crypto"
 )
 
 // SignatureOnetime sinature data type

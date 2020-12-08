@@ -11,12 +11,12 @@ import (
 	//"github.com/stretchr/testify/mock"
 	"testing"
 
-	"github.com/33cn/chain33/account"
-	apimock "github.com/33cn/chain33/client/mocks"
-	"github.com/33cn/chain33/common/address"
-	dbm "github.com/33cn/chain33/common/db"
-	dbmock "github.com/33cn/chain33/common/db/mocks"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	apimock "github.com/33cn/dplatform/client/mocks"
+	"github.com/33cn/dplatform/common/address"
+	dbm "github.com/33cn/dplatform/common/db"
+	dbmock "github.com/33cn/dplatform/common/db/mocks"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/pkg/errors"
@@ -60,7 +60,7 @@ func (suite *AssetTransferTestSuite) SetupTest() {
 
 	suite.exec = newParacross().(*Paracross)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(chain33TestCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestCfg, nil)
 	suite.exec.SetAPI(suite.api)
 	suite.exec.SetLocalDB(suite.localDB)
 	suite.exec.SetStateDB(suite.stateDB)
@@ -71,7 +71,7 @@ func (suite *AssetTransferTestSuite) SetupTest() {
 	blockDetail := &types.BlockDetail{
 		Block: &types.Block{},
 	}
-	MainBlockHash10 = blockDetail.Block.Hash(chain33TestCfg)
+	MainBlockHash10 = blockDetail.Block.Hash(dplatformTestCfg)
 
 	// setup title nodes : len = 1
 	nodeConfigKey := calcManageConfigNodesKey(Title)
@@ -104,7 +104,7 @@ func (suite *AssetTransferTestSuite) SetupTest() {
 func (suite *AssetTransferTestSuite) TestExecTransferNobalance() {
 	//types.Init("test", nil)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(chain33TestMainCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestMainCfg, nil)
 	suite.exec.SetAPI(suite.api)
 
 	toB := Nodes[1]
@@ -124,7 +124,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferNobalance() {
 func (suite *AssetTransferTestSuite) TestExecTransfer() {
 	//types.Init("test", nil)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(chain33TestMainCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestMainCfg, nil)
 	suite.exec.SetAPI(suite.api)
 
 	toB := Nodes[1]
@@ -135,7 +135,7 @@ func (suite *AssetTransferTestSuite) TestExecTransfer() {
 		Frozen:  0,
 		Addr:    string(Nodes[0]),
 	}
-	acc := account.NewCoinsAccount(chain33TestCfg)
+	acc := account.NewCoinsAccount(dplatformTestCfg)
 	acc.SetDB(suite.stateDB)
 	addrMain := address.ExecAddress(pt.ParaX)
 	addrPara := address.ExecAddress(Title + pt.ParaX)
@@ -173,7 +173,7 @@ func (suite *AssetTransferTestSuite) TestExecTransfer() {
 }
 
 func (suite *AssetTransferTestSuite) TestExecTransferInPara() {
-	chain33TestCfg = types.NewChain33Config(testnode.DefaultConfig)
+	dplatformTestCfg = types.NewDplatformConfig(testnode.DefaultConfig)
 	//para_init(Title)
 	toB := Nodes[1]
 
@@ -198,7 +198,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferInPara() {
 		suite.T().Log(string(kv.Key), v)
 	}
 
-	acc, _ := NewParaAccount(chain33TestCfg, Title, "coins", "bty", suite.stateDB)
+	acc, _ := NewParaAccount(dplatformTestCfg, Title, "coins", "bty", suite.stateDB)
 	resultB := acc.LoadAccount(string(toB))
 	assert.Equal(suite.T(), Amount, resultB.Balance)
 }
@@ -214,7 +214,7 @@ func createAssetTransferTx(s suite.Suite, privFrom string, to []byte) (*types.Tr
 		TokenSymbol: "",
 		ExecName:    Title + pt.ParaX,
 	}
-	tx, err := pt.CreateRawAssetTransferTx(chain33TestCfg, &param)
+	tx, err := pt.CreateRawAssetTransferTx(dplatformTestCfg, &param)
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err
@@ -234,7 +234,7 @@ const TestSymbol = "TEST"
 func (suite *AssetTransferTestSuite) TestExecTransferToken() {
 	//types.Init("test", nil)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(chain33TestMainCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestMainCfg, nil)
 	suite.exec.SetAPI(suite.api)
 
 	toB := Nodes[1]
@@ -245,7 +245,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferToken() {
 		Frozen:  0,
 		Addr:    string(Nodes[0]),
 	}
-	acc, _ := account.NewAccountDB(chain33TestMainCfg, "token", TestSymbol, suite.stateDB)
+	acc, _ := account.NewAccountDB(dplatformTestMainCfg, "token", TestSymbol, suite.stateDB)
 	addrMain := address.ExecAddress(pt.ParaX)
 	addrPara := address.ExecAddress(Title + pt.ParaX)
 
@@ -282,7 +282,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferToken() {
 }
 
 func (suite *AssetTransferTestSuite) TestExecTransferTokenInPara() {
-	chain33TestCfg = types.NewChain33Config(testnode.DefaultConfig)
+	dplatformTestCfg = types.NewDplatformConfig(testnode.DefaultConfig)
 	// para_init(Title)
 	toB := Nodes[1]
 
@@ -307,7 +307,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferTokenInPara() {
 		suite.T().Log(string(kv.Key), v)
 	}
 
-	acc, _ := NewParaAccount(chain33TestCfg, Title, "token", TestSymbol, suite.stateDB)
+	acc, _ := NewParaAccount(dplatformTestCfg, Title, "token", TestSymbol, suite.stateDB)
 	resultB := acc.LoadAccount(string(toB))
 	assert.Equal(suite.T(), Amount, resultB.Balance)
 }
@@ -323,7 +323,7 @@ func createAssetTransferTokenTx(s suite.Suite, privFrom string, to []byte) (*typ
 		TokenSymbol: TestSymbol,
 		ExecName:    Title + pt.ParaX,
 	}
-	tx, err := pt.CreateRawAssetTransferTx(chain33TestCfg, &param)
+	tx, err := pt.CreateRawAssetTransferTx(dplatformTestCfg, &param)
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err

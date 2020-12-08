@@ -18,13 +18,13 @@ import (
 	"bytes"
 	"encoding/hex"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/address"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/system/dapp"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common/address"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/system/dapp"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	mty "github.com/33cn/plugin/plugin/dapp/multisig/types"
 )
 
@@ -33,7 +33,7 @@ var multisiglog = log.New("module", "execs.multisig")
 var driverName = "multisig"
 
 // Init multisig模块初始化
-func Init(name string, cfg *types.Chain33Config, sub []byte) {
+func Init(name string, cfg *types.DplatformConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newMultiSig, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

@@ -1,9 +1,9 @@
 package executor
 
 import (
-	log "github.com/33cn/chain33/common/log/log15"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	log "github.com/33cn/dplatform/common/log/log15"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	x2eTy "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
@@ -20,7 +20,7 @@ var (
 var driverName = x2eTy.X2ethereumX
 
 // Init register dapp
-func Init(name string, cfg *types.Chain33Config, sub []byte) {
+func Init(name string, cfg *types.DplatformConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newX2ethereum, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 

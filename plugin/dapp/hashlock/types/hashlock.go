@@ -7,10 +7,10 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 )
 
 var (
@@ -24,13 +24,13 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.Chain33Config) {
+func InitFork(cfg *types.DplatformConfig) {
 	cfg.RegisterDappFork(HashlockX, "Enable", 0)
 	cfg.RegisterDappFork(HashlockX, ForkBadRepeatSecretX, 2715575)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.Chain33Config) {
+func InitExecutor(cfg *types.DplatformConfig) {
 	types.RegistorExecutor(HashlockX, NewType(cfg))
 }
 
@@ -40,7 +40,7 @@ type HashlockType struct {
 }
 
 // NewType method
-func NewType(cfg *types.Chain33Config) *HashlockType {
+func NewType(cfg *types.DplatformConfig) *HashlockType {
 	c := &HashlockType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -106,7 +106,7 @@ func (hashlock *HashlockType) GetLogMap() map[int64]*types.LogInfo {
 }
 
 // CreateRawHashlockLockTx method
-func CreateRawHashlockLockTx(cfg *types.Chain33Config, parm *HashlockLockTx) (*types.Transaction, error) {
+func CreateRawHashlockLockTx(cfg *types.DplatformConfig, parm *HashlockLockTx) (*types.Transaction, error) {
 	if parm == nil {
 		hlog.Error("CreateRawHashlockLockTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -137,7 +137,7 @@ func CreateRawHashlockLockTx(cfg *types.Chain33Config, parm *HashlockLockTx) (*t
 }
 
 // CreateRawHashlockUnlockTx method
-func CreateRawHashlockUnlockTx(cfg *types.Chain33Config, parm *HashlockUnlockTx) (*types.Transaction, error) {
+func CreateRawHashlockUnlockTx(cfg *types.DplatformConfig, parm *HashlockUnlockTx) (*types.Transaction, error) {
 	if parm == nil {
 		hlog.Error("CreateRawHashlockUnlockTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -166,7 +166,7 @@ func CreateRawHashlockUnlockTx(cfg *types.Chain33Config, parm *HashlockUnlockTx)
 }
 
 // CreateRawHashlockSendTx method
-func CreateRawHashlockSendTx(cfg *types.Chain33Config, parm *HashlockSendTx) (*types.Transaction, error) {
+func CreateRawHashlockSendTx(cfg *types.DplatformConfig, parm *HashlockSendTx) (*types.Transaction, error) {
 	if parm == nil {
 		hlog.Error("CreateRawHashlockSendTx", "parm", parm)
 		return nil, types.ErrInvalidParam

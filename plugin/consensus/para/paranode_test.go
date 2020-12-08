@@ -7,8 +7,8 @@ package para
 import (
 	"testing"
 
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 
 	_ "github.com/33cn/plugin/plugin/dapp/init" //dapp init
 	node "github.com/33cn/plugin/plugin/dapp/paracross/testnode"

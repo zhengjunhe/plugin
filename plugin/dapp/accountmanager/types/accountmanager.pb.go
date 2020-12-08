@@ -8,7 +8,7 @@ import (
 	fmt "fmt"
 	math "math"
 
-	types "github.com/33cn/chain33/types"
+	types "github.com/33cn/dplatform/types"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 )

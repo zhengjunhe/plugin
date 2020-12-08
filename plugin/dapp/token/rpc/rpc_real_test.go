@@ -7,10 +7,10 @@ package rpc_test
 import (
 	"testing"
 
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
-	"github.com/33cn/chain33/util/testnode"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatform/util/testnode"
 	_ "github.com/33cn/plugin/plugin"
 	tokenty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"

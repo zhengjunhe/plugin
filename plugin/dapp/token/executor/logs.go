@@ -8,9 +8,9 @@ package executor
 // 包含创建完成， 铸币， 以后可能包含燃烧等
 
 import (
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/common/db/table"
-	"github.com/33cn/chain33/types"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/common/db/table"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 )
 

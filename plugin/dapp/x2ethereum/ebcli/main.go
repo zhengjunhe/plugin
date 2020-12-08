@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebcli/buildflags"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	tml "github.com/BurntSushi/toml"
@@ -21,8 +21,8 @@ import (
 
 var (
 	rootCmd = &cobra.Command{
-		Use:   "chain33xEth-relayer" + "-cli",
-		Short: "chain33xEth-relayer" + "client tools",
+		Use:   "dplatformxEth-relayer" + "-cli",
+		Short: "dplatformxEth-relayer" + "client tools",
 	}
 	configPath = flag.String("f", "", "configfile")
 )

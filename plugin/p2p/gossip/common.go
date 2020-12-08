@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/types"
 	"google.golang.org/grpc"
 )
 

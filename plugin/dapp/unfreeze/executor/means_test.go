@@ -9,7 +9,7 @@ import (
 )
 
 func TestCalcFrozen(t *testing.T) {
-	m, err := newMeans(chain33TestCfg, "LeftProportion", 15000000)
+	m, err := newMeans(dplatformTestCfg, "LeftProportion", 15000000)
 	assert.Nil(t, err)
 	assert.NotNil(t, m)
 

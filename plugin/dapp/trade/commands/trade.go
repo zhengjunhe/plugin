@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 	"github.com/spf13/cobra"
 )
@@ -82,7 +82,7 @@ func showOnesSellOrders(cmd *cobra.Command, args []string) {
 		Payload:  types.MustPBToJSON(&reqAddrtokens),
 	}
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseSellOrders)
 	ctx.Run()
 }
@@ -123,7 +123,7 @@ func showOnesSellOrdersStatus(cmd *cobra.Command, args []string) {
 	params.FuncName = "GetOnesSellOrderWithStatus"
 	params.Payload = types.MustPBToJSON(&reqAddrtokens)
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseSellOrders)
 	ctx.Run()
 }
@@ -176,7 +176,7 @@ func showTokenSellOrdersStatus(cmd *cobra.Command, args []string) {
 	params.FuncName = "GetTokenSellOrderByStatus"
 	params.Payload = types.MustPBToJSON(&req)
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseSellOrders)
 	ctx.Run()
 }
@@ -239,7 +239,7 @@ func showOnesBuyOrders(cmd *cobra.Command, args []string) {
 	params.FuncName = "GetOnesBuyOrder"
 	params.Payload = types.MustPBToJSON(&reqAddrtokens)
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseBuyOrders)
 	ctx.Run()
 }
@@ -279,7 +279,7 @@ func showOnesBuyOrdersStatus(cmd *cobra.Command, args []string) {
 	params.FuncName = "GetOnesBuyOrderWithStatus"
 	params.Payload = types.MustPBToJSON(&reqAddrtokens)
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseBuyOrders)
 	ctx.Run()
 }
@@ -332,7 +332,7 @@ func showTokenBuyOrdersStatus(cmd *cobra.Command, args []string) {
 	params.FuncName = "GetTokenBuyOrderByStatus"
 	params.Payload = types.MustPBToJSON(&req)
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseBuyOrders)
 	ctx.Run()
 }
@@ -406,7 +406,7 @@ func showOnesOrdersStatus(cmd *cobra.Command, args []string) {
 	params.FuncName = "GetOnesOrderWithStatus"
 	params.Payload = types.MustPBToJSON(&reqAddrtokens)
 	var res pty.ReplyTradeOrders
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseTradeOrders)
 	ctx.Run()
 }

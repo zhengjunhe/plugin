@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/33cn/chain33/types"
+	pb "github.com/33cn/dplatform/types"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"

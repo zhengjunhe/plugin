@@ -9,10 +9,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -32,7 +32,7 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.Chain33Config) {
+func InitFork(cfg *types.DplatformConfig) {
 	cfg.RegisterDappFork(ExecutorName, EVMEnable, 500000)
 	// EVM合约中的数据分散存储，支持大数据量
 	cfg.RegisterDappFork(ExecutorName, ForkEVMState, 650000)
@@ -49,7 +49,7 @@ func InitFork(cfg *types.Chain33Config) {
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.Chain33Config) {
+func InitExecutor(cfg *types.DplatformConfig) {
 	types.RegistorExecutor(ExecutorName, NewType(cfg))
 }
 
@@ -59,7 +59,7 @@ type EvmType struct {
 }
 
 // NewType 新建EVM类型对象
-func NewType(cfg *types.Chain33Config) *EvmType {
+func NewType(cfg *types.DplatformConfig) *EvmType {
 	c := &EvmType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -130,7 +130,7 @@ func (evm *EvmType) GetLogMap() map[int64]*types.LogInfo {
 	return logInfo
 }
 
-func createEvmTx(cfg *types.Chain33Config, param *CreateCallTx) (*types.Transaction, error) {
+func createEvmTx(cfg *types.DplatformConfig, param *CreateCallTx) (*types.Transaction, error) {
 	if param == nil {
 		elog.Error("createEvmTx", "param", param)
 		return nil, types.ErrInvalidParam
@@ -171,7 +171,7 @@ func createEvmTx(cfg *types.Chain33Config, param *CreateCallTx) (*types.Transact
 	return createRawTx(cfg, action, param.Name, param.Fee)
 }
 
-func createRawTx(cfg *types.Chain33Config, action proto.Message, name string, fee int64) (*types.Transaction, error) {
+func createRawTx(cfg *types.DplatformConfig, action proto.Message, name string, fee int64) (*types.Transaction, error) {
 	tx := &types.Transaction{}
 	if len(name) == 0 {
 		tx = &types.Transaction{

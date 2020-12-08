@@ -7,7 +7,7 @@ package executor
 import (
 	"bytes"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 )
 

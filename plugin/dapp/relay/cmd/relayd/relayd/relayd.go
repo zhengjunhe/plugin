@@ -14,10 +14,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
@@ -83,7 +83,7 @@ func NewRelayd(config *Config) *Relayd {
 
 	log.Info("NewRelayd", "current btc hegiht: ", height)
 
-	client33 := NewClient33(&config.Chain33)
+	client33 := NewClient33(&config.Dplatform)
 	var btc BtcClient
 	if config.BtcdOrWeb == 0 {
 		btc, err = newBtcd(config.Btcd.BitConnConfig(), config.Btcd.ReconnectAttempts)
@@ -216,7 +216,7 @@ out:
 	}
 }
 
-func (r *Relayd) queryChain33WithBtcHeight() (*ty.ReplayRelayQryBTCHeadHeight, error) {
+func (r *Relayd) queryDplatformWithBtcHeight() (*ty.ReplayRelayQryBTCHeadHeight, error) {
 	payLoad := types.Encode(&ty.ReqRelayQryBTCHeadHeight{})
 	query := types.ChainExecutor{
 		Driver:   ty.RelayX,
@@ -241,13 +241,13 @@ func (r *Relayd) syncBlockHeaders() {
 
 	knownBtcHeight := atomic.LoadUint64(&r.knownBtcHeight)
 	if knownBtcHeight > r.firstHeaderHeight {
-		ret, err := r.queryChain33WithBtcHeight()
+		ret, err := r.queryDplatformWithBtcHeight()
 		if err != nil {
-			log.Error("syncBlockHeaders", "queryChain33WithBtcHeight error: ", err)
+			log.Error("syncBlockHeaders", "queryDplatformWithBtcHeight error: ", err)
 			return
 		}
 
-		log.Info("syncBlockHeaders", "queryChain33WithBtcHeight result: ", ret)
+		log.Info("syncBlockHeaders", "queryDplatformWithBtcHeight result: ", ret)
 		var initIterHeight uint64
 		if r.firstHeaderHeight != uint64(ret.BaseHeight) && !r.isResetBtcHeight {
 			r.isResetBtcHeight = true
@@ -326,8 +326,8 @@ func (r *Relayd) transaction(payload []byte) *types.Transaction {
 	}
 
 	minFee := types.DefaultMinFee
-	if r.config.Chain33Cfg != nil {
-		minFee = r.config.Chain33Cfg.GetMinTxFeeRate()
+	if r.config.DplatformCfg != nil {
+		minFee = r.config.DplatformCfg.GetMinTxFeeRate()
 	}
 	fee, _ := tx.GetRealFee(minFee)
 	tx.Fee = fee

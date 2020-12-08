@@ -5,11 +5,11 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common/address"
-	dbm "github.com/33cn/chain33/common/db"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common/address"
+	dbm "github.com/33cn/dplatform/common/db"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	tokenty "github.com/33cn/plugin/plugin/dapp/token/types"
 )
 

@@ -3,11 +3,11 @@ package executor
 import (
 	"errors"
 
-	"github.com/33cn/chain33/system/dapp"
-	manTy "github.com/33cn/chain33/system/dapp/manage/types"
+	"github.com/33cn/dplatform/system/dapp"
+	manTy "github.com/33cn/dplatform/system/dapp/manage/types"
 
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
 	x2eTy "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 )
 
@@ -16,10 +16,10 @@ import (
  * 关键数据上链（statedb）并生成交易回执（log）
  */
 
-//---------------- Ethereum(eth/erc20) --> Chain33-------------------//
+//---------------- Ethereum(eth/erc20) --> Dplatform-------------------//
 
-// 在chain33上为ETH/ERC20铸币
-func (x *x2ethereum) Exec_Eth2Chain33Lock(payload *x2eTy.Eth2Chain33, tx *types.Transaction, index int) (*types.Receipt, error) {
+// 在dplatform上为ETH/ERC20铸币
+func (x *x2ethereum) Exec_Eth2DplatformLock(payload *x2eTy.Eth2Dplatform, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
 	if action == nil {
 		return nil, errors.New("Create Action Error")
@@ -27,22 +27,22 @@ func (x *x2ethereum) Exec_Eth2Chain33Lock(payload *x2eTy.Eth2Chain33, tx *types.
 
 	payload.ValidatorAddress = address.PubKeyToAddr(tx.Signature.Pubkey)
 
-	return action.procEth2Chain33_lock(payload)
+	return action.procEth2Dplatform_lock(payload)
 }
 
-//----------------  Chain33(eth/erc20)------> Ethereum -------------------//
-// 在chain33端将铸的币销毁，返还给eth
-func (x *x2ethereum) Exec_Chain33ToEthBurn(payload *x2eTy.Chain33ToEth, tx *types.Transaction, index int) (*types.Receipt, error) {
+//----------------  Dplatform(eth/erc20)------> Ethereum -------------------//
+// 在dplatform端将铸的币销毁，返还给eth
+func (x *x2ethereum) Exec_DplatformToEthBurn(payload *x2eTy.DplatformToEth, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
 	if action == nil {
 		return nil, errors.New("Create Action Error")
 	}
-	return action.procChain33ToEth_burn(payload)
+	return action.procDplatformToEth_burn(payload)
 }
 
-//---------------- Ethereum (bty) --> Chain33-------------------//
-// 在eth端将铸的bty币销毁，返还给chain33
-func (x *x2ethereum) Exec_Eth2Chain33Burn(payload *x2eTy.Eth2Chain33, tx *types.Transaction, index int) (*types.Receipt, error) {
+//---------------- Ethereum (bty) --> Dplatform-------------------//
+// 在eth端将铸的bty币销毁，返还给dplatform
+func (x *x2ethereum) Exec_Eth2DplatformBurn(payload *x2eTy.Eth2Dplatform, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
 	if action == nil {
 		return nil, errors.New("Create Action Error")
@@ -50,17 +50,17 @@ func (x *x2ethereum) Exec_Eth2Chain33Burn(payload *x2eTy.Eth2Chain33, tx *types.
 
 	payload.ValidatorAddress = address.PubKeyToAddr(tx.Signature.Pubkey)
 
-	return action.procEth2Chain33_burn(payload)
+	return action.procEth2Dplatform_burn(payload)
 }
 
-//---------------- Chain33 --> Ethereum (bty) -------------------//
-// 在 ethereum 上为 chain33 铸币
-func (x *x2ethereum) Exec_Chain33ToEthLock(payload *x2eTy.Chain33ToEth, tx *types.Transaction, index int) (*types.Receipt, error) {
+//---------------- Dplatform --> Ethereum (bty) -------------------//
+// 在 ethereum 上为 dplatform 铸币
+func (x *x2ethereum) Exec_DplatformToEthLock(payload *x2eTy.DplatformToEth, tx *types.Transaction, index int) (*types.Receipt, error) {
 	action := newAction(x, tx, int32(index))
 	if action == nil {
 		return nil, errors.New("Create Action Error")
 	}
-	return action.procChain33ToEth_lock(payload)
+	return action.procDplatformToEth_lock(payload)
 }
 
 // 转账功能

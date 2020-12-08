@@ -9,7 +9,7 @@ package types
 import (
 	"reflect"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 )
 
 func init() {
@@ -20,12 +20,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.Chain33Config) {
+func InitFork(cfg *types.DplatformConfig) {
 	cfg.RegisterDappFork(OracleX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.Chain33Config) {
+func InitExecutor(cfg *types.DplatformConfig) {
 	types.RegistorExecutor(OracleX, NewType(cfg))
 }
 
@@ -35,7 +35,7 @@ type OracleType struct {
 }
 
 // NewType 创建执行器类型
-func NewType(cfg *types.Chain33Config) *OracleType {
+func NewType(cfg *types.DplatformConfig) *OracleType {
 	c := &OracleType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

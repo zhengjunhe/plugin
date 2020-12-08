@@ -5,7 +5,7 @@
 package rpc
 
 import (
-	"github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/dplatform/rpc/types"
 	vt "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )
 

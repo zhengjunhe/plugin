@@ -1,7 +1,7 @@
 package events
 
 import (
-	log "github.com/33cn/chain33/common/log/log15"
+	log "github.com/33cn/dplatform/common/log/log15"
 )
 
 // Event : enum containing supported contract events
@@ -10,16 +10,16 @@ type Event int
 var eventsLog = log.New("module", "ethereum_relayer")
 
 const (
-	// Unsupported : unsupported Chain33 or Ethereum event
+	// Unsupported : unsupported Dplatform or Ethereum event
 	Unsupported Event = iota
-	// MsgBurn : Chain33 event 'Chain33Msg' type MsgBurn
+	// MsgBurn : Dplatform event 'DplatformMsg' type MsgBurn
 	MsgBurn
-	// MsgLock :  Chain33 event 'Chain33Msg' type MsgLock
+	// MsgLock :  Dplatform event 'DplatformMsg' type MsgLock
 	MsgLock
 	// LogLock : Ethereum event 'LockEvent'
 	LogLock
-	// LogChain33TokenBurn : Ethereum event 'LogChain33TokenBurn' in contract chain33Bank
-	LogChain33TokenBurn
+	// LogDplatformTokenBurn : Ethereum event 'LogDplatformTokenBurn' in contract dplatformBank
+	LogDplatformTokenBurn
 	// LogNewProphecyClaim : Ethereum event 'NewProphecyClaimEvent'
 	LogNewProphecyClaim
 )
@@ -32,17 +32,17 @@ const (
 
 // String : returns the event type as a string
 func (d Event) String() string {
-	return [...]string{"unknown-x2ethereum", "Chain33ToEthBurn", "Chain33ToEthLock", "LogLock", "LogChain33TokenBurn", "LogNewProphecyClaim"}[d]
+	return [...]string{"unknown-x2ethereum", "DplatformToEthBurn", "DplatformToEthLock", "LogLock", "LogDplatformTokenBurn", "LogNewProphecyClaim"}[d]
 }
 
-// Chain33MsgAttributeKey : enum containing supported attribute keys
-type Chain33MsgAttributeKey int
+// DplatformMsgAttributeKey : enum containing supported attribute keys
+type DplatformMsgAttributeKey int
 
 const (
 	// UnsupportedAttributeKey : unsupported attribute key
-	UnsupportedAttributeKey Chain33MsgAttributeKey = iota
-	// Chain33Sender : sender's address on Chain33 network
-	Chain33Sender
+	UnsupportedAttributeKey DplatformMsgAttributeKey = iota
+	// DplatformSender : sender's address on Dplatform network
+	DplatformSender
 	// EthereumReceiver : receiver's address on Ethereum network
 	EthereumReceiver
 	// Coin : coin type
@@ -52,6 +52,6 @@ const (
 )
 
 // String : returns the event type as a string
-func (d Chain33MsgAttributeKey) String() string {
-	return [...]string{"unsupported", "chain33_sender", "ethereum_receiver", "amount", "token_contract_address"}[d]
+func (d DplatformMsgAttributeKey) String() string {
+	return [...]string{"unsupported", "dplatform_sender", "ethereum_receiver", "amount", "token_contract_address"}[d]
 }

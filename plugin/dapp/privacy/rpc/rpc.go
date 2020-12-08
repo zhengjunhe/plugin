@@ -8,8 +8,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"golang.org/x/net/context"
 )

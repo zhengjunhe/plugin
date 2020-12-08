@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	genesisContent = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"chain33-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""},{"pub_key":{"type":"secp256k1","data":"027848E7FA630B759DB406940B5506B666A344B1060794BBF314EB459D40881BB3"},"name":""},{"pub_key":{"type":"secp256k1","data":"03F4AB6659E61E8512C9A24AC385CC1AC4D52B87D10ADBDF060086EA82BE62CDDE"},"name":""}],"app_hash":null}`
+	genesisContent = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"dplatform-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""},{"pub_key":{"type":"secp256k1","data":"027848E7FA630B759DB406940B5506B666A344B1060794BBF314EB459D40881BB3"},"name":""},{"pub_key":{"type":"secp256k1","data":"03F4AB6659E61E8512C9A24AC385CC1AC4D52B87D10ADBDF060086EA82BE62CDDE"},"name":""}],"app_hash":null}`
 	pubkey11       = "03541AB9887951C038273648545072E5B6A46A639BFF535F3957E8150CBE2A70D7"
 )
 
@@ -65,7 +65,7 @@ func remove(filename string) {
 func TestMakeGenesisValidatorMgr(t *testing.T) {
 	vMgr, err := MakeGenesisValidatorMgr(genDoc)
 	require.Nil(t, err)
-	assert.True(t, vMgr.ChainID == "chain33-Z2cgFj")
+	assert.True(t, vMgr.ChainID == "dplatform-Z2cgFj")
 	assert.True(t, len(vMgr.AppHash) == 0)
 	assert.True(t, len(vMgr.Validators.Validators) == 3)
 	assert.True(t, vMgr.VrfValidators == nil)
@@ -73,7 +73,7 @@ func TestMakeGenesisValidatorMgr(t *testing.T) {
 	assert.True(t, vMgr.LastCycleBoundaryInfo == nil)
 
 	vMgrCopy := vMgr.Copy()
-	assert.True(t, vMgrCopy.ChainID == "chain33-Z2cgFj")
+	assert.True(t, vMgrCopy.ChainID == "dplatform-Z2cgFj")
 	assert.True(t, len(vMgrCopy.AppHash) == 0)
 	assert.True(t, len(vMgrCopy.Validators.Validators) == 3)
 	assert.True(t, vMgrCopy.VrfValidators == nil)
@@ -88,7 +88,7 @@ func TestMakeGenesisValidatorMgr(t *testing.T) {
 func TestGetValidatorByIndex(t *testing.T) {
 	vMgr, err := MakeGenesisValidatorMgr(genDoc)
 	require.Nil(t, err)
-	assert.True(t, vMgr.ChainID == "chain33-Z2cgFj")
+	assert.True(t, vMgr.ChainID == "dplatform-Z2cgFj")
 	assert.True(t, len(vMgr.AppHash) == 0)
 	assert.True(t, len(vMgr.Validators.Validators) == 3)
 	assert.True(t, vMgr.VrfValidators == nil)
@@ -125,7 +125,7 @@ func TestGetValidatorByIndex(t *testing.T) {
 func TestGetIndexByPubKey(t *testing.T) {
 	vMgr, err := MakeGenesisValidatorMgr(genDoc)
 	require.Nil(t, err)
-	assert.True(t, vMgr.ChainID == "chain33-Z2cgFj")
+	assert.True(t, vMgr.ChainID == "dplatform-Z2cgFj")
 	assert.True(t, len(vMgr.AppHash) == 0)
 	assert.True(t, len(vMgr.Validators.Validators) == 3)
 	assert.True(t, vMgr.VrfValidators == nil)
@@ -177,7 +177,7 @@ func TestFillVoteItem(t *testing.T) {
 
 	vMgr, err := MakeGenesisValidatorMgr(genDoc)
 	require.Nil(t, err)
-	assert.True(t, vMgr.ChainID == "chain33-Z2cgFj")
+	assert.True(t, vMgr.ChainID == "dplatform-Z2cgFj")
 	assert.True(t, len(vMgr.AppHash) == 0)
 	assert.True(t, len(vMgr.Validators.Validators) == 3)
 	assert.True(t, vMgr.VrfValidators == nil)
@@ -238,7 +238,7 @@ func TestUpdateFromVoteItem(t *testing.T) {
 
 	vMgr, err := MakeGenesisValidatorMgr(genDoc)
 	require.Nil(t, err)
-	assert.True(t, vMgr.ChainID == "chain33-Z2cgFj")
+	assert.True(t, vMgr.ChainID == "dplatform-Z2cgFj")
 	assert.True(t, len(vMgr.AppHash) == 0)
 	assert.True(t, len(vMgr.Validators.Validators) == 3)
 	assert.True(t, vMgr.VrfValidators == nil)

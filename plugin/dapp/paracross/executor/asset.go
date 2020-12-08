@@ -7,12 +7,12 @@ package executor
 import (
 	"strings"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/db"
-	coins "github.com/33cn/chain33/system/dapp/coins/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/db"
+	coins "github.com/33cn/dplatform/system/dapp/coins/types"
+	"github.com/33cn/dplatform/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	token "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/pkg/errors"
@@ -375,7 +375,7 @@ func (a *action) paraAssetWithdrawRollback(wtw *pt.CrossAssetTransfer, withdrawT
 	return nil, nil
 }
 
-func (a *action) createAccount(cfg *types.Chain33Config, db db.KV, exec, symbol string) (*account.DB, error) {
+func (a *action) createAccount(cfg *types.DplatformConfig, db db.KV, exec, symbol string) (*account.DB, error) {
 	var accDB *account.DB
 	if symbol == "" {
 		accDB = account.NewCoinsAccount(cfg)

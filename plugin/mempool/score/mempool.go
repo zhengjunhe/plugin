@@ -1,9 +1,9 @@
 package score
 
 import (
-	"github.com/33cn/chain33/queue"
-	drivers "github.com/33cn/chain33/system/mempool"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/queue"
+	drivers "github.com/33cn/dplatform/system/mempool"
+	"github.com/33cn/dplatform/types"
 )
 
 //--------------------------------------------------------------------------------

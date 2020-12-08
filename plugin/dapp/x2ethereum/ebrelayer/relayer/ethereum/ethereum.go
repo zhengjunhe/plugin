@@ -6,7 +6,7 @@ package ethereum
 //      Initializes the relayer service, which parses,
 //      encodes, and packages named events on an Ethereum
 //      Smart Contract for validator's to sign and send
-//      to the Chain33 bridge.
+//      to the Dplatform bridge.
 // -----------------------------------------------------
 
 import (
@@ -20,9 +20,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	chain33Crypto "github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	log "github.com/33cn/chain33/common/log/log15"
+	dplatformCrypto "github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	log "github.com/33cn/dplatform/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethcontract/generated"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethtxs"
@@ -44,10 +44,10 @@ type Relayer4Ethereum struct {
 	bridgeRegistryAddr     common.Address
 	db                     dbm.DB
 	rwLock                 sync.RWMutex
-	privateKey4Chain33     chain33Crypto.PrivKey
+	privateKey4Dplatform     dplatformCrypto.PrivKey
 	ethValidator           common.Address
-	totalTx4Eth2Chain33    int64
-	rpcURL2Chain33         string
+	totalTx4Eth2Dplatform    int64
+	rpcURL2Dplatform         string
 	unlockchan             chan int
 	maturityDegree         int32
 	fetchHeightPeriodMs    int32
@@ -76,7 +76,7 @@ const (
 )
 
 //StartEthereumRelayer ///
-func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAddress string, deploy *ebTypes.Deploy, degree, blockInterval int32) *Relayer4Ethereum {
+func StartEthereumRelayer(rpcURL2Dplatform string, db dbm.DB, provider, registryAddress string, deploy *ebTypes.Deploy, degree, blockInterval int32) *Relayer4Ethereum {
 	if 0 == blockInterval {
 		blockInterval = DefaultBlockPeriod
 	}
@@ -84,7 +84,7 @@ func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAd
 		provider:            provider,
 		db:                  db,
 		unlockchan:          make(chan int, 2),
-		rpcURL2Chain33:      rpcURL2Chain33,
+		rpcURL2Dplatform:      rpcURL2Dplatform,
 		bridgeRegistryAddr:  common.HexToAddress(registryAddress),
 		deployInfo:          deploy,
 		maturityDegree:      degree,
@@ -105,7 +105,7 @@ func StartEthereumRelayer(rpcURL2Chain33 string, db dbm.DB, provider, registryAd
 	ethRelayer.initBridgeBankTx()
 
 	// Start clientSpec with infura ropsten provider
-	relayerLog.Info("Relayer4Ethereum proc", "Started Ethereum websocket with provider:", ethRelayer.provider, "rpcURL2Chain33:", ethRelayer.rpcURL2Chain33)
+	relayerLog.Info("Relayer4Ethereum proc", "Started Ethereum websocket with provider:", ethRelayer.provider, "rpcURL2Dplatform:", ethRelayer.rpcURL2Dplatform)
 	client, err := ethtxs.SetupWebsocketEthClient(ethRelayer.provider)
 	if err != nil {
 		panic(err)
@@ -252,7 +252,7 @@ func (ethRelayer *Relayer4Ethereum) ShowTokenAddrBySymbol(tokenSymbol string) (s
 
 //IsProphecyPending ...
 func (ethRelayer *Relayer4Ethereum) IsProphecyPending(claimID [32]byte) (bool, error) {
-	return ethtxs.IsProphecyPending(claimID, ethRelayer.ethValidator, ethRelayer.x2EthContracts.Chain33Bridge)
+	return ethtxs.IsProphecyPending(claimID, ethRelayer.ethValidator, ethRelayer.x2EthContracts.DplatformBridge)
 }
 
 //CreateBridgeToken ...
@@ -286,17 +286,17 @@ func (ethRelayer *Relayer4Ethereum) ApproveAllowance(ownerPrivateKey, tokenAddr,
 }
 
 //Burn ...
-func (ethRelayer *Relayer4Ethereum) Burn(ownerPrivateKey, tokenAddr, chain33Receiver, amount string) (string, error) {
+func (ethRelayer *Relayer4Ethereum) Burn(ownerPrivateKey, tokenAddr, dplatformReceiver, amount string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
-	return ethtxs.Burn(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.clientSpec)
+	return ethtxs.Burn(ownerPrivateKey, tokenAddr, dplatformReceiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.clientSpec)
 }
 
 //BurnAsync ...
-func (ethRelayer *Relayer4Ethereum) BurnAsync(ownerPrivateKey, tokenAddr, chain33Receiver, amount string) (string, error) {
+func (ethRelayer *Relayer4Ethereum) BurnAsync(ownerPrivateKey, tokenAddr, dplatformReceiver, amount string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
-	return ethtxs.BurnAsync(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.clientSpec)
+	return ethtxs.BurnAsync(ownerPrivateKey, tokenAddr, dplatformReceiver, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.clientSpec)
 }
 
 //TransferToken ...
@@ -318,17 +318,17 @@ func (ethRelayer *Relayer4Ethereum) GetDecimals(tokenAddr string) (uint8, error)
 }
 
 //LockEthErc20Asset ...
-func (ethRelayer *Relayer4Ethereum) LockEthErc20Asset(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
+func (ethRelayer *Relayer4Ethereum) LockEthErc20Asset(ownerPrivateKey, tokenAddr, amount string, dplatformReceiver string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
-	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.clientSpec, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.x2EthDeployInfo.BridgeBank.Address)
+	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, dplatformReceiver, bn, ethRelayer.clientSpec, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.x2EthDeployInfo.BridgeBank.Address)
 }
 
 //LockEthErc20AssetAsync ...
-func (ethRelayer *Relayer4Ethereum) LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
+func (ethRelayer *Relayer4Ethereum) LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, amount string, dplatformReceiver string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
-	return ethtxs.LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.clientSpec, ethRelayer.x2EthContracts.BridgeBank)
+	return ethtxs.LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, dplatformReceiver, bn, ethRelayer.clientSpec, ethRelayer.x2EthContracts.BridgeBank)
 }
 
 //ShowTxReceipt ...
@@ -363,9 +363,9 @@ func (ethRelayer *Relayer4Ethereum) proc() {
 	for range ethRelayer.unlockchan {
 		relayerLog.Info("Received ethRelayer.unlockchan")
 		ethRelayer.rwLock.RLock()
-		privateKey4Chain33 := ethRelayer.privateKey4Chain33
+		privateKey4Dplatform := ethRelayer.privateKey4Dplatform
 		ethRelayer.rwLock.RUnlock()
-		if nil != privateKey4Chain33 && nilAddr != ethRelayer.bridgeRegistryAddr {
+		if nil != privateKey4Dplatform && nilAddr != ethRelayer.bridgeRegistryAddr {
 			relayerLog.Info("Ethereum relayer starts to run...")
 			ethRelayer.prePareSubscribeEvent()
 			//向bridgeBank订阅事件
@@ -441,8 +441,8 @@ func (ethRelayer *Relayer4Ethereum) procNewHeight(ctx context.Context, continueF
 }
 
 func (ethRelayer *Relayer4Ethereum) storeBridgeBankLogs(vLog types.Log, setBlockNumber bool) {
-	//lock,用于捕捉 (ETH/ERC20----->chain33) 跨链转移
-	//burn,用于捕捉 (chain33 token----->chain33) 实现chain33资产withdraw操作，之后在chain33上实现unlock操作
+	//lock,用于捕捉 (ETH/ERC20----->dplatform) 跨链转移
+	//burn,用于捕捉 (dplatform token----->dplatform) 实现dplatform资产withdraw操作，之后在dplatform上实现unlock操作
 	if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig {
 		//先进行数据的持久化，等到一定的高度成熟度之后再进行处理
 		relayerLog.Info("Relayer4Ethereum storeBridgeBankLogs", "^_^ ^_^ Received bridgeBankLog for event", "lock",
@@ -492,7 +492,7 @@ func (ethRelayer *Relayer4Ethereum) procBridgeBankLogs(vLog types.Log) {
 		return
 	}
 
-	//lock,用于捕捉 (ETH/ERC20----->chain33) 跨链转移
+	//lock,用于捕捉 (ETH/ERC20----->dplatform) 跨链转移
 	if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventLockSig {
 		eventName := events.LogLock.String()
 		relayerLog.Info("Relayer4Ethereum proc", "Going to process", eventName,
@@ -504,8 +504,8 @@ func (ethRelayer *Relayer4Ethereum) procBridgeBankLogs(vLog types.Log) {
 			panic(errinfo)
 		}
 	} else if vLog.Topics[0].Hex() == ethRelayer.bridgeBankEventBurnSig {
-		//burn,用于捕捉 (chain33 token----->chain33) 实现chain33资产withdraw操作，之后在chain33上实现unlock操作
-		eventName := events.LogChain33TokenBurn.String()
+		//burn,用于捕捉 (dplatform token----->dplatform) 实现dplatform资产withdraw操作，之后在dplatform上实现unlock操作
+		eventName := events.LogDplatformTokenBurn.String()
 		relayerLog.Info("Relayer4Ethereum proc", "Going to process", eventName,
 			"Block number:", vLog.BlockNumber, "Tx hash:", vLog.TxHash.Hex())
 		err := ethRelayer.handleLogBurnEvent(ethRelayer.clientChainID, ethRelayer.bridgeBankAbi, eventName, vLog)
@@ -608,7 +608,7 @@ func (ethRelayer *Relayer4Ethereum) prePareSubscribeEvent() {
 	ethRelayer.bridgeBankAbi = contactAbi
 	eventName = events.LogLock.String()
 	ethRelayer.bridgeBankEventLockSig = contactAbi.Events[eventName].ID().Hex()
-	eventName = events.LogChain33TokenBurn.String()
+	eventName = events.LogDplatformTokenBurn.String()
 	ethRelayer.bridgeBankEventBurnSig = contactAbi.Events[eventName].ID().Hex()
 	ethRelayer.bridgeBankAddr = ethRelayer.x2EthDeployInfo.BridgeBank.Address
 }
@@ -657,19 +657,19 @@ func (ethRelayer *Relayer4Ethereum) ShowOperator() (string, error) {
 
 //QueryTxhashRelay2Eth ...
 func (ethRelayer *Relayer4Ethereum) QueryTxhashRelay2Eth() ebTypes.Txhashes {
-	txhashs := ethRelayer.queryTxhashes([]byte(chain33ToEthTxHashPrefix))
+	txhashs := ethRelayer.queryTxhashes([]byte(dplatformToEthTxHashPrefix))
 	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
-//QueryTxhashRelay2Chain33 ...
-func (ethRelayer *Relayer4Ethereum) QueryTxhashRelay2Chain33() ebTypes.Txhashes {
-	txhashs := ethRelayer.queryTxhashes([]byte(eth2chain33TxHashPrefix))
+//QueryTxhashRelay2Dplatform ...
+func (ethRelayer *Relayer4Ethereum) QueryTxhashRelay2Dplatform() ebTypes.Txhashes {
+	txhashs := ethRelayer.queryTxhashes([]byte(eth2dplatformTxHashPrefix))
 	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
-// handleLogLockEvent : unpacks a LogLock event, converts it to a ProphecyClaim, and relays a tx to chain33
+// handleLogLockEvent : unpacks a LogLock event, converts it to a ProphecyClaim, and relays a tx to dplatform
 func (ethRelayer *Relayer4Ethereum) handleLogLockEvent(clientChainID *big.Int, contractABI abi.ABI, eventName string, log types.Log) error {
-	rpcURL := ethRelayer.rpcURL2Chain33
+	rpcURL := ethRelayer.rpcURL2Dplatform
 
 	// Unpack the LogLock event using its unique event signature from the contract's ABI
 	event, err := events.UnpackLogLock(contractABI, eventName, log.Data)
@@ -704,33 +704,33 @@ func (ethRelayer *Relayer4Ethereum) handleLogLockEvent(clientChainID *big.Int, c
 
 	// Initiate the relay
 	ethRelayer.rwLock.RLock()
-	privateKey4Chain33 := ethRelayer.privateKey4Chain33
+	privateKey4Dplatform := ethRelayer.privateKey4Dplatform
 	ethRelayer.rwLock.RUnlock()
-	txhash, err := ethtxs.RelayLockToChain33(privateKey4Chain33, prophecyClaim, rpcURL)
+	txhash, err := ethtxs.RelayLockToDplatform(privateKey4Dplatform, prophecyClaim, rpcURL)
 	if err != nil {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
+		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToDplatform due to:", err.Error())
 		return err
 	}
-	relayerLog.Info("handleLogLockEvent", "RelayLockToChain33 with hash", txhash)
+	relayerLog.Info("handleLogLockEvent", "RelayLockToDplatform with hash", txhash)
 
 	//保存交易hash，方便查询
-	atomic.AddInt64(&ethRelayer.totalTx4Eth2Chain33, 1)
-	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33)
-	if err = ethRelayer.updateTotalTxAmount2chain33(txIndex); nil != err {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
+	atomic.AddInt64(&ethRelayer.totalTx4Eth2Dplatform, 1)
+	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Dplatform)
+	if err = ethRelayer.updateTotalTxAmount2dplatform(txIndex); nil != err {
+		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToDplatform due to:", err.Error())
 		return err
 	}
-	if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
+	if err = ethRelayer.setLastestRelay2DplatformTxhash(txhash, txIndex); nil != err {
+		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToDplatform due to:", err.Error())
 		return err
 	}
 
 	return nil
 }
 
-// handleLogBurnEvent : unpacks a burn event, converts it to a ProphecyClaim, and relays a tx to chain33
+// handleLogBurnEvent : unpacks a burn event, converts it to a ProphecyClaim, and relays a tx to dplatform
 func (ethRelayer *Relayer4Ethereum) handleLogBurnEvent(clientChainID *big.Int, contractABI abi.ABI, eventName string, log types.Log) error {
-	rpcURL := ethRelayer.rpcURL2Chain33
+	rpcURL := ethRelayer.rpcURL2Dplatform
 
 	event, err := events.UnpackLogBurn(contractABI, eventName, log.Data)
 	if nil != err {
@@ -762,24 +762,24 @@ func (ethRelayer *Relayer4Ethereum) handleLogBurnEvent(clientChainID *big.Int, c
 
 	// Initiate the relay
 	ethRelayer.rwLock.RLock()
-	privateKey4Chain33 := ethRelayer.privateKey4Chain33
+	privateKey4Dplatform := ethRelayer.privateKey4Dplatform
 	ethRelayer.rwLock.RUnlock()
-	txhash, err := ethtxs.RelayBurnToChain33(privateKey4Chain33, prophecyClaim, rpcURL)
+	txhash, err := ethtxs.RelayBurnToDplatform(privateKey4Dplatform, prophecyClaim, rpcURL)
 	if err != nil {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
+		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToDplatform due to:", err.Error())
 		return err
 	}
-	relayerLog.Info("handleLogLockEvent", "RelayBurnToChain33 with hash", txhash)
+	relayerLog.Info("handleLogLockEvent", "RelayBurnToDplatform with hash", txhash)
 
 	//保存交易hash，方便查询
-	atomic.AddInt64(&ethRelayer.totalTx4Eth2Chain33, 1)
-	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33)
-	if err = ethRelayer.updateTotalTxAmount2chain33(txIndex); nil != err {
-		relayerLog.Error("handleLogBurnEvent", "Failed to RelayLockToChain33 due to:", err.Error())
+	atomic.AddInt64(&ethRelayer.totalTx4Eth2Dplatform, 1)
+	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Dplatform)
+	if err = ethRelayer.updateTotalTxAmount2dplatform(txIndex); nil != err {
+		relayerLog.Error("handleLogBurnEvent", "Failed to RelayLockToDplatform due to:", err.Error())
 		return err
 	}
-	if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
-		relayerLog.Error("handleLogBurnEvent", "Failed to RelayLockToChain33 due to:", err.Error())
+	if err = ethRelayer.setLastestRelay2DplatformTxhash(txhash, txIndex); nil != err {
+		relayerLog.Error("handleLogBurnEvent", "Failed to RelayLockToDplatform due to:", err.Error())
 		return err
 	}
 

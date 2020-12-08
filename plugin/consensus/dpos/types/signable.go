@@ -12,10 +12,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/dplatform/common/address"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/log/log15"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/log/log15"
 )
 
 // error defines

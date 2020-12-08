@@ -6,10 +6,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	types2 "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/system/dapp/commands"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	types2 "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/system/dapp/commands"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebcli/buildflags"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/utils"
 	types3 "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
@@ -28,8 +28,8 @@ func Cmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 	}
 	cmd.AddCommand(
-		CreateRawWithdrawChain33TxCmd(),
-		CreateRawChain33ToEthTxCmd(),
+		CreateRawWithdrawDplatformTxCmd(),
+		CreateRawDplatformToEthTxCmd(),
 		CreateRawAddValidatorTxCmd(),
 		CreateRawRemoveValidatorTxCmd(),
 		CreateRawModifyValidatorTxCmd(),
@@ -48,23 +48,23 @@ func Cmd() *cobra.Command {
 	return cmd
 }
 
-//CreateRawWithdrawChain33TxCmd Burn
-func CreateRawWithdrawChain33TxCmd() *cobra.Command {
+//CreateRawWithdrawDplatformTxCmd Burn
+func CreateRawWithdrawDplatformTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "burn",
-		Short: "Create a burn tx in chain33,withdraw chain33ToEth",
+		Short: "Create a burn tx in dplatform,withdraw dplatformToEth",
 		Run:   burn,
 	}
 
-	addChain33ToEthFlags(cmd)
+	addDplatformToEthFlags(cmd)
 
 	return cmd
 }
 
-func addChain33ToEthFlags(cmd *cobra.Command) {
+func addDplatformToEthFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("contract", "q", "", "token contract address,nil for ETH")
 
-	cmd.Flags().StringP("symbol", "t", "", "token symbol in chain33,coins.bty etc.")
+	cmd.Flags().StringP("symbol", "t", "", "token symbol in dplatform,coins.bty etc.")
 	_ = cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("receiver", "r", "", "ethereum receiver address")
@@ -91,7 +91,7 @@ func burn(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	params := &types3.Chain33ToEth{
+	params := &types3.DplatformToEth{
 		TokenContract:    contract,
 		EthereumReceiver: receiver,
 		Amount:           types3.TrimZeroAndDot(strconv.FormatFloat(amount*1e8, 'f', 4, 64)),
@@ -101,18 +101,18 @@ func burn(cmd *cobra.Command, args []string) {
 
 	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, types3.NameWithdrawChain33Action)
+	createTx(cmd, payLoad, types3.NameWithdrawDplatformAction)
 }
 
-//CreateRawChain33ToEthTxCmd Lock
-func CreateRawChain33ToEthTxCmd() *cobra.Command {
+//CreateRawDplatformToEthTxCmd Lock
+func CreateRawDplatformToEthTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lock",
-		Short: "Create a lock tx in chain33,create a chain33ToEth tx",
+		Short: "Create a lock tx in dplatform,create a dplatformToEth tx",
 		Run:   lock,
 	}
 
-	addChain33ToEthFlags(cmd)
+	addDplatformToEthFlags(cmd)
 
 	return cmd
 }
@@ -135,7 +135,7 @@ func lock(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	params := &types3.Chain33ToEth{
+	params := &types3.DplatformToEth{
 		TokenContract:    contract,
 		EthereumReceiver: receiver,
 		Amount:           strconv.FormatFloat(amount*1e8, 'f', 4, 64),
@@ -145,14 +145,14 @@ func lock(cmd *cobra.Command, args []string) {
 
 	payLoad := types.MustPBToJSON(params)
 
-	createTx(cmd, payLoad, types3.NameChain33ToEthAction)
+	createTx(cmd, payLoad, types3.NameDplatformToEthAction)
 }
 
 //CreateTransferCmd Transfer
 func CreateTransferCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
-		Short: "Create a transfer tx in chain33",
+		Short: "Create a transfer tx in dplatform",
 		Run:   transfer,
 	}
 
@@ -238,7 +238,7 @@ func createTokenWithdraw(cmd *cobra.Command, args []string) {
 func CreateRawAddValidatorTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "Create a add validator tx in chain33",
+		Short: "Create a add validator tx in dplatform",
 		Run:   addValidator,
 	}
 
@@ -271,7 +271,7 @@ func addValidator(cmd *cobra.Command, args []string) {
 func CreateRawRemoveValidatorTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove",
-		Short: "Create a remove validator tx in chain33",
+		Short: "Create a remove validator tx in dplatform",
 		Run:   removeValidator,
 	}
 
@@ -295,7 +295,7 @@ func removeValidator(cmd *cobra.Command, args []string) {
 func CreateRawModifyValidatorTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "modify",
-		Short: "Create a modify validator tx in chain33",
+		Short: "Create a modify validator tx in dplatform",
 		Run:   modify,
 	}
 
@@ -324,7 +324,7 @@ func modify(cmd *cobra.Command, args []string) {
 func CreateRawSetConsensusTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setconsensus",
-		Short: "Create a set consensus threshold tx in chain33",
+		Short: "Create a set consensus threshold tx in dplatform",
 		Run:   setConsensus,
 	}
 
@@ -392,7 +392,7 @@ func queryRelayerBalance(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types3.ReceiptQueryRelayerBalance{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", query, channel)
 	ctx.Run()
 }
 
@@ -408,6 +408,6 @@ func createTx(cmd *cobra.Command, payLoad []byte, action string) {
 	}
 
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }

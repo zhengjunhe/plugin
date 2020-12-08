@@ -13,17 +13,17 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/33cn/chain33/common/limits"
-	clog "github.com/33cn/chain33/common/log"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/limits"
+	clog "github.com/33cn/dplatform/common/log"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/relay/cmd/relayd/relayd"
 )
 
 var (
 	cpuNum            = runtime.NumCPU()
 	configPath        = flag.String("f", "relayd.toml", "configfile")
-	chain33ConfigPath = flag.String("chain33flie", "", "chain33configfile")
+	dplatformConfigPath = flag.String("dplatformflie", "", "dplatformconfigfile")
 )
 
 func main() {
@@ -42,8 +42,8 @@ func main() {
 	flag.Parse()
 	cfg := relayd.NewConfig(*configPath)
 	clog.SetFileLog(&cfg.Log)
-	if *chain33ConfigPath != "" {
-		cfg.Chain33Cfg = types.NewChain33Config(types.ReadFile(*chain33ConfigPath))
+	if *dplatformConfigPath != "" {
+		cfg.DplatformCfg = types.NewDplatformConfig(types.ReadFile(*dplatformConfigPath))
 	}
 
 	if cfg.Watch {

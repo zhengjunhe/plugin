@@ -5,13 +5,13 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/common"
-	dbm "github.com/33cn/chain33/common/db"
+	"github.com/33cn/dplatform/common"
+	dbm "github.com/33cn/dplatform/common/db"
 	"github.com/golang/protobuf/proto"
 
 	"sort"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/pkg/errors"
 )
@@ -132,7 +132,7 @@ func updateStages(db dbm.KV, stage *pt.SelfConsensStage) (*types.Receipt, error)
 
 }
 
-func selfConsensInitStage(cfg *types.Chain33Config) *types.Receipt {
+func selfConsensInitStage(cfg *types.DplatformConfig) *types.Receipt {
 	close := cfg.IsEnable(pt.ParaConsSubConf + "." + pt.ParaSelfConsInitConf)
 	stage := &pt.SelfConsensStage{StartHeight: 0, Enable: pt.ParaConfigYes}
 	if close {

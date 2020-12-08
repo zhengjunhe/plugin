@@ -33,7 +33,7 @@ type PrecompiledContract interface {
 	Run(input []byte) ([]byte, error)
 }
 
-// PrecompiledContractsByzantium chain33平台支持君士坦丁堡版本支持的所有预编译合约指令，并从此版本开始同步支持EVM黄皮书中的新增指令；
+// PrecompiledContractsByzantium dplatform平台支持君士坦丁堡版本支持的所有预编译合约指令，并从此版本开始同步支持EVM黄皮书中的新增指令；
 // 保存拜占庭版本支持的所有预编译合约（包括之前版本的合约）；
 // 后面如果有硬分叉，需要在此处考虑分叉逻辑，根据区块高度分别处理；
 // 下面的8个预编译指令，直接引用go-ethereum中的EVM实现

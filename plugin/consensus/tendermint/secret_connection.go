@@ -21,7 +21,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/33cn/chain33/common/crypto"
+	"github.com/33cn/dplatform/common/crypto"
 	ttypes "github.com/33cn/plugin/plugin/consensus/tendermint/types"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"

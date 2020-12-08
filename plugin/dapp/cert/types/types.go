@@ -4,7 +4,7 @@
 
 package types
 
-import "github.com/33cn/chain33/types"
+import "github.com/33cn/dplatform/types"
 
 //cert
 const (
@@ -24,12 +24,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.Chain33Config) {
+func InitFork(cfg *types.DplatformConfig) {
 	cfg.RegisterDappFork(CertX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.Chain33Config) {
+func InitExecutor(cfg *types.DplatformConfig) {
 	types.RegistorExecutor(CertX, NewType(cfg))
 }
 
@@ -39,7 +39,7 @@ type CertType struct {
 }
 
 // NewType 新建cert类型结构
-func NewType(cfg *types.Chain33Config) *CertType {
+func NewType(cfg *types.DplatformConfig) *CertType {
 	c := &CertType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

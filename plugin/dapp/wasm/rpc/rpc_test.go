@@ -5,18 +5,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/33cn/chain33/client/mocks"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/client/mocks"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-var cfg *types.Chain33Config
+var cfg *types.DplatformConfig
 
 func init() {
-	cfg = types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+	cfg = types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 }
 
 func TestJrpc_CheckContract(t *testing.T) {

@@ -3,17 +3,17 @@ package main
 import (
 	"fmt"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	"github.com/spf13/cobra"
 )
 
-//Chain33RelayerCmd RelayerCmd command func
-func Chain33RelayerCmd() *cobra.Command {
+//DplatformRelayerCmd RelayerCmd command func
+func DplatformRelayerCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "chain33 ",
-		Short: "Chain33 relayer ",
+		Use:   "dplatform ",
+		Short: "Dplatform relayer ",
 		Args:  cobra.MinimumNArgs(1),
 	}
 
@@ -50,7 +50,7 @@ func importPrivatekey(cmd *cobra.Command, args []string) {
 	}
 
 	var res rpctypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ImportChain33RelayerPrivateKey", importKeyReq, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ImportDplatformRelayerPrivateKey", importKeyReq, &res)
 	ctx.Run()
 }
 
@@ -67,7 +67,7 @@ func ShowValidatorAddrCmd() *cobra.Command {
 func showValidatorAddr(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowChain33RelayerValidator", nil, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowDplatformRelayerValidator", nil, &res)
 	ctx.Run()
 }
 
@@ -76,16 +76,16 @@ func ShowTxsHashCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show_txhashes",
 		Short: "show me the tx hashes",
-		Run:   showChain33Relayer2EthTxs,
+		Run:   showDplatformRelayer2EthTxs,
 	}
 	return cmd
 }
 
-func showChain33Relayer2EthTxs(cmd *cobra.Command, args []string) {
+func showDplatformRelayer2EthTxs(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	var res ebTypes.Txhashes
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowChain33Relayer2EthTxs", nil, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowDplatformRelayer2EthTxs", nil, &res)
 	if _, err := ctx.RunResult(); nil != err {
 		errInfo := err.Error()
 		fmt.Println("errinfo:" + errInfo)

@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/33cn/chain33/common/crypto"
+	"github.com/33cn/dplatform/common/crypto"
 )
 
 // TODO: type ?

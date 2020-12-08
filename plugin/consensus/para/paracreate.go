@@ -15,8 +15,8 @@ import (
 
 	"fmt"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/types"
 	paraexec "github.com/33cn/plugin/plugin/dapp/paracross/executor"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )

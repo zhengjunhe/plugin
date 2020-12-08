@@ -5,13 +5,13 @@
 package kvmvccdb
 
 import (
-	"github.com/33cn/chain33/common"
-	dbm "github.com/33cn/chain33/common/db"
-	clog "github.com/33cn/chain33/common/log"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/queue"
-	drivers "github.com/33cn/chain33/system/store"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	dbm "github.com/33cn/dplatform/common/db"
+	clog "github.com/33cn/dplatform/common/log"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/queue"
+	drivers "github.com/33cn/dplatform/system/store"
+	"github.com/33cn/dplatform/types"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -45,7 +45,7 @@ type subConfig struct {
 }
 
 // New construct KVMVCCStore module
-func New(cfg *types.Store, sub []byte, chain33cfg *types.Chain33Config) queue.Module {
+func New(cfg *types.Store, sub []byte, dplatformcfg *types.DplatformConfig) queue.Module {
 	bs := drivers.NewBaseStore(cfg)
 	var kvs *KVMVCCStore
 	enable := false

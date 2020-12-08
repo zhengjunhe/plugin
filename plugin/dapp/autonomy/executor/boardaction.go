@@ -5,15 +5,15 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 
-	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/dplatform/common/address"
 	ticket "github.com/33cn/plugin/plugin/dapp/ticket/executor"
 	ticketTy "github.com/33cn/plugin/plugin/dapp/ticket/types"
 )

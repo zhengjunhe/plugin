@@ -3,14 +3,14 @@ package para_test
 import (
 	"testing"
 
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatform/util/testnode"
 	paratest "github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	"github.com/33cn/plugin/plugin/mempool/para"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/chain33/system"
+	_ "github.com/33cn/dplatform/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -33,7 +33,7 @@ func TestParaNodeMempool(t *testing.T) {
 	main := testnode.New("", nil)
 	main.Listen()
 
-	chainCfg := types.NewChain33ConfigNoInit(paratest.DefaultConfig)
+	chainCfg := types.NewDplatformConfigNoInit(paratest.DefaultConfig)
 	testnode.ModifyParaClient(chainCfg, main.GetCfg().RPC.GrpcBindAddr)
 	cfg := chainCfg.GetModuleConfig()
 	cfg.Mempool.Name = "para"

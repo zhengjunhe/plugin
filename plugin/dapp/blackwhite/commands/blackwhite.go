@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/33cn/chain33/common"
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	gt "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 	"github.com/spf13/cobra"
 )
@@ -291,6 +291,6 @@ func showBlackwhiteInfo(cmd *cobra.Command, args []string) {
 		rep = &gt.ReplyLoopResults{}
 	}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
 	ctx.Run()
 }

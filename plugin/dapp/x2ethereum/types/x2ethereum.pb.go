@@ -8,7 +8,7 @@ import (
 	fmt "fmt"
 	math "math"
 
-	types "github.com/33cn/chain33/types"
+	types "github.com/33cn/dplatform/types"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 )
@@ -54,10 +54,10 @@ func (EthBridgeStatus) EnumDescriptor() ([]byte, []int) {
 
 type X2EthereumAction struct {
 	// Types that are valid to be assigned to Value:
-	//	*X2EthereumAction_Eth2Chain33Lock
-	//	*X2EthereumAction_Eth2Chain33Burn
-	//	*X2EthereumAction_Chain33ToEthBurn
-	//	*X2EthereumAction_Chain33ToEthLock
+	//	*X2EthereumAction_Eth2DplatformLock
+	//	*X2EthereumAction_Eth2DplatformBurn
+	//	*X2EthereumAction_DplatformToEthBurn
+	//	*X2EthereumAction_DplatformToEthLock
 	//	*X2EthereumAction_AddValidator
 	//	*X2EthereumAction_RemoveValidator
 	//	*X2EthereumAction_ModifyPower
@@ -101,20 +101,20 @@ type isX2EthereumAction_Value interface {
 	isX2EthereumAction_Value()
 }
 
-type X2EthereumAction_Eth2Chain33Lock struct {
-	Eth2Chain33Lock *Eth2Chain33 `protobuf:"bytes,1,opt,name=eth2Chain33Lock,proto3,oneof"`
+type X2EthereumAction_Eth2DplatformLock struct {
+	Eth2DplatformLock *Eth2Dplatform `protobuf:"bytes,1,opt,name=eth2DplatformLock,proto3,oneof"`
 }
 
-type X2EthereumAction_Eth2Chain33Burn struct {
-	Eth2Chain33Burn *Eth2Chain33 `protobuf:"bytes,2,opt,name=eth2Chain33Burn,proto3,oneof"`
+type X2EthereumAction_Eth2DplatformBurn struct {
+	Eth2DplatformBurn *Eth2Dplatform `protobuf:"bytes,2,opt,name=eth2DplatformBurn,proto3,oneof"`
 }
 
-type X2EthereumAction_Chain33ToEthBurn struct {
-	Chain33ToEthBurn *Chain33ToEth `protobuf:"bytes,3,opt,name=chain33ToEthBurn,proto3,oneof"`
+type X2EthereumAction_DplatformToEthBurn struct {
+	DplatformToEthBurn *DplatformToEth `protobuf:"bytes,3,opt,name=dplatformToEthBurn,proto3,oneof"`
 }
 
-type X2EthereumAction_Chain33ToEthLock struct {
-	Chain33ToEthLock *Chain33ToEth `protobuf:"bytes,4,opt,name=chain33ToEthLock,proto3,oneof"`
+type X2EthereumAction_DplatformToEthLock struct {
+	DplatformToEthLock *DplatformToEth `protobuf:"bytes,4,opt,name=dplatformToEthLock,proto3,oneof"`
 }
 
 type X2EthereumAction_AddValidator struct {
@@ -145,13 +145,13 @@ type X2EthereumAction_WithdrawFromExec struct {
 	WithdrawFromExec *types.AssetsWithdraw `protobuf:"bytes,11,opt,name=withdrawFromExec,proto3,oneof"`
 }
 
-func (*X2EthereumAction_Eth2Chain33Lock) isX2EthereumAction_Value() {}
+func (*X2EthereumAction_Eth2DplatformLock) isX2EthereumAction_Value() {}
 
-func (*X2EthereumAction_Eth2Chain33Burn) isX2EthereumAction_Value() {}
+func (*X2EthereumAction_Eth2DplatformBurn) isX2EthereumAction_Value() {}
 
-func (*X2EthereumAction_Chain33ToEthBurn) isX2EthereumAction_Value() {}
+func (*X2EthereumAction_DplatformToEthBurn) isX2EthereumAction_Value() {}
 
-func (*X2EthereumAction_Chain33ToEthLock) isX2EthereumAction_Value() {}
+func (*X2EthereumAction_DplatformToEthLock) isX2EthereumAction_Value() {}
 
 func (*X2EthereumAction_AddValidator) isX2EthereumAction_Value() {}
 
@@ -174,30 +174,30 @@ func (m *X2EthereumAction) GetValue() isX2EthereumAction_Value {
 	return nil
 }
 
-func (m *X2EthereumAction) GetEth2Chain33Lock() *Eth2Chain33 {
-	if x, ok := m.GetValue().(*X2EthereumAction_Eth2Chain33Lock); ok {
-		return x.Eth2Chain33Lock
+func (m *X2EthereumAction) GetEth2DplatformLock() *Eth2Dplatform {
+	if x, ok := m.GetValue().(*X2EthereumAction_Eth2DplatformLock); ok {
+		return x.Eth2DplatformLock
 	}
 	return nil
 }
 
-func (m *X2EthereumAction) GetEth2Chain33Burn() *Eth2Chain33 {
-	if x, ok := m.GetValue().(*X2EthereumAction_Eth2Chain33Burn); ok {
-		return x.Eth2Chain33Burn
+func (m *X2EthereumAction) GetEth2DplatformBurn() *Eth2Dplatform {
+	if x, ok := m.GetValue().(*X2EthereumAction_Eth2DplatformBurn); ok {
+		return x.Eth2DplatformBurn
 	}
 	return nil
 }
 
-func (m *X2EthereumAction) GetChain33ToEthBurn() *Chain33ToEth {
-	if x, ok := m.GetValue().(*X2EthereumAction_Chain33ToEthBurn); ok {
-		return x.Chain33ToEthBurn
+func (m *X2EthereumAction) GetDplatformToEthBurn() *DplatformToEth {
+	if x, ok := m.GetValue().(*X2EthereumAction_DplatformToEthBurn); ok {
+		return x.DplatformToEthBurn
 	}
 	return nil
 }
 
-func (m *X2EthereumAction) GetChain33ToEthLock() *Chain33ToEth {
-	if x, ok := m.GetValue().(*X2EthereumAction_Chain33ToEthLock); ok {
-		return x.Chain33ToEthLock
+func (m *X2EthereumAction) GetDplatformToEthLock() *DplatformToEth {
+	if x, ok := m.GetValue().(*X2EthereumAction_DplatformToEthLock); ok {
+		return x.DplatformToEthLock
 	}
 	return nil
 }
@@ -261,10 +261,10 @@ func (m *X2EthereumAction) GetTy() int32 {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*X2EthereumAction) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*X2EthereumAction_Eth2Chain33Lock)(nil),
-		(*X2EthereumAction_Eth2Chain33Burn)(nil),
-		(*X2EthereumAction_Chain33ToEthBurn)(nil),
-		(*X2EthereumAction_Chain33ToEthLock)(nil),
+		(*X2EthereumAction_Eth2DplatformLock)(nil),
+		(*X2EthereumAction_Eth2DplatformBurn)(nil),
+		(*X2EthereumAction_DplatformToEthBurn)(nil),
+		(*X2EthereumAction_DplatformToEthLock)(nil),
 		(*X2EthereumAction_AddValidator)(nil),
 		(*X2EthereumAction_RemoveValidator)(nil),
 		(*X2EthereumAction_ModifyPower)(nil),
@@ -362,14 +362,14 @@ func (m *MsgValidator) GetPower() int64 {
 }
 
 // EthBridgeClaim is a structure that contains all the data for a particular bridge claim
-type Eth2Chain33 struct {
+type Eth2Dplatform struct {
 	EthereumChainID       int64    `protobuf:"varint,1,opt,name=EthereumChainID,proto3" json:"EthereumChainID,omitempty"`
 	BridgeContractAddress string   `protobuf:"bytes,2,opt,name=BridgeContractAddress,proto3" json:"BridgeContractAddress,omitempty"`
 	Nonce                 int64    `protobuf:"varint,3,opt,name=Nonce,proto3" json:"Nonce,omitempty"`
 	IssuerDotSymbol       string   `protobuf:"bytes,4,opt,name=IssuerDotSymbol,proto3" json:"IssuerDotSymbol,omitempty"`
 	TokenContractAddress  string   `protobuf:"bytes,6,opt,name=TokenContractAddress,proto3" json:"TokenContractAddress,omitempty"`
 	EthereumSender        string   `protobuf:"bytes,7,opt,name=EthereumSender,proto3" json:"EthereumSender,omitempty"`
-	Chain33Receiver       string   `protobuf:"bytes,8,opt,name=Chain33Receiver,proto3" json:"Chain33Receiver,omitempty"`
+	DplatformReceiver       string   `protobuf:"bytes,8,opt,name=DplatformReceiver,proto3" json:"DplatformReceiver,omitempty"`
 	ValidatorAddress      string   `protobuf:"bytes,9,opt,name=ValidatorAddress,proto3" json:"ValidatorAddress,omitempty"`
 	Amount                string   `protobuf:"bytes,10,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	ClaimType             int64    `protobuf:"varint,11,opt,name=ClaimType,proto3" json:"ClaimType,omitempty"`
@@ -379,102 +379,102 @@ type Eth2Chain33 struct {
 	XXX_sizecache         int32    `json:"-"`
 }
 
-func (m *Eth2Chain33) Reset()         { *m = Eth2Chain33{} }
-func (m *Eth2Chain33) String() string { return proto.CompactTextString(m) }
-func (*Eth2Chain33) ProtoMessage()    {}
-func (*Eth2Chain33) Descriptor() ([]byte, []int) {
+func (m *Eth2Dplatform) Reset()         { *m = Eth2Dplatform{} }
+func (m *Eth2Dplatform) String() string { return proto.CompactTextString(m) }
+func (*Eth2Dplatform) ProtoMessage()    {}
+func (*Eth2Dplatform) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1dd1834a817ceb21, []int{3}
 }
 
-func (m *Eth2Chain33) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Eth2Chain33.Unmarshal(m, b)
+func (m *Eth2Dplatform) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Eth2Dplatform.Unmarshal(m, b)
 }
-func (m *Eth2Chain33) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Eth2Chain33.Marshal(b, m, deterministic)
+func (m *Eth2Dplatform) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Eth2Dplatform.Marshal(b, m, deterministic)
 }
-func (m *Eth2Chain33) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Eth2Chain33.Merge(m, src)
+func (m *Eth2Dplatform) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Eth2Dplatform.Merge(m, src)
 }
-func (m *Eth2Chain33) XXX_Size() int {
-	return xxx_messageInfo_Eth2Chain33.Size(m)
+func (m *Eth2Dplatform) XXX_Size() int {
+	return xxx_messageInfo_Eth2Dplatform.Size(m)
 }
-func (m *Eth2Chain33) XXX_DiscardUnknown() {
-	xxx_messageInfo_Eth2Chain33.DiscardUnknown(m)
+func (m *Eth2Dplatform) XXX_DiscardUnknown() {
+	xxx_messageInfo_Eth2Dplatform.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Eth2Chain33 proto.InternalMessageInfo
+var xxx_messageInfo_Eth2Dplatform proto.InternalMessageInfo
 
-func (m *Eth2Chain33) GetEthereumChainID() int64 {
+func (m *Eth2Dplatform) GetEthereumChainID() int64 {
 	if m != nil {
 		return m.EthereumChainID
 	}
 	return 0
 }
 
-func (m *Eth2Chain33) GetBridgeContractAddress() string {
+func (m *Eth2Dplatform) GetBridgeContractAddress() string {
 	if m != nil {
 		return m.BridgeContractAddress
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetNonce() int64 {
+func (m *Eth2Dplatform) GetNonce() int64 {
 	if m != nil {
 		return m.Nonce
 	}
 	return 0
 }
 
-func (m *Eth2Chain33) GetIssuerDotSymbol() string {
+func (m *Eth2Dplatform) GetIssuerDotSymbol() string {
 	if m != nil {
 		return m.IssuerDotSymbol
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetTokenContractAddress() string {
+func (m *Eth2Dplatform) GetTokenContractAddress() string {
 	if m != nil {
 		return m.TokenContractAddress
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetEthereumSender() string {
+func (m *Eth2Dplatform) GetEthereumSender() string {
 	if m != nil {
 		return m.EthereumSender
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetChain33Receiver() string {
+func (m *Eth2Dplatform) GetDplatformReceiver() string {
 	if m != nil {
-		return m.Chain33Receiver
+		return m.DplatformReceiver
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetValidatorAddress() string {
+func (m *Eth2Dplatform) GetValidatorAddress() string {
 	if m != nil {
 		return m.ValidatorAddress
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetAmount() string {
+func (m *Eth2Dplatform) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
 	return ""
 }
 
-func (m *Eth2Chain33) GetClaimType() int64 {
+func (m *Eth2Dplatform) GetClaimType() int64 {
 	if m != nil {
 		return m.ClaimType
 	}
 	return 0
 }
 
-func (m *Eth2Chain33) GetDecimals() int64 {
+func (m *Eth2Dplatform) GetDecimals() int64 {
 	if m != nil {
 		return m.Decimals
 	}
@@ -483,7 +483,7 @@ func (m *Eth2Chain33) GetDecimals() int64 {
 
 // OracleClaimContent is the details of how the content of the claim for each validator will be stored in the oracle
 type OracleClaimContent struct {
-	Chain33Receiver      string   `protobuf:"bytes,1,opt,name=Chain33Receiver,proto3" json:"Chain33Receiver,omitempty"`
+	DplatformReceiver      string   `protobuf:"bytes,1,opt,name=DplatformReceiver,proto3" json:"DplatformReceiver,omitempty"`
 	Amount               string   `protobuf:"bytes,2,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	ClaimType            int64    `protobuf:"varint,3,opt,name=ClaimType,proto3" json:"ClaimType,omitempty"`
 	Decimals             int64    `protobuf:"varint,4,opt,name=Decimals,proto3" json:"Decimals,omitempty"`
@@ -517,9 +517,9 @@ func (m *OracleClaimContent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_OracleClaimContent proto.InternalMessageInfo
 
-func (m *OracleClaimContent) GetChain33Receiver() string {
+func (m *OracleClaimContent) GetDplatformReceiver() string {
 	if m != nil {
-		return m.Chain33Receiver
+		return m.DplatformReceiver
 	}
 	return ""
 }
@@ -546,9 +546,9 @@ func (m *OracleClaimContent) GetDecimals() int64 {
 }
 
 // MsgBurn defines a message for burning coins and triggering a related event
-type Chain33ToEth struct {
+type DplatformToEth struct {
 	TokenContract        string   `protobuf:"bytes,1,opt,name=TokenContract,proto3" json:"TokenContract,omitempty"`
-	Chain33Sender        string   `protobuf:"bytes,2,opt,name=Chain33Sender,proto3" json:"Chain33Sender,omitempty"`
+	DplatformSender        string   `protobuf:"bytes,2,opt,name=DplatformSender,proto3" json:"DplatformSender,omitempty"`
 	EthereumReceiver     string   `protobuf:"bytes,3,opt,name=EthereumReceiver,proto3" json:"EthereumReceiver,omitempty"`
 	Amount               string   `protobuf:"bytes,4,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	IssuerDotSymbol      string   `protobuf:"bytes,5,opt,name=IssuerDotSymbol,proto3" json:"IssuerDotSymbol,omitempty"`
@@ -558,67 +558,67 @@ type Chain33ToEth struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Chain33ToEth) Reset()         { *m = Chain33ToEth{} }
-func (m *Chain33ToEth) String() string { return proto.CompactTextString(m) }
-func (*Chain33ToEth) ProtoMessage()    {}
-func (*Chain33ToEth) Descriptor() ([]byte, []int) {
+func (m *DplatformToEth) Reset()         { *m = DplatformToEth{} }
+func (m *DplatformToEth) String() string { return proto.CompactTextString(m) }
+func (*DplatformToEth) ProtoMessage()    {}
+func (*DplatformToEth) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1dd1834a817ceb21, []int{5}
 }
 
-func (m *Chain33ToEth) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Chain33ToEth.Unmarshal(m, b)
+func (m *DplatformToEth) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DplatformToEth.Unmarshal(m, b)
 }
-func (m *Chain33ToEth) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Chain33ToEth.Marshal(b, m, deterministic)
+func (m *DplatformToEth) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DplatformToEth.Marshal(b, m, deterministic)
 }
-func (m *Chain33ToEth) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Chain33ToEth.Merge(m, src)
+func (m *DplatformToEth) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DplatformToEth.Merge(m, src)
 }
-func (m *Chain33ToEth) XXX_Size() int {
-	return xxx_messageInfo_Chain33ToEth.Size(m)
+func (m *DplatformToEth) XXX_Size() int {
+	return xxx_messageInfo_DplatformToEth.Size(m)
 }
-func (m *Chain33ToEth) XXX_DiscardUnknown() {
-	xxx_messageInfo_Chain33ToEth.DiscardUnknown(m)
+func (m *DplatformToEth) XXX_DiscardUnknown() {
+	xxx_messageInfo_DplatformToEth.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Chain33ToEth proto.InternalMessageInfo
+var xxx_messageInfo_DplatformToEth proto.InternalMessageInfo
 
-func (m *Chain33ToEth) GetTokenContract() string {
+func (m *DplatformToEth) GetTokenContract() string {
 	if m != nil {
 		return m.TokenContract
 	}
 	return ""
 }
 
-func (m *Chain33ToEth) GetChain33Sender() string {
+func (m *DplatformToEth) GetDplatformSender() string {
 	if m != nil {
-		return m.Chain33Sender
+		return m.DplatformSender
 	}
 	return ""
 }
 
-func (m *Chain33ToEth) GetEthereumReceiver() string {
+func (m *DplatformToEth) GetEthereumReceiver() string {
 	if m != nil {
 		return m.EthereumReceiver
 	}
 	return ""
 }
 
-func (m *Chain33ToEth) GetAmount() string {
+func (m *DplatformToEth) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
 	return ""
 }
 
-func (m *Chain33ToEth) GetIssuerDotSymbol() string {
+func (m *DplatformToEth) GetIssuerDotSymbol() string {
 	if m != nil {
 		return m.IssuerDotSymbol
 	}
 	return ""
 }
 
-func (m *Chain33ToEth) GetDecimals() int64 {
+func (m *DplatformToEth) GetDecimals() int64 {
 	if m != nil {
 		return m.Decimals
 	}
@@ -626,14 +626,14 @@ func (m *Chain33ToEth) GetDecimals() int64 {
 }
 
 // 回执接口定义
-type ReceiptEth2Chain33 struct {
+type ReceiptEth2Dplatform struct {
 	EthereumChainID       int64    `protobuf:"varint,1,opt,name=EthereumChainID,proto3" json:"EthereumChainID,omitempty"`
 	BridgeContractAddress string   `protobuf:"bytes,2,opt,name=BridgeContractAddress,proto3" json:"BridgeContractAddress,omitempty"`
 	Nonce                 int64    `protobuf:"varint,3,opt,name=Nonce,proto3" json:"Nonce,omitempty"`
 	IssuerDotSymbol       string   `protobuf:"bytes,4,opt,name=IssuerDotSymbol,proto3" json:"IssuerDotSymbol,omitempty"`
 	TokenAddress          string   `protobuf:"bytes,5,opt,name=TokenAddress,proto3" json:"TokenAddress,omitempty"`
 	EthereumSender        string   `protobuf:"bytes,7,opt,name=EthereumSender,proto3" json:"EthereumSender,omitempty"`
-	Chain33Receiver       string   `protobuf:"bytes,8,opt,name=Chain33Receiver,proto3" json:"Chain33Receiver,omitempty"`
+	DplatformReceiver       string   `protobuf:"bytes,8,opt,name=DplatformReceiver,proto3" json:"DplatformReceiver,omitempty"`
 	ValidatorAddress      string   `protobuf:"bytes,9,opt,name=ValidatorAddress,proto3" json:"ValidatorAddress,omitempty"`
 	Amount                string   `protobuf:"bytes,10,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	ClaimType             int64    `protobuf:"varint,11,opt,name=ClaimType,proto3" json:"ClaimType,omitempty"`
@@ -646,132 +646,132 @@ type ReceiptEth2Chain33 struct {
 	XXX_sizecache         int32    `json:"-"`
 }
 
-func (m *ReceiptEth2Chain33) Reset()         { *m = ReceiptEth2Chain33{} }
-func (m *ReceiptEth2Chain33) String() string { return proto.CompactTextString(m) }
-func (*ReceiptEth2Chain33) ProtoMessage()    {}
-func (*ReceiptEth2Chain33) Descriptor() ([]byte, []int) {
+func (m *ReceiptEth2Dplatform) Reset()         { *m = ReceiptEth2Dplatform{} }
+func (m *ReceiptEth2Dplatform) String() string { return proto.CompactTextString(m) }
+func (*ReceiptEth2Dplatform) ProtoMessage()    {}
+func (*ReceiptEth2Dplatform) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1dd1834a817ceb21, []int{6}
 }
 
-func (m *ReceiptEth2Chain33) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReceiptEth2Chain33.Unmarshal(m, b)
+func (m *ReceiptEth2Dplatform) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptEth2Dplatform.Unmarshal(m, b)
 }
-func (m *ReceiptEth2Chain33) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReceiptEth2Chain33.Marshal(b, m, deterministic)
+func (m *ReceiptEth2Dplatform) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptEth2Dplatform.Marshal(b, m, deterministic)
 }
-func (m *ReceiptEth2Chain33) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReceiptEth2Chain33.Merge(m, src)
+func (m *ReceiptEth2Dplatform) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptEth2Dplatform.Merge(m, src)
 }
-func (m *ReceiptEth2Chain33) XXX_Size() int {
-	return xxx_messageInfo_ReceiptEth2Chain33.Size(m)
+func (m *ReceiptEth2Dplatform) XXX_Size() int {
+	return xxx_messageInfo_ReceiptEth2Dplatform.Size(m)
 }
-func (m *ReceiptEth2Chain33) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReceiptEth2Chain33.DiscardUnknown(m)
+func (m *ReceiptEth2Dplatform) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptEth2Dplatform.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReceiptEth2Chain33 proto.InternalMessageInfo
+var xxx_messageInfo_ReceiptEth2Dplatform proto.InternalMessageInfo
 
-func (m *ReceiptEth2Chain33) GetEthereumChainID() int64 {
+func (m *ReceiptEth2Dplatform) GetEthereumChainID() int64 {
 	if m != nil {
 		return m.EthereumChainID
 	}
 	return 0
 }
 
-func (m *ReceiptEth2Chain33) GetBridgeContractAddress() string {
+func (m *ReceiptEth2Dplatform) GetBridgeContractAddress() string {
 	if m != nil {
 		return m.BridgeContractAddress
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetNonce() int64 {
+func (m *ReceiptEth2Dplatform) GetNonce() int64 {
 	if m != nil {
 		return m.Nonce
 	}
 	return 0
 }
 
-func (m *ReceiptEth2Chain33) GetIssuerDotSymbol() string {
+func (m *ReceiptEth2Dplatform) GetIssuerDotSymbol() string {
 	if m != nil {
 		return m.IssuerDotSymbol
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetTokenAddress() string {
+func (m *ReceiptEth2Dplatform) GetTokenAddress() string {
 	if m != nil {
 		return m.TokenAddress
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetEthereumSender() string {
+func (m *ReceiptEth2Dplatform) GetEthereumSender() string {
 	if m != nil {
 		return m.EthereumSender
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetChain33Receiver() string {
+func (m *ReceiptEth2Dplatform) GetDplatformReceiver() string {
 	if m != nil {
-		return m.Chain33Receiver
+		return m.DplatformReceiver
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetValidatorAddress() string {
+func (m *ReceiptEth2Dplatform) GetValidatorAddress() string {
 	if m != nil {
 		return m.ValidatorAddress
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetAmount() string {
+func (m *ReceiptEth2Dplatform) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetClaimType() int64 {
+func (m *ReceiptEth2Dplatform) GetClaimType() int64 {
 	if m != nil {
 		return m.ClaimType
 	}
 	return 0
 }
 
-func (m *ReceiptEth2Chain33) GetXTxHash() []byte {
+func (m *ReceiptEth2Dplatform) GetXTxHash() []byte {
 	if m != nil {
 		return m.XTxHash
 	}
 	return nil
 }
 
-func (m *ReceiptEth2Chain33) GetXHeight() uint64 {
+func (m *ReceiptEth2Dplatform) GetXHeight() uint64 {
 	if m != nil {
 		return m.XHeight
 	}
 	return 0
 }
 
-func (m *ReceiptEth2Chain33) GetProphecyID() string {
+func (m *ReceiptEth2Dplatform) GetProphecyID() string {
 	if m != nil {
 		return m.ProphecyID
 	}
 	return ""
 }
 
-func (m *ReceiptEth2Chain33) GetDecimals() int64 {
+func (m *ReceiptEth2Dplatform) GetDecimals() int64 {
 	if m != nil {
 		return m.Decimals
 	}
 	return 0
 }
 
-type ReceiptChain33ToEth struct {
+type ReceiptDplatformToEth struct {
 	TokenContract        string   `protobuf:"bytes,1,opt,name=TokenContract,proto3" json:"TokenContract,omitempty"`
-	Chain33Sender        string   `protobuf:"bytes,2,opt,name=Chain33Sender,proto3" json:"Chain33Sender,omitempty"`
+	DplatformSender        string   `protobuf:"bytes,2,opt,name=DplatformSender,proto3" json:"DplatformSender,omitempty"`
 	EthereumReceiver     string   `protobuf:"bytes,3,opt,name=EthereumReceiver,proto3" json:"EthereumReceiver,omitempty"`
 	Amount               string   `protobuf:"bytes,4,opt,name=Amount,proto3" json:"Amount,omitempty"`
 	IssuerDotSymbol      string   `protobuf:"bytes,5,opt,name=IssuerDotSymbol,proto3" json:"IssuerDotSymbol,omitempty"`
@@ -781,67 +781,67 @@ type ReceiptChain33ToEth struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ReceiptChain33ToEth) Reset()         { *m = ReceiptChain33ToEth{} }
-func (m *ReceiptChain33ToEth) String() string { return proto.CompactTextString(m) }
-func (*ReceiptChain33ToEth) ProtoMessage()    {}
-func (*ReceiptChain33ToEth) Descriptor() ([]byte, []int) {
+func (m *ReceiptDplatformToEth) Reset()         { *m = ReceiptDplatformToEth{} }
+func (m *ReceiptDplatformToEth) String() string { return proto.CompactTextString(m) }
+func (*ReceiptDplatformToEth) ProtoMessage()    {}
+func (*ReceiptDplatformToEth) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1dd1834a817ceb21, []int{7}
 }
 
-func (m *ReceiptChain33ToEth) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReceiptChain33ToEth.Unmarshal(m, b)
+func (m *ReceiptDplatformToEth) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReceiptDplatformToEth.Unmarshal(m, b)
 }
-func (m *ReceiptChain33ToEth) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReceiptChain33ToEth.Marshal(b, m, deterministic)
+func (m *ReceiptDplatformToEth) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReceiptDplatformToEth.Marshal(b, m, deterministic)
 }
-func (m *ReceiptChain33ToEth) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReceiptChain33ToEth.Merge(m, src)
+func (m *ReceiptDplatformToEth) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReceiptDplatformToEth.Merge(m, src)
 }
-func (m *ReceiptChain33ToEth) XXX_Size() int {
-	return xxx_messageInfo_ReceiptChain33ToEth.Size(m)
+func (m *ReceiptDplatformToEth) XXX_Size() int {
+	return xxx_messageInfo_ReceiptDplatformToEth.Size(m)
 }
-func (m *ReceiptChain33ToEth) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReceiptChain33ToEth.DiscardUnknown(m)
+func (m *ReceiptDplatformToEth) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReceiptDplatformToEth.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReceiptChain33ToEth proto.InternalMessageInfo
+var xxx_messageInfo_ReceiptDplatformToEth proto.InternalMessageInfo
 
-func (m *ReceiptChain33ToEth) GetTokenContract() string {
+func (m *ReceiptDplatformToEth) GetTokenContract() string {
 	if m != nil {
 		return m.TokenContract
 	}
 	return ""
 }
 
-func (m *ReceiptChain33ToEth) GetChain33Sender() string {
+func (m *ReceiptDplatformToEth) GetDplatformSender() string {
 	if m != nil {
-		return m.Chain33Sender
+		return m.DplatformSender
 	}
 	return ""
 }
 
-func (m *ReceiptChain33ToEth) GetEthereumReceiver() string {
+func (m *ReceiptDplatformToEth) GetEthereumReceiver() string {
 	if m != nil {
 		return m.EthereumReceiver
 	}
 	return ""
 }
 
-func (m *ReceiptChain33ToEth) GetAmount() string {
+func (m *ReceiptDplatformToEth) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
 	return ""
 }
 
-func (m *ReceiptChain33ToEth) GetIssuerDotSymbol() string {
+func (m *ReceiptDplatformToEth) GetIssuerDotSymbol() string {
 	if m != nil {
 		return m.IssuerDotSymbol
 	}
 	return ""
 }
 
-func (m *ReceiptChain33ToEth) GetDecimals() int64 {
+func (m *ReceiptDplatformToEth) GetDecimals() int64 {
 	if m != nil {
 		return m.Decimals
 	}
@@ -1896,11 +1896,11 @@ func init() {
 	proto.RegisterType((*X2EthereumAction)(nil), "types.X2ethereumAction")
 	proto.RegisterType((*MsgConsensusThreshold)(nil), "types.MsgConsensusThreshold")
 	proto.RegisterType((*MsgValidator)(nil), "types.MsgValidator")
-	proto.RegisterType((*Eth2Chain33)(nil), "types.Eth2Chain33")
+	proto.RegisterType((*Eth2Dplatform)(nil), "types.Eth2Dplatform")
 	proto.RegisterType((*OracleClaimContent)(nil), "types.OracleClaimContent")
-	proto.RegisterType((*Chain33ToEth)(nil), "types.Chain33ToEth")
-	proto.RegisterType((*ReceiptEth2Chain33)(nil), "types.ReceiptEth2Chain33")
-	proto.RegisterType((*ReceiptChain33ToEth)(nil), "types.ReceiptChain33ToEth")
+	proto.RegisterType((*DplatformToEth)(nil), "types.DplatformToEth")
+	proto.RegisterType((*ReceiptEth2Dplatform)(nil), "types.ReceiptEth2Dplatform")
+	proto.RegisterType((*ReceiptDplatformToEth)(nil), "types.ReceiptDplatformToEth")
 	proto.RegisterType((*ReceiptValidator)(nil), "types.ReceiptValidator")
 	proto.RegisterType((*ReceiptSetConsensusThreshold)(nil), "types.ReceiptSetConsensusThreshold")
 	proto.RegisterType((*QueryEthProphecyParams)(nil), "types.QueryEthProphecyParams")

@@ -9,8 +9,8 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/types"
 )
 
 func (client *client) GetBlockByHeight(height int64) (*types.Block, error) {

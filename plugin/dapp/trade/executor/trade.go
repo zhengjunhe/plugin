@@ -17,11 +17,11 @@ trade执行器支持trade的创建和交易，
 */
 
 import (
-	log "github.com/33cn/chain33/common/log/log15"
+	log "github.com/33cn/dplatform/common/log/log15"
 
-	"github.com/33cn/chain33/common/db/table"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/db/table"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 
@@ -33,7 +33,7 @@ var (
 )
 
 // Init : 注册当前trade合约
-func Init(name string, cfg *types.Chain33Config, sub []byte) {
+func Init(name string, cfg *types.DplatformConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newTrade, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

@@ -7,7 +7,7 @@ package para
 import (
 	"errors"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )
 

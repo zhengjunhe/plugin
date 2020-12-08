@@ -18,7 +18,7 @@ import (
 //NewProphecyClaimPara ...
 type NewProphecyClaimPara struct {
 	ClaimType     uint8
-	Chain33Sender []byte
+	DplatformSender []byte
 	TokenAddr     common.Address
 	EthReceiver   common.Address
 	Symbol        string
@@ -220,7 +220,7 @@ func ApproveAllowance(ownerPrivateKeyStr, tokenAddr string, bridgeBank common.Ad
 }
 
 //Burn ...
-func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank common.Address, amount *big.Int, bridgeBankIns *generated.BridgeBank, client ethinterface.EthClientSpec) (string, error) {
+func Burn(ownerPrivateKeyStr, tokenAddrstr, dplatformReceiver string, bridgeBank common.Address, amount *big.Int, bridgeBankIns *generated.BridgeBank, client ethinterface.EthClientSpec) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -245,7 +245,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 	if nil != err {
 		return "", err
 	}
-	//chain33bank 是bridgeBank的基类，所以使用bridgeBank的地址
+	//dplatformbank 是bridgeBank的基类，所以使用bridgeBank的地址
 	tx, err := tokenInstance.Approve(auth, bridgeBank, amount)
 	if nil != err {
 		return "", err
@@ -266,7 +266,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 
 	prepareDone = true
 
-	tx, err = bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, amount)
+	tx, err = bridgeBankIns.BurnBridgeTokens(auth, []byte(dplatformReceiver), tokenAddr, amount)
 	if nil != err {
 		return "", err
 	}
@@ -279,7 +279,7 @@ func Burn(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, bridgeBank c
 }
 
 //BurnAsync ...
-func BurnAsync(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, amount *big.Int, bridgeBankIns *generated.BridgeBank, client ethinterface.EthClientSpec) (string, error) {
+func BurnAsync(ownerPrivateKeyStr, tokenAddrstr, dplatformReceiver string, amount *big.Int, bridgeBankIns *generated.BridgeBank, client ethinterface.EthClientSpec) (string, error) {
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -301,7 +301,7 @@ func BurnAsync(ownerPrivateKeyStr, tokenAddrstr, chain33Receiver string, amount 
 	prepareDone = true
 
 	tokenAddr := common.HexToAddress(tokenAddrstr)
-	tx, err := bridgeBankIns.BurnBridgeTokens(auth, []byte(chain33Receiver), tokenAddr, amount)
+	tx, err := bridgeBankIns.BurnBridgeTokens(auth, []byte(dplatformReceiver), tokenAddr, amount)
 	if nil != err {
 		return "", err
 	}
@@ -350,9 +350,9 @@ func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount *big.Int,
 }
 
 //LockEthErc20Asset ...
-func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client ethinterface.EthClientSpec, bridgeBank *generated.BridgeBank, bridgeBankAddr common.Address) (string, error) {
+func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, dplatformReceiver string, amount *big.Int, client ethinterface.EthClientSpec, bridgeBank *generated.BridgeBank, bridgeBankAddr common.Address) (string, error) {
 	var prepareDone bool
-	txslog.Info("LockEthErc20Asset", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "chain33Receiver", chain33Receiver, "amount", amount.String())
+	txslog.Info("LockEthErc20Asset", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "dplatformReceiver", dplatformReceiver, "amount", amount.String())
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -382,7 +382,7 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 
 		prepareDone = true
 
-		//chain33bank 是bridgeBank的基类，所以使用bridgeBank的地址
+		//dplatformbank 是bridgeBank的基类，所以使用bridgeBank的地址
 		tx, err := tokenInstance.Approve(auth, bridgeBankAddr, amount)
 		if nil != err {
 			return "", err
@@ -408,7 +408,7 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 		auth.Value = amount
 	}
 
-	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, amount)
+	tx, err := bridgeBank.Lock(auth, []byte(dplatformReceiver), tokenAddr, amount)
 	if nil != err {
 		txslog.Error("LockEthErc20Asset", "lock err", err.Error())
 		return "", err
@@ -423,8 +423,8 @@ func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string,
 }
 
 //LockEthErc20AssetAsync ...
-func LockEthErc20AssetAsync(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client ethinterface.EthClientSpec, bridgeBank *generated.BridgeBank) (string, error) {
-	txslog.Info("LockEthErc20AssetAsync", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "chain33Receiver", chain33Receiver, "amount", amount.String())
+func LockEthErc20AssetAsync(ownerPrivateKeyStr, tokenAddrStr, dplatformReceiver string, amount *big.Int, client ethinterface.EthClientSpec, bridgeBank *generated.BridgeBank) (string, error) {
+	txslog.Info("LockEthErc20AssetAsync", "ownerPrivateKeyStr", ownerPrivateKeyStr, "tokenAddrStr", tokenAddrStr, "dplatformReceiver", dplatformReceiver, "amount", amount.String())
 	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
 	if nil != err {
 		return "", err
@@ -445,7 +445,7 @@ func LockEthErc20AssetAsync(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver st
 	if "" != tokenAddrStr {
 		tokenAddr = common.HexToAddress(tokenAddrStr)
 	}
-	tx, err := bridgeBank.Lock(auth, []byte(chain33Receiver), tokenAddr, amount)
+	tx, err := bridgeBank.Lock(auth, []byte(dplatformReceiver), tokenAddr, amount)
 	if nil != err {
 		txslog.Error("LockEthErc20AssetAsync", "lock err", err.Error())
 		_, err = revokeNonce(ownerAddr)

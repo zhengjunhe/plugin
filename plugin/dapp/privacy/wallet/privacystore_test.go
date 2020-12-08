@@ -13,10 +13,10 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
-	"github.com/33cn/chain33/util/testnode"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatform/util/testnode"
 	pt "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/stretchr/testify/assert"
 )

@@ -5,7 +5,7 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"
 )
 

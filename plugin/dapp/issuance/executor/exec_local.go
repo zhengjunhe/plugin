@@ -5,9 +5,9 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/common/db/table"
-	//"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/db/table"
+	//"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/issuance/types"
 )
 

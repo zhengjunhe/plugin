@@ -9,11 +9,11 @@ import (
 
 	"strconv"
 
-	"github.com/33cn/chain33/common"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/dapp"
-	manager "github.com/33cn/chain33/system/dapp/manage/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/system/dapp"
+	manager "github.com/33cn/dplatform/system/dapp/manage/types"
+	"github.com/33cn/dplatform/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -43,7 +43,7 @@ func getNodeID(db dbm.KV, id string) (*pt.ParaNodeIdStatus, error) {
 }
 
 //分叉之前 id是"mavl-paracros-...0x12342308b"格式，分叉以后只支持输入为去掉了mavl-paracross前缀的交易id，系统会为id加上前缀
-func getNodeIDWithFork(cfg *types.Chain33Config, db dbm.KV, title string, height int64, id string) (*pt.ParaNodeIdStatus, error) {
+func getNodeIDWithFork(cfg *types.DplatformConfig, db dbm.KV, title string, height int64, id string) (*pt.ParaNodeIdStatus, error) {
 	if pt.IsParaForkHeight(cfg, height, pt.ForkLoopCheckCommitTxDone) {
 		id = calcParaNodeIDKey(title, id)
 	}
@@ -71,7 +71,7 @@ func getDb(db dbm.KV, key []byte) ([]byte, error) {
 }
 
 //分叉之前 id是"mavl-paracros-...0x12342308b"格式，分叉以后只支持输入为去掉了mavl-paracross前缀的交易id，系统会为id加上前缀
-func getNodeGroupID(cfg *types.Chain33Config, db dbm.KV, title string, height int64, id string) (*pt.ParaNodeGroupStatus, error) {
+func getNodeGroupID(cfg *types.DplatformConfig, db dbm.KV, title string, height int64, id string) (*pt.ParaNodeGroupStatus, error) {
 	if pt.IsParaForkHeight(cfg, height, pt.ForkLoopCheckCommitTxDone) {
 		id = calcParaNodeGroupIDKey(title, id)
 	}
@@ -378,7 +378,7 @@ func (a *action) nodeModify(config *pt.ParaNodeAddrConfig) (*types.Receipt, erro
 }
 
 // IsSuperManager is supper manager or not
-func isSuperManager(cfg *types.Chain33Config, addr string) bool {
+func isSuperManager(cfg *types.DplatformConfig, addr string) bool {
 	confManager := types.ConfSub(cfg, manager.ManageX)
 	for _, m := range confManager.GStrList("superManager") {
 		if addr == m {

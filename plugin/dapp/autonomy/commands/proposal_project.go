@@ -9,9 +9,9 @@ import (
 
 	"strings"
 
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 	"github.com/spf13/cobra"
 )
@@ -104,7 +104,7 @@ func proposalProject(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -144,7 +144,7 @@ func revokeProposalProject(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -193,7 +193,7 @@ func voteProposalProject(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -251,7 +251,7 @@ func pubVoteProposalProject(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -291,7 +291,7 @@ func terminateProposalProject(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -355,6 +355,6 @@ func showProposalProject(cmd *cobra.Command, args []string) {
 		rep = &auty.ReplyQueryProposalProject{}
 	}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
 	ctx.Run()
 }

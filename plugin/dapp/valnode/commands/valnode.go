@@ -12,10 +12,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/tendermint/types"
 	vt "github.com/33cn/plugin/plugin/dapp/valnode/types"
 	"github.com/spf13/cobra"
@@ -109,7 +109,7 @@ func getBlockInfo(cmd *cobra.Command, args []string) {
 	}
 
 	var res vt.TendermintBlockInfo
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.Run()
 }
 
@@ -221,7 +221,7 @@ func createFiles(cmd *cobra.Command, args []string) {
 
 	// genesis file
 	genDoc := ttypes.GenesisDoc{
-		ChainID:     fmt.Sprintf("chain33-%v", RandStr(6)),
+		ChainID:     fmt.Sprintf("dplatform-%v", RandStr(6)),
 		GenesisTime: time.Now(),
 	}
 

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/33cn/chain33/cmd/autotest/types"
+	"github.com/33cn/dplatform/cmd/autotest/types"
 )
 
 // BuyCase defines buycase command

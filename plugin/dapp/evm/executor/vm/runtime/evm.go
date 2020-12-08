@@ -8,9 +8,9 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	log "github.com/33cn/chain33/common/log/log15"
+	log "github.com/33cn/dplatform/common/log/log15"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/gas"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
@@ -36,7 +36,7 @@ func run(evm *EVM, contract *Contract, input []byte) (ret []byte, err error) {
 	if contract.CodeAddr != nil {
 		// 预编译合约以拜占庭分支为初始版本，后继如有分叉，需要在此处理
 		precompiles := PrecompiledContractsByzantium
-		//预编译分叉处理： chain33中目前只存在拜占庭和最新的黄皮书v1版本（兼容伊斯坦布尔版本）
+		//预编译分叉处理： dplatform中目前只存在拜占庭和最新的黄皮书v1版本（兼容伊斯坦布尔版本）
 		if evm.cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMYoloV1) {
 			precompiles = PrecompiledContractsYoloV1
 		}
@@ -112,13 +112,13 @@ type EVM struct {
 	// 支持的最长合约代码大小
 	maxCodeSize int
 
-	// chain33配置
-	cfg *types.Chain33Config
+	// dplatform配置
+	cfg *types.DplatformConfig
 }
 
 // NewEVM 创建一个新的EVM实例对象
 // 在同一个节点中，一个EVM实例对象只服务于一个交易执行的生命周期
-func NewEVM(ctx Context, statedb state.EVMStateDB, vmConfig Config, cfg *types.Chain33Config) *EVM {
+func NewEVM(ctx Context, statedb state.EVMStateDB, vmConfig Config, cfg *types.DplatformConfig) *EVM {
 	evm := &EVM{
 		Context:     ctx,
 		StateDB:     statedb,
@@ -184,7 +184,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 	}
 
 	if !evm.StateDB.Exist(addr.String()) {
-		//预编译分叉处理： chain33中目前只存在拜占庭和最新的黄皮书v1版本（兼容伊斯坦布尔版本）
+		//预编译分叉处理： dplatform中目前只存在拜占庭和最新的黄皮书v1版本（兼容伊斯坦布尔版本）
 		precompiles := PrecompiledContractsByzantium
 		// 是否是黄皮书v1分叉
 		if evm.cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMYoloV1) {
@@ -369,7 +369,7 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 
 // Create 此方法提供合约外部创建入口；
 // 使用传入的部署代码创建新的合约；
-// 目前chain33为了保证账户安全，不允许合约中涉及到外部账户的转账操作，
+// 目前dplatform为了保证账户安全，不允许合约中涉及到外部账户的转账操作，
 // 所以，本步骤不接收转账金额参数
 func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []byte, gas uint64, execName, alias, abi string) (ret []byte, snapshot int, leftOverGas uint64, err error) {
 	pass, err := evm.preCheck(caller, contractAddr, 0)

@@ -7,9 +7,9 @@ package executor
 import (
 	"fmt"
 
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/common/db/table"
-	"github.com/33cn/chain33/types"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/common/db/table"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 

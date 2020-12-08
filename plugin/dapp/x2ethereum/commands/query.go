@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/utils"
 	types2 "github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	"github.com/spf13/cobra"
@@ -64,7 +64,7 @@ func queryEthProphecy(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptEthProphecy{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", query, channel)
 	ctx.Run()
 }
 
@@ -100,7 +100,7 @@ func queryValidators(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQueryValidator{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", query, channel)
 	ctx.Run()
 }
 
@@ -122,7 +122,7 @@ func queryConsensus(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQueryConsensusThreshold{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", query, channel)
 	ctx.Run()
 }
 
@@ -144,7 +144,7 @@ func queryTotalPower(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQueryTotalPower{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", query, channel)
 	ctx.Run()
 }
 
@@ -158,7 +158,7 @@ func querySymbolTotalAmountByTxTypeCmd() *cobra.Command {
 	cmd.Flags().StringP("symbol", "s", "", "token symbol")
 	_ = cmd.MarkFlagRequired("symbol")
 
-	cmd.Flags().Int64P("direction", "d", 0, "eth2chain33 = 1,chain33toeth = 2")
+	cmd.Flags().Int64P("direction", "d", 0, "eth2dplatform = 1,dplatformtoeth = 2")
 	_ = cmd.MarkFlagRequired("direction")
 
 	cmd.Flags().Int64P("txtype", "t", 0, "lock = 1,burn = 2")
@@ -212,6 +212,6 @@ func querySymbolTotalAmountByTxType(cmd *cobra.Command, args []string) {
 	}
 
 	channel := &types2.ReceiptQuerySymbolAssets{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", query, channel)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", query, channel)
 	ctx.Run()
 }

@@ -3,10 +3,10 @@ package commands
 import (
 	"testing"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	"github.com/stretchr/testify/assert"
 
 	// 因为测试程序在外层，而合约类型的初始化在里面，所以需要显示引用，否则不会加载合约插件
@@ -14,14 +14,14 @@ import (
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 
 	// 需要显示引用系统插件，以加载系统内置合约
-	"github.com/33cn/chain33/client/mocks"
-	_ "github.com/33cn/chain33/system"
+	"github.com/33cn/dplatform/client/mocks"
+	_ "github.com/33cn/dplatform/system"
 	"github.com/stretchr/testify/mock"
 )
 
 // TestQueryDebug 测试命令行调用rpc接口
 func TestQueryDebug(t *testing.T) {
-	var cfg = types.NewChain33Config(types.GetDefaultCfgstring())
+	var cfg = types.NewDplatformConfig(types.GetDefaultCfgstring())
 	evm.Init(evmtypes.ExecutorName, cfg, nil)
 	var debugReq = evmtypes.EvmDebugReq{Optype: 1}
 	js, err := types.PBToJSON(&debugReq)
@@ -52,7 +52,7 @@ func TestQueryDebug(t *testing.T) {
 	assert.NotNil(t, jsonClient)
 
 	var debugResp evmtypes.EvmDebugResp
-	err = jsonClient.Call("Chain33.Query", in, &debugResp)
+	err = jsonClient.Call("Dplatform.Query", in, &debugResp)
 	assert.Nil(t, err)
 	assert.Equal(t, "on", debugResp.DebugStatus)
 }

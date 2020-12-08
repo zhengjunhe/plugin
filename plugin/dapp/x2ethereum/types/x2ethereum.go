@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"reflect"
 
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 )
 
 /*
@@ -19,10 +19,10 @@ var (
 	X2ethereumX = "x2ethereum"
 	//定义actionMap
 	actionMap = map[string]int32{
-		NameEth2Chain33Action:           TyEth2Chain33Action,
+		NameEth2DplatformAction:           TyEth2DplatformAction,
 		NameWithdrawEthAction:           TyWithdrawEthAction,
-		NameWithdrawChain33Action:       TyWithdrawChain33Action,
-		NameChain33ToEthAction:          TyChain33ToEthAction,
+		NameWithdrawDplatformAction:       TyWithdrawDplatformAction,
+		NameDplatformToEthAction:          TyDplatformToEthAction,
 		NameAddValidatorAction:          TyAddValidatorAction,
 		NameRemoveValidatorAction:       TyRemoveValidatorAction,
 		NameModifyPowerAction:           TyModifyPowerAction,
@@ -33,10 +33,10 @@ var (
 	}
 	//定义log的id和具体log类型及名称，填入具体自定义log类型
 	logMap = map[int64]*types.LogInfo{
-		TyEth2Chain33Log:           {Ty: reflect.TypeOf(ReceiptEth2Chain33{}), Name: "LogEth2Chain33"},
-		TyWithdrawEthLog:           {Ty: reflect.TypeOf(ReceiptEth2Chain33{}), Name: "LogWithdrawEth"},
-		TyWithdrawChain33Log:       {Ty: reflect.TypeOf(ReceiptChain33ToEth{}), Name: "LogWithdrawChain33"},
-		TyChain33ToEthLog:          {Ty: reflect.TypeOf(ReceiptChain33ToEth{}), Name: "LogChain33ToEth"},
+		TyEth2DplatformLog:           {Ty: reflect.TypeOf(ReceiptEth2Dplatform{}), Name: "LogEth2Dplatform"},
+		TyWithdrawEthLog:           {Ty: reflect.TypeOf(ReceiptEth2Dplatform{}), Name: "LogWithdrawEth"},
+		TyWithdrawDplatformLog:       {Ty: reflect.TypeOf(ReceiptDplatformToEth{}), Name: "LogWithdrawDplatform"},
+		TyDplatformToEthLog:          {Ty: reflect.TypeOf(ReceiptDplatformToEth{}), Name: "LogDplatformToEth"},
 		TyAddValidatorLog:          {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogAddValidator"},
 		TyRemoveValidatorLog:       {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogRemoveValidator"},
 		TyModifyPowerLog:           {Ty: reflect.TypeOf(ReceiptValidator{}), Name: "LogModifyPower"},
@@ -58,12 +58,12 @@ func init() {
 }
 
 // InitFork defines register fork
-func InitFork(cfg *types.Chain33Config) {
+func InitFork(cfg *types.DplatformConfig) {
 	cfg.RegisterDappFork(X2ethereumX, "Enable", 0)
 }
 
 // InitExecutor defines register executor
-func InitExecutor(cfg *types.Chain33Config) {
+func InitExecutor(cfg *types.DplatformConfig) {
 	types.RegistorExecutor(X2ethereumX, NewType(cfg))
 }
 
@@ -73,7 +73,7 @@ type X2ethereumType struct {
 }
 
 //NewType ...
-func NewType(cfg *types.Chain33Config) *X2ethereumType {
+func NewType(cfg *types.DplatformConfig) *X2ethereumType {
 	c := &X2ethereumType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -113,14 +113,14 @@ func (x X2ethereumType) ActionName(tx *types.Transaction) string {
 
 // GetActionName get action name
 func (action *X2EthereumAction) GetActionName() string {
-	if action.Ty == TyEth2Chain33Action && action.GetEth2Chain33Lock() != nil {
-		return "Eth2Chain33Lock"
-	} else if action.Ty == TyWithdrawEthAction && action.GetEth2Chain33Burn() != nil {
-		return "Eth2Chain33Burn"
-	} else if action.Ty == TyWithdrawChain33Action && action.GetChain33ToEthBurn() != nil {
-		return "Chain33ToEthBurn"
-	} else if action.Ty == TyChain33ToEthAction && action.GetChain33ToEthLock() != nil {
-		return "Chain33ToEthLock"
+	if action.Ty == TyEth2DplatformAction && action.GetEth2DplatformLock() != nil {
+		return "Eth2DplatformLock"
+	} else if action.Ty == TyWithdrawEthAction && action.GetEth2DplatformBurn() != nil {
+		return "Eth2DplatformBurn"
+	} else if action.Ty == TyWithdrawDplatformAction && action.GetDplatformToEthBurn() != nil {
+		return "DplatformToEthBurn"
+	} else if action.Ty == TyDplatformToEthAction && action.GetDplatformToEthLock() != nil {
+		return "DplatformToEthLock"
 	} else if action.Ty == TyAddValidatorAction && action.GetAddValidator() != nil {
 		return "AddValidator"
 	} else if action.Ty == TyRemoveValidatorAction && action.GetRemoveValidator() != nil {

@@ -35,12 +35,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	oty "github.com/33cn/plugin/plugin/dapp/oracle/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,7 +53,7 @@ func init() {
 	r = rand.New(rand.NewSource(types.Now().UnixNano()))
 }
 
-func getRPCClient(t *testing.T, mocker *testnode.Chain33Mock) *jsonclient.JSONClient {
+func getRPCClient(t *testing.T, mocker *testnode.DplatformMock) *jsonclient.JSONClient {
 	jrpcClient := mocker.GetJSONC()
 	assert.NotNil(t, jrpcClient)
 	return jrpcClient
@@ -309,7 +309,7 @@ func TestPublishResult(t *testing.T) {
 	queryEventByeventID(eventID, t, jrpcClient, oty.ResultPublished)
 }
 
-func createAllStatusEvent(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock) {
+func createAllStatusEvent(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock) {
 	//total loop*5
 	loop := int(oty.DefaultCount + 10)
 	for i := 0; i < loop; i++ {
@@ -372,7 +372,7 @@ func TestQueryEventIDByTypeAndStatus(t *testing.T) {
 	queryEventByStatusAndType(t, jrpcClient)
 }
 
-func sendAddPublisher(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock) {
+func sendAddPublisher(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock) {
 	//1. 调用createrawtransaction 创建交易
 	req := &rpctypes.CreateTxIn{
 		Execer:     "manage",
@@ -380,7 +380,7 @@ func sendAddPublisher(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *t
 		Payload:    []byte("{\"key\":\"oracle-publish-event\",\"op\":\"add\", \"value\":\"12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv\"}"),
 	}
 	var res string
-	err := jrpcClient.Call("Chain33.CreateTransaction", req, &res)
+	err := jrpcClient.Call("Dplatform.CreateTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetHotKey()
 	tx := getTx(t, res)
@@ -391,7 +391,7 @@ func sendAddPublisher(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *t
 	assert.Nil(t, err)
 }
 
-func sendPublishEvent(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock) (eventID string) {
+func sendPublishEvent(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock) (eventID string) {
 	ti := time.Now().AddDate(0, 0, 1)
 	//1. 调用createrawtransaction 创建交易
 	req := &rpctypes.CreateTxIn{
@@ -400,7 +400,7 @@ func sendPublishEvent(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *t
 		Payload:    []byte(fmt.Sprintf("{\"type\":\"football\",\"subType\":\"Premier League\",\"time\":%d, \"content\":\"{\\\"team%d\\\":\\\"ChelSea\\\", \\\"team%d\\\":\\\"Manchester\\\",\\\"resultType\\\":\\\"score\\\"}\", \"introduction\":\"guess the sore result of football game between ChelSea and Manchester in 2019-01-21 14:00:00\"}", ti.Unix(), r.Int()%10, r.Int()%10)),
 	}
 	var res string
-	err := jrpcClient.Call("Chain33.CreateTransaction", req, &res)
+	err := jrpcClient.Call("Dplatform.CreateTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetHotKey()
 	tx := getTx(t, res)
@@ -425,14 +425,14 @@ func sendPublishEvent(t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *t
 	return eventID
 }
 
-func sendAbortPublishEvent(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock, expectErr error) {
+func sendAbortPublishEvent(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock, expectErr error) {
 	req := &rpctypes.CreateTxIn{
 		Execer:     oty.OracleX,
 		ActionName: "EventAbort",
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\"}", eventID)),
 	}
 	var res string
-	err := jrpcClient.Call("Chain33.CreateTransaction", req, &res)
+	err := jrpcClient.Call("Dplatform.CreateTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetHotKey()
 	tx := getTx(t, res)
@@ -454,14 +454,14 @@ func sendAbortPublishEvent(eventID string, t *testing.T, jrpcClient *jsonclient.
 	}
 }
 
-func sendPrePublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock, expectErr error) {
+func sendPrePublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock, expectErr error) {
 	req := &rpctypes.CreateTxIn{
 		Execer:     oty.OracleX,
 		ActionName: "ResultPrePublish",
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\", \"source\":\"sina sport\", \"result\":\"%d:%d\"}", eventID, r.Int()%10, r.Int()%10)),
 	}
 	var res string
-	err := jrpcClient.Call("Chain33.CreateTransaction", req, &res)
+	err := jrpcClient.Call("Dplatform.CreateTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetHotKey()
 	tx := getTx(t, res)
@@ -482,14 +482,14 @@ func sendPrePublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.J
 	}
 }
 
-func sendAbortPublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock, expectErr error) {
+func sendAbortPublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock, expectErr error) {
 	req := &rpctypes.CreateTxIn{
 		Execer:     oty.OracleX,
 		ActionName: "ResultAbort",
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\"}", eventID)),
 	}
 	var res string
-	err := jrpcClient.Call("Chain33.CreateTransaction", req, &res)
+	err := jrpcClient.Call("Dplatform.CreateTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetHotKey()
 	tx := getTx(t, res)
@@ -510,14 +510,14 @@ func sendAbortPublishResult(eventID string, t *testing.T, jrpcClient *jsonclient
 	}
 }
 
-func sendPublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.Chain33Mock, expectErr error) {
+func sendPublishResult(eventID string, t *testing.T, jrpcClient *jsonclient.JSONClient, mocker *testnode.DplatformMock, expectErr error) {
 	req := &rpctypes.CreateTxIn{
 		Execer:     oty.OracleX,
 		ActionName: "ResultPublish",
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\", \"source\":\"sina sport\", \"result\":\"%d:%d\"}", eventID, r.Int()%10, r.Int()%10)),
 	}
 	var res string
-	err := jrpcClient.Call("Chain33.CreateTransaction", req, &res)
+	err := jrpcClient.Call("Dplatform.CreateTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetHotKey()
 	tx := getTx(t, res)
@@ -546,7 +546,7 @@ func queryEventByeventID(eventID string, t *testing.T, jrpcClient *jsonclient.JS
 		Payload:  []byte(fmt.Sprintf("{\"eventID\":[\"%s\"]}", eventID)),
 	}
 	var resStatus oty.ReplyOracleStatusList
-	err := jrpcClient.Call("Chain33.Query", params, &resStatus)
+	err := jrpcClient.Call("Dplatform.Query", params, &resStatus)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedStatus, resStatus.Status[0].Status.Status)
 	fmt.Println(resStatus.Status[0])
@@ -562,7 +562,7 @@ func queryEventByStatus(t *testing.T, jrpcClient *jsonclient.JSONClient) {
 			Payload:  []byte(fmt.Sprintf("{\"status\":%d,\"addr\":\"\",\"type\":\"\",\"eventID\":\"\"}", i)),
 		}
 		var res oty.ReplyEventIDs
-		err := jrpcClient.Call("Chain33.Query", params, &res)
+		err := jrpcClient.Call("Dplatform.Query", params, &res)
 		assert.Nil(t, err)
 		assert.EqualValues(t, oty.DefaultCount, len(res.EventID))
 		lastEventID := res.EventID[oty.DefaultCount-1]
@@ -572,7 +572,7 @@ func queryEventByStatus(t *testing.T, jrpcClient *jsonclient.JSONClient) {
 			FuncName: oty.FuncNameQueryEventIDByStatus,
 			Payload:  []byte(fmt.Sprintf("{\"status\":%d,\"addr\":\"\",\"type\":\"\",\"eventID\":\"%s\"}", i, lastEventID)),
 		}
-		err = jrpcClient.Call("Chain33.Query", params, &res)
+		err = jrpcClient.Call("Dplatform.Query", params, &res)
 		assert.Nil(t, err)
 		assert.Equal(t, 10, len(res.EventID))
 		lastEventID = res.EventID[9]
@@ -582,7 +582,7 @@ func queryEventByStatus(t *testing.T, jrpcClient *jsonclient.JSONClient) {
 			FuncName: oty.FuncNameQueryEventIDByStatus,
 			Payload:  []byte(fmt.Sprintf("{\"status\":%d,\"addr\":\"\",\"type\":\"\",\"eventID\":\"%s\"}", i, lastEventID)),
 		}
-		err = jrpcClient.Call("Chain33.Query", params, &res)
+		err = jrpcClient.Call("Dplatform.Query", params, &res)
 		assert.Equal(t, types.ErrNotFound, err)
 	}
 }
@@ -595,7 +595,7 @@ func queryEventByStatusAndAddr(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		Payload:  []byte("{\"status\":1,\"addr\":\"12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv\",\"type\":\"\",\"eventID\":\"\"}"),
 	}
 	var res oty.ReplyEventIDs
-	err := jrpcClient.Call("Chain33.Query", params, &res)
+	err := jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Nil(t, err)
 	assert.EqualValues(t, oty.DefaultCount, len(res.EventID))
 	lastEventID := res.EventID[oty.DefaultCount-1]
@@ -605,7 +605,7 @@ func queryEventByStatusAndAddr(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		FuncName: oty.FuncNameQueryEventIDByAddrAndStatus,
 		Payload:  []byte(fmt.Sprintf("{\"status\":1,\"addr\":\"12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv\",\"type\":\"\",\"eventID\":\"%s\"}", lastEventID)),
 	}
-	err = jrpcClient.Call("Chain33.Query", params, &res)
+	err = jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Nil(t, err)
 	assert.Equal(t, 10, len(res.EventID))
 	lastEventID = res.EventID[9]
@@ -617,7 +617,7 @@ func queryEventByStatusAndAddr(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		Payload:  []byte(fmt.Sprintf("{\"status\":1,\"addr\":\"14KEKbYtKKQm4wMthSK9J4La4nAiidGozt\",\"type\":\"\",\"eventID\":\"%s\"}", lastEventID)),
 	}
 
-	err = jrpcClient.Call("Chain33.Query", params, &res)
+	err = jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Equal(t, types.ErrNotFound, err)
 
 	//查询另一个地址+状态，应该查不到
@@ -626,7 +626,7 @@ func queryEventByStatusAndAddr(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		FuncName: oty.FuncNameQueryEventIDByAddrAndStatus,
 		Payload:  []byte("{\"status\":1,\"addr\":\"14KEKbYtKKQm4wMthSK9J4La4nAiidGozt\",\"type\":\"\",\"eventID\":\"\"}"),
 	}
-	err = jrpcClient.Call("Chain33.Query", params, &res)
+	err = jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Equal(t, types.ErrNotFound, err)
 }
 
@@ -638,7 +638,7 @@ func queryEventByStatusAndType(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		Payload:  []byte("{\"status\":1,\"addr\":\"\",\"type\":\"football\",\"eventID\":\"\"}"),
 	}
 	var res oty.ReplyEventIDs
-	err := jrpcClient.Call("Chain33.Query", params, &res)
+	err := jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Nil(t, err)
 	assert.EqualValues(t, oty.DefaultCount, len(res.EventID))
 	lastEventID := res.EventID[oty.DefaultCount-1]
@@ -648,7 +648,7 @@ func queryEventByStatusAndType(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		FuncName: oty.FuncNameQueryEventIDByTypeAndStatus,
 		Payload:  []byte(fmt.Sprintf("{\"status\":1,\"addr\":\"\",\"type\":\"football\",\"eventID\":\"%s\"}", lastEventID)),
 	}
-	err = jrpcClient.Call("Chain33.Query", params, &res)
+	err = jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Nil(t, err)
 	assert.Equal(t, 10, len(res.EventID))
 	lastEventID = res.EventID[9]
@@ -660,7 +660,7 @@ func queryEventByStatusAndType(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		Payload:  []byte(fmt.Sprintf("{\"status\":1,\"addr\":\"\",\"type\":\"football\",\"eventID\":\"%s\"}", lastEventID)),
 	}
 
-	err = jrpcClient.Call("Chain33.Query", params, &res)
+	err = jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Equal(t, types.ErrNotFound, err)
 
 	//查询另一种类型+状态查不到
@@ -669,7 +669,7 @@ func queryEventByStatusAndType(t *testing.T, jrpcClient *jsonclient.JSONClient) 
 		FuncName: oty.FuncNameQueryEventIDByTypeAndStatus,
 		Payload:  []byte("{\"status\":1,\"addr\":\"\",\"type\":\"gambling\",\"eventID\":\"\"}"),
 	}
-	err = jrpcClient.Call("Chain33.Query", params, &res)
+	err = jrpcClient.Call("Dplatform.Query", params, &res)
 	assert.Equal(t, types.ErrNotFound, err)
 
 }

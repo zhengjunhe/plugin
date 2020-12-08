@@ -16,19 +16,19 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/33cn/chain33/blockchain"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/limits"
-	"github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/executor"
-	"github.com/33cn/chain33/mempool"
-	"github.com/33cn/chain33/p2p"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/rpc"
-	"github.com/33cn/chain33/store"
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/blockchain"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/limits"
+	"github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/executor"
+	"github.com/33cn/dplatform/mempool"
+	"github.com/33cn/dplatform/p2p"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/rpc"
+	"github.com/33cn/dplatform/store"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/consensus/dpos"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/norm/types"
@@ -40,7 +40,7 @@ var (
 	random    *rand.Rand
 	loopCount = 10
 	conn      *grpc.ClientConn
-	c         types.Chain33Client
+	c         types.DplatformClient
 	strPubkey = "03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"
 	//pubkey    []byte
 
@@ -51,7 +51,7 @@ var (
 
 	validatorAddr = "15LsTP6tkYGZcN7tc1Xo2iYifQfowxot3b"
 
-	genesis = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"chain33-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""},{"pub_key":{"type":"secp256k1","data":"027848E7FA630B759DB406940B5506B666A344B1060794BBF314EB459D40881BB3"},"name":""},{"pub_key":{"type":"secp256k1","data":"03F4AB6659E61E8512C9A24AC385CC1AC4D52B87D10ADBDF060086EA82BE62CDDE"},"name":""}],"app_hash":null}`
+	genesis = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"dplatform-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""},{"pub_key":{"type":"secp256k1","data":"027848E7FA630B759DB406940B5506B666A344B1060794BBF314EB459D40881BB3"},"name":""},{"pub_key":{"type":"secp256k1","data":"03F4AB6659E61E8512C9A24AC385CC1AC4D52B87D10ADBDF060086EA82BE62CDDE"},"name":""}],"app_hash":null}`
 	priv    = `{"address":"2B226E6603E52C94715BA4E92080EEF236292E33","pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"last_height":1679,"last_round":0,"last_step":3,"last_signature":{"type":"secp256k1","data":"37892A916D6E487ADF90F9E88FE37024597677B6C6FED47444AD582F74144B3D6E4B364EAF16AF03A4E42827B6D3C86415D734A5A6CCA92E114B23EB9265AF09"},"last_signbytes":"7B22636861696E5F6964223A22636861696E33332D5A326367466A222C22766F7465223A7B22626C6F636B5F6964223A7B2268617368223A224F6A657975396B2B4149426A6E4859456739584765356A7A462B673D222C227061727473223A7B2268617368223A6E756C6C2C22746F74616C223A307D7D2C22686569676874223A313637392C22726F756E64223A302C2274696D657374616D70223A22323031382D30382D33315430373A35313A34332E3935395A222C2274797065223A327D7D","priv_key":{"type":"secp256k1","data":"5A6A14DA6F5A42835E529D75D87CC8904544F59EEE5387A37D87EEAD194D7EB2"}}`
 	config  = `Title="local"
 [log]
@@ -59,7 +59,7 @@ var (
 loglevel = "debug"
 logConsoleLevel = "info"
 # 日志文件名，可带目录，所有生成的日志文件都放到此目录下
-logFile = "logs/chain33.log"
+logFile = "logs/dplatform.log"
 # 单个日志文件的最大值（单位：兆）
 maxFileSize = 300
 # 最多保存的历史日志文件个数
@@ -211,11 +211,11 @@ func init() {
 	os.Remove("priv_validator.json")
 	os.Remove("genesis_file.json")
 	os.Remove("priv_validator_0.json")
-	os.Remove("chain33.test.toml")
+	os.Remove("dplatform.test.toml")
 
 	ioutil.WriteFile("genesis.json", []byte(genesis), 0664)
 	ioutil.WriteFile("priv_validator.json", []byte(priv), 0664)
-	ioutil.WriteFile("chain33.test.toml", []byte(config), 0664)
+	ioutil.WriteFile("dplatform.test.toml", []byte(config), 0664)
 }
 func TestDposPerf(t *testing.T) {
 	DposPerf()
@@ -249,33 +249,33 @@ func DposPerf() {
 	os.Remove("priv_validator.json")
 	os.Remove("genesis_file.json")
 	os.Remove("priv_validator_0.json")
-	os.Remove("chain33.test.toml")
+	os.Remove("dplatform.test.toml")
 
 }
 
 func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Module, *executor.Executor, queue.Module, queue.Module, *cobra.Command) {
 	flag.Parse()
-	chain33Cfg := types.NewChain33Config(types.ReadFile("chain33.test.toml"))
+	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
 	var q = queue.New("channel")
-	q.SetConfig(chain33Cfg)
-	cfg := chain33Cfg.GetModuleConfig()
-	sub := chain33Cfg.GetSubConfig()
+	q.SetConfig(dplatformCfg)
+	cfg := dplatformCfg.GetModuleConfig()
+	sub := dplatformCfg.GetSubConfig()
 
-	chain := blockchain.New(chain33Cfg)
+	chain := blockchain.New(dplatformCfg)
 	chain.SetQueueClient(q.Client())
 
-	exec := executor.New(chain33Cfg)
+	exec := executor.New(dplatformCfg)
 	exec.SetQueueClient(q.Client())
-	chain33Cfg.SetMinFee(0)
-	s := store.New(chain33Cfg)
+	dplatformCfg.SetMinFee(0)
+	s := store.New(dplatformCfg)
 	s.SetQueueClient(q.Client())
 
 	cs := dpos.New(cfg.Consensus, sub.Consensus["dpos"])
 	cs.SetQueueClient(q.Client())
 
-	mem := mempool.New(chain33Cfg)
+	mem := mempool.New(dplatformCfg)
 	mem.SetQueueClient(q.Client())
-	network := p2p.NewP2PMgr(chain33Cfg)
+	network := p2p.NewP2PMgr(dplatformCfg)
 
 	network.SetQueueClient(q.Client())
 
@@ -299,7 +299,7 @@ func createConn() error {
 		fmt.Fprintln(os.Stderr, err)
 		return err
 	}
-	c = types.NewChain33Client(conn)
+	c = types.NewDplatformClient(conn)
 	//r = rand.New(rand.NewSource(types.Now().UnixNano()))
 	return nil
 }
@@ -377,14 +377,14 @@ func clearTestData() {
 
 func testCmd(cmd *cobra.Command) {
 	var rootCmd = &cobra.Command{
-		Use:   "chain33-cli",
-		Short: "chain33 client tools",
+		Use:   "dplatform-cli",
+		Short: "dplatform client tools",
 	}
 
-	chain33Cfg := types.NewChain33Config(types.ReadFile("chain33.test.toml"))
-	types.SetCliSysParam(chain33Cfg.GetTitle(), chain33Cfg)
+	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
+	types.SetCliSysParam(dplatformCfg.GetTitle(), dplatformCfg)
 
-	rootCmd.PersistentFlags().String("title", chain33Cfg.GetTitle(), "get title name")
+	rootCmd.PersistentFlags().String("title", dplatformCfg.GetTitle(), "get title name")
 	rootCmd.PersistentFlags().String("rpc_laddr", "http://127.0.0.1:8802", "http url")
 	rootCmd.AddCommand(cmd)
 

@@ -3,14 +3,14 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/account"
-	apimock "github.com/33cn/chain33/client/mocks"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	apimock "github.com/33cn/dplatform/client/mocks"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	pkt "github.com/33cn/plugin/plugin/dapp/pokerbull/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -32,8 +32,8 @@ var (
 )
 
 func TestPokerbull(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	Init(pkt.PokerBullX, cfg, nil)
 	total := 1000 * types.Coin
 	accountA := types.Account{

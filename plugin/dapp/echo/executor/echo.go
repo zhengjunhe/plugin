@@ -1,8 +1,8 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	echotypes "github.com/33cn/plugin/plugin/dapp/echo/types/echo"
 )
 
@@ -19,7 +19,7 @@ var (
 )
 
 // Init 本执行器的初始化动作，向系统注册本执行器，这里生效高度暂写为0
-func Init(name string, cfg *types.Chain33Config, sub []byte) {
+func Init(name string, cfg *types.DplatformConfig, sub []byte) {
 	dapp.Register(cfg, echotypes.EchoX, newEcho, 0)
 	InitExecType()
 }

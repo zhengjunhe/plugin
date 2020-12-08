@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
@@ -173,7 +173,7 @@ func (evm *EVMExecutor) GetMessage(tx *types.Transaction, index int) (msg *commo
 	if err != nil {
 		return msg, err
 	}
-	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
+	// 此处暂时不考虑消息发送签名的处理，dplatform在mempool中对签名做了检查
 	from := getCaller(tx)
 	to := getReceiver(tx)
 	if to == nil {

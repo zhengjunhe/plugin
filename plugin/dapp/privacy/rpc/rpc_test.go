@@ -8,9 +8,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/client/mocks"
-	rpctypes "github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/client/mocks"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -26,13 +26,13 @@ func newJrpc(api client.QueueProtocolAPI) *Jrpc {
 	return &Jrpc{cli: newGrpc(api)}
 }
 
-func TestChain33_PrivacyTxList(t *testing.T) {
+func TestDplatform_PrivacyTxList(t *testing.T) {
 	api := new(mocks.QueueProtocolAPI)
-	testChain33 := newJrpc(api)
+	testDplatform := newJrpc(api)
 	actual := &pty.ReqPrivacyTransactionList{}
 	api.On("ExecWalletFunc", "privacy", "PrivacyTransactionList", actual).Return(nil, errors.New("error value"))
 	var testResult interface{}
-	err := testChain33.GetPrivacyTxByAddr(actual, &testResult)
+	err := testDplatform.GetPrivacyTxByAddr(actual, &testResult)
 	t.Log(err)
 	assert.Equal(t, nil, testResult)
 	assert.NotNil(t, err)

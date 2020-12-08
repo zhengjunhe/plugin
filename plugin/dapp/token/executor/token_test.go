@@ -3,21 +3,21 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"
 
-	//"github.com/33cn/chain33/types/jsonpb"
+	//"github.com/33cn/dplatform/types/jsonpb"
 	"strings"
 
-	apimock "github.com/33cn/chain33/client/mocks"
+	apimock "github.com/33cn/dplatform/client/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -45,7 +45,7 @@ var (
 )
 
 func TestToken(t *testing.T) {
-	cfg := types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 	Init(pty.TokenX, cfg, nil)
 	tokenTotal := int64(10000 * 1e8)
 	tokenBurn := int64(10 * 1e8)

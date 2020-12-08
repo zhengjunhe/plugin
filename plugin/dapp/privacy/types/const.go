@@ -5,7 +5,7 @@
 //Package types ...
 package types
 
-import "github.com/33cn/chain33/types"
+import "github.com/33cn/dplatform/types"
 
 const (
 	// InvalidAction invalid action type

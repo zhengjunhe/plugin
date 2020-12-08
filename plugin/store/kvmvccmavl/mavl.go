@@ -7,11 +7,11 @@ package kvmvccmavl
 import (
 	"sync"
 
-	"github.com/33cn/chain33/common"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/queue"
-	mavl "github.com/33cn/chain33/system/store/mavl/db"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/queue"
+	mavl "github.com/33cn/dplatform/system/store/mavl/db"
+	"github.com/33cn/dplatform/types"
 )
 
 const (

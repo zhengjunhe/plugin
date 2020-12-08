@@ -5,8 +5,8 @@
 package wallet
 
 import (
-	"github.com/33cn/chain33/common/db"
-	wcom "github.com/33cn/chain33/wallet/common"
+	"github.com/33cn/dplatform/common/db"
+	wcom "github.com/33cn/dplatform/wallet/common"
 )
 
 //newStore new storage

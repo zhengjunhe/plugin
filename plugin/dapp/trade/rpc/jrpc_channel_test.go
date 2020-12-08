@@ -8,15 +8,15 @@ import (
 	"strings"
 	"testing"
 
-	commonlog "github.com/33cn/chain33/common/log"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	commonlog "github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/chain33/system"
+	_ "github.com/33cn/dplatform/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -82,7 +82,7 @@ func testShowOnesSellOrdersCmd(t *testing.T, jrpc *jsonclient.JSONClient) error 
 		Payload:  types.MustPBToJSON(&pty.ReqAddrAssets{}),
 	}
 	var res pty.ReplySellOrders
-	return jrpc.Call("Chain33.Query", params, &res)
+	return jrpc.Call("Dplatform.Query", params, &res)
 }
 
 func testShowOnesSellOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -93,7 +93,7 @@ func testShowOnesSellOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) 
 	params.FuncName = "GetOnesSellOrderWithStatus"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplySellOrders{}
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testShowTokenSellOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -105,7 +105,7 @@ func testShowTokenSellOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient)
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplySellOrders{}
 
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testShowOnesBuyOrderCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -117,7 +117,7 @@ func testShowOnesBuyOrderCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyBuyOrders{}
 
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testShowOnesBuyOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -129,7 +129,7 @@ func testShowOnesBuyOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) e
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyBuyOrders{}
 
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testShowTokenBuyOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -141,7 +141,7 @@ func testShowTokenBuyOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) 
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyBuyOrders{}
 
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testShowOnesOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -153,5 +153,5 @@ func testShowOnesOrdersStatusCmd(t *testing.T, jrpc *jsonclient.JSONClient) erro
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyTradeOrders{}
 
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }

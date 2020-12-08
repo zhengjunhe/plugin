@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/client/mocks"
-	"github.com/33cn/chain33/common/version"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/client/mocks"
+	"github.com/33cn/dplatform/common/version"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -34,7 +34,7 @@ func newJrpc(api client.QueueProtocolAPI) *Jrpc {
 }
 
 func TestChannelClient_BindMiner(t *testing.T) {
-	cfg := types.NewChain33Config(cfgstring)
+	cfg := types.NewDplatformConfig(cfgstring)
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	client := newGrpc(api)
@@ -70,7 +70,7 @@ func TestChannelClient_BindMiner(t *testing.T) {
 }
 
 func testGetTicketCountOK(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	api := &mocks.QueueProtocolAPI{}
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	g := newGrpc(api)
@@ -139,7 +139,7 @@ func TestJrpc_GetTicketCount(t *testing.T) {
 }
 
 func TestRPC_CallTestNode(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	// 测试环境下，默认配置的共识为solo，需要修改
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 
@@ -160,20 +160,20 @@ func TestRPC_CallTestNode(t *testing.T) {
 		Msg:  []byte("123"),
 	}
 	api.On("IsSync").Return(ret, nil)
-	api.On("Version").Return(&types.VersionInfo{Chain33: version.GetVersion()}, nil)
+	api.On("Version").Return(&types.VersionInfo{Dplatform: version.GetVersion()}, nil)
 	api.On("Close").Return()
 	rpcCfg := mock33.GetCfg().RPC
 	jsonClient, err := jsonclient.NewJSONClient("http://" + rpcCfg.JrpcBindAddr + "/")
 	assert.Nil(t, err)
 	assert.NotNil(t, jsonClient)
 	var result types.VersionInfo
-	err = jsonClient.Call("Chain33.Version", nil, &result)
+	err = jsonClient.Call("Dplatform.Version", nil, &result)
 	fmt.Println(err)
 	assert.Nil(t, err)
-	assert.Equal(t, version.GetVersion(), result.Chain33)
+	assert.Equal(t, version.GetVersion(), result.Dplatform)
 
 	var isSnyc bool
-	err = jsonClient.Call("Chain33.IsSync", &types.ReqNil{}, &isSnyc)
+	err = jsonClient.Call("Dplatform.IsSync", &types.ReqNil{}, &isSnyc)
 	assert.Nil(t, err)
 	assert.Equal(t, ret.GetIsOk(), isSnyc)
 
@@ -192,7 +192,7 @@ func TestRPC_CallTestNode(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, c)
 
-	client := types.NewChain33Client(c)
+	client := types.NewDplatformClient(c)
 	issync, err := client.IsSync(ctx, &types.ReqNil{})
 	assert.Nil(t, err)
 	assert.Equal(t, true, issync.IsOk)

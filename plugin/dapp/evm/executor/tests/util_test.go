@@ -11,13 +11,13 @@ import (
 
 	"strings"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/types"
 	evm "github.com/33cn/plugin/plugin/dapp/evm/executor"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	crypto2 "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto"
@@ -26,7 +26,7 @@ import (
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 )
 
-var chainTestCfg = types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+var chainTestCfg = types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 
 func init() {
 	evm.Init(evmtypes.ExecutorName, chainTestCfg, nil)

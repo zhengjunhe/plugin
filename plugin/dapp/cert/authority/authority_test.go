@@ -8,18 +8,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	drivers "github.com/33cn/chain33/system/dapp"
-	cty "github.com/33cn/chain33/system/dapp/coins/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	cty "github.com/33cn/dplatform/system/dapp/coins/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/utils"
 	ct "github.com/33cn/plugin/plugin/dapp/cert/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/chain33/system"
+	_ "github.com/33cn/dplatform/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -81,8 +81,8 @@ func signtxs(priv crypto.PrivKey, cert []byte) {
 /**
 初始化Author实例和userloader
 */
-func initEnv() (*types.Chain33Config, error) {
-	cfg := types.NewChain33Config(types.ReadFile("./test/chain33.auth.test.toml"))
+func initEnv() (*types.DplatformConfig, error) {
+	cfg := types.NewDplatformConfig(types.ReadFile("./test/dplatform.auth.test.toml"))
 	sub := cfg.GetSubConfig()
 	var subcfg ct.Authority
 	if sub.Exec["cert"] != nil {

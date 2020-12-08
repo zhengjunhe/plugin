@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"strconv"
 
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	pkt "github.com/33cn/plugin/plugin/dapp/pokerbull/types"
 	"github.com/spf13/cobra"
 )
@@ -68,7 +68,7 @@ func pokerbullStart(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -102,7 +102,7 @@ func pokerbullContinue(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -136,7 +136,7 @@ func pokerbullQuit(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -187,7 +187,7 @@ func pokerbullPlay(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -241,7 +241,7 @@ func pokerbullQuery(cmd *cobra.Command, args []string) {
 			params.FuncName = pkt.FuncNameQueryGameByID
 			params.Payload = types.MustPBToJSON(req)
 			var res pkt.ReplyPBGame
-			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 			ctx.Run()
 		} else {
 			params.FuncName = pkt.FuncNameQueryGameByRound
@@ -256,14 +256,14 @@ func pokerbullQuery(cmd *cobra.Command, args []string) {
 			}
 			params.Payload = types.MustPBToJSON(req)
 			var res pkt.ReplyPBGameByRound
-			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 			ctx.Run()
 		}
 	} else if address != "" {
 		params.FuncName = pkt.FuncNameQueryGameByAddr
 		params.Payload = types.MustPBToJSON(req)
 		var res pkt.PBGameRecords
-		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 		ctx.Run()
 	} else if statusStr != "" {
 		status, err := strconv.ParseInt(statusStr, 10, 32)
@@ -276,7 +276,7 @@ func pokerbullQuery(cmd *cobra.Command, args []string) {
 		params.FuncName = pkt.FuncNameQueryGameByStatus
 		params.Payload = types.MustPBToJSON(req)
 		var res pkt.PBGameRecords
-		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 		ctx.Run()
 	} else if gameIDs != "" {
 		params.FuncName = pkt.FuncNameQueryGameListByIDs
@@ -286,7 +286,7 @@ func pokerbullQuery(cmd *cobra.Command, args []string) {
 		req := &pkt.QueryPBGameInfos{GameIds: gameIDsS}
 		params.Payload = types.MustPBToJSON(req)
 		var res pkt.ReplyPBGameList
-		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 		ctx.Run()
 	} else {
 		fmt.Println("Error: requeres at least one of gameID, address or status")

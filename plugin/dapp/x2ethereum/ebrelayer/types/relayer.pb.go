@@ -22,7 +22,7 @@ func (m *Account4Relayer) String() string { return proto.CompactTextString(m) }
 func (*Account4Relayer) ProtoMessage()    {}
 
 type ValidatorAddr4EthRelayer struct {
-	Chain33Validator string `protobuf:"bytes,1,opt,name=chain33Validator" json:"chain33Validator,omitempty"`
+	DplatformValidator string `protobuf:"bytes,1,opt,name=dplatformValidator" json:"dplatformValidator,omitempty"`
 }
 
 func (m *ValidatorAddr4EthRelayer) Reset()         { *m = ValidatorAddr4EthRelayer{} }
@@ -80,7 +80,7 @@ type EthBridgeClaim struct {
 	TokenAddr       string `protobuf:"bytes,4,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
 	Symbol          string `protobuf:"bytes,5,opt,name=symbol" json:"symbol,omitempty"`
 	EthereumSender  string `protobuf:"bytes,6,opt,name=ethereumSender" json:"ethereumSender,omitempty"`
-	Chain33Receiver string `protobuf:"bytes,7,opt,name=chain33Receiver" json:"chain33Receiver,omitempty"`
+	DplatformReceiver string `protobuf:"bytes,7,opt,name=dplatformReceiver" json:"dplatformReceiver,omitempty"`
 	Amount          string `protobuf:"bytes,9,opt,name=amount" json:"amount,omitempty"`
 	ClaimType       int32  `protobuf:"varint,10,opt,name=claimType" json:"claimType,omitempty"`
 	ChainName       string `protobuf:"bytes,11,opt,name=chainName" json:"chainName,omitempty"`
@@ -110,7 +110,7 @@ func (*RelayerRunStatus) ProtoMessage()    {}
 
 type NewProphecyClaim struct {
 	ClaimType     uint32 `protobuf:"varint,1,opt,name=claimType" json:"claimType,omitempty"`
-	Chain33Sender string `protobuf:"bytes,2,opt,name=chain33Sender" json:"chain33Sender,omitempty"`
+	DplatformSender string `protobuf:"bytes,2,opt,name=dplatformSender" json:"dplatformSender,omitempty"`
 	TokenAddr     string `protobuf:"bytes,3,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
 	Symbol        string `protobuf:"bytes,4,opt,name=symbol" json:"symbol,omitempty"`
 	EthReceiver   string `protobuf:"bytes,5,opt,name=ethReceiver" json:"ethReceiver,omitempty"`
@@ -155,8 +155,8 @@ type LockEthErc20 struct {
 	OwnerKey  string `protobuf:"bytes,1,opt,name=ownerKey" json:"ownerKey,omitempty"`
 	TokenAddr string `protobuf:"bytes,2,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
 	Amount    string `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
-	// 将lock住的资产跨链转移到chain33的该账户名下
-	Chain33Receiver string `protobuf:"bytes,4,opt,name=chain33Receiver" json:"chain33Receiver,omitempty"`
+	// 将lock住的资产跨链转移到dplatform的该账户名下
+	DplatformReceiver string `protobuf:"bytes,4,opt,name=dplatformReceiver" json:"dplatformReceiver,omitempty"`
 }
 
 func (m *LockEthErc20) Reset()         { *m = LockEthErc20{} }
@@ -185,7 +185,7 @@ type Burn struct {
 	OwnerKey        string `protobuf:"bytes,1,opt,name=ownerKey" json:"ownerKey,omitempty"`
 	TokenAddr       string `protobuf:"bytes,2,opt,name=tokenAddr" json:"tokenAddr,omitempty"`
 	Amount          string `protobuf:"bytes,3,opt,name=amount" json:"amount,omitempty"`
-	Chain33Receiver string `protobuf:"bytes,4,opt,name=chain33Receiver" json:"chain33Receiver,omitempty"`
+	DplatformReceiver string `protobuf:"bytes,4,opt,name=dplatformReceiver" json:"dplatformReceiver,omitempty"`
 }
 
 func (m *Burn) Reset()         { *m = Burn{} }

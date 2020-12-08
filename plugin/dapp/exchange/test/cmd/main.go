@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/exchange/test"
 	et "github.com/33cn/plugin/plugin/dapp/exchange/types"
 )

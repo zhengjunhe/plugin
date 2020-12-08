@@ -4,8 +4,8 @@
 package main
 
 import (
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	"github.com/spf13/cobra"
 )
@@ -14,7 +14,7 @@ import (
 func RelayerCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relayer",
-		Short: "relayer of Chain33 and Ethereum ",
+		Short: "relayer of Dplatform and Ethereum ",
 		Args:  cobra.MinimumNArgs(1),
 	}
 
@@ -23,7 +23,7 @@ func RelayerCmd() *cobra.Command {
 		ChangePwdCmd(),
 		LockCmd(),
 		UnlockCmd(),
-		Chain33RelayerCmd(),
+		DplatformRelayerCmd(),
 		EthereumRelayerCmd(),
 	)
 

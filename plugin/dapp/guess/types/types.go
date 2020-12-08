@@ -7,7 +7,7 @@ package types
 import (
 	"reflect"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 )
 
 func init() {
@@ -18,12 +18,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.Chain33Config) {
+func InitFork(cfg *types.DplatformConfig) {
 	cfg.RegisterDappFork(GuessX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.Chain33Config) {
+func InitExecutor(cfg *types.DplatformConfig) {
 	types.RegistorExecutor(GuessX, NewType(cfg))
 }
 
@@ -33,7 +33,7 @@ type GuessType struct {
 }
 
 // NewType method
-func NewType(cfg *types.Chain33Config) *GuessType {
+func NewType(cfg *types.DplatformConfig) *GuessType {
 	c := &GuessType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

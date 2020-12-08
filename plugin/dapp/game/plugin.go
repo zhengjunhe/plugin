@@ -5,7 +5,7 @@
 package game
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/game/commands"
 	"github.com/33cn/plugin/plugin/dapp/game/executor"
 	gt "github.com/33cn/plugin/plugin/dapp/game/types"

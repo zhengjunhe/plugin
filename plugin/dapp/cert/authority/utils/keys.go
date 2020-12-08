@@ -13,11 +13,11 @@ import (
 	"encoding/pem"
 	"math/big"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 
 	"fmt"
 
-	sm2_util "github.com/33cn/chain33/system/crypto/sm2"
+	sm2_util "github.com/33cn/dplatform/system/crypto/sm2"
 	ecdsa_util "github.com/33cn/plugin/plugin/crypto/ecdsa"
 	ty "github.com/33cn/plugin/plugin/dapp/cert/types"
 	"github.com/pkg/errors"

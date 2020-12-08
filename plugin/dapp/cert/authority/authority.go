@@ -13,9 +13,9 @@ import (
 
 	"bytes"
 
-	"github.com/33cn/chain33/common/crypto"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/core"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/utils"
 	ty "github.com/33cn/plugin/plugin/dapp/cert/types"
@@ -26,7 +26,7 @@ var (
 	cpuNum = runtime.NumCPU()
 
 	// OrgName 默认证书组织名
-	OrgName = "Chain33"
+	OrgName = "Dplatform"
 
 	// Author 全局证书校验器
 	Author = &Authority{}

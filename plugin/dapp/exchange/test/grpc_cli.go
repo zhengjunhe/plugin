@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/exchange/executor"
 	et "github.com/33cn/plugin/plugin/dapp/exchange/types"
 	tt "github.com/33cn/plugin/plugin/dapp/token/types"
@@ -18,7 +18,7 @@ import (
 
 //GRPCCli ...
 type GRPCCli struct {
-	client types.Chain33Client
+	client types.DplatformClient
 }
 
 //NewGRPCCli ...
@@ -27,9 +27,9 @@ func NewGRPCCli(grpcAddr string) *GRPCCli {
 	if err != nil {
 		panic(err)
 	}
-	client := types.NewChain33Client(conn)
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	client := types.NewDplatformClient(conn)
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	executor.Init(et.ExchangeX, cfg, nil)
 	return &GRPCCli{
 		client: client,
@@ -138,8 +138,8 @@ func (c *GRPCCli) sendAndWaitReceipt(tx *types.Transaction, hexKey string) (txHa
 
 //SendTx ...
 func (c *GRPCCli) SendTx(tx *types.Transaction, hexKey string) (reply *types.Reply, err error) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	tx, err = types.FormatTx(cfg, et.ExchangeX, tx)
 	if err != nil {
 		return nil, err

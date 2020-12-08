@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	ptypes "github.com/33cn/plugin/plugin/dapp/js/types"
 	"github.com/33cn/plugin/plugin/dapp/js/types/jsproto"
 	"github.com/robertkrimen/otto"
@@ -124,7 +124,7 @@ func getObject(data *otto.Object, key string) (*otto.Object, error) {
 		return nil, err
 	}
 	if !v.IsObject() {
-		return nil, errors.New("chain33.js object get key " + key + " is not object")
+		return nil, errors.New("dplatform.js object get key " + key + " is not object")
 	}
 	return v.Object(), nil
 }

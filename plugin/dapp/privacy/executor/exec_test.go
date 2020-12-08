@@ -7,8 +7,8 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/stretchr/testify/assert"
 )

@@ -5,7 +5,7 @@
 package retrieve
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/retrieve/cmd"
 	"github.com/33cn/plugin/plugin/dapp/retrieve/executor"
 	"github.com/33cn/plugin/plugin/dapp/retrieve/rpc"

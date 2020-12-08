@@ -5,7 +5,7 @@
 package wallet
 
 import (
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	privacytypes "github.com/33cn/plugin/plugin/dapp/privacy/types"
 )
 

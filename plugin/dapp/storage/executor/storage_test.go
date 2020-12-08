@@ -6,16 +6,16 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/queue"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/queue"
 	des "github.com/33cn/plugin/plugin/dapp/storage/crypto"
 	oty "github.com/33cn/plugin/plugin/dapp/storage/types"
 	"github.com/stretchr/testify/assert"
@@ -64,7 +64,7 @@ func init() {
 	r = rand.New(rand.NewSource(types.Now().UnixNano()))
 }
 func TestStorage(t *testing.T) {
-	cfg := types.NewChain33Config(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1))
+	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
 	Init(oty.StorageX, cfg, nil)
 	cfg.RegisterDappFork(oty.StorageX, oty.ForkStorageLocalDB, 0)
 	total := 100 * types.Coin
@@ -209,7 +209,7 @@ func signTx(tx *types.Transaction, hexPrivKey string) (*types.Transaction, error
 	tx.Sign(int32(signType), privKey)
 	return tx, nil
 }
-func QueryStorageByKey(stateDB dbm.KV, kvdb dbm.KVDB, key string, cfg *types.Chain33Config) (*oty.Storage, error) {
+func QueryStorageByKey(stateDB dbm.KV, kvdb dbm.KVDB, key string, cfg *types.DplatformConfig) (*oty.Storage, error) {
 	exec := newStorage()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -225,7 +225,7 @@ func QueryStorageByKey(stateDB dbm.KV, kvdb dbm.KVDB, key string, cfg *types.Cha
 	}
 	return msg.(*oty.Storage), nil
 }
-func QueryBatchStorageByKey(stateDB dbm.KV, kvdb dbm.KVDB, para proto.Message, cfg *types.Chain33Config) (*oty.BatchReplyStorage, error) {
+func QueryBatchStorageByKey(stateDB dbm.KV, kvdb dbm.KVDB, para proto.Message, cfg *types.DplatformConfig) (*oty.BatchReplyStorage, error) {
 	exec := newStorage()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -240,7 +240,7 @@ func QueryBatchStorageByKey(stateDB dbm.KV, kvdb dbm.KVDB, para proto.Message, c
 	}
 	return msg.(*oty.BatchReplyStorage), nil
 }
-func CreateTx(action string, message types.Message, priv string, cfg *types.Chain33Config) (*types.Transaction, error) {
+func CreateTx(action string, message types.Message, priv string, cfg *types.DplatformConfig) (*types.Transaction, error) {
 	ety := types.LoadExecutorType(oty.StorageX)
 	tx, err := ety.Create(action, message)
 	if err != nil {
@@ -256,9 +256,9 @@ func CreateTx(action string, message types.Message, priv string, cfg *types.Chai
 
 //模拟区块中交易得执行过程
 func Exec_Block(t *testing.T, stateDB dbm.DB, kvdb dbm.KVDB, env *execEnv, txs ...*types.Transaction) error {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
 	cfg.RegisterDappFork(oty.StorageX, oty.ForkStorageLocalDB, 0)
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg.SetTitleOnlyForTest("dplatform")
 	exec := newStorage()
 	e := exec.(*storage)
 	for index, tx := range txs {

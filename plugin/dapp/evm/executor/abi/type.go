@@ -232,7 +232,7 @@ func (t Type) GetType() reflect.Type {
 	case TupleTy:
 		return t.TupleType
 	case AddressTy:
-		//TODO 适配为chain33中的evm地址
+		//TODO 适配为dplatform中的evm地址
 		return reflect.TypeOf(common.Hash160Address{})
 	case FixedBytesTy:
 		return reflect.ArrayOf(t.Size, reflect.TypeOf(byte(0)))

@@ -5,7 +5,7 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 
@@ -89,7 +89,7 @@ func (t *trade) GetOnesOrderWithStatus(req *pty.ReqAddrAssets) (types.Message, e
 	return t.toTradeOrders(rows)
 }
 
-func fmtReply(cfg *types.Chain33Config, order *pty.LocalOrder) *pty.ReplyTradeOrder {
+func fmtReply(cfg *types.DplatformConfig, order *pty.LocalOrder) *pty.ReplyTradeOrder {
 	priceExec := order.PriceExec
 	priceSymbol := order.PriceSymbol
 	if priceExec == "" {

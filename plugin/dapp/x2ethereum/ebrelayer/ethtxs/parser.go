@@ -6,14 +6,14 @@ package ethtxs
 //      Parses structs containing event information into
 //      unsigned transactions for validators to sign, then
 //      relays the data packets as transactions on the
-//      chain33 Bridge.
+//      dplatform Bridge.
 // --------------------------------------------------------
 
 import (
 	"math/big"
 	"strings"
 
-	chain33Types "github.com/33cn/chain33/types"
+	dplatformTypes "github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
@@ -39,7 +39,7 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 	witnessClaim.TokenAddr = event.Token.String()
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.From.String()
-	witnessClaim.Chain33Receiver = string(recipient)
+	witnessClaim.DplatformReceiver = string(recipient)
 
 	if decimal > 8 {
 		event.Value = event.Value.Quo(event.Value, big.NewInt(int64(types.MultiplySpecifyTimes(1, decimal-8))))
@@ -57,7 +57,7 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 
 //LogBurnToEthBridgeClaim ...
 func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bridgeBrankAddr string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
-	recipient := event.Chain33Receiver
+	recipient := event.DplatformReceiver
 	if 0 == len(recipient) {
 		return nil, ebrelayerTypes.ErrEmptyAddress
 	}
@@ -69,7 +69,7 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	witnessClaim.TokenAddr = event.Token.String()
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.OwnerFrom.String()
-	witnessClaim.Chain33Receiver = string(recipient)
+	witnessClaim.DplatformReceiver = string(recipient)
 	witnessClaim.Amount = event.Amount.String()
 	witnessClaim.ClaimType = types.BurnClaimType
 	witnessClaim.ChainName = types.BurnClaim
@@ -78,49 +78,49 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	return witnessClaim, nil
 }
 
-// ParseBurnLockTxReceipt : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
-func ParseBurnLockTxReceipt(claimType events.Event, receipt *chain33Types.ReceiptData) *events.Chain33Msg {
+// ParseBurnLockTxReceipt : parses data from a Burn/Lock event witnessed on dplatform into a DplatformMsg struct
+func ParseBurnLockTxReceipt(claimType events.Event, receipt *dplatformTypes.ReceiptData) *events.DplatformMsg {
 	// Set up variables
-	var chain33Sender []byte
+	var dplatformSender []byte
 	var ethereumReceiver, tokenContractAddress common.Address
 	var symbol string
 	var amount *big.Int
 
 	// Iterate over attributes
 	for _, log := range receipt.Logs {
-		if log.Ty == types.TyChain33ToEthLog || log.Ty == types.TyWithdrawChain33Log {
+		if log.Ty == types.TyDplatformToEthLog || log.Ty == types.TyWithdrawDplatformLog {
 			txslog.Debug("ParseBurnLockTxReceipt", "value", string(log.Log))
-			var chain33ToEth types.ReceiptChain33ToEth
-			err := chain33Types.Decode(log.Log, &chain33ToEth)
+			var dplatformToEth types.ReceiptDplatformToEth
+			err := dplatformTypes.Decode(log.Log, &dplatformToEth)
 			if err != nil {
 				return nil
 			}
-			chain33Sender = []byte(chain33ToEth.Chain33Sender)
-			ethereumReceiver = common.HexToAddress(chain33ToEth.EthereumReceiver)
-			tokenContractAddress = common.HexToAddress(chain33ToEth.TokenContract)
-			symbol = chain33ToEth.IssuerDotSymbol
-			chain33ToEth.Amount = types.TrimZeroAndDot(chain33ToEth.Amount)
+			dplatformSender = []byte(dplatformToEth.DplatformSender)
+			ethereumReceiver = common.HexToAddress(dplatformToEth.EthereumReceiver)
+			tokenContractAddress = common.HexToAddress(dplatformToEth.TokenContract)
+			symbol = dplatformToEth.IssuerDotSymbol
+			dplatformToEth.Amount = types.TrimZeroAndDot(dplatformToEth.Amount)
 			amount = big.NewInt(1)
-			amount, _ = amount.SetString(chain33ToEth.Amount, 10)
-			if chain33ToEth.Decimals > 8 {
-				amount = amount.Mul(amount, big.NewInt(int64(types.MultiplySpecifyTimes(1, chain33ToEth.Decimals-8))))
+			amount, _ = amount.SetString(dplatformToEth.Amount, 10)
+			if dplatformToEth.Decimals > 8 {
+				amount = amount.Mul(amount, big.NewInt(int64(types.MultiplySpecifyTimes(1, dplatformToEth.Decimals-8))))
 			} else {
-				amount = amount.Quo(amount, big.NewInt(int64(types.MultiplySpecifyTimes(1, 8-chain33ToEth.Decimals))))
+				amount = amount.Quo(amount, big.NewInt(int64(types.MultiplySpecifyTimes(1, 8-dplatformToEth.Decimals))))
 			}
 
-			txslog.Info("ParseBurnLockTxReceipt", "chain33Sender", chain33Sender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount.String())
-			// Package the event data into a Chain33Msg
-			chain33Msg := events.NewChain33Msg(claimType, chain33Sender, ethereumReceiver, symbol, amount, tokenContractAddress)
-			return &chain33Msg
+			txslog.Info("ParseBurnLockTxReceipt", "dplatformSender", dplatformSender, "ethereumReceiver", ethereumReceiver.String(), "tokenContractAddress", tokenContractAddress.String(), "symbol", symbol, "amount", amount.String())
+			// Package the event data into a DplatformMsg
+			dplatformMsg := events.NewDplatformMsg(claimType, dplatformSender, ethereumReceiver, symbol, amount, tokenContractAddress)
+			return &dplatformMsg
 		}
 	}
 	return nil
 }
 
-// Chain33MsgToProphecyClaim : parses event data from a Chain33Msg, packaging it as a ProphecyClaim
-func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
+// DplatformMsgToProphecyClaim : parses event data from a DplatformMsg, packaging it as a ProphecyClaim
+func DplatformMsgToProphecyClaim(event events.DplatformMsg) ProphecyClaim {
 	claimType := event.ClaimType
-	chain33Sender := event.Chain33Sender
+	dplatformSender := event.DplatformSender
 	ethereumReceiver := event.EthereumReceiver
 	tokenContractAddress := event.TokenContractAddress
 	symbol := strings.ToLower(event.Symbol)
@@ -128,7 +128,7 @@ func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
 
 	prophecyClaim := ProphecyClaim{
 		ClaimType:            claimType,
-		Chain33Sender:        chain33Sender,
+		DplatformSender:        dplatformSender,
 		EthereumReceiver:     ethereumReceiver,
 		TokenContractAddress: tokenContractAddress,
 		Symbol:               symbol,

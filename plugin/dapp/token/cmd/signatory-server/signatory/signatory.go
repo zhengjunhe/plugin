@@ -9,12 +9,12 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	l "github.com/33cn/chain33/common/log/log15"
-	cty "github.com/33cn/chain33/system/dapp/coins/types"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	l "github.com/33cn/dplatform/common/log/log15"
+	cty "github.com/33cn/dplatform/system/dapp/coins/types"
+	"github.com/33cn/dplatform/types"
 	tokenty "github.com/33cn/plugin/plugin/dapp/token/types"
 )
 

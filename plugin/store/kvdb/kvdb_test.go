@@ -9,8 +9,8 @@ import (
 	"os"
 	"testing"
 
-	drivers "github.com/33cn/chain33/system/store"
-	"github.com/33cn/chain33/types"
+	drivers "github.com/33cn/dplatform/system/store"
+	"github.com/33cn/dplatform/types"
 	"github.com/stretchr/testify/assert"
 )
 

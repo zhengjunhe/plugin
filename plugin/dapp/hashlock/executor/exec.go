@@ -5,9 +5,9 @@
 package executor
 
 import (
-	"github.com/33cn/chain33/common/address"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/address"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/hashlock/types"
 )
 

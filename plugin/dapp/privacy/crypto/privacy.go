@@ -12,10 +12,10 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/common/crypto/sha3"
-	log "github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/chain33/system/crypto/ed25519/ed25519/edwards25519"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/common/crypto/sha3"
+	log "github.com/33cn/dplatform/common/log/log15"
+	"github.com/33cn/dplatform/system/crypto/ed25519/ed25519/edwards25519"
 	sccrypto "github.com/NebulousLabs/Sia/crypto"
 )
 

@@ -5,7 +5,7 @@
 package wallet
 
 import (
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 )
 
 //On_MultiSigAddresList 获取owner对应的多重签名地址列表

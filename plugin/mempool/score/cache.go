@@ -3,8 +3,8 @@ package score
 import (
 	"time"
 
-	"github.com/33cn/chain33/common/skiplist"
-	"github.com/33cn/chain33/system/mempool"
+	"github.com/33cn/dplatform/common/skiplist"
+	"github.com/33cn/dplatform/system/mempool"
 	"github.com/golang/protobuf/proto"
 )
 

@@ -5,7 +5,7 @@
 package trade
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	_ "github.com/33cn/plugin/plugin/dapp/trade/autotest" // register autotest package
 	"github.com/33cn/plugin/plugin/dapp/trade/commands"
 	"github.com/33cn/plugin/plugin/dapp/trade/executor"

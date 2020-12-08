@@ -7,17 +7,17 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/queue"
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 	"github.com/stretchr/testify/assert"
 )
 
-var chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
+var chainTestCfg = types.NewDplatformConfig(types.GetDefaultCfgstring())
 
 func newTestAutonomy() *Autonomy {
 	au := &Autonomy{

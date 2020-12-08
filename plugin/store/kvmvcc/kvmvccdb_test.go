@@ -13,10 +13,10 @@ import (
 
 	"fmt"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common"
-	drivers "github.com/33cn/chain33/system/store"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common"
+	drivers "github.com/33cn/dplatform/system/store"
+	"github.com/33cn/dplatform/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -294,7 +294,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 	addr2 := "26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
 	addr3 := "36htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
 	addr4 := "46htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
-	accCoin := account.NewCoinsAccount(types.NewChain33ConfigNoInit(types.GetDefaultCfgstring()))
+	accCoin := account.NewCoinsAccount(types.NewDplatformConfigNoInit(types.GetDefaultCfgstring()))
 
 	account1 := &types.Account{
 		Balance: 1000 * 1e8,

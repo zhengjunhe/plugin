@@ -9,9 +9,9 @@ import (
 
 	"strings"
 
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 	"github.com/spf13/cobra"
 )
@@ -88,7 +88,7 @@ func proposalRule(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -128,7 +128,7 @@ func revokeProposalRule(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -185,7 +185,7 @@ func voteProposalRule(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -225,7 +225,7 @@ func terminateProposalRule(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -288,7 +288,7 @@ func showProposalRule(cmd *cobra.Command, args []string) {
 	}
 	rep = &auty.ReplyQueryProposalRule{}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
 	ctx.Run()
 }
 
@@ -311,7 +311,7 @@ func showActiveRule(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&types.ReqString{})
 	rep := &auty.RuleConfig{}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
 	ctx.Run()
 }
 
@@ -354,7 +354,7 @@ func transferFund(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -401,7 +401,7 @@ func commentProposal(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -449,6 +449,6 @@ func showProposalComment(cmd *cobra.Command, args []string) {
 
 	rep = &auty.ReplyQueryProposalComment{}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
 	ctx.Run()
 }

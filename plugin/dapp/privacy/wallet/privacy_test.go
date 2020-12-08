@@ -11,12 +11,12 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
-	wcom "github.com/33cn/chain33/wallet/common"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
+	wcom "github.com/33cn/dplatform/wallet/common"
 	privacy "github.com/33cn/plugin/plugin/dapp/privacy/crypto"
 	ty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 )

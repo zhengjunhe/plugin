@@ -5,7 +5,7 @@
 package issuance
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/issuance/commands"
 	"github.com/33cn/plugin/plugin/dapp/issuance/executor"
 	"github.com/33cn/plugin/plugin/dapp/issuance/types"

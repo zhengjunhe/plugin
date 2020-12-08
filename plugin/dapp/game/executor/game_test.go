@@ -3,16 +3,16 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/queue"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/queue"
 	pty "github.com/33cn/plugin/plugin/dapp/game/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,8 +37,8 @@ var (
 )
 
 func TestGame(t *testing.T) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	Init(pty.GameX, cfg, nil)
 	total := 100 * types.Coin
 	accountA := types.Account{

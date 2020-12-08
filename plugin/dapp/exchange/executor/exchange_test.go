@@ -3,17 +3,17 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/chain33/common/db"
+	"github.com/33cn/dplatform/common/db"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/queue"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/queue"
 	et "github.com/33cn/plugin/plugin/dapp/exchange/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,8 +39,8 @@ var (
 
 func TestExchange(t *testing.T) {
 	//环境准备
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	Init(et.ExchangeX, cfg, nil)
 	total := 100 * types.Coin
 	accountA := types.Account{
@@ -688,8 +688,8 @@ func CreateLimitOrder(limitOrder *et.LimitOrder, privKey string) (tx *types.Tran
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	tx, err = types.FormatTx(cfg, et.ExchangeX, tx)
 	if err != nil {
 		return nil, err
@@ -706,8 +706,8 @@ func CreateRevokeOrder(orderID int64, privKey string) (tx *types.Transaction, er
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	tx, err = types.FormatTx(cfg, et.ExchangeX, tx)
 	if err != nil {
 		return nil, err
@@ -721,8 +721,8 @@ func CreateRevokeOrder(orderID int64, privKey string) (tx *types.Transaction, er
 
 //模拟区块中交易得执行过程
 func Exec_Block(t *testing.T, stateDB db.DB, kvdb db.KVDB, env *execEnv, txs ...*types.Transaction) error {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	exec := NewExchange()
 	e := exec.(*exchange)
 	for index, tx := range txs {
@@ -784,8 +784,8 @@ func Exec_RevokeOrder(t *testing.T, orderID int64, privKey string, stateDB db.DB
 }
 
 func Exec_QueryOrderList(status int32, addr string, primaryKey string, stateDB db.KV, kvdb db.KVDB) (*et.OrderList, error) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	exec := NewExchange()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -801,8 +801,8 @@ func Exec_QueryOrderList(status int32, addr string, primaryKey string, stateDB d
 	return msg.(*et.OrderList), nil
 }
 func Exec_QueryOrder(orderID int64, stateDB db.KV, kvdb db.KVDB) (*et.Order, error) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	exec := NewExchange()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -819,8 +819,8 @@ func Exec_QueryOrder(orderID int64, stateDB db.KV, kvdb db.KVDB) (*et.Order, err
 }
 
 func Exec_QueryMarketDepth(query *et.QueryMarketDepth, stateDB db.KV, kvdb db.KVDB) (*et.MarketDepthList, error) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	exec := NewExchange()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -837,8 +837,8 @@ func Exec_QueryMarketDepth(query *et.QueryMarketDepth, stateDB db.KV, kvdb db.KV
 }
 
 func Exec_QueryHistoryOrder(query *et.QueryHistoryOrderList, stateDB db.KV, kvdb db.KVDB) (*et.OrderList, error) {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	exec := NewExchange()
 	q := queue.New("channel")
 	q.SetConfig(cfg)

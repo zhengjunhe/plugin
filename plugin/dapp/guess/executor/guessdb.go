@@ -9,13 +9,13 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/33cn/chain33/account"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/db"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/common/db/table"
-	"github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/account"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/db"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/common/db/table"
+	"github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
 	gty "github.com/33cn/plugin/plugin/dapp/guess/types"
 )
 

@@ -7,11 +7,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/common/log/log15"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	chain33Types "github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer/chain33"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/common/log/log15"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	dplatformTypes "github.com/33cn/dplatform/types"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer/dplatform"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/utils"
@@ -32,7 +32,7 @@ const (
 
 //Manager ...
 type Manager struct {
-	chain33Relayer *chain33.Relayer4Chain33
+	dplatformRelayer *dplatform.Relayer4Dplatform
 	ethRelayer     *ethereum.Relayer4Ethereum
 	store          *Store
 	isLocked       int32
@@ -43,12 +43,12 @@ type Manager struct {
 }
 
 //NewRelayerManager ...
-//1.验证人的私钥需要通过cli命令行进行导入，且chain33和ethereum两种不同的验证人需要分别导入
+//1.验证人的私钥需要通过cli命令行进行导入，且dplatform和ethereum两种不同的验证人需要分别导入
 //2.显示或者重新替换原有的私钥首先需要通过passpin进行unlock的操作
-func NewRelayerManager(chain33Relayer *chain33.Relayer4Chain33, ethRelayer *ethereum.Relayer4Ethereum, db dbm.DB) *Manager {
+func NewRelayerManager(dplatformRelayer *dplatform.Relayer4Dplatform, ethRelayer *ethereum.Relayer4Ethereum, db dbm.DB) *Manager {
 	l, _ := lru.New(4096)
 	manager := &Manager{
-		chain33Relayer: chain33Relayer,
+		dplatformRelayer: dplatformRelayer,
 		ethRelayer:     ethRelayer,
 		store:          NewStore(db),
 		isLocked:       Locked,
@@ -73,7 +73,7 @@ func (manager *Manager) SetPassphase(setPasswdReq relayerTypes.ReqSetPasswd, res
 
 	// 密码合法性校验
 	if !utils.IsValidPassWord(setPasswdReq.Passphase) {
-		return chain33Types.ErrInvalidPassWord
+		return dplatformTypes.ErrInvalidPassWord
 	}
 
 	//使用密码生成passwdhash用于下次密码的验证
@@ -114,7 +114,7 @@ func (manager *Manager) ChangePassphase(setPasswdReq relayerTypes.ReqChangePassw
 	}
 	// 新密码合法性校验
 	if !utils.IsValidPassWord(setPasswdReq.NewPassphase) {
-		return chain33Types.ErrInvalidPassWord
+		return dplatformTypes.ErrInvalidPassWord
 	}
 	//保存钱包的锁状态，需要暂时的解锁，函数退出时再恢复回去
 	tempislock := atomic.LoadInt32(&manager.isLocked)
@@ -130,13 +130,13 @@ func (manager *Manager) ChangePassphase(setPasswdReq relayerTypes.ReqChangePassw
 		isok := manager.store.VerifyPasswordHash(setPasswdReq.OldPassphase)
 		if !isok {
 			mlog.Error("ChangePassphase Verify Oldpasswd fail!")
-			return chain33Types.ErrVerifyOldpasswdFail
+			return dplatformTypes.ErrVerifyOldpasswdFail
 		}
 	}
 
 	if len(manager.passphase) != 0 && setPasswdReq.OldPassphase != manager.passphase {
 		mlog.Error("ChangePassphase Oldpass err!")
-		return chain33Types.ErrVerifyOldpasswdFail
+		return dplatformTypes.ErrVerifyOldpasswdFail
 	}
 
 	//使用新的密码生成passwdhash用于下次密码的验证
@@ -159,7 +159,7 @@ func (manager *Manager) ChangePassphase(setPasswdReq relayerTypes.ReqChangePassw
 		return err
 	}
 
-	err = manager.chain33Relayer.StoreAccountWithNewPassphase(setPasswdReq.NewPassphase, setPasswdReq.OldPassphase)
+	err = manager.dplatformRelayer.StoreAccountWithNewPassphase(setPasswdReq.NewPassphase, setPasswdReq.OldPassphase)
 	if err != nil {
 		mlog.Error("ChangePassphase", "StoreAccountWithNewPassphase err", err)
 		return err
@@ -195,8 +195,8 @@ func (manager *Manager) Unlock(passphase string, result *interface{}) error {
 		return errors.New("wrong passphase")
 	}
 
-	if err := manager.chain33Relayer.RestorePrivateKeys(passphase); nil != err {
-		info := fmt.Sprintf("Failed to RestorePrivateKeys for chain33Relayer due to:%s", err.Error())
+	if err := manager.dplatformRelayer.RestorePrivateKeys(passphase); nil != err {
+		info := fmt.Sprintf("Failed to RestorePrivateKeys for dplatformRelayer due to:%s", err.Error())
 		return errors.New(info)
 	}
 	if err := manager.ethRelayer.RestorePrivateKeys(passphase); nil != err {
@@ -230,23 +230,23 @@ func (manager *Manager) Lock(param interface{}, result *interface{}) error {
 	return nil
 }
 
-//ImportChain33RelayerPrivateKey 导入chain33relayer验证人的私钥,该私钥实际用于向ethereum提交验证交易时签名使用
-func (manager *Manager) ImportChain33RelayerPrivateKey(importKeyReq relayerTypes.ImportKeyReq, result *interface{}) error {
+//ImportDplatformRelayerPrivateKey 导入dplatformrelayer验证人的私钥,该私钥实际用于向ethereum提交验证交易时签名使用
+func (manager *Manager) ImportDplatformRelayerPrivateKey(importKeyReq relayerTypes.ImportKeyReq, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	privateKey := importKeyReq.PrivateKey
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	_, err := manager.chain33Relayer.ImportPrivateKey(manager.passphase, privateKey)
+	_, err := manager.dplatformRelayer.ImportPrivateKey(manager.passphase, privateKey)
 	if err != nil {
-		mlog.Error("ImportChain33ValidatorPrivateKey", "Failed due to cause:", err.Error())
+		mlog.Error("ImportDplatformValidatorPrivateKey", "Failed due to cause:", err.Error())
 		return err
 	}
 
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:  "Succeed to import private key for chain33 relayer",
+		Msg:  "Succeed to import private key for dplatform relayer",
 	}
 	return nil
 }
@@ -268,29 +268,29 @@ func (manager *Manager) GenerateEthereumPrivateKey(param interface{}, result *in
 	return nil
 }
 
-//ImportChain33PrivateKey4EthRelayer 为ethrelayer导入chain33私钥，为向chain33发送交易时进行签名使用
-func (manager *Manager) ImportChain33PrivateKey4EthRelayer(privateKey string, result *interface{}) error {
+//ImportDplatformPrivateKey4EthRelayer 为ethrelayer导入dplatform私钥，为向dplatform发送交易时进行签名使用
+func (manager *Manager) ImportDplatformPrivateKey4EthRelayer(privateKey string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	if err := manager.ethRelayer.ImportChain33PrivateKey(manager.passphase, privateKey); nil != err {
+	if err := manager.ethRelayer.ImportDplatformPrivateKey(manager.passphase, privateKey); nil != err {
 		return err
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:  "Succeed to import chain33 private key for ethereum relayer",
+		Msg:  "Succeed to import dplatform private key for ethereum relayer",
 	}
 	return nil
 }
 
-//ShowChain33RelayerValidator 显示在chain33中以验证人validator身份进行登录的地址
-func (manager *Manager) ShowChain33RelayerValidator(param interface{}, result *interface{}) error {
+//ShowDplatformRelayerValidator 显示在dplatform中以验证人validator身份进行登录的地址
+func (manager *Manager) ShowDplatformRelayerValidator(param interface{}, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	var err error
-	*result, err = manager.chain33Relayer.GetAccountAddr()
+	*result, err = manager.dplatformRelayer.GetAccountAddr()
 	if nil != err {
 		return err
 	}
@@ -434,7 +434,7 @@ func (manager *Manager) Burn(burn relayerTypes.Burn, result *interface{}) error 
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	txhash, err := manager.ethRelayer.Burn(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	txhash, err := manager.ethRelayer.Burn(burn.OwnerKey, burn.TokenAddr, burn.DplatformReceiver, burn.Amount)
 	if nil != err {
 		return err
 	}
@@ -452,7 +452,7 @@ func (manager *Manager) BurnAsync(burn relayerTypes.Burn, result *interface{}) e
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	txhash, err := manager.ethRelayer.BurnAsync(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	txhash, err := manager.ethRelayer.BurnAsync(burn.OwnerKey, burn.TokenAddr, burn.DplatformReceiver, burn.Amount)
 	if nil != err {
 		return err
 	}
@@ -470,7 +470,7 @@ func (manager *Manager) LockEthErc20AssetAsync(lockEthErc20Asset relayerTypes.Lo
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	txhash, err := manager.ethRelayer.LockEthErc20AssetAsync(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
+	txhash, err := manager.ethRelayer.LockEthErc20AssetAsync(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.DplatformReceiver)
 	if nil != err {
 		return err
 	}
@@ -488,7 +488,7 @@ func (manager *Manager) LockEthErc20Asset(lockEthErc20Asset relayerTypes.LockEth
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	txhash, err := manager.ethRelayer.LockEthErc20Asset(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
+	txhash, err := manager.ethRelayer.LockEthErc20Asset(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.DplatformReceiver)
 	if nil != err {
 		return err
 	}
@@ -659,36 +659,36 @@ func (manager *Manager) ShowEthRelayer2EthTxs(param interface{}, result *interfa
 	return nil
 }
 
-//ShowEthRelayer2Chain33Txs ...
-func (manager *Manager) ShowEthRelayer2Chain33Txs(param interface{}, result *interface{}) error {
-	*result = manager.ethRelayer.QueryTxhashRelay2Chain33()
+//ShowEthRelayer2DplatformTxs ...
+func (manager *Manager) ShowEthRelayer2DplatformTxs(param interface{}, result *interface{}) error {
+	*result = manager.ethRelayer.QueryTxhashRelay2Dplatform()
 	return nil
 }
 
-//ShowChain33Relayer2EthTxs ...
-func (manager *Manager) ShowChain33Relayer2EthTxs(param interface{}, result *interface{}) error {
-	*result = manager.chain33Relayer.QueryTxhashRelay2Eth()
+//ShowDplatformRelayer2EthTxs ...
+func (manager *Manager) ShowDplatformRelayer2EthTxs(param interface{}, result *interface{}) error {
+	*result = manager.dplatformRelayer.QueryTxhashRelay2Eth()
 	return nil
 }
 
-//ShowTxsEth2chain33TxLock ...
-func (manager *Manager) ShowTxsEth2chain33TxLock(param interface{}, result *interface{}) error {
+//ShowTxsEth2dplatformTxLock ...
+func (manager *Manager) ShowTxsEth2dplatformTxLock(param interface{}, result *interface{}) error {
 	return nil
 }
 
-//ShowTxsEth2chain33TxBurn ...
-func (manager *Manager) ShowTxsEth2chain33TxBurn(param interface{}, result *interface{}) error {
+//ShowTxsEth2dplatformTxBurn ...
+func (manager *Manager) ShowTxsEth2dplatformTxBurn(param interface{}, result *interface{}) error {
 	return nil
 }
 
-//ShowTxsChain33ToEthTxLock ...
-func (manager *Manager) ShowTxsChain33ToEthTxLock(param interface{}, result *interface{}) error {
+//ShowTxsDplatformToEthTxLock ...
+func (manager *Manager) ShowTxsDplatformToEthTxLock(param interface{}, result *interface{}) error {
 
 	return nil
 }
 
-//ShowTxsChain33ToEthTxBurn ...
-func (manager *Manager) ShowTxsChain33ToEthTxBurn(param interface{}, result *interface{}) error {
+//ShowTxsDplatformToEthTxBurn ...
+func (manager *Manager) ShowTxsDplatformToEthTxBurn(param interface{}, result *interface{}) error {
 
 	return nil
 }

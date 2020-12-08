@@ -1,7 +1,7 @@
 package wasm
 
 import (
-	"github.com/33cn/chain33/pluginmgr"
+	"github.com/33cn/dplatform/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/wasm/commands"
 	"github.com/33cn/plugin/plugin/dapp/wasm/executor"
 	"github.com/33cn/plugin/plugin/dapp/wasm/rpc"

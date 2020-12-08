@@ -24,7 +24,7 @@ import proto "github.com/golang/protobuf/proto"
 var _ = proto.Marshal
 
 type SyncTxConfig struct {
-	Chain33Host         string `protobuf:"bytes,1,opt,name=chain33host" json:"chain33host,omitempty"`
+	DplatformHost         string `protobuf:"bytes,1,opt,name=dplatformhost" json:"dplatformhost,omitempty"`
 	PushHost            string `protobuf:"bytes,2,opt,name=pushHost" json:"pushHost,omitempty"`
 	PushName            string `protobuf:"bytes,3,opt,name=pushName" json:"pushName,omitempty"`
 	PushBind            string `protobuf:"bytes,4,opt,name=pushBind" json:"pushBind,omitempty"`
@@ -98,7 +98,7 @@ func (m *RelayerConfig) GetDeploy() *Deploy {
 }
 
 type SyncTxReceiptConfig struct {
-	Chain33Host       string `protobuf:"bytes,1,opt,name=chain33host" json:"chain33host,omitempty"`
+	DplatformHost       string `protobuf:"bytes,1,opt,name=dplatformhost" json:"dplatformhost,omitempty"`
 	PushHost          string `protobuf:"bytes,2,opt,name=pushHost" json:"pushHost,omitempty"`
 	PushName          string `protobuf:"bytes,3,opt,name=pushName" json:"pushName,omitempty"`
 	PushBind          string `protobuf:"bytes,4,opt,name=pushBind" json:"pushBind,omitempty"`

@@ -10,8 +10,8 @@ import (
 //const ...
 const (
 	X2Eth      = "x2ethereum"
-	BurnAction = "Chain33ToEthBurn"
-	LockAction = "Chain33ToEthLock"
+	BurnAction = "DplatformToEthBurn"
+	LockAction = "DplatformToEthLock"
 )
 
 // OracleClaim : contains data required to make an OracleClaim
@@ -24,7 +24,7 @@ type OracleClaim struct {
 // ProphecyClaim : contains data required to make an ProphecyClaim
 type ProphecyClaim struct {
 	ClaimType            events.Event
-	Chain33Sender        []byte
+	DplatformSender        []byte
 	EthereumReceiver     common.Address
 	TokenContractAddress common.Address
 	Symbol               string

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/types"
 )
 
 // CreateTx 创建交易
@@ -27,7 +27,7 @@ func (e *Type) CreateTx(action string, message json.RawMessage) (*types.Transact
 	return nil, types.ErrNotSupport
 }
 
-func createPingTx(cfg *types.Chain33Config, op string, parm *Tx) (*types.Transaction, error) {
+func createPingTx(cfg *types.DplatformConfig, op string, parm *Tx) (*types.Transaction, error) {
 	var action *EchoAction
 	var err error
 	if strings.EqualFold(op, "ping") {

@@ -55,7 +55,7 @@ func IsActiveValidator(validator common.Address, valset *generated.Valset) (bool
 }
 
 //IsProphecyPending ...
-func IsProphecyPending(claimID [32]byte, validator common.Address, chain33Bridge *generated.Chain33Bridge) (bool, error) {
+func IsProphecyPending(claimID [32]byte, validator common.Address, dplatformBridge *generated.DplatformBridge) (bool, error) {
 	opts := &bind.CallOpts{
 		Pending: true,
 		From:    validator,
@@ -63,9 +63,9 @@ func IsProphecyPending(claimID [32]byte, validator common.Address, chain33Bridge
 	}
 
 	// Initialize BridgeRegistry instance
-	active, err := chain33Bridge.IsProphecyClaimActive(opts, claimID)
+	active, err := dplatformBridge.IsProphecyClaimActive(opts, claimID)
 	if err != nil {
-		txslog.Error("IsActiveValidatorFromChain33Bridge", "Failed to query IsActiveValidator due to:", err.Error())
+		txslog.Error("IsActiveValidatorFromDplatformBridge", "Failed to query IsActiveValidator due to:", err.Error())
 		return false, err
 	}
 	return active, nil

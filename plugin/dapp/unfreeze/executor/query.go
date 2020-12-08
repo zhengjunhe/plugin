@@ -7,9 +7,9 @@ package executor
 import (
 	"time"
 
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/common/db/table"
-	"github.com/33cn/chain33/types"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/common/db/table"
+	"github.com/33cn/dplatform/types"
 	pty "github.com/33cn/plugin/plugin/dapp/unfreeze/types"
 )
 
@@ -35,7 +35,7 @@ func (u *Unfreeze) Query_ListUnfreezeByBeneficiary(in *pty.ReqUnfreezes) (types.
 }
 
 // QueryWithdraw 查询可提币状态
-func QueryWithdraw(cfg *types.Chain33Config, stateDB dbm.KV, id string) (types.Message, error) {
+func QueryWithdraw(cfg *types.DplatformConfig, stateDB dbm.KV, id string) (types.Message, error) {
 	id = unfreezeIDFromHex(id)
 	unfreeze, err := loadUnfreeze(id, stateDB)
 	if err != nil {
@@ -53,7 +53,7 @@ func QueryWithdraw(cfg *types.Chain33Config, stateDB dbm.KV, id string) (types.M
 	return reply, nil
 }
 
-func getWithdrawAvailable(cfg *types.Chain33Config, unfreeze *pty.Unfreeze, calcTime int64) (int64, error) {
+func getWithdrawAvailable(cfg *types.DplatformConfig, unfreeze *pty.Unfreeze, calcTime int64) (int64, error) {
 	means, err := newMeans(cfg, unfreeze.Means, 1500000)
 	if err != nil {
 		return 0, err

@@ -7,7 +7,7 @@ package executor
 import (
 	"fmt"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority"
 	ct "github.com/33cn/plugin/plugin/dapp/cert/types"
 )

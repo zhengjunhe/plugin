@@ -1,8 +1,8 @@
 package rpc
 
 import (
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/types"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 )
 

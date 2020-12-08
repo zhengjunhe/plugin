@@ -8,12 +8,12 @@ import (
 	"bytes"
 	"encoding/hex"
 
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	log "github.com/33cn/chain33/common/log/log15"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	log "github.com/33cn/dplatform/common/log/log15"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )
 
@@ -30,7 +30,7 @@ type Paracross struct {
 }
 
 //Init paracross exec register
-func Init(name string, cfg *types.Chain33Config, sub []byte) {
+func Init(name string, cfg *types.DplatformConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newParacross, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 	setPrefix()

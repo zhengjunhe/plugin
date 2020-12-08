@@ -13,13 +13,13 @@ import (
 
 	"strings"
 
-	"github.com/33cn/chain33/client"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/queue"
-	drivers "github.com/33cn/chain33/system/dapp"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/queue"
+	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	rt "github.com/33cn/plugin/plugin/dapp/retrieve/types"
 )
 
@@ -248,8 +248,8 @@ func TestExecDelLocalBackup(t *testing.T) {
 }
 
 func constructRetrieveInstance() drivers.Driver {
-	cfgstring := strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"chain33\"", 1)
-	chainTestCfg := types.NewChain33Config(cfgstring)
+	cfgstring := strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1)
+	chainTestCfg := types.NewDplatformConfig(cfgstring)
 	Init(rt.RetrieveX, chainTestCfg, nil)
 	q := queue.New("channel")
 	q.SetConfig(chainTestCfg)

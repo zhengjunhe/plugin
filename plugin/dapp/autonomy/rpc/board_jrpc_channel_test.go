@@ -9,15 +9,15 @@ import (
 
 	"encoding/json"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	_ "github.com/33cn/chain33/system"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatform/types"
 	_ "github.com/33cn/plugin/plugin"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 )
 
-var chainTestCfg = types.NewChain33Config(types.GetDefaultCfgstring())
+var chainTestCfg = types.NewDplatformConfig(types.GetDefaultCfgstring())
 
 func testPropBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params := &auty.ProposalBoard{}
@@ -31,7 +31,7 @@ func testPropBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Chain33.CreateTransaction", pm, &res)
+	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
 }
 
 func testRevokeProposalBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -46,7 +46,7 @@ func testRevokeProposalBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) err
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Chain33.CreateTransaction", pm, &res)
+	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
 }
 
 func testVoteProposalBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -61,7 +61,7 @@ func testVoteProposalBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Chain33.CreateTransaction", pm, &res)
+	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
 }
 
 func testTerminateProposalBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -76,7 +76,7 @@ func testTerminateProposalBoardTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) 
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Chain33.CreateTransaction", pm, &res)
+	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
 }
 
 func testGetProposalBoardCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -86,7 +86,7 @@ func testGetProposalBoardCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.GetProposalBoard
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalBoard{}
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testListProposalBoardCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -96,7 +96,7 @@ func testListProposalBoardCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.ListProposalBoard
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalBoard{}
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }
 
 func testGetActiveBoardCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -105,5 +105,5 @@ func testGetActiveBoardCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.GetActiveBoard
 	params.Payload = types.MustPBToJSON(&types.ReqString{})
 	rep = &auty.ActiveBoard{}
-	return jrpc.Call("Chain33.Query", params, rep)
+	return jrpc.Call("Dplatform.Query", params, rep)
 }

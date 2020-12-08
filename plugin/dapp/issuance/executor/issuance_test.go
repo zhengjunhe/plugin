@@ -4,17 +4,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/chain33/client"
+	"github.com/33cn/dplatform/client"
 
-	"github.com/33cn/chain33/account"
-	apimock "github.com/33cn/chain33/client/mocks"
-	"github.com/33cn/chain33/common"
-	"github.com/33cn/chain33/common/crypto"
-	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/dapp"
-	pty "github.com/33cn/chain33/system/dapp/manage/types"
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util"
+	"github.com/33cn/dplatform/account"
+	apimock "github.com/33cn/dplatform/client/mocks"
+	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatform/common/crypto"
+	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatform/system/dapp"
+	pty "github.com/33cn/dplatform/system/dapp/manage/types"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util"
 	pkt "github.com/33cn/plugin/plugin/dapp/issuance/types"
 	tokenE "github.com/33cn/plugin/plugin/dapp/token/executor"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +29,7 @@ type execEnv struct {
 	api         client.QueueProtocolAPI
 	db          dbm.KV
 	execAddr    string
-	cfg         *types.Chain33Config
+	cfg         *types.DplatformConfig
 	ldb         dbm.DB
 }
 
@@ -62,8 +62,8 @@ func manageKeySet(key string, value string, db dbm.KV) {
 }
 
 func initEnv() *execEnv {
-	cfg := types.NewChain33Config(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("chain33")
+	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatform")
 	cfg.RegisterDappFork(pkt.IssuanceX, pkt.ForkIssuanceTableUpdate, 0)
 	Init(pkt.IssuanceX, cfg, nil)
 	_, ldb, kvdb := util.CreateTestDB()

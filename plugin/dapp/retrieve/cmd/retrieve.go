@@ -7,9 +7,9 @@ package cmd
 import (
 	"fmt"
 
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	"github.com/33cn/plugin/plugin/dapp/retrieve/rpc"
 	rt "github.com/33cn/plugin/plugin/dapp/retrieve/types"
 	"github.com/spf13/cobra"
@@ -294,7 +294,7 @@ func queryRetrieveCmd(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(req)
 
 	var res rt.RetrieveQuery
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.SetResultCb(parseRerieveDetail)
 	ctx.Run()
 }

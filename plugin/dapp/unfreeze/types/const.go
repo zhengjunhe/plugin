@@ -34,8 +34,8 @@ const (
 //建议用github的组织名称，或者用户名字开头, 再加上自己的插件的名字
 //如果发生重名，可以通过配置文件修改这些名字
 var (
-	PackageName    = "chain33.unfreeze"
-	RPCName        = "Chain33.Unfreeze"
+	PackageName    = "dplatform.unfreeze"
+	RPCName        = "Dplatform.Unfreeze"
 	UnfreezeX      = "unfreeze"
 	ExecerUnfreeze = []byte(UnfreezeX)
 

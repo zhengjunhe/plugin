@@ -14,11 +14,11 @@ import (
 	"os"
 	"sync"
 
-	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/dplatform/common/address"
 
-	"github.com/33cn/chain33/common/crypto"
-	vrf "github.com/33cn/chain33/common/vrf/secp256k1"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	vrf "github.com/33cn/dplatform/common/vrf/secp256k1"
+	"github.com/33cn/dplatform/types"
 	secp256k1 "github.com/btcsuite/btcd/btcec"
 )
 

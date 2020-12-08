@@ -3,8 +3,8 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/33cn/chain33/common/crypto"
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatform/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

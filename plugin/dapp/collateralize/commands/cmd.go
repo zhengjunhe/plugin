@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	jsonrpc "github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-	"github.com/33cn/chain33/types"
+	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatform/types"
 	pkt "github.com/33cn/plugin/plugin/dapp/collateralize/types"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +67,7 @@ func CollateralizeCreate(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -108,7 +108,7 @@ func CollateralizeBorrow(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -152,7 +152,7 @@ func CollateralizeAppend(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -193,7 +193,7 @@ func CollateralizeRepay(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -234,7 +234,7 @@ func CollateralizePriceFeed(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -275,7 +275,7 @@ func CollateralizeRetrieve(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -321,7 +321,7 @@ func CollateralizeManage(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.CreateTransaction", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -344,7 +344,7 @@ func CollateralizeQueryConfig(cmd *cobra.Command, args []string) {
 
 	params.FuncName = "CollateralizeConfig"
 	var res pkt.RepCollateralizeConfig
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.Run()
 }
 
@@ -367,7 +367,7 @@ func CollateralizeQueryPrice(cmd *cobra.Command, args []string) {
 
 	params.FuncName = "CollateralizePrice"
 	var res pkt.RepCollateralizePrice
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.Run()
 }
 
@@ -401,7 +401,7 @@ func CollateralizeQueryUserBalance(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(req)
 
 	var res pkt.RepCollateralizeUserBalance
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 	ctx.Run()
 }
 
@@ -464,7 +464,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 			}
 			params.Payload = types.MustPBToJSON(req)
 			var res pkt.RepCollateralizeRecords
-			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 			ctx.Run()
 		} else if statusStr != "" {
 			params.FuncName = "CollateralizeRecordByStatus"
@@ -475,7 +475,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 			}
 			params.Payload = types.MustPBToJSON(req)
 			var res pkt.RepCollateralizeRecords
-			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 			ctx.Run()
 		} else if borrowID != "" {
 			params.FuncName = "CollateralizeRecordByID"
@@ -486,7 +486,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 			}
 			params.Payload = types.MustPBToJSON(req)
 			var res pkt.RepCollateralizeRecord
-			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 			ctx.Run()
 		} else {
 			params.FuncName = "CollateralizeInfoByID"
@@ -496,7 +496,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 			}
 			params.Payload = types.MustPBToJSON(req)
 			var res pkt.RepCollateralizeCurrentInfo
-			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+			ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 			ctx.Run()
 		}
 	} else if address != "" {
@@ -505,7 +505,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 		req := &pkt.ReqCollateralizeByAddr{Addr: address}
 		params.Payload = types.MustPBToJSON(req)
 		var res pkt.RepCollateralizeIDs
-		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 		ctx.Run()
 	} else if statusStr != "" {
 		params.FuncName = "CollateralizeByStatus"
@@ -513,7 +513,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 		req := &pkt.ReqCollateralizeByStatus{Status: int32(status)}
 		params.Payload = types.MustPBToJSON(req)
 		var res pkt.RepCollateralizeIDs
-		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 		ctx.Run()
 	} else if collateralizeIDs != "" {
 		params.FuncName = "CollateralizeInfoByIDs"
@@ -524,7 +524,7 @@ func CollateralizeQuery(cmd *cobra.Command, args []string) {
 		req := &pkt.ReqCollateralizeInfos{CollateralizeIds: collateralizeIDsS}
 		params.Payload = types.MustPBToJSON(req)
 		var res pkt.RepCollateralizeCurrentInfos
-		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+		ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
 		ctx.Run()
 	} else {
 		fmt.Println("Error: requeres at least one of collId, address or status")

@@ -1,8 +1,8 @@
 package testnode
 
 import (
-	"github.com/33cn/chain33/types"
-	"github.com/33cn/chain33/util/testnode"
+	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatform/util/testnode"
 )
 
 /*
@@ -12,18 +12,18 @@ import (
 
 //ParaNode 平行链节点由两个节点组成
 type ParaNode struct {
-	Main *testnode.Chain33Mock
-	Para *testnode.Chain33Mock
+	Main *testnode.DplatformMock
+	Para *testnode.DplatformMock
 }
 
 //NewParaNode 创建一个平行链节点
-func NewParaNode(main *testnode.Chain33Mock, para *testnode.Chain33Mock) *ParaNode {
+func NewParaNode(main *testnode.DplatformMock, para *testnode.DplatformMock) *ParaNode {
 	if main == nil {
 		main = testnode.New("", nil)
 		main.Listen()
 	}
 	if para == nil {
-		cfg := types.NewChain33Config(DefaultConfig)
+		cfg := types.NewDplatformConfig(DefaultConfig)
 		testnode.ModifyParaClient(cfg, main.GetCfg().RPC.GrpcBindAddr)
 		para = testnode.NewWithConfig(cfg, nil)
 		para.Listen()

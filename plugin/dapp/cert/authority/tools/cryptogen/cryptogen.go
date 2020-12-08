@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/33cn/chain33/types"
+	"github.com/33cn/dplatform/types"
 	_ "github.com/33cn/plugin/plugin/crypto/init"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/tools/cryptogen/generator"
 	ca "github.com/33cn/plugin/plugin/dapp/cert/authority/tools/cryptogen/generator/impl"
@@ -21,11 +21,11 @@ const (
 	// CANAME 默认CA名称
 	CANAME = "ca"
 	// CONFIGFILENAME 配置文件名
-	CONFIGFILENAME = "chain33.cryptogen.toml"
+	CONFIGFILENAME = "dplatform.cryptogen.toml"
 	// OUTPUTDIR 证书文件输出路径
 	OUTPUTDIR = "./authdir/crypto"
 	// ORGNAME 默认组织名
-	ORGNAME = "Chain33"
+	ORGNAME = "Dplatform"
 )
 
 // Config 证书生成工具配置
@@ -37,7 +37,7 @@ type Config struct {
 var (
 	cmd = &cobra.Command{
 		Use:   "cryptogen [-f configfile] [-o output directory]",
-		Short: "chain33 crypto tool for generating key and certificate",
+		Short: "dplatform crypto tool for generating key and certificate",
 		Run:   generate,
 	}
 	cfg Config
