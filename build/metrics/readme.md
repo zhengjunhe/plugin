@@ -7,7 +7,7 @@
 1.influx 进入influxdb交互界面
 ```
 ```
-2.use chain33metrics
+2.use dplatformmetrics
 ```
 ```
 3.show field keys

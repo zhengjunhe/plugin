@@ -1,12 +1,12 @@
 # exchange合约
 
 ## 前言
-这是一个基于chain33开发的去中心化交易所合约，不收任何手续费，用于满足一小部分人群或者其他特定业务场景中，虚拟资产之间得交换。
+这是一个基于dplatform开发的去中心化交易所合约，不收任何手续费，用于满足一小部分人群或者其他特定业务场景中，虚拟资产之间得交换。
 
 ## 使用
 合约提供了类似中心化交易所健全的查询接口，所有得接口设计都基于用户的角度去出发
 合约接口,在线构造交易和查询接口分别复用了框架中的CreateTransaction和Query接口，详情请参考
-[CreateTransaction接口](https://github.com/33cn/chain33/blob/master/rpc/jrpchandler.go#L1101)和[Query接口](https://github.com/33cn/chain33/blob/master/rpc/jrpchandler.go#L838)
+[CreateTransaction接口](https://github.com/33cn/dplatform/blob/master/rpc/jrpchandler.go#L1101)和[Query接口](https://github.com/33cn/dplatform/blob/master/rpc/jrpchandler.go#L838)
 
 查询方法名称|功能
 -----|----

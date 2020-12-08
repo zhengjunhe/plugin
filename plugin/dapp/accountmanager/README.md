@@ -1,7 +1,7 @@
 # accountmanager合约
 
 ## 前言
-为适配央行发布的[金融分布式账户技术安全规范](http://www.cfstc.org/bzgk/gk/view/yulan.jsp?i_id=1855)，满足联盟链中的金融监管，账户公钥重置，黑白名单等要求，特意在chain33上面开发了
+为适配央行发布的[金融分布式账户技术安全规范](http://www.cfstc.org/bzgk/gk/view/yulan.jsp?i_id=1855)，满足联盟链中的金融监管，账户公钥重置，黑白名单等要求，特意在dplatform上面开发了
 accountmanager合约
 
 ## 使用
@@ -17,7 +17,7 @@ accountmanager合约
 账户资产|账户资产可在accountmanager合约下进行正常的流转
 
 合约接口,在线构造交易和查询接口分别复用了框架中的CreateTransaction和Query接口，详情请参考
-[CreateTransaction接口](https://github.com/33cn/chain33/blob/master/rpc/jrpchandler.go#L1101)和[Query接口](https://github.com/33cn/chain33/blob/master/rpc/jrpchandler.go#L838)
+[CreateTransaction接口](https://github.com/33cn/dplatform/blob/master/rpc/jrpchandler.go#L1101)和[Query接口](https://github.com/33cn/dplatform/blob/master/rpc/jrpchandler.go#L838)
 
 查询方法名称|功能
 -----|----
