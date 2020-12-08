@@ -5,10 +5,10 @@
 # 3. make build
 # ...
 export GO111MODULE=on
-CLI := build/chain33-cli
+CLI := build/dplatform-cli
 SRC_CLI := github.com/33cn/plugin/cli
-APP := build/chain33
-BUILD_FLAGS = -ldflags "-X github.com/33cn/chain33/common/version.GitCommit=`git rev-parse --short=8 HEAD`"
+APP := build/dplatform
+BUILD_FLAGS = -ldflags "-X github.com/33cn/dplatform/common/version.GitCommit=`git rev-parse --short=8 HEAD`"
 LDFLAGS := -ldflags "-w -s"
 MKPATH=$(abspath $(lastword $(MAKEFILE_LIST)))
 MKDIR=$(dir $(MKPATH))
@@ -21,15 +21,15 @@ build: depends
 	go build $(BUILD_FLAGS) -v -i -o $(APP)
 	go build $(BUILD_FLAGS) -v -i -o $(CLI) $(SRC_CLI)
 	go build $(BUILD_FLAGS) -v -i -o build/fork-config github.com/33cn/plugin/cli/fork_config/
-	@cp chain33.toml build/
-	@cp chain33.para.toml build/ci/paracross/
+	@cp dplatform.toml build/
+	@cp dplatform.para.toml build/ci/paracross/
 
 
 build_ci: depends ## Build the binary file for CI
 	@go build -v -i -o $(CLI) $(SRC_CLI)
 	@go build $(BUILD_FLAGS) -v -o $(APP)
-	@cp chain33.toml build/
-	@cp chain33.para.toml build/ci/paracross/
+	@cp dplatform.toml build/
+	@cp dplatform.para.toml build/ci/paracross/
 
 
 para:
@@ -49,9 +49,9 @@ autotest_tick: autotest ## run with ticket mining
 
 update: ## version 可以是git tag打的具体版本号,也可以是commit hash, 什么都不填的情况下默认从master分支拉取最新版本
 	@if [ -n "$(version)" ]; then   \
-	go get -v github.com/33cn/chain33@${version}  ; \
+	go get -v github.com/33cn/dplatform@${version}  ; \
 	else \
-	go get -v github.com/33cn/chain33@master ;fi
+	go get -v github.com/33cn/dplatform@master ;fi
 	@go mod tidy
 dep:
 	@go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.18.0
@@ -106,31 +106,31 @@ coverage: ## Generate global code coverage report
 coverhtml: ## Generate global code coverage report in HTML
 	@./build/tools/coverage.sh html;
 
-docker: ## build docker image for chain33 run
-	@sudo docker build . -f ./build/Dockerfile-run -t chain33:latest
+docker: ## build docker image for dplatform run
+	@sudo docker build . -f ./build/Dockerfile-run -t dplatform:latest
 
 #extra can make more test setting
-docker-compose: ## build docker-compose for chain33 run
+docker-compose: ## build docker-compose for dplatform run
 	@cd build && if ! [ -d ci ]; then \
 	 make -C ../ ; \
 	 fi; \
-	 cp chain33* Dockerfile  docker-compose.yml *.sh ci/ && cd ci/ && ./docker-compose-pre.sh run $(proj) $(dapp) $(extra) && cd ../..
+	 cp dplatform* Dockerfile  docker-compose.yml *.sh ci/ && cd ci/ && ./docker-compose-pre.sh run $(proj) $(dapp) $(extra) && cd ../..
 
-docker-compose-down: ## build docker-compose for chain33 run
+docker-compose-down: ## build docker-compose for dplatform run
 	@cd build && if [ -d ci ]; then \
-	 cp chain33* Dockerfile  docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh down $(proj) $(dapp) && cd .. ; \
+	 cp dplatform* Dockerfile  docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh down $(proj) $(dapp) && cd .. ; \
 	 fi; \
 	 cd ..
 
-metrics:## build docker-compose for chain33 metrics
+metrics:## build docker-compose for dplatform metrics
 	@cd build && if ! [ -d ci ]; then \
 	 make -C ../ ; \
 	 fi; \
-	 cp chain33* Dockerfile  docker-compose.yml docker-compose-metrics.yml influxdb.conf *.sh ci/paracross/testcase.sh metrics/ && ./docker-compose-pre.sh run $(proj) metrics  && cd ../..
+	 cp dplatform* Dockerfile  docker-compose.yml docker-compose-metrics.yml influxdb.conf *.sh ci/paracross/testcase.sh metrics/ && ./docker-compose-pre.sh run $(proj) metrics  && cd ../..
 
 
-fork-test: ## build fork-test for chain33 run
-	@cd build && cp chain33* Dockerfile system-fork-test.sh docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh forktest $(proj) $(dapp) && cd ../..
+fork-test: ## build fork-test for dplatform run
+	@cd build && cp dplatform* Dockerfile system-fork-test.sh docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh forktest $(proj) $(dapp) && cd ../..
 
 largefile-check:
 	git gc
@@ -138,7 +138,7 @@ largefile-check:
 
 clean: ## Remove previous build
 	@rm -rf $(shell find . -name 'datadir' -not -path "./vendor/*")
-	@rm -rf build/chain33*
+	@rm -rf build/dplatform*
 	@rm -rf build/relayd*
 	@rm -rf build/*.log
 	@rm -rf build/logs
@@ -168,7 +168,7 @@ cleandata:
 	rm -rf build/datadir/addrbook
 	rm -rf build/datadir/blockchain.db
 	rm -rf build/datadir/mavltree
-	rm -rf build/chain33.log
+	rm -rf build/dplatform.log
 
 .PHONY: checkgofmt
 checkgofmt: ## get all go files and run go fmt on them

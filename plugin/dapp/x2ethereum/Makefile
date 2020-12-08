@@ -40,7 +40,7 @@ cli:
 build_ci: depends ## Build the binary file for CI
 	@go build -v -i -o $(CLI) $(SRC_EBCLI)
 	@go build $(BUILD_FLAGS) -v -o $(APP)
-	@cp chain33.toml build/
+	@cp dplatform.toml build/
 
 para:
 	@go build -v -o build/$(NAME) -ldflags "-X $(SRC_EBCLI)/buildflags.ParaName=user.p.$(NAME). -X $(SRC_EBCLI)/buildflags.RPCAddr=http://localhost:8901" $(SRC_EBCLI)
@@ -70,18 +70,18 @@ fmt_go: fmt_shell ## go fmt
 	@go fmt ./...
 	@find . -name '*.go' -not -path "./vendor/*" | xargs goimports -l -w
 
-docker: ## build docker image for chain33 run
-	@sudo docker build . -f ./build/Dockerfile-run -t chain33:latest
+docker: ## build docker image for dplatform run
+	@sudo docker build . -f ./build/Dockerfile-run -t dplatform:latest
 
-docker-compose: ## build docker-compose for chain33 run
+docker-compose: ## build docker-compose for dplatform run
 	@cd build && if ! [ -d ci ]; then \
 	 make -C ../ ; \
 	 fi; \
-	 cp chain33* Dockerfile  docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh run $(proj) $(dapp)  && cd ../..
+	 cp dplatform* Dockerfile  docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh run $(proj) $(dapp)  && cd ../..
 
-docker-compose-down: ## build docker-compose for chain33 run
+docker-compose-down: ## build docker-compose for dplatform run
 	@cd build && if [ -d ci ]; then \
-	 cp chain33* Dockerfile  docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh down $(proj) $(dapp) && cd .. ; \
+	 cp dplatform* Dockerfile  docker-compose* ci/ && cd ci/ && ./docker-compose-pre.sh down $(proj) $(dapp) && cd .. ; \
 	 fi; \
 	 cd ..
 
@@ -109,7 +109,7 @@ cleandata:
 	rm -rf build/datadir/addrbook
 	rm -rf build/datadir/blockchain.db
 	rm -rf build/datadir/mavltree
-	rm -rf build/chain33.log
+	rm -rf build/dplatform.log
 
 .PHONY: checkgofmt
 checkgofmt: ## get all go files and run go fmt on them
