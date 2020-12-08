@@ -137,11 +137,11 @@ func (mock *testDataMock) importPrivateKey(PrivKey *types.ReqWalletImportPrivkey
 	var cointype uint32
 	signType := wallet.GetSignType()
 	if signType == 1 {
-		cointype = bipwallet.TypeBty
+		cointype = bipwallet.TypeDpom
 	} else if signType == 2 {
 		cointype = bipwallet.TypeYcc
 	} else {
-		cointype = bipwallet.TypeBty
+		cointype = bipwallet.TypeDpom
 	}
 
 	privkeybyte, err := common.FromHex(PrivKey.Privkey)

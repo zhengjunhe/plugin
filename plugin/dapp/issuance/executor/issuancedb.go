@@ -431,9 +431,9 @@ func (action *Action) IssuanceCreate(create *pty.IssuanceCreate) (*types.Receipt
 }
 
 // 根据最近抵押物价格计算需要冻结的DPOM数量
-func getBtyNumToFrozen(value int64, price int64, ratio int64) (int64, error) {
+func getDpomNumToFrozen(value int64, price int64, ratio int64) (int64, error) {
 	if price == 0 {
-		clog.Error("Bty price should greate to 0")
+		clog.Error("Dpom price should greate to 0")
 		return 0, pty.ErrPriceInvalid
 	}
 
@@ -456,7 +456,7 @@ func getLatestPrice(db dbm.KV) (int64, error) {
 		return -1, err
 	}
 
-	return price.BtyPrice, nil
+	return price.DpomPrice, nil
 }
 
 // CheckExecAccountBalance 检查账户抵押物余额
@@ -537,9 +537,9 @@ func (action *Action) IssuanceDebt(debt *pty.IssuanceDebt) (*types.Receipt, erro
 	}
 
 	// 根据价格和需要借贷的金额，计算需要质押的抵押物数量
-	dpomFrozen, err := getBtyNumToFrozen(debt.Value, lastPrice, issu.LiquidationRatio)
+	dpomFrozen, err := getDpomNumToFrozen(debt.Value, lastPrice, issu.LiquidationRatio)
 	if err != nil {
-		clog.Error("IssuanceDebt.getBtyNumToFrozen", "CollID", issu.IssuanceId, "addr", action.fromaddr, "execaddr", action.execaddr, "error", err)
+		clog.Error("IssuanceDebt.getDpomNumToFrozen", "CollID", issu.IssuanceId, "addr", action.fromaddr, "execaddr", action.execaddr, "error", err)
 		return nil, err
 	}
 
@@ -937,7 +937,7 @@ func (action *Action) IssuanceFeed(feed *pty.IssuanceFeed) (*types.Receipt, erro
 	}
 
 	var priceRecord pty.IssuanceAssetPriceRecord
-	priceRecord.BtyPrice = price
+	priceRecord.DpomPrice = price
 	priceRecord.RecordTime = action.blocktime
 
 	// 最近喂价记录

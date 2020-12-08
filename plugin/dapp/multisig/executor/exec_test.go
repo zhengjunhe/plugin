@@ -50,8 +50,8 @@ var (
 	NewWeight             uint64 = 2
 	Requiredweight        uint64 = 5
 	NewRequiredweight     uint64 = 4
-	CoinsBtyDailylimit    uint64 = 100
-	NewCoinsBtyDailylimit uint64 = 10
+	CoinsDpomDailylimit    uint64 = 100
+	NewCoinsDpomDailylimit uint64 = 10
 	PrintFlag                    = false
 	InAmount              int64  = 10
 	OutAmount             int64  = 5
@@ -134,11 +134,11 @@ func TestMultiSigAccCreate(t *testing.T) {
 	//t.Log("------testMultiSigAccWeightModify------")
 	testMultiSigAccWeightModify(t, driver, env, multiSigAddr)
 
-	//modify assets DailyLimit NewCoinsBtyDailylimit
+	//modify assets DailyLimit NewCoinsDpomDailylimit
 	//t.Log("------testMultiSigAccDailyLimitModify------")
 	testMultiSigAccDailyLimitModify(t, driver, env, multiSigAddr)
 
-	//confirmtx  assets DailyLimit NewCoinsBtyDailylimit
+	//confirmtx  assets DailyLimit NewCoinsDpomDailylimit
 	//t.Log("------testMultiSigAccConfirmTx------")
 	testMultiSigAccConfirmTx(t, driver, env, api, multiSigAddr)
 
@@ -163,7 +163,7 @@ func testMultiSigAccCreate(t *testing.T, driver drivers.Driver, env execEnv, loc
 	symboldailylimit := &mty.SymbolDailyLimit{
 		Symbol:     Symbol,
 		Execer:     "coins",
-		DailyLimit: CoinsBtyDailylimit,
+		DailyLimit: CoinsDpomDailylimit,
 	}
 
 	param := &mty.MultiSigAccCreate{
@@ -538,7 +538,7 @@ func testMultiSigAccDailyLimitModify(t *testing.T, driver drivers.Driver, env ex
 	assetsDailyLimit := &mty.SymbolDailyLimit{
 		Symbol:     Symbol,
 		Execer:     Asset,
-		DailyLimit: NewCoinsBtyDailylimit,
+		DailyLimit: NewCoinsDpomDailylimit,
 	}
 	params := &mty.MultiSigAccOperate{
 		MultiSigAccAddr: multiSigAddr,
@@ -573,11 +573,11 @@ func testMultiSigAccDailyLimitModify(t *testing.T, driver drivers.Driver, env ex
 
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Symbol, Symbol)
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Execer, Asset)
-	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.DailyLimit, CoinsBtyDailylimit)
+	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.DailyLimit, CoinsDpomDailylimit)
 
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Symbol, Symbol)
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Execer, Asset)
-	assert.Equal(t, receiptMultiSigDailyLimitOperate.CurDailyLimit.DailyLimit, NewCoinsBtyDailylimit)
+	assert.Equal(t, receiptMultiSigDailyLimitOperate.CurDailyLimit.DailyLimit, NewCoinsDpomDailylimit)
 
 	//解析kv1
 	//t.Log("TyLogTxCountUpdate kv & log ")

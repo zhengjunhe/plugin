@@ -38,7 +38,7 @@ const (
 
 //暂时只支持dpom
 //const (
-//	CollateralizeAssetTypeBty = 1 + iota
+//	CollateralizeAssetTypeDpom = 1 + iota
 //	CollateralizeAssetTypeBtc
 //	CollateralizeAssetTypeEth
 //)

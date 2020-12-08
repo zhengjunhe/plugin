@@ -18,8 +18,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//SymbolBty ...
-const SymbolBty = "dpom"
+//SymbolDpom ...
+const SymbolDpom = "dpom"
 
 /*
 资产　=　assetExec + assetSymbol 唯一确定一个资产
@@ -391,7 +391,7 @@ func (a *action) createAccount(cfg *types.DplatformConfig, db db.KV, exec, symbo
 func adaptNullAssetExec(transfer *pt.CrossAssetTransfer) {
 	if transfer.AssetSymbol == "" {
 		transfer.AssetExec = coins.CoinsX
-		transfer.AssetSymbol = SymbolBty
+		transfer.AssetSymbol = SymbolDpom
 		return
 	}
 	if transfer.AssetExec == "" {

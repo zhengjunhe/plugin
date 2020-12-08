@@ -18,7 +18,7 @@ type BuyCase struct {
 	From        string `toml:"from"`
 	To          string `toml:"to"`
 	TokenAmount string `toml:"tokenAmount"`
-	BtyAmount   string `toml:"dpomAmount"`
+	DpomAmount   string `toml:"dpomAmount"`
 }
 
 // BuyPack defines buypack command
@@ -77,26 +77,26 @@ func (pack *BuyPack) checkBalance(txInfo map[string]interface{}) bool {
 	interCase := pack.TCase.(*BuyCase)
 
 	logFee := logArr[0].(map[string]interface{})["log"].(map[string]interface{})
-	logBuyBty := logArr[1].(map[string]interface{})["log"].(map[string]interface{})
-	logSellBty := logArr[2].(map[string]interface{})["log"].(map[string]interface{})
+	logBuyDpom := logArr[1].(map[string]interface{})["log"].(map[string]interface{})
+	logSellDpom := logArr[2].(map[string]interface{})["log"].(map[string]interface{})
 	logBuyToken := logArr[4].(map[string]interface{})["log"].(map[string]interface{})
 
 	fee, _ := strconv.ParseFloat(feeStr, 64)
 	tokenAmount, _ := strconv.ParseFloat(interCase.TokenAmount, 64)
-	dpomAmount, _ := strconv.ParseFloat(interCase.BtyAmount, 64)
+	dpomAmount, _ := strconv.ParseFloat(interCase.DpomAmount, 64)
 
 	pack.FLog.Info("BuyBalanceDetails", "ID", pack.PackID,
-		"Fee", feeStr, "TokenAmount", interCase.TokenAmount, "BtyAmount", interCase.BtyAmount,
-		"SellerBtyPrev", logSellBty["prev"].(map[string]interface{})["balance"].(string),
-		"SellerBtyCurr", logSellBty["current"].(map[string]interface{})["balance"].(string),
-		"BuyerBtyPrev", logBuyBty["prev"].(map[string]interface{})["balance"].(string),
-		"BuyerBtyCurr", logBuyBty["current"].(map[string]interface{})["balance"].(string),
+		"Fee", feeStr, "TokenAmount", interCase.TokenAmount, "DpomAmount", interCase.DpomAmount,
+		"SellerDpomPrev", logSellDpom["prev"].(map[string]interface{})["balance"].(string),
+		"SellerDpomCurr", logSellDpom["current"].(map[string]interface{})["balance"].(string),
+		"BuyerDpomPrev", logBuyDpom["prev"].(map[string]interface{})["balance"].(string),
+		"BuyerDpomCurr", logBuyDpom["current"].(map[string]interface{})["balance"].(string),
 		"BuyerTokenPrev", logBuyToken["prev"].(map[string]interface{})["balance"].(string),
 		"BuyerTokenCurr", logBuyToken["current"].(map[string]interface{})["balance"].(string))
 
 	return types.CheckBalanceDeltaWithAddr(logFee, interCase.From, -fee) &&
-		types.CheckBalanceDeltaWithAddr(logBuyBty, interCase.From, -dpomAmount) &&
-		types.CheckBalanceDeltaWithAddr(logSellBty, interCase.To, dpomAmount) &&
+		types.CheckBalanceDeltaWithAddr(logBuyDpom, interCase.From, -dpomAmount) &&
+		types.CheckBalanceDeltaWithAddr(logSellDpom, interCase.To, dpomAmount) &&
 		types.CheckBalanceDeltaWithAddr(logBuyToken, interCase.From, tokenAmount)
 
 }
