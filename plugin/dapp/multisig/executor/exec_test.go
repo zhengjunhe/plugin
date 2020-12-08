@@ -32,7 +32,7 @@ type execEnv struct {
 }
 
 var (
-	Symbol = "BTY"
+	Symbol = "DPOM"
 	Asset  = "coins"
 
 	PrivKeyA = "0x6da92a632ab7deb67d38c0f6560bcfed28167998f6496db64c258d5e8393a81b" // 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4
@@ -93,12 +93,12 @@ func TestMultiSigAccCreate(t *testing.T) {
 	api := new(apimock.QueueProtocolAPI)
 
 	api.On("GetConfig", mock.Anything).Return(chainTestCfg, nil)
-	// 给账户accountB在multisig合约中写入coins-bty资产
+	// 给账户accountB在multisig合约中写入coins-dpom资产
 	accB := account.NewCoinsAccount(chainTestCfg)
 	accB.SetDB(stateDB)
 	accB.SaveExecAccount(address.ExecAddress("multisig"), &accountA)
 
-	// 给账户accountD在multisig合约中写入coins-bty资产
+	// 给账户accountD在multisig合约中写入coins-dpom资产
 	accD := account.NewCoinsAccount(chainTestCfg)
 	accD.SetDB(stateDB)
 	accD.SaveExecAccount(address.ExecAddress("multisig"), &accountD)
@@ -615,7 +615,7 @@ func testMultiSigAccDailyLimitModify(t *testing.T, driver drivers.Driver, env ex
 //当前账户的信息，txcount：6 Requiredweight:4
 //ownerAddr:"1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR" weight:2
 //ownerAddr:"1MCftFynyvG2F4ED5mdHYgziDxx6vDrScs" weight:10 ]
-//[symbol:"bty" execer:"coins" dailyLimit:10 ]
+//[symbol:"dpom" execer:"coins" dailyLimit:10 ]
 //6
 // 4}
 func testMultiSigAccConfirmTx(t *testing.T, driver drivers.Driver, env execEnv, api *apimock.QueueProtocolAPI, multiSigAddr string) {

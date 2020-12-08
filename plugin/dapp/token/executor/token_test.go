@@ -82,7 +82,7 @@ func TestToken(t *testing.T) {
 	item := &types.ConfigItem{
 		Key: "mavl-manage-token-blacklist",
 		Value: &types.ConfigItem_Arr{
-			Arr: &types.ArrayConfig{Value: []string{"bty"}},
+			Arr: &types.ArrayConfig{Value: []string{"dpom"}},
 		},
 	}
 	stateDB.Set([]byte(item.Key), types.Encode(item))

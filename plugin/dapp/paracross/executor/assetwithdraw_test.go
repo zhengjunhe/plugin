@@ -121,7 +121,7 @@ func (suite *AssetWithdrawTestSuite) TestExecAssetWithdrawOnParaChain() {
 		Frozen:  0,
 		Addr:    string(Nodes[0]),
 	}
-	paraAcc, _ := NewParaAccount(dplatformTestCfg, Title, "coins", "bty", suite.stateDB)
+	paraAcc, _ := NewParaAccount(dplatformTestCfg, Title, "coins", "dpom", suite.stateDB)
 	paraAcc.SaveAccount(&accountA)
 
 	tx, err := createAssetWithdrawTx(suite.Suite, PrivKeyA, Nodes[1])

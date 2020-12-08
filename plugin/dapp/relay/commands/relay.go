@@ -356,7 +356,7 @@ func addExchangeFlags(cmd *cobra.Command) {
 	cmd.Flags().Uint32P("operation", "o", 0, "0:buy, 1:sell")
 	cmd.MarkFlagRequired("operation")
 
-	cmd.Flags().StringP("coin", "c", "", "coin to exchange by BTY, like BTC,ETH, default BTC")
+	cmd.Flags().StringP("coin", "c", "", "coin to exchange by DPOM, like BTC,ETH, default BTC")
 	cmd.MarkFlagRequired("coin")
 
 	cmd.Flags().Float64P("coin_amount", "m", 0, "coin amount to exchange")
@@ -367,8 +367,8 @@ func addExchangeFlags(cmd *cobra.Command) {
 
 	cmd.Flags().Uint32P("coin_wait", "n", 6, "coin blocks to wait,default:6,min:1")
 
-	cmd.Flags().Float64P("bty_amount", "b", 0, "exchange amount of BTY")
-	cmd.MarkFlagRequired("bty_amount")
+	cmd.Flags().Float64P("dpom_amount", "b", 0, "exchange amount of DPOM")
+	cmd.MarkFlagRequired("dpom_amount")
 
 }
 
@@ -379,13 +379,13 @@ func relayOrder(cmd *cobra.Command, args []string) {
 	coinamount, _ := cmd.Flags().GetFloat64("coin_amount")
 	coinaddr, _ := cmd.Flags().GetString("coin_addr")
 	coinwait, _ := cmd.Flags().GetUint32("coin_wait")
-	btyamount, _ := cmd.Flags().GetFloat64("bty_amount")
+	dpomamount, _ := cmd.Flags().GetFloat64("dpom_amount")
 
 	if coinwait == 0 {
 		coinwait = 1
 	}
 
-	btyUInt64 := uint64(btyamount * 1e4)
+	dpomUInt64 := uint64(dpomamount * 1e4)
 	coinUInt64 := uint64(coinamount * 1e4)
 
 	params := &ty.RelayCreate{
@@ -394,7 +394,7 @@ func relayOrder(cmd *cobra.Command, args []string) {
 		XCoin:           coin,
 		XAddr:           coinaddr,
 		XBlockWaits:     coinwait,
-		LocalCoinAmount: btyUInt64 * 1e4,
+		LocalCoinAmount: dpomUInt64 * 1e4,
 	}
 
 	payLoad, err := json.Marshal(params)

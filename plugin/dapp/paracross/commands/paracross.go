@@ -69,7 +69,7 @@ func addCreateAssetTransferFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for bty, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
 }
 
 func createAssetTransfer(cmd *cobra.Command, args []string) {
@@ -101,7 +101,7 @@ func addCreateAssetWithdrawFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("to", "t", "", "receiver account address")
 	cmd.MarkFlagRequired("to")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for bty, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
 }
 
 func createAssetWithdraw(cmd *cobra.Command, args []string) {
@@ -174,7 +174,7 @@ func addCreateTransferFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for bty, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
 	cmd.MarkFlagRequired("symbol")
 }
 
@@ -199,7 +199,7 @@ func addCreateTransferToExecFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "coins.bty", "default for bty, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "coins.dpom", "default for dpom, symbol for token")
 	cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("exec", "e", "", "asset deposit exec")
@@ -227,7 +227,7 @@ func addCreateWithdrawFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for bty, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
 	cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("exec", "e", "", "asset deposit exec")
@@ -253,7 +253,7 @@ func addCreateCrossAssetTransferFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "exec of asset resident")
 	cmd.MarkFlagRequired("exec")
 
-	cmd.Flags().StringP("symbol", "s", "", "asset symbol like bty")
+	cmd.Flags().StringP("symbol", "s", "", "asset symbol like dpom")
 	cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("to", "t", "", "transfer to account")

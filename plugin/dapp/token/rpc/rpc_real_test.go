@@ -31,7 +31,7 @@ func TestRPCTokenPreCreate(t *testing.T) {
 	acc = mock33.GetAccount(block.StateHash, mock33.GetHotAddress())
 	assert.Equal(t, acc.Balance, 10000*types.Coin)
 
-	tx := util.CreateManageTx(cfg, mock33.GetHotKey(), "token-blacklist", "add", "BTY")
+	tx := util.CreateManageTx(cfg, mock33.GetHotKey(), "token-blacklist", "add", "DPOM")
 	reply, err := mock33.GetAPI().SendTx(tx)
 	assert.Nil(t, err)
 	detail, err := mock33.WaitTx(reply.GetMsg())

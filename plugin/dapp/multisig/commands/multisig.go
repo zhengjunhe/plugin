@@ -998,7 +998,7 @@ func getMultiSigAccAssetsFlags(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("addr")
 
 	cmd.Flags().StringP("execer", "e", "coins", "assets execer name ")
-	cmd.Flags().StringP("symbol", "s", "BTY", "assets symbol")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "assets symbol")
 }
 
 func getMultiSigAccAssets(cmd *cobra.Command, args []string) {

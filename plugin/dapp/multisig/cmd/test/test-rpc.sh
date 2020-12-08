@@ -8,7 +8,7 @@ MAIN_HTTP=""
 # shellcheck source=/dev/null
 source ../dapp-test-common.sh
 
-Symbol="BTY"
+Symbol="DPOM"
 Asset="coins"
 AddrA="1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK"
 AddrB="1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj"
@@ -31,7 +31,7 @@ function init() {
         multisigExecAddr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"user.p.para.multisig"}]}' ${MAIN_HTTP} | jq -r ".result")
     else
         execName="multisig"
-        Symbol="BTY"
+        Symbol="DPOM"
         multisigExecAddr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"multisig"}]}' ${MAIN_HTTP} | jq -r ".result")
     fi
 

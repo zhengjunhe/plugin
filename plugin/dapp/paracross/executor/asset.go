@@ -19,19 +19,19 @@ import (
 )
 
 //SymbolBty ...
-const SymbolBty = "bty"
+const SymbolBty = "dpom"
 
 /*
 资产　=　assetExec + assetSymbol 唯一确定一个资产
 
 				exec              		symbol								tx.title=user.p.test1   tx.title=user.p.test2
 1. 主链上的资产：
-				coins					bty                     	  		transfer                 transfer
+				coins					dpom                     	  		transfer                 transfer
 				paracross				user.p.test1.coins.fzm    			withdraw                 transfer
 
 2. 平行链上的资产：
 				user.p.test1.coins		fzm              					transfer                 NAN
-    			user.p.test1.paracross	coins.bty    						withdraw                 NAN
+    			user.p.test1.paracross	coins.dpom    						withdraw                 NAN
     			user.p.test1.paracross	paracross.user.p.test2.coins.cny	withdraw                 NAN
 
 其中user.p.test1.paracross.paracross.user.p.test2.coins.cny资产解释：
@@ -65,17 +65,17 @@ func getCrossAction(transfer *pt.CrossAssetTransfer, txExecer string) (int64, er
 /*
 修正原生执行器名字
 								      								type			realExec    realSymbol
-coins+bty															mainTransfer	coins		bty
-paracross+user.p.test1.coins.bty									paraWithdraw	coins		bty
-user.p.test1.coins+bty												paraTransfer    coins		bty
-user.p.test1.paracross+coins.bty									mainWithdraw	coins		bty
-paracross+user.p.test1.coins.bty(->user.p.test2)					mainTransfer 	paracross   user.p.test1.coins.bty
-user.p.test2.paracross+paracross.user.p.test1.coins.bty 			mainWithdraw	paracross   user.p.test1.coins.bty
+coins+dpom															mainTransfer	coins		dpom
+paracross+user.p.test1.coins.dpom									paraWithdraw	coins		dpom
+user.p.test1.coins+dpom												paraTransfer    coins		dpom
+user.p.test1.paracross+coins.dpom									mainWithdraw	coins		dpom
+paracross+user.p.test1.coins.dpom(->user.p.test2)					mainTransfer 	paracross   user.p.test1.coins.dpom
+user.p.test2.paracross+paracross.user.p.test1.coins.dpom 			mainWithdraw	paracross   user.p.test1.coins.dpom
 注意:
-1. user.p.test1.coins+bty只是对外表示平行链资产，真正执行器也是coins，因为account模型的mavl-coins-bty-　在主链和平行链都一样，平行链模型并不是mavl-user.p.test.coins-bty-
+1. user.p.test1.coins+dpom只是对外表示平行链资产，真正执行器也是coins，因为account模型的mavl-coins-dpom-　在主链和平行链都一样，平行链模型并不是mavl-user.p.test.coins-dpom-
 2. paracross执行器下的资产都是外来资产，在withdraw时候，真正的原生执行器是在symbol里面
-　　a. 销毁资产　mavl-paracross-coins.bty-exec-addr(user)
-　　b. 恢复资产　mavl-coins-bty-exec-addr{paracross}:addr{user}, 在原生coins执行器上恢复资产
+　　a. 销毁资产　mavl-paracross-coins.dpom-exec-addr(user)
+　　b. 恢复资产　mavl-coins-dpom-exec-addr{paracross}:addr{user}, 在原生coins执行器上恢复资产
 */
 func amendTransferParam(transfer *pt.CrossAssetTransfer, act int64) (*pt.CrossAssetTransfer, error) {
 	newTransfer := *transfer

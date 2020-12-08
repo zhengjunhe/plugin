@@ -123,7 +123,7 @@ func (a *Action) LimitOrder(payload *et.LimitOrder) (*types.Receipt, error) {
 	leftAsset := payload.GetLeftAsset()
 	rightAsset := payload.GetRightAsset()
 	//TODO 参数要合法，必须有严格的校验，后面统一加入到checkTx里面
-	//coins执行器下面只有bty
+	//coins执行器下面只有dpom
 	if !CheckExchangeAsset(leftAsset, rightAsset) {
 		return nil, et.ErrAsset
 	}

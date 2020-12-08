@@ -23,7 +23,7 @@ amount = "1"
 checkItem = ["balance"]
 
 [[TransferCase]]
-id = "btyToExec"
+id = "dpomToExec"
 command = "send coins transfer -a 1 -t 1HPkPopVe3ERfvaAgedDtJQ792taZFEHCe -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 from = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 to = "1HPkPopVe3ERfvaAgedDtJQ792taZFEHCe"

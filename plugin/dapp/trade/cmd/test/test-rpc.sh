@@ -10,7 +10,7 @@ tradeBuyerAddr="1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg"
 tokenSymbol="TOKEN"
 
 function updateConfig() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "BTY","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "DPOM","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "update config create tx" 1
         return
@@ -185,7 +185,7 @@ function init() {
         trade_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tradeExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
         token_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tokenExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
     else
-        coinSymbol="bty"
+        coinSymbol="dpom"
         trade_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tradeExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
         token_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tokenExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
     fi

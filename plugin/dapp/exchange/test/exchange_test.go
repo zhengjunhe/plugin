@@ -17,7 +17,7 @@ var (
 	PrivKeyB   = "0x19c069234f9d3e61135fefbeb7791b149cdf6af536f26bebb310d4cd22c3fee4" // 1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR
 	PrivKeyC   = "0x7a80a1f75d7360c6123c32a78ecf978c1ac55636f87892df38d8b85a9aeff115" // 1NLHPEcbTWWxxU3dGUZBhayjrCHD3psX7k
 	PrivKeyD   = "0xcacb1f5d51700aea07fca2246ab43b0917d70405c65edea9b5063d72eb5c6b71" // 1MCftFynyvG2F4ED5mdHYgziDxx6vDrScs
-	coin       = "bty"
+	coin       = "dpom"
 	token      = "CCNY"
 	leftAsset  = &et.Asset{Symbol: coin, Execer: "coins"}
 	rightAsset = &et.Asset{Symbol: token, Execer: "token"}
@@ -271,16 +271,16 @@ func testPlaceLimitOrder(t *testing.T, req *et.LimitOrder, addr string, privkey 
 
 	cost := executor.CalcActualCost(req.Op, req.Amount, req.Price)
 	t.Log(req.Amount, req.Price, cost)
-	// bty/ccny
+	// dpom/ccny
 	if req.Op == et.OpBuy {
-		// bty
+		// dpom
 		assert.Equal(t, accAfter.Balance, accPrev.Balance)
 		assert.Equal(t, accAfter.Frozen, accPrev.Frozen)
 		// ccny
 		assert.Equal(t, tokenAfter.Balance, tokenPrev.Balance-cost)
 		assert.Equal(t, tokenAfter.Frozen, tokenPrev.Frozen+cost)
 	} else {
-		// bty
+		// dpom
 		assert.Equal(t, accAfter.Balance, accPrev.Balance-cost)
 		assert.Equal(t, accAfter.Frozen, accPrev.Frozen+cost)
 		// ccny
@@ -316,16 +316,16 @@ func testRevokeLimitOrder(t *testing.T, orderID int64, addr string, privkey stri
 	t.Log(tokenAfter)
 
 	cost := executor.CalcActualCost(lo.Op, order.Balance, lo.Price)
-	// bty/ccny
+	// dpom/ccny
 	if lo.Op == et.OpBuy {
-		// bty
+		// dpom
 		assert.Equal(t, accAfter.Balance, accPrev.Balance)
 		assert.Equal(t, accAfter.Frozen, accPrev.Frozen)
 		// ccny
 		assert.Equal(t, tokenAfter.Balance, tokenPrev.Balance+cost)
 		assert.Equal(t, tokenAfter.Frozen, tokenPrev.Frozen-cost)
 	} else {
-		// bty
+		// dpom
 		assert.Equal(t, accAfter.Balance, accPrev.Balance+cost)
 		assert.Equal(t, accAfter.Frozen, accPrev.Frozen-cost)
 		// ccny

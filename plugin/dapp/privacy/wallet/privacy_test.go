@@ -31,7 +31,7 @@ type PrivacyMock struct {
 
 func (mock *PrivacyMock) Init(walletOp wcom.WalletOperate, password string) {
 	mock.policy = &privacyPolicy{mtx: &sync.Mutex{}, rescanwg: &sync.WaitGroup{}}
-	mock.tokenName = types.BTY
+	mock.tokenName = types.DPOM
 	mock.walletOp = walletOp
 	mock.password = password
 	mock.policy.Init(walletOp, nil)

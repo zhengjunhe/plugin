@@ -344,7 +344,7 @@ message ReqCreateCacheTxKey {
 
 // get privacy transaction list in wallet
 message ReqPrivacyTransactionList {
-    // support BTY
+    // support DPOM
     string tokenname = 1;
     // 1:sendtx  2:recvtx
     int32  sendRecvFlag = 2;

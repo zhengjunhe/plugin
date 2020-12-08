@@ -79,7 +79,7 @@ func (c *GRPCCli) Query(fn string, msg proto.Message) ([]byte, error) {
 //GetExecAccount ...
 func (c *GRPCCli) GetExecAccount(addr string, exec string, symbol string) (*types.Account, error) {
 	if exec == "coins" {
-		// bty
+		// dpom
 		var addrs []string
 		addrs = append(addrs, addr)
 		params := &types.ReqBalance{

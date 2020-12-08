@@ -158,7 +158,7 @@ func (r RelayType) ActionName(tx *types.Transaction) string {
 	return "unknown"
 }
 
-// Amount return relay create bty amount
+// Amount return relay create dpom amount
 func (r *RelayType) Amount(tx *types.Transaction) (int64, error) {
 	data, err := r.DecodePayload(tx)
 	if err != nil {

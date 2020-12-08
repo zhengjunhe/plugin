@@ -452,7 +452,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 	resp := &types.ReplyGetTotalCoins{}
 	resp.Count = 100000
 
-	store.IterateRangeByStateHash(hash, []byte("mavl-coins-bty-"), []byte("mavl-coins-bty-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 
@@ -490,7 +490,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 100000
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-bty-"), []byte("mavl-coins-bty-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(14), resp.Num)
@@ -500,7 +500,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 100000
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-bty-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-bty-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(12), resp.Num)
@@ -510,7 +510,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 2
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-bty-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-bty-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(2), resp.Num)
@@ -520,7 +520,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 2
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-bty-"), []byte("mavl-coins-bty-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(2), resp.Num)
@@ -530,7 +530,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 10000
-	store.IterateRangeByStateHash(firstForkHash, []byte("mavl-coins-bty-"), []byte("mavl-coins-bty-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(firstForkHash, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(0), resp.Num)

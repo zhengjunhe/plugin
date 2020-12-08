@@ -418,7 +418,7 @@ manage() {
 token() {
     echo "========== # issuance add token begin =========="
     echo "========== # issuance add token token-blacklist begin =========="
-    tx=$(curl -ksd '{"method":"Dplatform.CreateTransaction","params":[{"execer":"manage","actionName":"Modify","payload":{"key": "token-blacklist", "value":"BTY", "op":"add"}}]}' ${MAIN_HTTP} | jq -r ".result")
+    tx=$(curl -ksd '{"method":"Dplatform.CreateTransaction","params":[{"execer":"manage","actionName":"Modify","payload":{"key": "token-blacklist", "value":"DPOM", "op":"add"}}]}' ${MAIN_HTTP} | jq -r ".result")
     data=$(curl -ksd '{"method":"Dplatform.DecodeRawTransaction","params":[{"txHex":"'"$tx"'"}]}' ${MAIN_HTTP} | jq -r ".result.txs[0]")
     ok=$(jq '(.execer != "")' <<<"$data")
 

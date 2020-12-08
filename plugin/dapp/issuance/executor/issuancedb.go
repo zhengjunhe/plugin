@@ -154,7 +154,7 @@ func PriceKey() (key []byte) {
 
 // Action struct
 type Action struct {
-	coinsAccount *account.DB // bty账户
+	coinsAccount *account.DB // dpom账户
 	tokenAccount *account.DB // ccny账户
 	db           dbm.KV
 	localDB      dbm.KVDB
@@ -430,15 +430,15 @@ func (action *Action) IssuanceCreate(create *pty.IssuanceCreate) (*types.Receipt
 	return receipt, nil
 }
 
-// 根据最近抵押物价格计算需要冻结的BTY数量
+// 根据最近抵押物价格计算需要冻结的DPOM数量
 func getBtyNumToFrozen(value int64, price int64, ratio int64) (int64, error) {
 	if price == 0 {
 		clog.Error("Bty price should greate to 0")
 		return 0, pty.ErrPriceInvalid
 	}
 
-	btyValue := (value * 1e4) / (price * ratio)
-	return btyValue * 1e4, nil
+	dpomValue := (value * 1e4) / (price * ratio)
+	return dpomValue * 1e4, nil
 }
 
 // 获取最近抵押物价格
@@ -483,7 +483,7 @@ func (action *Action) CheckExecTokenAccount(addr string, amount int64, isFrozen 
 	return false
 }
 
-// IssuanceDebt 大户质押bty借出ccny
+// IssuanceDebt 大户质押dpom借出ccny
 func (action *Action) IssuanceDebt(debt *pty.IssuanceDebt) (*types.Receipt, error) {
 	var logs []*types.ReceiptLog
 	var kv []*types.KeyValue
@@ -537,31 +537,31 @@ func (action *Action) IssuanceDebt(debt *pty.IssuanceDebt) (*types.Receipt, erro
 	}
 
 	// 根据价格和需要借贷的金额，计算需要质押的抵押物数量
-	btyFrozen, err := getBtyNumToFrozen(debt.Value, lastPrice, issu.LiquidationRatio)
+	dpomFrozen, err := getBtyNumToFrozen(debt.Value, lastPrice, issu.LiquidationRatio)
 	if err != nil {
 		clog.Error("IssuanceDebt.getBtyNumToFrozen", "CollID", issu.IssuanceId, "addr", action.fromaddr, "execaddr", action.execaddr, "error", err)
 		return nil, err
 	}
 
 	// 检查抵押物账户余额
-	if !action.CheckExecAccountBalance(action.fromaddr, btyFrozen, 0) {
-		clog.Error("IssuanceDebt.CheckExecAccountBalance", "CollID", issu.IssuanceId, "addr", action.fromaddr, "execaddr", action.execaddr, "btyFrozen", btyFrozen, "error", types.ErrNoBalance)
+	if !action.CheckExecAccountBalance(action.fromaddr, dpomFrozen, 0) {
+		clog.Error("IssuanceDebt.CheckExecAccountBalance", "CollID", issu.IssuanceId, "addr", action.fromaddr, "execaddr", action.execaddr, "dpomFrozen", dpomFrozen, "error", types.ErrNoBalance)
 		return nil, types.ErrNoBalance
 	}
 
 	// 抵押物转账
-	receipt, err := action.coinsAccount.ExecTransfer(action.fromaddr, issu.IssuerAddr, action.execaddr, btyFrozen)
+	receipt, err := action.coinsAccount.ExecTransfer(action.fromaddr, issu.IssuerAddr, action.execaddr, dpomFrozen)
 	if err != nil {
-		clog.Error("IssuanceDebt.ExecTransfer", "addr", action.fromaddr, "execaddr", action.execaddr, "amount", btyFrozen)
+		clog.Error("IssuanceDebt.ExecTransfer", "addr", action.fromaddr, "execaddr", action.execaddr, "amount", dpomFrozen)
 		return nil, err
 	}
 	logs = append(logs, receipt.Logs...)
 	kv = append(kv, receipt.KV...)
 
 	// 抵押物冻结
-	receipt, err = action.coinsAccount.ExecFrozen(issu.IssuerAddr, action.execaddr, btyFrozen)
+	receipt, err = action.coinsAccount.ExecFrozen(issu.IssuerAddr, action.execaddr, dpomFrozen)
 	if err != nil {
-		clog.Error("IssuanceDebt.Frozen", "addr", issu.IssuerAddr, "execaddr", action.execaddr, "amount", btyFrozen)
+		clog.Error("IssuanceDebt.Frozen", "addr", issu.IssuerAddr, "execaddr", action.execaddr, "amount", dpomFrozen)
 		return nil, err
 	}
 	logs = append(logs, receipt.Logs...)
@@ -581,7 +581,7 @@ func (action *Action) IssuanceDebt(debt *pty.IssuanceDebt) (*types.Receipt, erro
 	debtRecord.AccountAddr = action.fromaddr
 	debtRecord.DebtId = common.ToHex(action.txhash)
 	debtRecord.IssuId = issu.IssuanceId
-	debtRecord.CollateralValue = btyFrozen
+	debtRecord.CollateralValue = dpomFrozen
 	debtRecord.StartTime = action.blocktime
 	debtRecord.CollateralPrice = lastPrice
 	debtRecord.DebtValue = debt.Value
@@ -596,7 +596,7 @@ func (action *Action) IssuanceDebt(debt *pty.IssuanceDebt) (*types.Receipt, erro
 
 	// 保存
 	issu.DebtRecords = append(issu.DebtRecords, debtRecord)
-	issu.CollateralValue += btyFrozen
+	issu.CollateralValue += dpomFrozen
 	issu.DebtValue += debt.Value
 	issu.Balance -= debt.Value
 	issu.LatestExpireTime = getLatestExpireTime(&issu.Issuance)

@@ -207,7 +207,7 @@ function para_transfer() {
 
     echo "=========== # config token blacklist ============="
     #token precreate
-    txhash=$(para_configkey "${PARA_CLI}" "token-blacklist" "BTY")
+    txhash=$(para_configkey "${PARA_CLI}" "token-blacklist" "DPOM")
     echo "txhash=$txhash"
     query_tx "${PARA_CLI}" "${txhash}"
 
@@ -382,7 +382,7 @@ function para_cross_transfer_withdraw() {
     local times=200
     while true; do
         acc=$(${CLI} account balance -e paracross -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq -r ".balance")
-        acc_para=$(${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.bty | jq -r ".balance")
+        acc_para=$(${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.dpom | jq -r ".balance")
         echo "account balance is ${acc}, expect 9.3, para acct balance is ${acc_para},expect 0.7 "
         if [ "${acc}" != "9.3000" ] || [ "${acc_para}" != "0.7000" ]; then
             block_wait "${CLI}" 2
@@ -391,7 +391,7 @@ function para_cross_transfer_withdraw() {
                 echo "para_cross_transfer_withdraw failed"
                 ${CLI} tx query -s "$hash2"
                 ${PARA_CLI} tx query -s "$hash2"
-                ${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.bty
+                ${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.dpom
                 exit 1
             fi
         else
@@ -421,7 +421,7 @@ function para_cross_transfer_withdraw() {
 function token_create_on_mainChain() {
     echo "=========== # main chain token test ============="
     echo "=========== # 0.config token-blacklist ============="
-    hash=$(${CLI} send config config_tx -c token-blacklist -o add -v BTY -k 0xc34b5d9d44ac7b754806f761d3d4d2c4fe5214f6b074c19f069c4f5c2a29c8cc)
+    hash=$(${CLI} send config config_tx -c token-blacklist -o add -v DPOM -k 0xc34b5d9d44ac7b754806f761d3d4d2c4fe5214f6b074c19f069c4f5c2a29c8cc)
     echo "${hash}"
     query_tx "${MAIN_CLI}" "${hash}"
 
@@ -1065,22 +1065,22 @@ function privacy_transfer_test() {
     block_wait "${1}" 2
 
     echo "#privacy pub2priv, to=14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-    ${1} send privacy pub2priv -a 9 -p fcbb75f2b96b6d41f301f2d1abc853d697818427819f412f8e4b4e12cacc0814d2c3914b27bea9151b8968ed1732bd241c8788a332b295b731aee8d39a060388 -e coins -s BTY -k 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4
+    ${1} send privacy pub2priv -a 9 -p fcbb75f2b96b6d41f301f2d1abc853d697818427819f412f8e4b4e12cacc0814d2c3914b27bea9151b8968ed1732bd241c8788a332b295b731aee8d39a060388 -e coins -s DPOM -k 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4
     ${1} send privacy pub2priv -a 9 -p fcbb75f2b96b6d41f301f2d1abc853d697818427819f412f8e4b4e12cacc0814d2c3914b27bea9151b8968ed1732bd241c8788a332b295b731aee8d39a060388 -e token -s GD -k 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4
     check_privacy_utxo "${1}" 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt token GD 9.0000
-    check_privacy_utxo "${1}" 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt coins BTY 9.0000
+    check_privacy_utxo "${1}" 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt coins DPOM 9.0000
 
     echo "#privacy priv2priv, to=1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"
-    ${1} send privacy priv2priv -a 3 -p 5b0ff936ec2d2825a67a270e34d741d96bf6afe5d4b5692de0a1627f635fd0b3d7b14e44d3f8f7526030a7c59de482084161b441a5d66b483d80316e3b91482b -f 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e coins -s BTY -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+    ${1} send privacy priv2priv -a 3 -p 5b0ff936ec2d2825a67a270e34d741d96bf6afe5d4b5692de0a1627f635fd0b3d7b14e44d3f8f7526030a7c59de482084161b441a5d66b483d80316e3b91482b -f 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e coins -s DPOM -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     ${1} send privacy priv2priv -a 3 -p 5b0ff936ec2d2825a67a270e34d741d96bf6afe5d4b5692de0a1627f635fd0b3d7b14e44d3f8f7526030a7c59de482084161b441a5d66b483d80316e3b91482b -f 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e token -s GD -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     check_privacy_utxo "${1}" 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 token GD 3.0000
-    check_privacy_utxo "${1}" 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 coins BTY 3.0000
+    check_privacy_utxo "${1}" 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 coins DPOM 3.0000
 
     echo "#privacy priv2pub, to=1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"
-    ${1} send privacy priv2pub -a 6 -t 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 -f 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e coins -s BTY -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+    ${1} send privacy priv2pub -a 6 -t 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 -f 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e coins -s DPOM -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     ${1} send privacy priv2pub -a 6 -t 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 -f 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e token -s GD -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     check_privacy_utxo "${1}" 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt token GD 0.0000
-    check_privacy_utxo "${1}" 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt coins BTY 0.0000
+    check_privacy_utxo "${1}" 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt coins DPOM 0.0000
 }
 
 function para_test() {

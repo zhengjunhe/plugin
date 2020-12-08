@@ -17,7 +17,7 @@ message Collateralize {
     int64                 latestLiquidationPrice = 11; //最高清算价格
     int64                 period                 = 12; //借贷最大期限
     int64                 latestExpireTime       = 13; //最近超期时间
-    int64                 collBalance            = 14; //抵押bty
+    int64                 collBalance            = 14; //抵押dpom
     int32                 preStatus              = 15; //上一个状态
 }
 
@@ -25,7 +25,7 @@ message Collateralize {
 message BorrowRecord {
     string accountAddr      = 1;  //借贷人地址
     int64  startTime        = 2;  //借贷时间
-    int64  collateralValue  = 3;  //抵押物价值(bty)
+    int64  collateralValue  = 3;  //抵押物价值(dpom)
     int64  collateralPrice  = 4;  //抵押物价格
     int64  debtValue        = 5;  //债务价值(ccny)
     int64  liquidationPrice = 6;  //抵押物清算价格
@@ -40,7 +40,7 @@ message BorrowRecord {
 // 资产价格记录
 message AssetPriceRecord {
     int64 recordTime = 1; //价格记录时间
-    int64 btyPrice   = 2; // bty价格
+    int64 dpomPrice   = 2; // dpom价格
     int64 btcPrice   = 3; // btc价格
     int64 ethPrice   = 4; // eth价格
 }
@@ -92,12 +92,12 @@ message CollateralizeRepay {
 message CollateralizeAppend {
     string collateralizeId = 1; //借贷期数ID
     string recordId        = 2; //借贷ID
-    int64  collateralValue = 3; //追加价值(bty)
+    int64  collateralValue = 3; //追加价值(dpom)
 }
 
 // 喂价
 message CollateralizeFeed {
-    int32    collType     = 1; //抵押物价格类型(1，bty，2，btc，3，eth...)
+    int32    collType     = 1; //抵押物价格类型(1，dpom，2，btc，3，eth...)
     repeated int64 price  = 2; //喂价
     repeated int64 volume = 3; //成交量
 }
@@ -137,7 +137,7 @@ message RepCollateralizeCurrentInfo {
     int64    balance                    = 7;  //剩余可借贷金额(ccny)
     int64    period                     = 8;  //合约期限
     string   collateralizeId            = 9;  //放贷ID
-    int64    collBalance                = 10; //抵押bty
+    int64    collBalance                = 10; //抵押dpom
     repeated BorrowRecord borrowRecords = 11; //借贷记录
 }
 

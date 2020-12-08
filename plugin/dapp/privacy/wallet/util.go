@@ -161,12 +161,12 @@ func parseViewSpendPubKeyPair(in string) (viewPubKey, spendPubKey []byte, err er
 //1.进行实际转账utxo
 //2.进行找零转账utxo
 func generateOuts(viewpubTo, spendpubto, viewpubChangeto, spendpubChangeto *[32]byte, transAmount, selectedAmount, fee int64) (*privacytypes.PrivacyOutput, error) {
-	decomDigit := decomposeAmount2digits(transAmount, privacytypes.BTYDustThreshold)
+	decomDigit := decomposeAmount2digits(transAmount, privacytypes.DPOMDustThreshold)
 	//计算找零
 	changeAmount := selectedAmount - transAmount - fee
 	var decomChange []int64
 	if 0 < changeAmount {
-		decomChange = decomposeAmount2digits(changeAmount, privacytypes.BTYDustThreshold)
+		decomChange = decomposeAmount2digits(changeAmount, privacytypes.DPOMDustThreshold)
 	}
 	bizlog.Info("generateOuts", "decompose digit for amount", selectedAmount-fee, "decomDigit", decomDigit)
 

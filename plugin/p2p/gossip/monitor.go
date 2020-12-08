@@ -67,7 +67,7 @@ func (n *Node) getAddrFromGithub() {
 		return
 	}
 	//从github 上下载种子节点文件
-	res, err := http.Get("https://raw.githubusercontent.com/chainseed/seeds/master/bty.txt")
+	res, err := http.Get("https://raw.githubusercontent.com/chainseed/seeds/master/dpom.txt")
 	if err != nil {
 		log.Error("getAddrFromGithub", "http.Get", err.Error())
 		return

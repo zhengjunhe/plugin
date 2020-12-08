@@ -2941,7 +2941,7 @@ func (m *ReqCreateCacheTxKey) GetHashkey() []byte {
 
 // get privacy transaction list in wallet
 type ReqPrivacyTransactionList struct {
-	// support BTY
+	// support DPOM
 	Tokenname string `protobuf:"bytes,1,opt,name=tokenname,proto3" json:"tokenname,omitempty"`
 	// 1:sendtx  2:recvtx
 	SendRecvFlag         int32    `protobuf:"varint,2,opt,name=sendRecvFlag,proto3" json:"sendRecvFlag,omitempty"`

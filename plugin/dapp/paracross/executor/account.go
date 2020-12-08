@@ -17,9 +17,9 @@ import (
 // 其中带{}, 都表示变量， 用需要用真实的地址， 符号代替
 // 构建主链资产在平行链paracross帐号
 // execName:  user.p.{guodun}.paracross
-// symbol: coins.bty, token.{TEST}
-// 完整的帐号地址 mavl-{paracross}-coins.bty-{user-address} 不带title{paracross}
-// 对应主链上paracross 子帐号 malv-coins-bty-exec-{Address(paracross)}:{Address(user.p.{guodun}.paracross)}
+// symbol: coins.dpom, token.{TEST}
+// 完整的帐号地址 mavl-{paracross}-coins.dpom-{user-address} 不带title{paracross}
+// 对应主链上paracross 子帐号 malv-coins-dpom-exec-{Address(paracross)}:{Address(user.p.{guodun}.paracross)}
 func NewParaAccount(cfg *types.DplatformConfig, paraTitle, mainExecName, mainSymbol string, db db.KV) (*account.DB, error) {
 	// 按照现在的配置， title 是 带 "." 做结尾
 	// paraExec := paraTitle + types.ParaX
@@ -95,7 +95,7 @@ func assetWithdrawBalance(acc *account.DB, addr string, amount int64) (*types.Re
 
 //                          trade add                                user address
 // mavl-token-test-exec-1HPkPopVe3ERfvaAgedDtJQ792taZFEHCe:13DP8mVru5Rtu6CrjXQMvLsjvve3epRR1i
-// mavl-conis-bty-exec-{para}1e:13DP8mVru5Rtu6CrjXQMvLsjvve3epRR1i
+// mavl-conis-dpom-exec-{para}1e:13DP8mVru5Rtu6CrjXQMvLsjvve3epRR1i
 
 // 用户
 //      mavl- `合约` - `币名称` - 地址
@@ -111,7 +111,7 @@ func assetWithdrawBalance(acc *account.DB, addr string, amount int64) (*types.Re
 
 // 平行链
 //   `合约`    paracross  ` : 主链上的    user.p.guodun.paracross`
-//    `币名称`         coins.bty
+//    `币名称`         coins.dpom
 // mavl- `合约` - `币名称` - 地址
 //
 
@@ -149,7 +149,7 @@ func assetWithdrawBalance(acc *account.DB, addr string, amount int64) (*types.Re
 
  货币可以是哪些？ 是这条链认可某些币的价值， 还是都和本链的主币交换
   1. 对应平行链上的国盾币
-  1. 是主链上平移过来的bty
+  1. 是主链上平移过来的dpom
   1. 或是其他连上的币
   1. 某调链上的token 如 YCC
  先做成都和主币交换

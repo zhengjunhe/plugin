@@ -89,7 +89,7 @@ cli send coins transfer -a 100 -n test  -t "1KHwX7ZadNeQDjBGpnweb4k2dqj2CWtAYo" 
 
 第一步：1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd地址创建多重签名的账户，owner：1Kkgztjcni3xKw95y2VZHwPpsSHDEH5sXF  1N8LP5gBufZXCEdf3hyViDhWFqeB7WPGdv
 //构建交易
-cli send multisig account create -d 10 -e coins -s BTY -a "1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK-1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj" -w "20-10" -r 15 -k 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd
+cli send multisig account create -d 10 -e coins -s DPOM -a "1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK-1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj" -w "20-10" -r 15 -k 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd
 
 //查看创建的账户个数
 cli multisig account count
@@ -114,7 +114,7 @@ cli account balance -a 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd
 
 第三步：从指定账户转账到多重签名地址 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd   --》 "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47"
 
-cli send multisig tx transfer_in -a 40 -e coins -s BTY  -t "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -n test -k 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd
+cli send multisig tx transfer_in -a 40 -e coins -s DPOM  -t "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -n test -k 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd
 
 
 //查看1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd地上有40被转出了
@@ -128,7 +128,7 @@ cli multisig  account assets  -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47"
 
 
 第四步：从多重签名账户传出  "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47"  --》1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj  owner:1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK签名
-cli send multisig  tx transfer_out  -a 11 -e coins -s BTY -f "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -t 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj -n test -k "1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK"
+cli send multisig  tx transfer_out  -a 11 -e coins -s DPOM -f "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -t 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj -n test -k "1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK"
 
 
 查询账户信息
@@ -151,7 +151,7 @@ cli multisig  tx info  -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -i 0
 
 
 //owner "1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj," 转账5个币到1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj    owner:1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj签名
-cli send multisig  tx transfer_out  -a 5 -e coins -s BTY -f "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -t 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj -n test -k "1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj"
+cli send multisig  tx transfer_out  -a 5 -e coins -s DPOM -f "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -t 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj -n test -k "1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj"
 
 
 第五步：测试add/del owner  使用高权重的owner添加交易 "1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK",  add 1KHwX7ZadNeQDjBGpnweb4k2dqj2CWtAYo
@@ -167,7 +167,7 @@ cli multisig  tx info  -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -i 0
 //del owner
 cli send multisig  owner del  -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -o "1KHwX7ZadNeQDjBGpnweb4k2dqj2CWtAYo"  -k 1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK
 // modify  dailylimit
-cli send multisig  account dailylimit -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -e coins -s BTY -d 12 -k 1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK
+cli send multisig  account dailylimit -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -e coins -s DPOM -d 12 -k 1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK
 // modify weight
 cli send multisig  account weight -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -w 16 -k 1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK
 //replace owner
@@ -179,11 +179,11 @@ cli send multisig  owner modify  -a "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -o "166
 cli multisig account creator -a 1DkrXbz2bK6XMpY4v9z2YUnhwWTXT6V5jd
 
 // 获取指定账户上指定资产的每日余额
-cli multisig  account unspent  -a 13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47 -e coins -s BTY
+cli multisig  account unspent  -a 13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47 -e coins -s DPOM
 
 第五步：测试交易的确认和撤销
 //权重低的转账，owner：166po3ghRbRu53hu8jBBQzddp7kUJ9Ynyf
-cli send multisig  tx transfer_out  -a 10 -e coins -s BTY -f "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -t 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj -n test -k "166po3ghRbRu53hu8jBBQzddp7kUJ9Ynyf"
+cli send multisig  tx transfer_out  -a 10 -e coins -s DPOM -f "13q53Ga1kquDCqx7EWF8FU94tLUK18Zd47" -t 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj -n test -k "166po3ghRbRu53hu8jBBQzddp7kUJ9Ynyf"
 
 
 //撤销对某笔交易的确认

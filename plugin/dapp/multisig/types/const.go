@@ -106,7 +106,7 @@ type UnSpentAssetsResult struct {
 	UnSpent string `json:"unspent,omitempty"`
 }
 
-//IsAssetsInvalid 资产的合法性检测，Symbol：必须全部大写，例如：BTY,coins.BTY。exec：必须在types.AllowUserExec中存在
+//IsAssetsInvalid 资产的合法性检测，Symbol：必须全部大写，例如：DPOM,coins.DPOM。exec：必须在types.AllowUserExec中存在
 func IsAssetsInvalid(exec, symbol string) error {
 
 	//exec检测

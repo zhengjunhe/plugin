@@ -86,16 +86,16 @@ func NewExecCli() *ExecCli {
 
 	execAddr := address.ExecAddress(et.ExchangeX)
 
-	accA, _ := account.NewAccountDB(cfg, "coins", "bty", sdb)
+	accA, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
 	accA.SaveExecAccount(execAddr, accountA)
 
-	accB, _ := account.NewAccountDB(cfg, "coins", "bty", sdb)
+	accB, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
 	accB.SaveExecAccount(execAddr, accountB)
 
-	accC, _ := account.NewAccountDB(cfg, "coins", "bty", sdb)
+	accC, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
 	accC.SaveExecAccount(execAddr, accountC)
 
-	accD, _ := account.NewAccountDB(cfg, "coins", "bty", sdb)
+	accD, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
 	accD.SaveExecAccount(execAddr, accountD)
 
 	accA1, _ := account.NewAccountDB(cfg, "token", "CCNY", sdb)
@@ -222,7 +222,7 @@ func signTx(tx *types.Transaction, hexPrivKey string) (*types.Transaction, error
 
 //GetExecAccount ...
 func (c *ExecCli) GetExecAccount(addr string, exec string, symbol string) (*types.Account, error) {
-	//mavl-{coins}-{bty}-exec-{26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp}:{1JmFaA6unrCFYEWPGRi7uuXY1KthTJxJEP}
+	//mavl-{coins}-{dpom}-exec-{26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp}:{1JmFaA6unrCFYEWPGRi7uuXY1KthTJxJEP}
 	//mavl-{token}-{ccny}-exec-{26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp}:{1JmFaA6unrCFYEWPGRi7uuXY1KthTJxJEP}
 	key := []byte(fmt.Sprintf("mavl-%s-%s-exec-%s:%s", exec, symbol, c.execAddr, addr))
 	bytes, err := c.sdb.Get(key)

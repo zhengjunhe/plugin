@@ -476,7 +476,7 @@ func (action *tradeAction) tradeBuyLimit(buy *pty.TradeForBuyLimit) (*types.Rece
 	if err != nil {
 		return nil, err
 	}
-	// check enough bty
+	// check enough dpom
 	amount := buy.PricePerBoardlot * buy.TotalBoardlot
 	receipt, err := priceAcc.ExecFrozen(action.fromaddr, action.execaddr, amount)
 	if err != nil {
@@ -626,7 +626,7 @@ func (action *tradeAction) tradeRevokeBuyLimit(revoke *pty.TradeForRevokeBuy) (*
 	//tradelog.Info("tradeRevokeBuyLimit", "total-b", buyOrder.TotalBoardlot, "price", buyOrder.PricePerBoardlot, "amount", tradeRest)
 	receiptFromExecAcc, err := priceAcc.ExecActive(buyOrder.Address, action.execaddr, tradeRest)
 	if err != nil {
-		tradelog.Error("account.ExecActive bty ", "addrFrom", buyOrder.Address, "execaddr", action.execaddr, "amount", tradeRest)
+		tradelog.Error("account.ExecActive dpom ", "addrFrom", buyOrder.Address, "execaddr", action.execaddr, "amount", tradeRest)
 		return nil, err
 	}
 

@@ -3,7 +3,7 @@ package testnode
 //DefaultConfig default config for testnode
 var DefaultConfig = `
 Title="user.p.test."
-CoinSymbol="bty"
+CoinSymbol="dpom"
 # TestNet=true
 
 [log]

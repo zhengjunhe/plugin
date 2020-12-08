@@ -304,7 +304,7 @@ func (m *DebtRecord) GetIssuId() string {
 // 资产价格记录
 type IssuanceAssetPriceRecord struct {
 	RecordTime           int64    `protobuf:"varint,1,opt,name=recordTime,proto3" json:"recordTime,omitempty"`
-	BtyPrice             int64    `protobuf:"varint,2,opt,name=btyPrice,proto3" json:"btyPrice,omitempty"`
+	BtyPrice             int64    `protobuf:"varint,2,opt,name=dpomPrice,proto3" json:"dpomPrice,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`

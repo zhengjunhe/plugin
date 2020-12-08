@@ -80,8 +80,8 @@ func TestPriceCheck(t *testing.T) {
 		symbol string
 		result bool
 	}{
-		{"coins", "bty", true},
-		{"", "bty", false},
+		{"coins", "dpom", true},
+		{"", "dpom", false},
 		{"coins", "", false},
 		{"token", "TEST", true},
 	}

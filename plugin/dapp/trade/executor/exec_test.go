@@ -111,7 +111,7 @@ func TestTrade_Exec_SellLimit(t *testing.T) {
 		Fee:               0,
 		AssetExec:         AssetExecToken,
 		PriceExec:         "coins",
-		PriceSymbol:       "bty",
+		PriceSymbol:       "dpom",
 	}
 	tx, _ := pty.CreateRawTradeSellTx(dplatformTestCfg, sell)
 	tx, _ = signTx(tx, PrivKeyA)

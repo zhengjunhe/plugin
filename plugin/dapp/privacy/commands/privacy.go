@@ -95,7 +95,7 @@ func createPub2PrivTxFlags(cmd *cobra.Command) {
 	cmd.Flags().Float64P("amount", "a", 0.0, "transfer amount, at most 4 decimal places")
 	cmd.MarkFlagRequired("amount")
 
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
 	cmd.Flags().StringP("note", "n", "", "note for transaction")
 	cmd.Flags().Int64P("expire", "x", 0, "transfer expire, default one hour")
@@ -158,7 +158,7 @@ func createPriv2PrivTxFlags(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("from")
 
 	cmd.Flags().Int32P("mixcount", "m", defMixCount, "utxo mix count")
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
 	cmd.Flags().StringP("note", "n", "", "note for transaction")
 	cmd.Flags().Int64P("expire", "x", 0, "transfer expire, default one hour")
@@ -225,7 +225,7 @@ func createPriv2PubTxFlags(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("to")
 
 	cmd.Flags().Int32P("mixcount", "m", defMixCount, "utxo mix count")
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
 	cmd.Flags().StringP("note", "n", "", "note for transaction")
 	cmd.Flags().Int64P("expire", "x", 0, "transfer expire, default one hour")
@@ -285,7 +285,7 @@ func showPrivacyAccountSpendCmd() *cobra.Command {
 func showPrivacyAccountSpendFlag(cmd *cobra.Command) {
 	cmd.Flags().StringP("addr", "a", "", "account address")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 	cmd.MarkFlagRequired("addr")
 }
 
@@ -360,7 +360,7 @@ func showAmountsOfUTXOCmd() *cobra.Command {
 
 func showAmountOfUTXOFlag(cmd *cobra.Command) {
 
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
 }
 
@@ -402,7 +402,7 @@ func showUTXOs4SpecifiedAmountFlag(cmd *cobra.Command) {
 	cmd.Flags().Float64P("amount", "a", 0, "amount")
 	cmd.MarkFlagRequired("amount")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 }
 
 func showUTXOs4SpecifiedAmount(cmd *cobra.Command, args []string) {
@@ -457,7 +457,7 @@ func showPrivacyAccountInfoFlag(cmd *cobra.Command) {
 	cmd.Flags().StringP("addr", "a", "", "account address")
 	cmd.MarkFlagRequired("addr")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
-	cmd.Flags().StringP("symbol", "s", "BTY", "asset symbol, default BTY")
+	cmd.Flags().StringP("symbol", "s", "DPOM", "asset symbol, default DPOM")
 	cmd.Flags().Int32P("displaymode", "d", 0, "display mode.(0: display collect. 1:display available detail. 2:display frozen detail. 3:display all")
 }
 
@@ -552,7 +552,7 @@ func addListPrivacyTxsFlags(cmd *cobra.Command) {
 	cmd.Flags().Int32P("sendrecv", "", 0, "send or recv flag (0: send, 1: recv), default 0")
 	cmd.Flags().Int32P("count", "c", 10, "number of transactions, default 10")
 	cmd.Flags().StringP("exec", "e", "coins", "asset executor(coins, token, paracross), default coins")
-	cmd.Flags().StringP("token", "", types.BTY, "token name.(BTY supported)")
+	cmd.Flags().StringP("token", "", types.DPOM, "token name.(DPOM supported)")
 	cmd.Flags().Int32P("direction", "d", 1, "query direction (0: pre page, 1: next page), valid with seedtxhash param")
 	cmd.Flags().StringP("seedtxhash", "", "", "seed trasnaction hash")
 }

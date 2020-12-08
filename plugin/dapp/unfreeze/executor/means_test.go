@@ -33,7 +33,7 @@ func TestCalcFrozen(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       "LeftProportion",
@@ -88,7 +88,7 @@ func TestLeftV1(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       pty.LeftProportionX,
@@ -144,7 +144,7 @@ func TestFixV1(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       pty.FixAmountX,
@@ -199,7 +199,7 @@ func TestLeftV2(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       pty.LeftProportionX,

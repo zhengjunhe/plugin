@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	Symbol     = "BTY"
+	Symbol     = "DPOM"
 	Asset      = "coins"
 	PrivKeyA   = "0x06c0fa653c719275d1baa365c7bc0b9306447287499a715b541b930482eaa504" // 1C5xK2ytuoFqxmVGMcyz9XFKFWcDA8T3rK
 	PrivKeyB   = "0x4c8663cded61093af20339ae038b3c6bfa58a33e65874a655022f82eaf3f2fa0" // 1LDGrokrZjo1HtSmSnw8ef3oy5Vm1nctbj
@@ -76,7 +76,7 @@ func TestMultiSigAccount(t *testing.T) {
 		}
 		//t.Log("import", "index", i, "addr", acc.Acc.Addr)
 	}
-	//创建多重签名账户,owner:AddrA,AddrB,GenAddr,weight:20,10,30;coins:BTY 1000000000 RequestWeight:15
+	//创建多重签名账户,owner:AddrA,AddrB,GenAddr,weight:20,10,30;coins:DPOM 1000000000 RequestWeight:15
 	multiSigAccAddr := testAccCreateTx(t, mocker, jrpcClient)
 
 	//owner add AddrE

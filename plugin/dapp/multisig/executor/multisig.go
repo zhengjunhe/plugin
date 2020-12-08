@@ -1037,10 +1037,10 @@ func getMultiSigTxPayload(tx *types.TransactionDetail) (*mty.MultiSigAction, err
 	return &payload, nil
 }
 
-//bty 显示是大写，在底层mavl数据库中对应key值时使用小写
+//dpom 显示是大写，在底层mavl数据库中对应key值时使用小写
 func getRealSymbol(symbol string) string {
-	if symbol == types.BTY {
-		return "bty"
+	if symbol == types.DPOM {
+		return "dpom"
 	}
 	return symbol
 }

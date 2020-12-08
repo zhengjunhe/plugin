@@ -195,7 +195,7 @@ func (c *Paracross) udpateLocalParaTxs(paraTitle string, paraHeight int64, cross
 
 func (c *Paracross) getAssetTransferInfo(tx *types.Transaction, coinToken string, isWithdraw bool) (*pt.ParacrossAsset, error) {
 	exec := "coins"
-	symbol := types.BTY
+	symbol := types.DPOM
 	if coinToken != "" {
 		exec = "token"
 		symbol = coinToken
@@ -222,7 +222,7 @@ func (c *Paracross) getCrossAssetTransferInfo(payload *pt.CrossAssetTransfer, tx
 	exec := payload.AssetExec
 	symbol := payload.AssetSymbol
 	if payload.AssetSymbol == "" {
-		symbol = types.BTY
+		symbol = types.DPOM
 		exec = "coins"
 	}
 

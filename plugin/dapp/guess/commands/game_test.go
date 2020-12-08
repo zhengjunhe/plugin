@@ -224,7 +224,7 @@ enableMavlPrune=false
 # 裁剪高度间隔
 pruneHeight=10000
 [wallet]
-# 交易发送最低手续费，单位0.00000001BTY(1e-8),默认100000，即0.001BTY
+# 交易发送最低手续费，单位0.00000001DPOM(1e-8),默认100000，即0.001DPOM
 minFee=100000
 # walletdb驱动名，支持leveldb/memdb/gobadgerdb/ssdb/pegasus
 driver="leveldb"

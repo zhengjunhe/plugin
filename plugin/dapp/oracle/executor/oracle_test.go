@@ -75,16 +75,16 @@ func TestOrace(t *testing.T) {
 	stateDB, _ := dbm.NewGoMemDB("1", "2", 1000)
 	_, _, kvdb := util.CreateTestDB()
 
-	accA, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accA, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accA.SaveExecAccount(execAddr, &accountA)
 
-	accB, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accB, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accB.SaveExecAccount(execAddr, &accountB)
 
-	accC, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accC, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accC.SaveExecAccount(execAddr, &accountC)
 
-	accD, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accD, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accD.SaveExecAccount(execAddr, &accountD)
 
 	env := execEnv{

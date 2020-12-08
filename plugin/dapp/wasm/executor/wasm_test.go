@@ -289,7 +289,7 @@ func testCall(t *testing.T, acc *account.DB, stateDB db.KV) {
 
 func initAccount(t *testing.T, db db.KV) *account.DB {
 	wasmAddr = address.ExecAddress(cfg.ExecName(types2.WasmX))
-	acc, err := account.NewAccountDB(cfg, "coins", "bty", db)
+	acc, err := account.NewAccountDB(cfg, "coins", "dpom", db)
 	require.Nil(t, err, "new account db error")
 	acc.SaveAccount(&types.Account{
 		Balance: 1e10,

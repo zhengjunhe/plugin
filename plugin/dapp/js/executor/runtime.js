@@ -313,22 +313,22 @@ account.prototype.execTransActiveToFrozen = function(execer, from, to, amount) {
 
 COINS = 100000000
 
-function kvcreator(dbtype) {
+function kvcreator(ddpompe) {
     this.data = {}
     this.kvs = []
 	this.logs = []
-	this.type = dbtype
+	this.type = ddpompe
 	this.getstate = getstatedb
 	this.getloal = getlocaldb
 	this.list = listdb
-    if (dbtype == "exec" || dbtype == "init") {
+    if (ddpompe == "exec" || ddpompe == "init") {
         this.getdb = this.getstate
-    } else if (dbtype == "local") {
+    } else if (ddpompe == "local") {
         this.getdb = this.getlocal
-    } else if (dbtype == "query") {
+    } else if (ddpompe == "query") {
 		this.getdb = this.getlocal
 	} else {
-		throw new Error("dplatform.js: dbtype error")
+		throw new Error("dplatform.js: ddpompe error")
 	}
 }
 

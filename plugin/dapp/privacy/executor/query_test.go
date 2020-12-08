@@ -68,7 +68,7 @@ func TestPrivacy_Query_ShowAmountsOfUTXO(t *testing.T) {
 		{
 			index: 2,
 			params: &pty.ReqPrivacyToken{
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 			},
 			expectReply: &pty.ReplyPrivacyAmounts{
 				AmountDetail: []*pty.AmountDetail{
@@ -101,14 +101,14 @@ func TestPrivacy_Query_ShowUTXOs4SpecifiedAmount(t *testing.T) {
 		{
 			index: 1,
 			params: &pty.ReqPrivacyToken{
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 			},
 			expectErr: types.ErrNotFound,
 		},
 		{
 			index: 2,
 			params: &pty.ReqPrivacyToken{
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				Amount:      types.Coin,
 			},
 			disableReplyCheck: true,
@@ -153,7 +153,7 @@ func TestPrivacy_Query_GetUTXOGlobalIndex(t *testing.T) {
 		{
 			index: 3,
 			params: &pty.ReqUTXOGlobalIndex{
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				MixCount:    1,
 				Amount:      []int64{types.Coin, types.Coin * 2},
 			},
@@ -163,7 +163,7 @@ func TestPrivacy_Query_GetUTXOGlobalIndex(t *testing.T) {
 		{
 			index: 4,
 			params: &pty.ReqUTXOGlobalIndex{
-				AssetSymbol: "bty",
+				AssetSymbol: "dpom",
 				MixCount:    1,
 				Amount:      []int64{types.Coin},
 			},

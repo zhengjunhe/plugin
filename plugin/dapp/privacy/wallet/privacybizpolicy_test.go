@@ -354,7 +354,7 @@ func Test_CreateTransaction(t *testing.T) {
 		{ // 公对私测试
 			req: &ty.ReqCreatePrivacyTx{
 				AssetExec:  "coins",
-				Tokenname:  types.BTY,
+				Tokenname:  types.DPOM,
 				ActionType: ty.ActionPublic2Privacy,
 				Amount:     100 * types.Coin,
 				From:       testAddrs[0],
@@ -365,7 +365,7 @@ func Test_CreateTransaction(t *testing.T) {
 		{ // 私对私测试
 			req: &ty.ReqCreatePrivacyTx{
 				AssetExec:  "coins",
-				Tokenname:  types.BTY,
+				Tokenname:  types.DPOM,
 				ActionType: ty.ActionPrivacy2Privacy,
 				Amount:     10 * types.Coin,
 				From:       testAddrs[0],
@@ -376,7 +376,7 @@ func Test_CreateTransaction(t *testing.T) {
 		{ // 私对公测试
 			req: &ty.ReqCreatePrivacyTx{
 				AssetExec:  "coins",
-				Tokenname:  types.BTY,
+				Tokenname:  types.DPOM,
 				ActionType: ty.ActionPrivacy2Public,
 				Amount:     10 * types.Coin,
 				From:       testAddrs[0],
@@ -406,7 +406,7 @@ func Test_PrivacyAccountInfo(t *testing.T) {
 		{
 			req: &ty.ReqPrivacyAccount{
 				Addr:        testAddrs[0],
-				Token:       types.BTY,
+				Token:       types.DPOM,
 				Displaymode: 0,
 			},
 		},
@@ -432,7 +432,7 @@ func Test_ShowPrivacyAccountSpend(t *testing.T) {
 		{
 			req: &ty.ReqPrivBal4AddrToken{
 				Addr:  testAddrs[0],
-				Token: types.BTY,
+				Token: types.DPOM,
 			},
 			//needError: types.ErrNotFound,
 		},
@@ -457,7 +457,7 @@ func Test_PrivacyTransactionList(t *testing.T) {
 		},
 		{
 			req: &ty.ReqPrivacyTransactionList{
-				Tokenname:    types.BTY,
+				Tokenname:    types.DPOM,
 				SendRecvFlag: 1,
 				Direction:    0,
 				Count:        10,

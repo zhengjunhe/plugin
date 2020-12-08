@@ -69,16 +69,16 @@ func TestAccountManager(t *testing.T) {
 	//defer util.CloseTestDB(dir, stateDB)
 	execAddr := address.ExecAddress(et.AccountmanagerX)
 
-	accA, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accA, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accA.SaveExecAccount(execAddr, &accountA)
 
-	accB, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accB, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accB.SaveExecAccount(execAddr, &accountB)
 
-	accC, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accC, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accC.SaveExecAccount(execAddr, &accountC)
 
-	accD, _ := account.NewAccountDB(cfg, "coins", "bty", stateDB)
+	accD, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
 	accD.SaveExecAccount(execAddr, &accountD)
 	env := &execEnv{
 		time.Now().Unix(),
@@ -127,7 +127,7 @@ func TestAccountManager(t *testing.T) {
 	assert.Nil(t, err)
 	Exec_Block(t, stateDB, kvdb, env, tx3)
 	//转账
-	tx4, err := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2020", Asset: &types.Asset{Exec: "coins", Symbol: "bty", Amount: 1e8}}, PrivKeyB)
+	tx4, err := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2020", Asset: &types.Asset{Exec: "coins", Symbol: "dpom", Amount: 1e8}}, PrivKeyB)
 	assert.Equal(t, err, nil)
 	err = Exec_Block(t, stateDB, kvdb, env, tx4)
 	assert.Equal(t, err, nil)
@@ -152,11 +152,11 @@ func TestAccountManager(t *testing.T) {
 	assert.Equal(t, err, nil)
 	err = Exec_Block(t, stateDB, kvdb, env, tx6)
 	assert.Nil(t, err)
-	tx7, _ := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2015", Asset: &types.Asset{Exec: "coins", Symbol: "bty", Amount: 1e8}}, PrivKeyD)
+	tx7, _ := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2015", Asset: &types.Asset{Exec: "coins", Symbol: "dpom", Amount: 1e8}}, PrivKeyD)
 
 	err = Exec_Block(t, stateDB, kvdb, env, tx7)
 	assert.Equal(t, err, nil)
-	balance, err := Exec_QueryBalanceByID(&et.QueryBalanceByID{AccountID: "harrylee2015", Asset: &types.Asset{Symbol: "bty", Exec: "coins"}}, stateDB, kvdb)
+	balance, err := Exec_QueryBalanceByID(&et.QueryBalanceByID{AccountID: "harrylee2015", Asset: &types.Asset{Symbol: "dpom", Exec: "coins"}}, stateDB, kvdb)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, balance.Balance, 199*types.Coin)
 

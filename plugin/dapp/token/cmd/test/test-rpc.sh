@@ -75,7 +75,7 @@ function init() {
 }
 
 function updateConfig() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "BTY","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "DPOM","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "update config create tx" 1
         return

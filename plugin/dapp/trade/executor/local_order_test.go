@@ -13,7 +13,7 @@ import (
 )
 
 var order1 = &pty.LocalOrder{
-	AssetSymbol:       "bty",
+	AssetSymbol:       "dpom",
 	Owner:             "O1",
 	AmountPerBoardlot: 1,
 	MinBoardlot:       1,
@@ -36,7 +36,7 @@ var order1 = &pty.LocalOrder{
 }
 
 var order2 = &pty.LocalOrder{
-	AssetSymbol:       "bty",
+	AssetSymbol:       "dpom",
 	Owner:             "O1",
 	AmountPerBoardlot: 1,
 	MinBoardlot:       1,

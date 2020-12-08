@@ -53,7 +53,7 @@ func (g *channelClient) CreateBindMiner(ctx context.Context, in *ty.ReqBindMiner
 			return nil, types.ErrAmount
 		}
 
-		getBalance := &types.ReqBalance{Addresses: []string{in.OriginAddr}, Execer: "coins", AssetSymbol: "bty", AssetExec: "coins"}
+		getBalance := &types.ReqBalance{Addresses: []string{in.OriginAddr}, Execer: "coins", AssetSymbol: "dpom", AssetExec: "coins"}
 		balances, err := g.GetCoinsAccountDB().GetBalance(g, getBalance)
 		if err != nil {
 			return nil, err

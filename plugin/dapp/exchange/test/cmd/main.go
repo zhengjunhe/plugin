@@ -25,14 +25,14 @@ func main() {
 
 func sell() {
 	req := &et.LimitOrder{
-		LeftAsset:  &et.Asset{Symbol: "bty", Execer: "coins"},
+		LeftAsset:  &et.Asset{Symbol: "dpom", Execer: "coins"},
 		RightAsset: &et.Asset{Execer: "token", Symbol: "CCNY"},
 		Price:      1,
 		Amount:     types.Coin,
 		Op:         et.OpSell,
 	}
 	ety := types.LoadExecutorType(et.ExchangeX)
-	// 卖 2000 次，需 2000*1=2000 个 bty
+	// 卖 2000 次，需 2000*1=2000 个 dpom
 	for i := 0; i < 2000; i++ {
 		fmt.Println("sell ", i)
 		tx, err := ety.Create("LimitOrder", req)
@@ -45,7 +45,7 @@ func sell() {
 
 func buy() {
 	req := &et.LimitOrder{
-		LeftAsset:  &et.Asset{Symbol: "bty", Execer: "coins"},
+		LeftAsset:  &et.Asset{Symbol: "dpom", Execer: "coins"},
 		RightAsset: &et.Asset{Execer: "token", Symbol: "CCNY"},
 		Price:      1,
 		Amount:     types.Coin,

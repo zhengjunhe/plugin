@@ -92,7 +92,7 @@ dplatform_SendTx() {
     local signedTx=$1
     local MAIN_HTTP=$2
 
-    req='"method":"Dplatform.SendTransaction","params":[{"token":"BTY","data":"'"$signedTx"'"}]'
+    req='"method":"Dplatform.SendTransaction","params":[{"token":"DPOM","data":"'"$signedTx"'"}]'
     resp=$(curl -ksd "{$req}" "${MAIN_HTTP}")
     err=$(jq '(.error)' <<<"$resp")
     txhash=$(jq -r ".result" <<<"$resp")

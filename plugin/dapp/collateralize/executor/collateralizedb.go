@@ -84,7 +84,7 @@ func PriceKey() (key []byte) {
 
 // Action struct
 type Action struct {
-	coinsAccount  *account.DB // bty账户
+	coinsAccount  *account.DB // dpom账户
 	tokenAccount  *account.DB // ccny账户
 	db            dbm.KV
 	localDB       dbm.KVDB
@@ -462,15 +462,15 @@ func (action *Action) CollateralizeCreate(create *pty.CollateralizeCreate) (*typ
 	return receipt, nil
 }
 
-// 根据最近抵押物价格计算需要冻结的BTY数量
+// 根据最近抵押物价格计算需要冻结的DPOM数量
 func getBtyNumToFrozen(value int64, price int64, ratio int64) (int64, error) {
 	if price == 0 {
 		clog.Error("Bty price should greate to 0")
 		return 0, pty.ErrPriceInvalid
 	}
 
-	btyValue := (value * 1e4) / (price * ratio)
-	return btyValue * 1e4, nil
+	dpomValue := (value * 1e4) / (price * ratio)
+	return dpomValue * 1e4, nil
 }
 
 // 计算清算价格
@@ -521,7 +521,7 @@ func (action *Action) CheckExecTokenAccount(addr string, amount int64, isFrozen 
 	return false
 }
 
-// CollateralizeBorrow 用户质押bty借出ccny
+// CollateralizeBorrow 用户质押dpom借出ccny
 func (action *Action) CollateralizeBorrow(borrow *pty.CollateralizeBorrow) (*types.Receipt, error) {
 	var logs []*types.ReceiptLog
 	var kv []*types.KeyValue
@@ -570,31 +570,31 @@ func (action *Action) CollateralizeBorrow(borrow *pty.CollateralizeBorrow) (*typ
 	}
 
 	// 根据价格和需要借贷的金额，计算需要质押的抵押物数量
-	btyFrozen, err := getBtyNumToFrozen(borrow.GetValue(), lastPrice, coll.LiquidationRatio)
+	dpomFrozen, err := getBtyNumToFrozen(borrow.GetValue(), lastPrice, coll.LiquidationRatio)
 	if err != nil {
 		clog.Error("CollateralizeBorrow.getBtyNumToFrozen", "CollID", coll.CollateralizeId, "addr", action.fromaddr, "execaddr", action.execaddr, "error", err)
 		return nil, err
 	}
 
 	// 检查抵押物账户余额
-	if !action.CheckExecAccountBalance(action.fromaddr, btyFrozen, 0) {
-		clog.Error("CollateralizeBorrow.CheckExecAccountBalance", "CollID", coll.CollateralizeId, "addr", action.fromaddr, "execaddr", action.execaddr, "balance", btyFrozen, "error", types.ErrNoBalance)
+	if !action.CheckExecAccountBalance(action.fromaddr, dpomFrozen, 0) {
+		clog.Error("CollateralizeBorrow.CheckExecAccountBalance", "CollID", coll.CollateralizeId, "addr", action.fromaddr, "execaddr", action.execaddr, "balance", dpomFrozen, "error", types.ErrNoBalance)
 		return nil, types.ErrNoBalance
 	}
 
 	// 抵押物转账
-	receipt, err := action.coinsAccount.ExecTransfer(action.fromaddr, coll.CreateAddr, action.execaddr, btyFrozen)
+	receipt, err := action.coinsAccount.ExecTransfer(action.fromaddr, coll.CreateAddr, action.execaddr, dpomFrozen)
 	if err != nil {
-		clog.Error("CollateralizeBorrow.ExecTransfer", "addr", action.fromaddr, "execaddr", action.execaddr, "amount", btyFrozen)
+		clog.Error("CollateralizeBorrow.ExecTransfer", "addr", action.fromaddr, "execaddr", action.execaddr, "amount", dpomFrozen)
 		return nil, err
 	}
 	logs = append(logs, receipt.Logs...)
 	kv = append(kv, receipt.KV...)
 
 	// 抵押物冻结
-	receipt, err = action.coinsAccount.ExecFrozen(coll.CreateAddr, action.execaddr, btyFrozen)
+	receipt, err = action.coinsAccount.ExecFrozen(coll.CreateAddr, action.execaddr, dpomFrozen)
 	if err != nil {
-		clog.Error("CollateralizeBorrow.Frozen", "addr", coll.CreateAddr, "execaddr", action.execaddr, "amount", btyFrozen)
+		clog.Error("CollateralizeBorrow.Frozen", "addr", coll.CreateAddr, "execaddr", action.execaddr, "amount", dpomFrozen)
 		return nil, err
 	}
 	logs = append(logs, receipt.Logs...)
@@ -614,7 +614,7 @@ func (action *Action) CollateralizeBorrow(borrow *pty.CollateralizeBorrow) (*typ
 	borrowRecord.RecordId = common.ToHex(action.txhash)
 	borrowRecord.CollateralizeId = coll.CollateralizeId
 	borrowRecord.AccountAddr = action.fromaddr
-	borrowRecord.CollateralValue = btyFrozen
+	borrowRecord.CollateralValue = dpomFrozen
 	borrowRecord.StartTime = action.blocktime
 	borrowRecord.CollateralPrice = lastPrice
 	borrowRecord.DebtValue = borrow.GetValue()
@@ -631,7 +631,7 @@ func (action *Action) CollateralizeBorrow(borrow *pty.CollateralizeBorrow) (*typ
 	coll.BorrowRecords = append(coll.BorrowRecords, borrowRecord)
 	coll.Status = pty.CollateralizeStatusCreated
 	coll.Balance -= borrow.GetValue()
-	coll.CollBalance += btyFrozen
+	coll.CollBalance += dpomFrozen
 	coll.LatestExpireTime = getLatestExpireTime(&coll.Collateralize)
 	coll.Save(action.db)
 	kv = append(kv, coll.GetKVSet()...)

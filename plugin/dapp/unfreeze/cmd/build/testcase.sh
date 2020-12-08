@@ -17,13 +17,13 @@ function unfreeze_test() {
     fi
     block_wait "${CLI}" 2
 
-    echo "=== 2 prepare: transfer bty to unfreeze "
+    echo "=== 2 prepare: transfer dpom to unfreeze "
     result=$($CLI send coins transfer -a 5 -n test -t ${unfreeze_exec_addr} -k ${owner_key})
     echo "${result}"
     block_wait "${CLI}" 2
 
     echo "=== 3 create unfreeze tx"
-    tx_hash=$(${CLI} send unfreeze create fix_amount -a 0.01 -e coins -s bty -b ${beneficiary} -p 20 -t 2 -k ${owner_key})
+    tx_hash=$(${CLI} send unfreeze create fix_amount -a 0.01 -e coins -s dpom -b ${beneficiary} -p 20 -t 2 -k ${owner_key})
     block_wait "${CLI}" 2
     unfreeze_id=$(${CLI} tx query -s "${tx_hash}" | jq ".receipt.logs[2].log.current.unfreezeID")
     echo "${unfreeze_id}"

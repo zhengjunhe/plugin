@@ -58,10 +58,10 @@ func addPublishEventFlags(cmd *cobra.Command) {
 		return
 	}
 
-	cmd.Flags().StringP("subtype", "s", "", "event subtype, such as \"Premier League\"")
-	err = cmd.MarkFlagRequired("subtype")
+	cmd.Flags().StringP("sudpompe", "s", "", "event sudpompe, such as \"Premier League\"")
+	err = cmd.MarkFlagRequired("sudpompe")
 	if err != nil {
-		fmt.Printf("MarkFlagRequired subtype Error: %v", err)
+		fmt.Printf("MarkFlagRequired sudpompe Error: %v", err)
 		return
 	}
 
@@ -101,9 +101,9 @@ func publishEvent(cmd *cobra.Command, args []string) {
 		fmt.Printf("publishEvent get type Error: %v", err)
 		return
 	}
-	subType, err := cmd.Flags().GetString("subtype")
+	subType, err := cmd.Flags().GetString("sudpompe")
 	if err != nil {
-		fmt.Printf("publishEvent get subtype Error: %v", err)
+		fmt.Printf("publishEvent get sudpompe Error: %v", err)
 		return
 	}
 	introduction, err := cmd.Flags().GetString("introduction")

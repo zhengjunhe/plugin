@@ -51,7 +51,7 @@ const (
 	UTXOCacheCount = 256
 	// UtxoMaturityDegree utxo 成熟度
 	UtxoMaturityDegree = 12
-	BTYDustThreshold   = types.Coin
+	DPOMDustThreshold   = types.Coin
 	ConfirmedHeight    = 12
 	SignatureSize      = (4 + 33 + 65)
 	// Size1Kshiftlen tx消息大小1k

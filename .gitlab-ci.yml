@@ -29,7 +29,7 @@ go_fmt:
         - make fmt
     only:
         - master
-        - bty_develop
+        - dpom_develop
 
 go_lint:
     stage: build
@@ -39,7 +39,7 @@ go_lint:
         - make linter
     only:
         - master
-        - bty_develop
+        - dpom_develop
 
 go_test:
     stage: test
@@ -50,7 +50,7 @@ go_test:
         - make test
     only:
         - master
-        - bty_develop
+        - dpom_develop
 
 #memory_sanitizer:
 #    stage: test
@@ -59,7 +59,7 @@ go_test:
 #    only:
 #        - master
 #        - develop
-#        - bty_develop
+#        - dpom_develop
 
 
 
@@ -70,7 +70,7 @@ go_test:
 #    only:
 #        - master
 #        - develop
-#        - bty_develop
+#        - dpom_develop
 
 deploy:
     stage: deploy
@@ -82,7 +82,7 @@ deploy:
         - make docker-compose-down
     only:
         - master
-        - bty_develop
+        - dpom_develop
 
 deploy_relay:
     stage: deploy
@@ -116,7 +116,7 @@ code_coverage:
         - fi
     only:
         - master
-        - bty_develop
+        - dpom_develop
 
 fork_test:
     stage: fork_test

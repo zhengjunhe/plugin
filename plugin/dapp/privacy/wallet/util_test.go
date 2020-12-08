@@ -120,7 +120,7 @@ func Test_decomposeAmount2digits(t *testing.T) {
 		},
 		{
 			amount:        62387455827,
-			dustThreshold: pty.BTYDustThreshold,
+			dustThreshold: pty.DPOMDustThreshold,
 			actual:        []int64{87455827, 1e8, 2e8, 2e9, 5e10, 1e10},
 		},
 	}

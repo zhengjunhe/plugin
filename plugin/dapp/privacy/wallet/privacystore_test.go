@@ -78,7 +78,7 @@ func testStore_unsetUTXO(t *testing.T) {
 
 	addr = "16htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
 	txhash = "TXHASH"
-	err = store.unsetUTXO("coins", "BTY", addr, txhash, 0, batch)
+	err = store.unsetUTXO("coins", "DPOM", addr, txhash, 0, batch)
 	assert.NoError(t, err)
 }
 
@@ -179,7 +179,7 @@ func testStore_getPrivacyTokenUTXOs(t *testing.T) {
 	assert.NotNil(t, utxos)
 
 	assetExec := "coins"
-	token := "BTY"
+	token := "DPOM"
 	addr := "getPrivacyTokenUTXOs"
 
 	for n := 0; n < 5; n++ {
@@ -211,7 +211,7 @@ func testStore_getWalletPrivacyTxDetails(t *testing.T) {
 func testStore_listFrozenUTXOs(t *testing.T) {
 	store := createStore(t)
 	assetExec := "coins"
-	token := "BTY"
+	token := "DPOM"
 	addr := "26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTq"
 	txs, err := store.listFrozenUTXOs("", "", "")
 	assert.Nil(t, txs)
@@ -219,7 +219,7 @@ func testStore_listFrozenUTXOs(t *testing.T) {
 	txs, err = store.listFrozenUTXOs(assetExec, token, addr)
 	assert.Nil(t, txs)
 	assert.Nil(t, err)
-	tx := &pt.FTXOsSTXOsInOneTx{Tokenname: "BTY"}
+	tx := &pt.FTXOsSTXOsInOneTx{Tokenname: "DPOM"}
 	bt, err := proto.Marshal(tx)
 	assert.NoError(t, err)
 	err = store.Set(calcKey4FTXOsInTx(assetExec, token, addr, "TXHASH"), bt)
@@ -245,11 +245,11 @@ func testStore_listAvailableUTXOs(t *testing.T) {
 
 	addr := "16htvcBNSEA7fZhAdLJphDwQRQJaHpyHTq"
 	assetExec := "coins"
-	token := "BTY"
+	token := "DPOM"
 	txhash := "123456"
 	utxo := &pt.PrivacyDBStore{
 		AssetExec: assetExec,
-		Tokenname: "BTY",
+		Tokenname: "DPOM",
 	}
 	key := calcUTXOKey4TokenAddr(assetExec, token, addr, txhash, 0)
 	bt, err := proto.Marshal(utxo)

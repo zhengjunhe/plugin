@@ -21,7 +21,7 @@ function paracross_QueryParaBalance() {
     ip_http=${UNIT_HTTP%:*}
     para_http="$ip_http:8901"
     local exec=$2
-    local symbol="coins.bty"
+    local symbol="coins.dpom"
     if [ -n "$3" ]; then
         symbol="$3"
     fi
@@ -60,7 +60,7 @@ function paracross_QueryMainAssetBalance() {
     ip_http=${UNIT_HTTP%:*}
     main_http="$ip_http:8801"
     local exec=$2
-    local symbol="bty"
+    local symbol="dpom"
     if [ -n "$3" ]; then
         symbol="$3"
     fi
@@ -243,12 +243,12 @@ function paracross_txgroupex() {
     local para_title=$4
 
     local coins_exec="$5"
-    local bty_symbol="$6"
+    local dpom_symbol="$6"
     local paracross_execer_name="$para_title.paracross"
     local trade_exec_name="$para_title.trade"
 
     #  资产从主链转移到平行链
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"CrossAssetTransfer","payload":{"assetExec":"'"${coins_exec}"'","assetSymbol":"'"${bty_symbol}"'","toAddr":"'"${para_test_addr}"'","amount":'${amount_transfer}'}}]'
+    req='"method":"Dplatform.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"CrossAssetTransfer","payload":{"assetExec":"'"${coins_exec}"'","assetSymbol":"'"${dpom_symbol}"'","toAddr":"'"${para_test_addr}"'","amount":'${amount_transfer}'}}]'
     echo "$req"
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
@@ -260,7 +260,7 @@ function paracross_txgroupex() {
     tx_hash_asset=$(jq -r ".result" <<<"$resp")
 
     #  资产从平行链转移到平行链合约
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"TransferToExec","payload":{"execName":"'"${paracross_execer_name}"'","to":"'"${trade_exec_addr}"'","amount":'${amount_trade}', "cointoken":"coins.bty"}}]'
+    req='"method":"Dplatform.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"TransferToExec","payload":{"execName":"'"${paracross_execer_name}"'","to":"'"${trade_exec_addr}"'","amount":'${amount_trade}', "cointoken":"coins.dpom"}}]'
     echo "$req"
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
@@ -316,7 +316,7 @@ function paracross_testTxGroupFail() {
         exit 1
     fi
 
-    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "bty"
+    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "dpom"
 
     #跨链失败后仍应该有５个，之前transfer到trade的２个应该保持不变
     local count=0
@@ -428,7 +428,7 @@ function paracross_testTxGroup() {
     dplatform_SendToAddress "${para_test_addr}" "$paracross_addr" "$amount_deposit" "${main_ip}"
     dplatform_QueryExecBalance "${para_test_addr}" "paracross" "${main_ip}"
 
-    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "bty"
+    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "dpom"
 
     local transfer_expect="200000000"
     local exec_expect="100000000"

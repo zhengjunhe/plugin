@@ -74,7 +74,7 @@ func testShowPrivacyKey(t *testing.T, jrpc *jsonclient.JSONClient) error {
 func testShowPrivacyAccountInfo(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params := pty.ReqPrivacyAccount{
 		Addr:        "1JSRSwp16NvXiTjYBYK9iUQ9wqp3sCxz2p",
-		Token:       types.BTY,
+		Token:       types.DPOM,
 		Displaymode: 1,
 	}
 	var res pty.ReplyPrivacyAccount
@@ -85,7 +85,7 @@ func testShowPrivacyAccountInfo(t *testing.T, jrpc *jsonclient.JSONClient) error
 func testShowPrivacyAccountSpend(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params := pty.ReqPrivBal4AddrToken{
 		Addr:  "1JSRSwp16NvXiTjYBYK9iUQ9wqp3sCxz2p",
-		Token: types.BTY,
+		Token: types.DPOM,
 	}
 	var res pty.UTXOHaveTxHashs
 	err := jrpc.Call("privacy.ShowPrivacyAccountSpend", params, &res)
@@ -93,7 +93,7 @@ func testShowPrivacyAccountSpend(t *testing.T, jrpc *jsonclient.JSONClient) erro
 }
 
 func testShowAmountsOfUTXO(t *testing.T, jrpc *jsonclient.JSONClient) error {
-	reqPrivacyToken := pty.ReqPrivacyToken{AssetExec: "coins", AssetSymbol: types.BTY}
+	reqPrivacyToken := pty.ReqPrivacyToken{AssetExec: "coins", AssetSymbol: types.DPOM}
 	var params rpctypes.Query4Jrpc
 	params.Execer = pty.PrivacyX
 	params.FuncName = "ShowAmountsOfUTXO"
@@ -107,7 +107,7 @@ func testShowAmountsOfUTXO(t *testing.T, jrpc *jsonclient.JSONClient) error {
 func testShowUTXOs4SpecifiedAmount(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	reqPrivacyToken := pty.ReqPrivacyToken{
 		AssetExec:   "coins",
-		AssetSymbol: types.BTY,
+		AssetSymbol: types.DPOM,
 		Amount:      123456,
 	}
 	var params rpctypes.Query4Jrpc
@@ -122,7 +122,7 @@ func testShowUTXOs4SpecifiedAmount(t *testing.T, jrpc *jsonclient.JSONClient) er
 
 func testListPrivacyTxs(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params := pty.ReqPrivacyTransactionList{
-		Tokenname:    types.BTY,
+		Tokenname:    types.DPOM,
 		SendRecvFlag: 1,
 		Direction:    1,
 		Count:        16,

@@ -8,9 +8,9 @@ cd "$BUILD" || return
 seed=$(./dplatform-cli seed generate -l 0)
 echo "$seed"
 
-./dplatform-cli seed save -p bty123456 -s "$seed"
+./dplatform-cli seed save -p dpom123456 -s "$seed"
 sleep 1
-./dplatform-cli wallet unlock -p bty123456
+./dplatform-cli wallet unlock -p dpom123456
 sleep 1
 ./dplatform-cli account list
 
@@ -35,7 +35,7 @@ sleep 1
 sleep 1
 ./dplatform-cli config query -k token-finisher
 
-./dplatform-cli send config config_tx -c token-blacklist -o add -v BTY -k 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs
+./dplatform-cli send config config_tx -c token-blacklist -o add -v DPOM -k 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs
 sleep 1
 ./dplatform-cli config query -k token-blacklist
 
@@ -48,14 +48,14 @@ sleep 1
 ./dplatform-cli token created
 ./dplatform-cli token balance -a 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs -s CCNY -e token
 
-## transfer bty
+## transfer dpom
 ./dplatform-cli send coins transfer -a 10000 -t 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 -k 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs
 ./dplatform-cli send coins transfer -a 10000 -t 1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR -k 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs
 ./dplatform-cli send coins transfer -a 10000 -t 1NLHPEcbTWWxxU3dGUZBhayjrCHD3psX7k -k 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs
 ./dplatform-cli send coins transfer -a 10000 -t 1MCftFynyvG2F4ED5mdHYgziDxx6vDrScs -k 1CbEVT9RnM5oZhWMj4fxUrJX94VtRotzvs
 ./dplatform-cli account list
 
-## send bty to execer， 每人10000 bty
+## send dpom to execer， 每人10000 dpom
 ./dplatform-cli send coins send_exec -e exchange -a 10000 -k 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4
 ./dplatform-cli send coins send_exec -e exchange -a 10000 -k 1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR
 ./dplatform-cli send coins send_exec -e exchange -a 10000 -k 1NLHPEcbTWWxxU3dGUZBhayjrCHD3psX7k

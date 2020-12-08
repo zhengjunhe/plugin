@@ -44,13 +44,13 @@ message Owner {
 
 // 资产symbol的定义，可能存在不同的平行链上发布相同名字的token,
 //或者在主链发布一个token：HYB 而在guodun的平行链上也会发布一个token：HYB
-// coins.bty和coins.guodun
+// coins.dpom和coins.guodun
 // 1:原始数据
-//主链上：原始币symbol：BTY,token.symbol(例如：TEST)
+//主链上：原始币symbol：DPOM,token.symbol(例如：TEST)
 // guodun平行链上的原始币symbol：guodun，token.symbol(例如：TEST)
 // 2:主链原始币转移到平行链上：
 // guodun平行链上的现有原始币symbol：guodun，token.symbol(例如：TEST)
-//以及主链转移过来的symbol： coins.BTY和token.TEST (主链转移过来的资产在平行链上的symbol)
+//以及主链转移过来的symbol： coins.DPOM和token.TEST (主链转移过来的资产在平行链上的symbol)
 
 //每日资产限额，不同的资产价格不一致，需要设置各自的每日限额。没有设置或者限额是0时，表示不能取币
 // spentToday今天已经花费的额度。用于和dailyLimit做对比，超过每日限额时需要多重签名
