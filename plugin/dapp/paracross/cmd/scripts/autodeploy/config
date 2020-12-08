@@ -21,13 +21,13 @@ authPrikey=("0x6da92a632ab7deb67d38c0f6560bcfed28167998f6496db64c258d5e8393a81b"
 #授权节点的宿主机端口
 authPort=("18901" "18902" "18903" "18904")
 
-#需要和chain33　主链保持一致
+#需要和dplatform　主链保持一致
 superManager="['12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv']"
 
 tokenApprs="['12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv']"
 
 #超级账户创建
-#授权账户申请需要在主链上冻结的BTY数量，申请之前需要chain33项目方沟通，需要chain33超级管理员审批通过
+#授权账户申请需要在主链上冻结的BTY数量，申请之前需要dplatform项目方沟通，需要dplatform超级管理员审批通过
 authFrozenCoins=0
 #超级账户组申请者，需要事先在paracross合约转移必须的BTY,数量=申请的授权账户数量*authFrozenCoins
 nodeGroupApplier="1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"
