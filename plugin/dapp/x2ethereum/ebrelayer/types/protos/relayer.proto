@@ -11,7 +11,7 @@ message Account4Relayer {
 }
 
 message ValidatorAddr4EthRelayer {
-    string chain33Validator  = 1;
+    string dplatformValidator  = 1;
 }
 
 message Txhashes {
@@ -45,7 +45,7 @@ message EthBridgeClaim {
     string tokenAddr = 4;
     string symbol        = 5;
     string ethereumSender = 6;
-    string chain33Receiver = 7;
+    string dplatformReceiver = 7;
     string amount = 9;
     int32 claimType = 10;
     string chainName = 11;
@@ -63,7 +63,7 @@ message RelayerRunStatus {
 
 message NewProphecyClaim {
     uint32 claimType = 1;
-    string chain33Sender = 2;
+    string dplatformSender = 2;
     string tokenAddr = 3;
     string symbol = 4;
     string ethReceiver = 5;
@@ -92,8 +92,8 @@ message LockEthErc20 {
     string ownerKey        = 1;
     string tokenAddr       = 2;
     string amount           = 3;
-    //将lock住的资产跨链转移到chain33的该账户名下
-    string chain33Receiver = 4;
+    //将lock住的资产跨链转移到dplatform的该账户名下
+    string dplatformReceiver = 4;
 }
 
 message ReplyAddr {
@@ -110,7 +110,7 @@ message Burn {
     string ownerKey   = 1;
     string tokenAddr  = 2;
     string amount      = 3;
-    string chain33Receiver = 4;
+    string dplatformReceiver = 4;
 }
 
 message StaticsRequest {

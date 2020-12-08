@@ -3,7 +3,7 @@ syntax = "proto3";
 package types;
 
 message SyncTxConfig {
-  string chain33host = 1;
+  string dplatformhost = 1;
   string pushHost = 2;
   string pushName = 3;
   string pushBind = 4;
@@ -44,7 +44,7 @@ message RelayerConfig {
 }
 
 message SyncTxReceiptConfig {
-  string chain33host = 1;
+  string dplatformhost = 1;
   string pushHost = 2;
   string pushName = 3;
   string pushBind = 4;
