@@ -171,7 +171,7 @@ function syn_block_timeout() {
         else
             isSyn="true"
             for ((k = 0; k < ${#names[@]}; k++)); do
-                sync_status=$(docker exec "${names[$k]}" /root/chain33-cli net is_sync)
+                sync_status=$(docker exec "${names[$k]}" /root/dplatform-cli net is_sync)
                 if [ "${sync_status}" = "false" ]; then
                     isSyn="false"
                     break
@@ -204,7 +204,7 @@ function SendToPrivacyExec() {
     execAdd=$3
     note=$4
     amount=$5
-    #sudo docker exec -it $name ./chain33-cli send coins transfer -k $fromAdd -t $execAdd -n $note -a $amount
+    #sudo docker exec -it $name ./dplatform-cli send coins transfer -k $fromAdd -t $execAdd -n $note -a $amount
     result=$($name send coins transfer -k "${fromAdd}" -t "${execAdd}" -n "${note}" -a "${amount}")
     echo "hash : $result"
     returnStr1=$result
@@ -223,7 +223,7 @@ function pub2priv() {
     note=$4
     amount=$5
     expire=$6
-    #sudo docker exec -it $name ./chain33-cli privacy pub2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
+    #sudo docker exec -it $name ./dplatform-cli privacy pub2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
     result=$($name privacy pub2priv -f "${fromAdd}" -p "${priAdd}" -a "${amount}" -n "${note}" --expire "${expire}" | jq -r ".hash")
     echo "hash : $result"
     returnStr1=$result
@@ -244,7 +244,7 @@ function priv2priv() {
     amount=$5
     mixcount=$6
     expire=$7
-    #sudo docker exec -it $name ./chain33-cli privacy priv2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
+    #sudo docker exec -it $name ./dplatform-cli privacy priv2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
     result=$($name privacy priv2priv -f "${fromAdd}" -p "${priAdd}" -a "${amount}" -n "${note}" --expire "${expire}" | jq -r ".hash")
     echo "hash : $result"
     returnStr1=$result
@@ -265,7 +265,7 @@ function priv2pub() {
     amount=$5
     mixcount=$6
     expire=$7
-    #sudo docker exec -it $name ./chain33-cli privacy priv2pub -f $fromAdd -t $toAdd -a $amount -n $note -m $mixcount --expire $expire
+    #sudo docker exec -it $name ./dplatform-cli privacy priv2pub -f $fromAdd -t $toAdd -a $amount -n $note -m $mixcount --expire $expire
     result=$($name privacy priv2pub -f "${fromAdd}" -t "${toAdd}" -a "${amount}" -n "${note}" -m "${mixcount}" --expire "${expire}" | jq -r ".hash")
     echo "hash : $result"
     returnStr1=$result

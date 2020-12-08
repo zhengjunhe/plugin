@@ -10,7 +10,7 @@ function init() {
 
     beneficiary_key=0xf146df80206194c81e0b3171db6aa40c7ad6182a24560698d4871d4dc75223ce
     beneficiary=1DwHQp8S7RS9krQTyrqePxRyvaLcuoQGks
-    chain33_applyCoins "${beneficiary}" 10000000000 "${MAIN_HTTP}"
+    dplatform_applyCoins "${beneficiary}" 10000000000 "${MAIN_HTTP}"
     echo "ipara=$ispara"
     manager_name="manage"
     exec_name="jsvm"
@@ -24,9 +24,9 @@ function init() {
         super_manager=0xc34b5d9d44ac7b754806f761d3d4d2c4fe5214f6b074c19f069c4f5c2a29c8cc
         ## fee
         local main_ip=${MAIN_HTTP//8901/8801}
-        chain33_applyCoins "${beneficiary}" 10000000000 "${main_ip}"
+        dplatform_applyCoins "${beneficiary}" 10000000000 "${main_ip}"
     fi
-    exec_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'${exec_name}'"}]}' ${MAIN_HTTP} | jq -r ".result")
+    exec_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'${exec_name}'"}]}' ${MAIN_HTTP} | jq -r ".result")
     echo "exec_addr=${exec_addr}"
 
     # json 中 \n \t 需要转意, " 影响json的结构， 需要转意
@@ -34,26 +34,26 @@ function init() {
 }
 
 function configJSCreator() {
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"'${manager_name}'","actionName":"Modify","payload":{"key":"js-creator","op":"add","value":"'${beneficiary}'"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${super_manager}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"'${manager_name}'","actionName":"Modify","payload":{"key":"js-creator","op":"add","value":"'${beneficiary}'"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${super_manager}" "${MAIN_HTTP}"
 }
 
 function createJSContract() {
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"'${exec_name}'","actionName":"Create","payload":{"name":"'${game}'","code":"'${jsCode}'"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"'${exec_name}'","actionName":"Create","payload":{"name":"'${game}'","code":"'${jsCode}'"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
 }
 
 function callJS() {
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"'${user_game}'","actionName":"Call","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"'${user_game}'","actionName":"Call","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
 }
 
 function queryJS() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'${user_game}'","funcName":"Query","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'${user_game}'","funcName":"Query","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME"
 }
 
 function run_testcases() {
@@ -64,13 +64,13 @@ function run_testcases() {
 }
 
 function rpc_test() {
-    chain33_RpcTestBegin js
+    dplatform_RpcTestBegin js
     MAIN_HTTP="$1"
     echo "main_ip=$MAIN_HTTP"
 
     init
     run_testcases
-    chain33_RpcTestRst js "$CASE_ERR"
+    dplatform_RpcTestRst js "$CASE_ERR"
 }
 
-chain33_debug_function rpc_test "$1"
+dplatform_debug_function rpc_test "$1"

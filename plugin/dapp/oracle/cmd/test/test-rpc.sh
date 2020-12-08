@@ -16,52 +16,52 @@ oracle_AddPublisher() {
     ispara=$(echo '"'"${MAIN_HTTP}"'"' | jq '.|contains("8901")')
     echo "ispara=$ispara"
     if [ "$ispara" == true ]; then
-        chain33_SignAndSendTx "${oracle_addPublisher_unsignedTx_para}" "${oracle_publisher_key}" "${MAIN_HTTP}"
+        dplatform_SignAndSendTx "${oracle_addPublisher_unsignedTx_para}" "${oracle_publisher_key}" "${MAIN_HTTP}"
     else
-        chain33_SignAndSendTx "${oracle_addPublisher_unsignedTx}" "${oracle_publisher_key}" "${MAIN_HTTP}"
+        dplatform_SignAndSendTx "${oracle_addPublisher_unsignedTx}" "${oracle_publisher_key}" "${MAIN_HTTP}"
     fi
 }
 
 oracle_publish_transaction() {
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"oracle","actionName":"EventPublish","payload":{"type":"football", "subType":"Premier League","time":1747814996,"content":"test","introduction":"test"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"oracle","actionName":"EventPublish","payload":{"type":"football", "subType":"Premier League","time":1747814996,"content":"test","introduction":"test"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
     eventId="${txhash}"
     echo "eventId $eventId"
 }
 
 oracle_prePublishResult_transaction() {
     event_id=$1
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"oracle","actionName":"ResultPrePublish","payload":{"eventID":"'"$event_id"'", "source":"sina sport","result":"0:1"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"oracle","actionName":"ResultPrePublish","payload":{"eventID":"'"$event_id"'", "source":"sina sport","result":"0:1"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
 }
 
 oracle_eventAbort_transaction() {
     event_id=$1
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"oracle","actionName":"EventAbort","payload":{"eventID":"'"$event_id"'"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"oracle","actionName":"EventAbort","payload":{"eventID":"'"$event_id"'"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
 }
 
 oracle_resultAbort_transaction() {
     event_id=$1
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"oracle","actionName":"ResultAbort","payload":{"eventID":"'"$event_id"'"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"oracle","actionName":"ResultAbort","payload":{"eventID":"'"$event_id"'"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
 }
 
 oracle_publishResult_transaction() {
     event_id=$1
-    req='{"method":"Chain33.CreateTransaction","params":[{"execer":"oracle","actionName":"ResultPublish","payload":{"eventID":"'"$event_id"'", "source":"sina sport","result":"1:1"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    chain33_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
+    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"oracle","actionName":"ResultPublish","payload":{"eventID":"'"$event_id"'", "source":"sina sport","result":"1:1"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatform_SignAndSendTx "$RETURN_RESP" "${oracle_publisher_key}" "${MAIN_HTTP}"
 }
 
 oracle_QueryOraclesByID() {
     event_id=$1
-    req='{"method":"Chain33.Query", "params":[{"execer":"oracle","funcName":"QueryOraclesByIDs","payload":{"eventID":["'"$event_id"'"]}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.status[0] | [has("eventID", "status", "type", "subType", "source"),true] | unique | length == 1)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query", "params":[{"execer":"oracle","funcName":"QueryOraclesByIDs","payload":{"eventID":["'"$event_id"'"]}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.status[0] | [has("eventID", "status", "type", "subType", "source"),true] | unique | length == 1)' "$FUNCNAME"
 }
 
 function run_test() {
@@ -74,7 +74,7 @@ function run_test() {
     # 事件正式发布
     oracle_publishResult_transaction "$eventId"
     # 根据ID查询事件
-    chain33_BlockWait 2 "${MAIN_HTTP}"
+    dplatform_BlockWait 2 "${MAIN_HTTP}"
     oracle_QueryOraclesByID "$eventId"
 
     # 生成发布事件的交易
@@ -82,7 +82,7 @@ function run_test() {
     # 取消事件发布
     oracle_eventAbort_transaction "$eventId"
     # 根据ID查询事件
-    chain33_BlockWait 2 "${MAIN_HTTP}"
+    dplatform_BlockWait 2 "${MAIN_HTTP}"
     oracle_QueryOraclesByID "$eventId"
 
     # 生成发布事件的交易
@@ -92,18 +92,18 @@ function run_test() {
     # 取消事件预发布
     oracle_resultAbort_transaction "$eventId"
     # 根据ID查询事件
-    chain33_BlockWait 2 "${MAIN_HTTP}"
+    dplatform_BlockWait 2 "${MAIN_HTTP}"
     oracle_QueryOraclesByID "$eventId"
 
 }
 
 function main() {
-    chain33_RpcTestBegin oracle
+    dplatform_RpcTestBegin oracle
     MAIN_HTTP="$1"
     echo "main_ip=$MAIN_HTTP"
 
     run_test
-    chain33_RpcTestRst oracle "$CASE_ERR"
+    dplatform_RpcTestRst oracle "$CASE_ERR"
 }
 
-chain33_debug_function main "$1"
+dplatform_debug_function main "$1"

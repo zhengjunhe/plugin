@@ -17,22 +17,22 @@ function evm_createContract() {
     expectRes=$2
     if [ "$ispara" == "true" ]; then
         paraName="user.p.para."
-        chain33_SignAndSendTx "${evm_createContract_para_unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
+        dplatform_SignAndSendTx "${evm_createContract_para_unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
     else
-        chain33_SignAndSendTx "${evm_createContract_unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
+        dplatform_SignAndSendTx "${evm_createContract_unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
     fi
     txHash=$RAW_TX_HASH
     queryTransaction "${validator}" "${expectRes}"
 
     echo "CreateContract queryExecRes end"
 
-    chain33_BlockWait 1 "$MAIN_HTTP"
+    dplatform_BlockWait 1 "$MAIN_HTTP"
 }
 
 function evm_addressCheck() {
-    req='{"method":"Chain33.Query","params":[{"execer":"evm","funcName":"CheckAddrExists","payload":{"addr":"'${evm_contractAddr}'"}}]}'
+    req='{"method":"Dplatform.Query","params":[{"execer":"evm","funcName":"CheckAddrExists","payload":{"addr":"'${evm_contractAddr}'"}}]}'
     resok='(.result.contract == true ) and (.result.contractAddr == "'"${evm_contractAddr}"'")'
-    chain33_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
+    dplatform_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
 }
 function evm_callContract() {
     op=$1
@@ -48,17 +48,17 @@ function evm_callContract() {
         return
     fi
 
-    chain33_SignAndSendTx "${unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
+    dplatform_SignAndSendTx "${unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
     txHash=$RAW_TX_HASH
     queryTransaction "${validator}" "${expectRes}"
     echo "CallContract queryExecRes end"
 
-    chain33_BlockWait 1 "$MAIN_HTTP"
+    dplatform_BlockWait 1 "$MAIN_HTTP"
 }
 
 function evm_abiGet() {
-    req='{"method":"Chain33.Query","params":[{"execer":"evm","funcName":"QueryABI","payload":{"address":"'${evm_contractAddr}'"}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} "(.result.abi != null)" "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"evm","funcName":"QueryABI","payload":{"address":"'${evm_contractAddr}'"}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} "(.result.abi != null)" "$FUNCNAME"
 }
 
 function evm_transfer() {
@@ -71,19 +71,19 @@ function evm_transfer() {
         return
     fi
 
-    chain33_SignAndSendTx "${unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
+    dplatform_SignAndSendTx "${unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
     txHash=$RAW_TX_HASH
     queryTransaction "${validator}" "${expectRes}"
     echo "evm transfer queryExecRes end"
 
-    chain33_BlockWait 2 "$MAIN_HTTP"
+    dplatform_BlockWait 2 "$MAIN_HTTP"
 }
 
 function evm_getBalance() {
     expectBalance=$1
-    req='{"method":"Chain33.GetBalance","params":[{"addresses":["'${evm_creatorAddr}'"],"execer":"'${evm_addr}'", "paraName": "'${paraName}'"}]}'
+    req='{"method":"Dplatform.GetBalance","params":[{"addresses":["'${evm_creatorAddr}'"],"execer":"'${evm_addr}'", "paraName": "'${paraName}'"}]}'
     resok='(.result[0].balance == '$expectBalance') and (.result[0].addr == "'"$evm_creatorAddr"'")'
-    chain33_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
+    dplatform_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
 }
 
 function evm_withDraw() {
@@ -96,12 +96,12 @@ function evm_withDraw() {
         return
     fi
 
-    chain33_SignAndSendTx "${unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
+    dplatform_SignAndSendTx "${unsignedTx}" "${evm_creatorAddr_key}" "$MAIN_HTTP"
     txHash=$RAW_TX_HASH
     queryTransaction "${validator}" "${expectRes}"
     echo "evm withdraw queryExecRes end"
 
-    chain33_BlockWait 1 "$MAIN_HTTP"
+    dplatform_BlockWait 1 "$MAIN_HTTP"
 }
 
 # 查询交易的执行结果
@@ -111,7 +111,7 @@ function queryTransaction() {
     expectRes=$2
     echo "txHash=${txHash}"
 
-    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.QueryTransaction","params":[{"hash":"'"${txHash}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP})
+    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"'"${txHash}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP})
 
     times=$(echo "${validators}" | awk -F '|' '{print NF}')
     for ((i = 1; i <= times; i++)); do
@@ -122,7 +122,7 @@ function queryTransaction() {
     if [ "${res}" != "${expectRes}" ]; then
         return 1
     else
-        res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.QueryTransaction","params":[{"hash":"'"${txHash}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP})
+        res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"'"${txHash}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP})
         if [ "${evm_addr}" == "" ]; then
             if [ "$ispara" == false ]; then
                 evm_addr="user.evm.${txHash}"
@@ -132,7 +132,7 @@ function queryTransaction() {
         fi
 
         if [ "${evm_contractAddr}" == "" ]; then
-            evm_contractAddr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'"${evm_addr}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
+            evm_contractAddr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${evm_addr}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
 
         fi
         return 0
@@ -144,37 +144,37 @@ function init() {
     echo "ipara=$ispara"
 
     local main_ip=${MAIN_HTTP//8901/8801}
-    chain33_ImportPrivkey "0x4947ce3c4b845cfed59be2edf47320546116a3ff3af5715a7df094d116039b89" "1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt" "evm" "${main_ip}"
+    dplatform_ImportPrivkey "0x4947ce3c4b845cfed59be2edf47320546116a3ff3af5715a7df094d116039b89" "1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt" "evm" "${main_ip}"
 
     local from="1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt"
 
     if [ "$ispara" == false ]; then
-        chain33_applyCoins "$from" 12000000000 "${main_ip}"
-        chain33_QueryBalance "${from}" "$main_ip"
+        dplatform_applyCoins "$from" 12000000000 "${main_ip}"
+        dplatform_QueryBalance "${from}" "$main_ip"
     else
-        chain33_applyCoins "$from" 1000000000 "${main_ip}"
-        chain33_QueryBalance "${from}" "$main_ip"
+        dplatform_applyCoins "$from" 1000000000 "${main_ip}"
+        dplatform_QueryBalance "${from}" "$main_ip"
 
         local para_ip="${MAIN_HTTP}"
-        chain33_ImportPrivkey "0x4947ce3c4b845cfed59be2edf47320546116a3ff3af5715a7df094d116039b89" "1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt" "evm" "$para_ip"
+        dplatform_ImportPrivkey "0x4947ce3c4b845cfed59be2edf47320546116a3ff3af5715a7df094d116039b89" "1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt" "evm" "$para_ip"
 
-        chain33_applyCoins "$from" 12000000000 "${para_ip}"
-        chain33_QueryBalance "${from}" "$para_ip"
+        dplatform_applyCoins "$from" 12000000000 "${para_ip}"
+        dplatform_QueryBalance "${from}" "$para_ip"
     fi
 
-    chain33_BlockWait 2 "$MAIN_HTTP"
+    dplatform_BlockWait 2 "$MAIN_HTTP"
 
     local evm_addr=""
     if [ "$ispara" == "true" ]; then
-        evm_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"user.p.para.evm"}]}' ${MAIN_HTTP} | jq -r ".result")
-        chain33_SendToAddress "$from" "$evm_addr" 10000000000 "$MAIN_HTTP"
+        evm_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"user.p.para.evm"}]}' ${MAIN_HTTP} | jq -r ".result")
+        dplatform_SendToAddress "$from" "$evm_addr" 10000000000 "$MAIN_HTTP"
     else
-        evm_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"evm"}]}' ${MAIN_HTTP} | jq -r ".result")
+        evm_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"evm"}]}' ${MAIN_HTTP} | jq -r ".result")
     fi
     echo "evm=$evm_addr"
 
-    chain33_SendToAddress "$from" "$evm_addr" 10000000000 "$MAIN_HTTP"
-    chain33_BlockWait 2 "$MAIN_HTTP"
+    dplatform_SendToAddress "$from" "$evm_addr" 10000000000 "$MAIN_HTTP"
+    dplatform_BlockWait 2 "$MAIN_HTTP"
 }
 function run_test() {
     local ip=$1
@@ -197,14 +197,14 @@ function run_test() {
 }
 
 function main() {
-    chain33_RpcTestBegin evm
+    dplatform_RpcTestBegin evm
     local ip=$1
     MAIN_HTTP=$ip
     echo "main_ip=$MAIN_HTTP"
 
     init
     run_test "$MAIN_HTTP"
-    chain33_RpcTestRst evm "$CASE_ERR"
+    dplatform_RpcTestRst evm "$CASE_ERR"
 }
 
-chain33_debug_function main "$1"
+dplatform_debug_function main "$1"

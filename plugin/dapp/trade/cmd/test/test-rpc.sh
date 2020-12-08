@@ -10,7 +10,7 @@ tradeBuyerAddr="1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg"
 tokenSymbol="TOKEN"
 
 function updateConfig() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "BTY","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "BTY","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "update config create tx" 1
         return
@@ -38,12 +38,12 @@ function token_finish() {
 
 function token_balance() {
     req='{"method":"token.GetTokenBalance","params":[{"addresses": ["'"${tradeAddr}"'"],"tokenSymbol":"'"${tokenSymbol}"'","execer": "'"${tokenExecName}"'"}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not) and (.result[0].addr == "'"${tradeAddr}"'") and (.result[0].balance == 1000000000000)' "$FUNCNAME"
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not) and (.result[0].addr == "'"${tradeAddr}"'") and (.result[0].balance == 1000000000000)' "$FUNCNAME"
 }
 
 function token_transfer() {
     addr=$1
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.CreateTransaction","params":[{"execer": "'"${tokenExecName}"'","actionName":"Transfer","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "100000000000", "note": "", "to": "'"${addr}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "'"${tokenExecName}"'","actionName":"Transfer","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "100000000000", "note": "", "to": "'"${addr}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "token transfer create tx" 1
         return
@@ -53,7 +53,7 @@ function token_transfer() {
 
 function token_sendExec() {
     addr=$1
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.CreateTransaction","params":[{"execer": "'"${tokenExecName}"'","actionName":"TransferToExec","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "10000000000", "note": "", "to": "'"${trade_addr}"'", "execName": "'"${tradeExecName}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "'"${tokenExecName}"'","actionName":"TransferToExec","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "10000000000", "note": "", "to": "'"${trade_addr}"'", "execName": "'"${tradeExecName}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "token sendExec create tx" 1
         return
@@ -71,8 +71,8 @@ function trade_createSellTx() {
 }
 
 function trade_getSellOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesSellOrder","payload":{"addr": "'"${tradeAddr}"'","token":["'"${tokenSymbol}"'"]}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesSellOrder","payload":{"addr": "'"${tradeAddr}"'","token":["'"${tokenSymbol}"'"]}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
     sellID=$(echo "${RETURN_RESP}" | jq -r ".result.orders[0].sellID" | awk -F '-' '{print $4}')
 }
 
@@ -86,33 +86,33 @@ function trade_createBuyTx() {
 }
 
 function trade_getBuyOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesBuyOrder","payload":{"addr": "'"${tradeBuyerAddr}"'","token":["'"${tokenSymbol}"'"]}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesBuyOrder","payload":{"addr": "'"${tradeBuyerAddr}"'","token":["'"${tokenSymbol}"'"]}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
 }
 
 function trade_statusBuyOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesBuyOrderWithStatus","payload":{"addr": "'"${tradeBuyerAddr}"'","status":6}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesBuyOrderWithStatus","payload":{"addr": "'"${tradeBuyerAddr}"'","status":6}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
 }
 
 function trade_statusOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesOrderWithStatus","payload":{"addr": "'"${tradeAddr}"'","status":1}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesOrderWithStatus","payload":{"addr": "'"${tradeAddr}"'","status":1}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
 }
 
 function trade_statusSellOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesSellOrderWithStatus","payload":{"addr": "'"${tradeAddr}"'", "status":1}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetOnesSellOrderWithStatus","payload":{"addr": "'"${tradeAddr}"'", "status":1}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
 }
 
 function trade_statusTokenBuyOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetTokenBuyOrderByStatus","payload":{"tokenSymbol": "'"${tokenSymbol}"'", "count" :1 , "direction": 1,"status":6}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetTokenBuyOrderByStatus","payload":{"tokenSymbol": "'"${tokenSymbol}"'", "count" :1 , "direction": 1,"status":6}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
 }
 
 function trade_statusTokenSellOrder() {
-    req='{"method":"Chain33.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetTokenSellOrderByStatus","payload":{"tokenSymbol": "'"${tokenSymbol}"'", "count" :1 , "direction": 1,"status":1}}]}'
-    chain33_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
+    req='{"method":"Dplatform.Query","params":[{"execer":"'"${tradeExecName}"'","funcName":"GetTokenSellOrderByStatus","payload":{"tokenSymbol": "'"${tokenSymbol}"'", "count" :1 , "direction": 1,"status":1}}]}'
+    dplatform_Http "$req" ${MAIN_HTTP} '(.error | not)' "$FUNCNAME"
 }
 
 function trade_buyLimit() {
@@ -122,7 +122,7 @@ function trade_buyLimit() {
         return
     fi
     signRawTxAndQuery "$FUNCNAME" "0xaeef1ad76d43a2056d0dcb57d5bf1ba96471550614ab9e7f611ef9c5ca403f42"
-    buyID=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.QueryTransaction","params":[{"hash":"'"${RAW_TX_HASH}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result.receipt.logs[1].log.base.buyID" | awk -F '-' '{print $4}')
+    buyID=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"'"${RAW_TX_HASH}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result.receipt.logs[1].log.base.buyID" | awk -F '-' '{print $4}')
 }
 
 function trade_sellMarket() {
@@ -158,7 +158,7 @@ function queryTransaction() {
     validator=$1
     expectRes=$2
     echo "txhash=${RAW_TX_HASH}"
-    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Chain33.QueryTransaction","params":[{"hash":"'"${RAW_TX_HASH}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r "${validator}")
+    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"'"${RAW_TX_HASH}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r "${validator}")
     if [ "${res}" != "${expectRes}" ]; then
         return 1
     else
@@ -167,7 +167,7 @@ function queryTransaction() {
 }
 
 function signRawTxAndQuery() {
-    chain33_SignAndSendTx "${unsignedTx}" "$2" "${MAIN_HTTP}"
+    dplatform_SignAndSendTx "${unsignedTx}" "$2" "${MAIN_HTTP}"
     queryTransaction ".error | not" "true"
     echo_rst "$1 queryExecRes" "$?"
 }
@@ -182,38 +182,38 @@ function init() {
         coinSymbol="para"
         tokenExecName="user.p.para.token"
         tradeExecName="user.p.para.trade"
-        trade_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'"${tradeExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
-        token_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'"${tokenExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
+        trade_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tradeExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
+        token_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tokenExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
     else
         coinSymbol="bty"
-        trade_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'"${tradeExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
-        token_addr=$(curl -ksd '{"method":"Chain33.ConvertExectoAddr","params":[{"execname":"'"${tokenExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
+        trade_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tradeExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
+        token_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'"${tokenExecName}"'"}]}' ${MAIN_HTTP} | jq -r ".result")
     fi
 
     local main_ip=${MAIN_HTTP//8901/8801}
-    chain33_ImportPrivkey "0xaeef1ad76d43a2056d0dcb57d5bf1ba96471550614ab9e7f611ef9c5ca403f42" "1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg" "trade1" "${main_ip}"
+    dplatform_ImportPrivkey "0xaeef1ad76d43a2056d0dcb57d5bf1ba96471550614ab9e7f611ef9c5ca403f42" "1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg" "trade1" "${main_ip}"
 
     local ACCOUNT_A="1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg"
 
     if [ "$ispara" == false ]; then
-        chain33_applyCoins "$ACCOUNT_A" 12000000000 "${main_ip}"
-        chain33_QueryBalance "${ACCOUNT_A}" "$main_ip"
+        dplatform_applyCoins "$ACCOUNT_A" 12000000000 "${main_ip}"
+        dplatform_QueryBalance "${ACCOUNT_A}" "$main_ip"
     else
-        chain33_applyCoins "$ACCOUNT_A" 1000000000 "${main_ip}"
-        chain33_QueryBalance "${ACCOUNT_A}" "$main_ip"
+        dplatform_applyCoins "$ACCOUNT_A" 1000000000 "${main_ip}"
+        dplatform_QueryBalance "${ACCOUNT_A}" "$main_ip"
 
         local para_ip="${MAIN_HTTP}"
-        chain33_ImportPrivkey "0xaeef1ad76d43a2056d0dcb57d5bf1ba96471550614ab9e7f611ef9c5ca403f42" "1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg" "trade1" "$para_ip"
+        dplatform_ImportPrivkey "0xaeef1ad76d43a2056d0dcb57d5bf1ba96471550614ab9e7f611ef9c5ca403f42" "1CvLe1qNaC7tCf5xmfAqJ9UJkMhtmhUKNg" "trade1" "$para_ip"
 
-        chain33_applyCoins "$ACCOUNT_A" 12000000000 "${para_ip}"
-        chain33_QueryBalance "${ACCOUNT_A}" "$para_ip"
+        dplatform_applyCoins "$ACCOUNT_A" 12000000000 "${para_ip}"
+        dplatform_QueryBalance "${ACCOUNT_A}" "$para_ip"
     fi
 
-    chain33_SendToAddress "$tradeAddr" "$trade_addr" 10000000000 "${MAIN_HTTP}"
-    chain33_SendToAddress "$tradeAddr" "$token_addr" 10000000000 "${MAIN_HTTP}"
-    chain33_BlockWait 2 "${MAIN_HTTP}"
-    chain33_SendToAddress "$tradeBuyerAddr" "$trade_addr" 10000000000 "${MAIN_HTTP}"
-    chain33_BlockWait 2 "${MAIN_HTTP}"
+    dplatform_SendToAddress "$tradeAddr" "$trade_addr" 10000000000 "${MAIN_HTTP}"
+    dplatform_SendToAddress "$tradeAddr" "$token_addr" 10000000000 "${MAIN_HTTP}"
+    dplatform_BlockWait 2 "${MAIN_HTTP}"
+    dplatform_SendToAddress "$tradeBuyerAddr" "$trade_addr" 10000000000 "${MAIN_HTTP}"
+    dplatform_BlockWait 2 "${MAIN_HTTP}"
 
     echo "trade=$trade_addr"
 
@@ -246,14 +246,14 @@ function run_test() {
 }
 
 function main() {
-    chain33_RpcTestBegin trade
+    dplatform_RpcTestBegin trade
     local ip=$1
     MAIN_HTTP=$ip
     echo "main_ip=$MAIN_HTTP"
 
     init
     run_test "$MAIN_HTTP"
-    chain33_RpcTestRst trade "$CASE_ERR"
+    dplatform_RpcTestRst trade "$CASE_ERR"
 }
 
-chain33_debug_function main "$1"
+dplatform_debug_function main "$1"

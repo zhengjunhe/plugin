@@ -19,13 +19,13 @@ function run_test() {
 }
 
 function main() {
-    chain33_RpcTestBegin dposvote
+    dplatform_RpcTestBegin dposvote
     MAIN_HTTP="$1"
     echo "main_ip=$MAIN_HTTP"
 
     init
     run_test
-    chain33_RpcTestRst dposvote "$CASE_ERR"
+    dplatform_RpcTestRst dposvote "$CASE_ERR"
 }
 
-chain33_debug_function main "$1"
+dplatform_debug_function main "$1"

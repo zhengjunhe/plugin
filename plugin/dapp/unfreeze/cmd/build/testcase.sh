@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CLI="docker exec ${NODE3} /root/chain33-cli"
+CLI="docker exec ${NODE3} /root/dplatform-cli"
 beneficiary=12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 beneficiary_key=0x4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01
 #owner=14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
