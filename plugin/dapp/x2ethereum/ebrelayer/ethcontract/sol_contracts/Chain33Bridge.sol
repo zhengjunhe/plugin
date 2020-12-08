@@ -4,7 +4,7 @@ import "../openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "./Valset.sol";
 import "./BridgeBank/BridgeBank.sol";
 
-contract Chain33Bridge {
+contract DplatformBridge {
 
     using SafeMath for uint256;
 
@@ -36,7 +36,7 @@ contract Chain33Bridge {
 
     struct ProphecyClaim {
         ClaimType claimType;
-        bytes chain33Sender;
+        bytes dplatformSender;
         address payable ethereumReceiver;
         address originalValidator;
         address tokenAddress;
@@ -59,7 +59,7 @@ contract Chain33Bridge {
     event LogNewProphecyClaim(
         uint256 _prophecyID,
         ClaimType _claimType,
-        bytes _chain33Sender,
+        bytes _dplatformSender,
         address payable _ethereumReceiver,
         address _validatorAddress,
         address _tokenAddress,
@@ -205,7 +205,7 @@ contract Chain33Bridge {
     function setNewProphecyClaim(
         bytes32 _claimID,
         uint8 _claimType,
-        bytes memory _chain33Sender,
+        bytes memory _dplatformSender,
         address payable _ethereumReceiver,
         address _originalValidator,
         address _tokenAddress,
@@ -228,7 +228,7 @@ contract Chain33Bridge {
         // Create the new ProphecyClaim
         ProphecyClaim memory prophecyClaim = ProphecyClaim(
             claimType,
-            _chain33Sender,
+            _dplatformSender,
             _ethereumReceiver,
             _originalValidator,
             _tokenAddress,
@@ -243,7 +243,7 @@ contract Chain33Bridge {
         emit LogNewProphecyClaim(
             prophecyClaimCount,
             claimType,
-            _chain33Sender,
+            _dplatformSender,
             _ethereumReceiver,
             _originalValidator,
             _tokenAddress,
@@ -296,7 +296,7 @@ contract Chain33Bridge {
         ProphecyClaim memory prophecyClaim = prophecyClaims[_claimID];
 
         bridgeBank.mintBridgeTokens(
-            prophecyClaim.chain33Sender,
+            prophecyClaim.dplatformSender,
             prophecyClaim.ethereumReceiver,
             prophecyClaim.tokenAddress,
             prophecyClaim.symbol,

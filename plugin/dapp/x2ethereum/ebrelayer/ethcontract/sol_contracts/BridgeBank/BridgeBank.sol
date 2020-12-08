@@ -1,26 +1,26 @@
 pragma solidity ^0.5.0;
 
-import "./Chain33Bank.sol";
+import "./DplatformBank.sol";
 import "./EthereumBank.sol";
 import "../Oracle.sol";
-import "../Chain33Bridge.sol";
+import "../DplatformBridge.sol";
 
 /**
  * @title BridgeBank
  * @dev Bank contract which coordinates asset-related functionality.
- *      Chain33Bank manages the minting and burning of tokens which
- *      represent Chain33 based assets, while EthereumBank manages
+ *      DplatformBank manages the minting and burning of tokens which
+ *      represent Dplatform based assets, while EthereumBank manages
  *      the locking and unlocking of Ethereum and ERC20 token assets
  *      based on Ethereum.
  **/
 
-contract BridgeBank is Chain33Bank, EthereumBank {
+contract BridgeBank is DplatformBank, EthereumBank {
 
     using SafeMath for uint256;
     
     address public operator;
     Oracle public oracle;
-    Chain33Bridge public chain33Bridge;
+    DplatformBridge public dplatformBridge;
 
     /*
     * @dev: Constructor, sets operator
@@ -28,13 +28,13 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     constructor (
         address _operatorAddress,
         address _oracleAddress,
-        address _chain33BridgeAddress
+        address _dplatformBridgeAddress
     )
         public
     {
         operator = _operatorAddress;
         oracle = Oracle(_oracleAddress);
-        chain33Bridge = Chain33Bridge(_chain33BridgeAddress);
+        dplatformBridge = DplatformBridge(_dplatformBridgeAddress);
     }
 
     /*
@@ -61,13 +61,13 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     }
 
     /*
-    * @dev: Modifier to restrict access to the chain33 bridge
+    * @dev: Modifier to restrict access to the dplatform bridge
     */
-    modifier onlyChain33Bridge()
+    modifier onlyDplatformBridge()
     {
         require(
-            msg.sender == address(chain33Bridge),
-            "Access restricted to the chain33 bridge"
+            msg.sender == address(dplatformBridge),
+            "Access restricted to the dplatform bridge"
         );
         _;
     }
@@ -97,24 +97,24 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     /*
      * @dev: Mints new BankTokens
      *
-     * @param _chain33Sender: The sender's Chain33 address in bytes.
+     * @param _dplatformSender: The sender's Dplatform address in bytes.
      * @param _ethereumRecipient: The intended recipient's Ethereum address.
-     * @param _chain33TokenAddress: The currency type
-     * @param _symbol: chain33 token symbol
-     * @param _amount: number of chain33 tokens to be minted
+     * @param _dplatformTokenAddress: The currency type
+     * @param _symbol: dplatform token symbol
+     * @param _amount: number of dplatform tokens to be minted
      */
      function mintBridgeTokens(
-        bytes memory _chain33Sender,
+        bytes memory _dplatformSender,
         address payable _intendedRecipient,
         address _bridgeTokenAddress,
         string memory _symbol,
         uint256 _amount
     )
         public
-        onlyChain33Bridge
+        onlyDplatformBridge
     {
         return mintNewBridgeTokens(
-            _chain33Sender,
+            _dplatformSender,
             _intendedRecipient,
             _bridgeTokenAddress,
             _symbol,
@@ -125,21 +125,21 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     /*
      * @dev: Burns bank tokens
      *
-     * @param _chain33Receiver: The _chain33 receiver address in bytes.
-     * @param _chain33TokenAddress: The currency type
-     * @param _amount: number of chain33 tokens to be burned
+     * @param _dplatformReceiver: The _dplatform receiver address in bytes.
+     * @param _dplatformTokenAddress: The currency type
+     * @param _amount: number of dplatform tokens to be burned
      */
     function burnBridgeTokens(
-        bytes memory _chain33Receiver,
-        address _chain33TokenAddress,
+        bytes memory _dplatformReceiver,
+        address _dplatformTokenAddress,
         uint256 _amount
     )
         public
     {
-        return burnChain33Tokens(
+        return burnDplatformTokens(
             msg.sender,
-            _chain33Receiver,
-            _chain33TokenAddress,
+            _dplatformReceiver,
+            _dplatformTokenAddress,
              _amount
         );
     }
@@ -209,7 +209,7 @@ contract BridgeBank is Chain33Bank, EthereumBank {
         uint256 _amount
     )
         public
-        onlyChain33Bridge
+        onlyDplatformBridge
         hasLockedFunds(
             _token,
             _amount
@@ -233,34 +233,34 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     * @param _id: The item in question.
     * @return: Boolean indicating the lock status.
     */
-    function getChain33DepositStatus(
+    function getDplatformDepositStatus(
         bytes32 _id
     )
         public
         view
         returns(bool)
     {
-        return isLockedChain33Deposit(_id);
+        return isLockedDplatformDeposit(_id);
     }
 
     /*
-    * @dev: Allows access to a Chain33 deposit's information via its unique identifier.
+    * @dev: Allows access to a Dplatform deposit's information via its unique identifier.
     *
     * @param _id: The deposit to be viewed.
     * @return: Original sender's Ethereum address.
-    * @return: Intended Chain33 recipient's address in bytes.
+    * @return: Intended Dplatform recipient's address in bytes.
     * @return: The lock deposit's currency, denoted by a token address.
     * @return: The amount locked in the deposit.
     * @return: The deposit's unique nonce.
     */
-    function viewChain33Deposit(
+    function viewDplatformDeposit(
         bytes32 _id
     )
         public
         view
         returns(bytes memory, address payable, address, uint256)
     {
-        return getChain33Deposit(_id);
+        return getDplatformDeposit(_id);
     }
 
 }
