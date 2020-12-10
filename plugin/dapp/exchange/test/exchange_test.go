@@ -28,7 +28,7 @@ var (
 
 func init() {
 	cli = NewExecCli()
-	//cli = NewGRPCCli(":8802")
+	//cli = NewGRPCCli(":28804")
 }
 
 func TestLimitOrder(t *testing.T) {

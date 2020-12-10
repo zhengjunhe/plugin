@@ -35,7 +35,7 @@ function init() {
         multisigExecAddr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"multisig"}]}' ${MAIN_HTTP} | jq -r ".result")
     fi
 
-    local main_ip=${MAIN_HTTP//8901/8801}
+    local main_ip=${MAIN_HTTP//8901/28803}
 
     if [ "$ispara" == false ]; then
         dplatform_applyCoins "$GenAddr" 12000000000 "${main_ip}"

@@ -30,7 +30,7 @@ var (
 )
 
 var (
-	mainNetgrpcAddr = "localhost:8802"
+	mainNetgrpcAddr = "localhost:28804"
 	ParaNetgrpcAddr = "localhost:8902"
 	mainClient      types.DplatformClient
 	paraClient      types.DplatformClient

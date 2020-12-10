@@ -86,7 +86,7 @@ function init() {
     fi
     echo "gameAddr=${game_addr}"
 
-    local main_ip=${MAIN_HTTP//8901/8801}
+    local main_ip=${MAIN_HTTP//8901/28803}
     #main chain import pri key
     dplatform_ImportPrivkey "$PRIVA_A" "16Z3haNPQd9wrnFDw19rtpbgnN2xynNT9f" "game1" "${main_ip}"
     dplatform_ImportPrivkey "$PRIVA_B" "16GXRfd9xj3XYMDti4y4ht7uzwoh55gZEc" "game2" "$main_ip"

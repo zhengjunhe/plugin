@@ -129,7 +129,7 @@ function run_testcases() {
     dplatform_GetAccounts "${MAIN_HTTP}"
 
     #主链中相应账户需要转帐
-    M_HTTP=${MAIN_HTTP//8901/8801}
+    M_HTTP=${MAIN_HTTP//8901/28803}
     dplatform_SendToAddress "${origAddr}" "${gameAddr1}" 1000000000 "${M_HTTP}"
     dplatform_SendToAddress "${origAddr}" "${gameAddr2}" 1000000000 "${M_HTTP}"
     dplatform_SendToAddress "${origAddr}" "${gameAddr3}" 1000000000 "${M_HTTP}"

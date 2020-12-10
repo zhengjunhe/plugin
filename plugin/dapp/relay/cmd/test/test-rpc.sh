@@ -112,7 +112,7 @@ init() {
     fi
     echo "relayaddr=$relay_addr"
 
-    local main_ip=${MAIN_HTTP//8901/8801}
+    local main_ip=${MAIN_HTTP//8901/28803}
 
     dplatform_ImportPrivkey "22968d29c6de695381a8719ef7bf00e2edb6cce500bb59a4fc73c41887610962" "1G5Cjy8LuQex2fuYv3gzb7B8MxAnxLEqt3" "relay_sell" "${main_ip}"
     dplatform_ImportPrivkey "ec9162ea5fc2f473ab8240619a0a0f495ba9e9e5d4d9c434b8794a68280236c4" "1EZKahMRfoMiKp1BewjWrQWoaJ9kmC4hum" "relay_acc" "$main_ip"

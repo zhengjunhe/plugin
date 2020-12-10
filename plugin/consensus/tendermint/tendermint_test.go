@@ -117,7 +117,7 @@ func initEnvTendermint() (queue.Queue, *blockchain.BlockChain, queue.Module, que
 
 func createConn() error {
 	var err error
-	url := "127.0.0.1:8802"
+	url := "127.0.0.1:28804"
 	fmt.Println("grpc url:", url)
 	conn, err = grpc.Dial(url, grpc.WithInsecure())
 	if err != nil {

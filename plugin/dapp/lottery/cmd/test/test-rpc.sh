@@ -35,7 +35,7 @@ init() {
     fi
     echo "lottExecAddr=$lottExecAddr"
 
-    local main_ip=${MAIN_HTTP//8901/8801}
+    local main_ip=${MAIN_HTTP//8901/28803}
     dplatform_ImportPrivkey "0x8223b757a5d0f91b12e7af3b9666ca33be47fe63e1502987b0537089aaf90bc1" "1FLh9wBS2rat1mUS4G95hRpJt6yHYy5nHF" "lottery1" "${main_ip}"
     dplatform_ImportPrivkey "0xbfccb96690e0a1f89748b321f85b03e14bda0cb3d5d19f255ff0b9b0ffb624b3" "1UWE6NfXPR7eNAjYgT4HMERp7cMMi486E" "lottery2" "$main_ip"
 
@@ -234,7 +234,7 @@ function run_testcases() {
     lottery_GetLotteryBuyRoundInfo "$gID" "${gameAddr2}" 1 2 "78987"
 
     #游戏开奖
-    M_HTTP=${MAIN_HTTP//8901/8801}
+    M_HTTP=${MAIN_HTTP//8901/28803}
     dplatform_BlockWait ${drawNum} "${M_HTTP}"
     lottery_LotteryDraw "${lottery_creator_priv}"
     lottery_GetLotteryCurrentInfo "$gID" 3 0

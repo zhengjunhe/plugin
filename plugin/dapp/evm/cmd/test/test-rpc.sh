@@ -143,7 +143,7 @@ function init() {
     ispara=$(echo '"'"${MAIN_HTTP}"'"' | jq '.|contains("8901")')
     echo "ipara=$ispara"
 
-    local main_ip=${MAIN_HTTP//8901/8801}
+    local main_ip=${MAIN_HTTP//8901/28803}
     dplatform_ImportPrivkey "0x4947ce3c4b845cfed59be2edf47320546116a3ff3af5715a7df094d116039b89" "1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt" "evm" "${main_ip}"
 
     local from="1PTXh2EZ8aRUzpuoDRASV19K86Kx3qQiPt"

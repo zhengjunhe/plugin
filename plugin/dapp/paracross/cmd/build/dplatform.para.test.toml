@@ -60,7 +60,7 @@ grpcBindAddr="0.0.0.0:8902"
 whitelist=["localhost","127.0.0.1","0.0.0.0"]
 jrpcFuncWhitelist=["*"]
 grpcFuncWhitelist=["*"]
-mainnetJrpcAddr= "http://localhost:8801"
+mainnetJrpcAddr= "http://localhost:28803"
 
 [mempool]
 name="para"
@@ -86,7 +86,7 @@ coinDevFund = 12
 
 
 [consensus.sub.para]
-ParaRemoteGrpcClient = "localhost:8802"
+ParaRemoteGrpcClient = "localhost:28804"
 #主链指定高度的区块开始同步
 startHeight=20
 #打包时间间隔，单位秒

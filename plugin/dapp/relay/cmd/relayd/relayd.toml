@@ -17,7 +17,7 @@ address = ""
 
 [dplatform]
 id = "dplatform"
-host = "dplatform:8802"
+host = "dplatform:28804"
 user = ""
 pass = ""
 disableAutoReconnect = true

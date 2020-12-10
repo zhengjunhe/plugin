@@ -41,7 +41,7 @@ function paracross_QueryMainBalance() {
     local main_http
 
     ip_http=${UNIT_HTTP%:*}
-    main_http="$ip_http:8801"
+    main_http="$ip_http:28803"
 
     req='{"method":"Dplatform.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "paracross"}]}'
     resp=$(curl -ksd "$req" "${main_http}")
@@ -58,7 +58,7 @@ function paracross_QueryMainAssetBalance() {
     local main_http
 
     ip_http=${UNIT_HTTP%:*}
-    main_http="$ip_http:8801"
+    main_http="$ip_http:28803"
     local exec=$2
     local symbol="dpom"
     if [ -n "$3" ]; then
@@ -207,7 +207,7 @@ function paracross_IsSync() {
 }
 
 function paracross_ListTitles() {
-    local main_ip=${UNIT_HTTP//8901/8801}
+    local main_ip=${UNIT_HTTP//8901/28803}
     dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName": "ListTitles", "payload" : {}}]}' ${main_ip} '(.error|not) and (.result| [has("titles"),true])' "$FUNCNAME"
 }
 
@@ -297,7 +297,7 @@ function paracross_testTxGroupFail() {
     ispara=$(echo '"'"${para_ip}"'"' | jq '.|contains("8901")')
     echo "ipara=$ispara"
     local paracross_addr=""
-    local main_ip=${para_ip//8901/8801}
+    local main_ip=${para_ip//8901/28803}
 
     paracross_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"paracross"}]}' "${main_ip}" | jq -r ".result")
     echo "paracross_addr=$paracross_addr"
@@ -355,7 +355,7 @@ function paracross_testParaAssetWithdrawFail() {
     ispara=$(echo '"'"${para_ip}"'"' | jq '.|contains("8901")')
     echo "ipara=$ispara"
     local paracross_addr=""
-    local main_ip=${para_ip//8901/8801}
+    local main_ip=${para_ip//8901/28803}
 
     local game_token_test_addr="1BM2xhBk95qoae8zKNDWwAVGgBERhb7DQu"
 
@@ -405,7 +405,7 @@ function paracross_testTxGroup() {
     ispara=$(echo '"'"${para_ip}"'"' | jq '.|contains("8901")')
     echo "ipara=$ispara"
     local paracross_addr=""
-    local main_ip=${para_ip//8901/8801}
+    local main_ip=${para_ip//8901/28803}
 
     paracross_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"paracross"}]}' "${main_ip}" | jq -r ".result")
     echo "paracross_addr=$paracross_addr"
@@ -569,7 +569,7 @@ paracross_testBindMiner() {
 }
 
 function apply_coins() {
-    local main_ip=${UNIT_HTTP//8901/8801}
+    local main_ip=${UNIT_HTTP//8901/28803}
 
     dplatform_applyCoins "${addr1q9}" 1000000000 "${main_ip}"
     dplatform_QueryBalance "${addr1q9}" "$main_ip"
@@ -638,5 +638,5 @@ function main() {
 }
 
 dplatform_debug_function main "$1" "$2" "$3" "$4"
-#main http://127.0.0.1:8801
-#main http://47.98.253.127:8801 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 0x6da92a632ab7deb67d38c0f6560bcfed28167998f6496db64c258d5e8393a81b user.p.fzmtest.paracross
+#main http://127.0.0.1:28803
+#main http://47.98.253.127:28803 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 0x6da92a632ab7deb67d38c0f6560bcfed28167998f6496db64c258d5e8393a81b user.p.fzmtest.paracross

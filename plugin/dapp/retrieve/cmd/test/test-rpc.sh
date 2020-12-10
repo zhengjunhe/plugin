@@ -126,7 +126,7 @@ init() {
     dplatform_applyCoins "${retrieve2}" 10000000000 "${MAIN_HTTP}"
 
     if [ "$ispara" == true ]; then
-        local main_ip=${MAIN_HTTP//8901/8801}
+        local main_ip=${MAIN_HTTP//8901/28803}
         dplatform_applyCoins "${retrieve1}" 1000000000 "${main_ip}"
         dplatform_applyCoins "${retrieve2}" 1000000000 "${main_ip}"
     fi

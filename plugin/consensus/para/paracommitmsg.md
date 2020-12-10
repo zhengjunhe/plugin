@@ -74,6 +74,6 @@
  1. docker-compose.sh里面把CLI4节点的钱包启用，并且转账
     1. miner CLI4
     1. transfer CLI4
- 1. nginx.conf 里面的server chain30:8802 打开，可以测试pause chain30场景
+ 1. nginx.conf 里面的server chain30:28804 打开，可以测试pause chain30场景
  1. 如果测试平行链自共识，需要在paracross testcase里面设置MainParaSelfConsensusForkHeight和fork.go的local里面设置
     pracross的ForkParacrossCommitTx高度一致，或者MainParaSelfConsensusForkHeight 大于分叉高度     

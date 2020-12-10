@@ -38,7 +38,7 @@ func main() {
 		LoadHelp()
 		return
 	}
-	fmt.Println("jrpc url:", os.Args[2]+":8801")
+	fmt.Println("jrpc url:", os.Args[2]+":28803")
 	r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	argsWithoutProg := os.Args[1:]
 	switch argsWithoutProg[0] {
@@ -139,7 +139,7 @@ func Put(ip string, size string, privkey string) {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	url := "http://" + ip + ":8801"
+	url := "http://" + ip + ":28803"
 	if privkey == "" {
 		_, priv := genaddress()
 		privkey = common.ToHex(priv.Bytes())
@@ -171,7 +171,7 @@ func Put(ip string, size string, privkey string) {
 
 // Get ...
 func Get(ip string, hash string) {
-	url := "http://" + ip + ":8801"
+	url := "http://" + ip + ":28803"
 	fmt.Println("transaction hash:", hash)
 
 	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"%s"}]}`, hash)
@@ -191,7 +191,7 @@ func Get(ip string, hash string) {
 }
 
 func setTxHeight(ip string) {
-	url := "http://" + ip + ":8801"
+	url := "http://" + ip + ":28803"
 	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Dplatform.GetLastHeader","params":[]}`)
 	resp, err := http.Post(url, "application/json", bytes.NewBufferString(poststr))
 	if err != nil {
@@ -264,7 +264,7 @@ func RandStringBytes(n int) string {
 
 // ValNode ...
 func ValNode(ip, pubkey, power string) {
-	url := "http://" + ip + ":8801"
+	url := "http://" + ip + ":28803"
 
 	fmt.Println(pubkey, ":", power)
 	pubkeybyte, err := hex.DecodeString(pubkey)

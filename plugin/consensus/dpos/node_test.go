@@ -88,8 +88,8 @@ grpcLogFile="grpc33.log"
 
 
 [rpc]
-jrpcBindAddr="localhost:8801"
-grpcBindAddr="localhost:8802"
+jrpcBindAddr="localhost:28803"
+grpcBindAddr="localhost:28804"
 whitelist=["127.0.0.1"]
 jrpcFuncWhitelist=["*"]
 grpcFuncWhitelist=["*"]
@@ -451,9 +451,9 @@ func TestNode(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	_, _, err := createConn("127.0.0.1:8802")
+	_, _, err := createConn("127.0.0.1:28804")
 	for err != nil {
-		_, _, err = createConn("127.0.0.1:8802")
+		_, _, err = createConn("127.0.0.1:28804")
 	}
 
 	fmt.Println("node1 ip:", cs1.(*Client).GetNode().IP)

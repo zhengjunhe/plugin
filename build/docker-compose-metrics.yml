@@ -6,7 +6,7 @@ services:
     environment:
       PARAFILE: "/root/dplatform.para33.toml"
     expose:
-     - "8802"
+     - "28804"
 
   chain32:
     entrypoint: /root/entrypoint.sh
@@ -23,7 +23,7 @@ services:
     environment:
       PARAFILE: "/root/dplatform.para30.toml"
     expose:
-     - "8802"
+     - "28804"
 
 
   nginx:

@@ -405,7 +405,7 @@ func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Mod
 
 func createConn(url string) (*grpc.ClientConn, types.DplatformClient, error) {
 	var err error
-	//url := "127.0.0.1:8802"
+	//url := "127.0.0.1:28804"
 	fmt.Println("grpc url:", url)
 	conn1, err := grpc.Dial(url, grpc.WithInsecure())
 	if err != nil {
@@ -419,7 +419,7 @@ func createConn(url string) (*grpc.ClientConn, types.DplatformClient, error) {
 
 func createConn2() error {
 	var err error
-	url := "127.0.0.1:8802"
+	url := "127.0.0.1:28804"
 	fmt.Println("grpc url:", url)
 	conn, err = grpc.Dial(url, grpc.WithInsecure())
 	if err != nil {

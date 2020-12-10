@@ -99,8 +99,8 @@ grpcLogFile="grpc33.log"
 
 
 [rpc]
-jrpcBindAddr="localhost:8801"
-grpcBindAddr="localhost:8802"
+jrpcBindAddr="localhost:28803"
+grpcBindAddr="localhost:28804"
 whitelist=["127.0.0.1"]
 jrpcFuncWhitelist=["*"]
 grpcFuncWhitelist=["*"]
@@ -292,7 +292,7 @@ func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Mod
 
 func createConn() error {
 	var err error
-	url := "127.0.0.1:8802"
+	url := "127.0.0.1:28804"
 	fmt.Println("grpc url:", url)
 	conn, err = grpc.Dial(url, grpc.WithInsecure())
 	if err != nil {
@@ -385,16 +385,16 @@ func testCmd(cmd *cobra.Command) {
 	types.SetCliSysParam(dplatformCfg.GetTitle(), dplatformCfg)
 
 	rootCmd.PersistentFlags().String("title", dplatformCfg.GetTitle(), "get title name")
-	rootCmd.PersistentFlags().String("rpc_laddr", "http://127.0.0.1:8802", "http url")
+	rootCmd.PersistentFlags().String("rpc_laddr", "http://127.0.0.1:28804", "http url")
 	rootCmd.AddCommand(cmd)
 
-	rootCmd.SetArgs([]string{"dpos", "regist", "--address", validatorAddr, "--pubkey", strPubkey, "--ip", "127.0.0.1", "--rpc_laddr", "http://127.0.0.1:8801"})
+	rootCmd.SetArgs([]string{"dpos", "regist", "--address", validatorAddr, "--pubkey", strPubkey, "--ip", "127.0.0.1", "--rpc_laddr", "http://127.0.0.1:28803"})
 	rootCmd.Execute()
 
-	rootCmd.SetArgs([]string{"dpos", "cancelRegist", "--address", validatorAddr, "--pubkey", strPubkey, "--rpc_laddr", "http://127.0.0.1:8801"})
+	rootCmd.SetArgs([]string{"dpos", "cancelRegist", "--address", validatorAddr, "--pubkey", strPubkey, "--rpc_laddr", "http://127.0.0.1:28803"})
 	rootCmd.Execute()
 
-	rootCmd.SetArgs([]string{"dpos", "reRegist", "--address", validatorAddr, "--pubkey", strPubkey, "--ip", "127.0.0.1", "--rpc_laddr", "http://127.0.0.1:8801"})
+	rootCmd.SetArgs([]string{"dpos", "reRegist", "--address", validatorAddr, "--pubkey", strPubkey, "--ip", "127.0.0.1", "--rpc_laddr", "http://127.0.0.1:28803"})
 	rootCmd.Execute()
 
 	rootCmd.SetArgs([]string{"dpos", "candidatorQuery", "--type", "topN", "--top", "1"})

@@ -380,7 +380,7 @@ init() {
     fi
     echo "EXECTOR_ADDR=$EXECTOR_ADDR"
 
-    local main_ip=${HTTP//8901/8801}
+    local main_ip=${HTTP//8901/28803}
     dplatform_ImportPrivkey "${propKey}" "${propAddr}" "prop" "${main_ip}"
 
     if [ "$ispara" == false ]; then

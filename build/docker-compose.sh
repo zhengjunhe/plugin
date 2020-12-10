@@ -99,8 +99,8 @@ function base_init() {
     sed -i $sedfix 's/^useGithub=.*/useGithub=false/g' dplatform.toml
 
     # rpc
-    sed -i $sedfix 's/^jrpcBindAddr=.*/jrpcBindAddr="0.0.0.0:8801"/g' dplatform.toml
-    sed -i $sedfix 's/^grpcBindAddr=.*/grpcBindAddr="0.0.0.0:8802"/g' dplatform.toml
+    sed -i $sedfix 's/^jrpcBindAddr=.*/jrpcBindAddr="0.0.0.0:28803"/g' dplatform.toml
+    sed -i $sedfix 's/^grpcBindAddr=.*/grpcBindAddr="0.0.0.0:28804"/g' dplatform.toml
     sed -i $sedfix 's/^whitelist=.*/whitelist=["localhost","127.0.0.1","0.0.0.0"]/g' dplatform.toml
 
     # wallet
@@ -467,9 +467,9 @@ function base_config() {
 
 function rpc_test() {
     if [ "$DAPP" == "" ]; then
-        system_test_rpc "http://${1}:8801"
+        system_test_rpc "http://${1}:28803"
         dapp_test_address "${CLI}"
-        dapp_test_rpc "http://${1}:8801" "${dockerNamePrefix}"
+        dapp_test_rpc "http://${1}:28803" "${dockerNamePrefix}"
     fi
     if [ "$DAPP" == "paracross" ]; then
         system_test_rpc "http://${1}:8901"

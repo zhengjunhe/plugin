@@ -17,7 +17,7 @@ var (
 
 // 批量测试前，先确保测试账户有足够的币和钱
 func main() {
-	cli = test.NewGRPCCli("localhost:8802")
+	cli = test.NewGRPCCli("localhost:28804")
 	go buy()
 	go sell()
 	select {}

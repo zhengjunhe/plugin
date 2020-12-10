@@ -292,7 +292,7 @@ init() {
         collateralize_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"collateralize"}]}' ${MAIN_HTTP} | jq -r ".result")
     fi
 
-    local main_ip=${MAIN_HTTP//8901/8801}
+    local main_ip=${MAIN_HTTP//8901/28803}
     #main chain import pri key
     #1C9t6uNcmbUgebt9HZfKweNb58hUcq5MZY
     dplatform_ImportPrivkey ${IssuancePriv1} ${IssuanceAddr1} "issuance1" "${main_ip}"

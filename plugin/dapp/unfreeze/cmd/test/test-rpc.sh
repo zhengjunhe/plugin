@@ -54,7 +54,7 @@ function init() {
         exec_name="user.p.para."${exec_name}
         symbol="para"
 
-        local main_ip=${MAIN_HTTP//8901/8801}
+        local main_ip=${MAIN_HTTP//8901/28803}
         dplatform_applyCoins "${beneficiary}" 10000000000 "${main_ip}"
         dplatform_applyCoins "${owner}" 10000000000 "${main_ip}"
     fi
