@@ -7,10 +7,10 @@ package para
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/types"
 
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common/crypto"
 	_ "github.com/33cn/plugin/plugin/crypto/bls"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/stretchr/testify/assert"

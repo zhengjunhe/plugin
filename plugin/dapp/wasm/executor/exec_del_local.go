@@ -1,7 +1,7 @@
 package executor
 
 import (
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 )
 

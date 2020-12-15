@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	dbm "github.com/33cn/dplatform/common/db"
-	tab "github.com/33cn/dplatform/common/db/table"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	dbm "github.com/33cn/dplatformos/common/db"
+	tab "github.com/33cn/dplatformos/common/db/table"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	et "github.com/33cn/plugin/plugin/dapp/accountmanager/types"
 )
 
@@ -292,7 +292,7 @@ func (a *Action) Apply(payload *et.Apply) (*types.Receipt, error) {
 	return receipts, nil
 }
 
-func getConfValue(cfg *types.DplatformConfig, db dbm.KV, key string, defaultValue int64) int64 {
+func getConfValue(cfg *types.DplatformOSConfig, db dbm.KV, key string, defaultValue int64) int64 {
 	var item types.ConfigItem
 	value, err := getManageKey(cfg, key, db)
 	if err != nil {
@@ -318,7 +318,7 @@ func getConfValue(cfg *types.DplatformConfig, db dbm.KV, key string, defaultValu
 	}
 	return v
 }
-func getManagerAddr(cfg *types.DplatformConfig, db dbm.KV, key, defaultValue string) string {
+func getManagerAddr(cfg *types.DplatformOSConfig, db dbm.KV, key, defaultValue string) string {
 	var item types.ConfigItem
 	value, err := getManageKey(cfg, key, db)
 	if err != nil {
@@ -339,7 +339,7 @@ func getManagerAddr(cfg *types.DplatformConfig, db dbm.KV, key, defaultValue str
 	return values[len(values)-1]
 }
 
-func getManageKey(cfg *types.DplatformConfig, key string, db dbm.KV) ([]byte, error) {
+func getManageKey(cfg *types.DplatformOSConfig, key string, db dbm.KV) ([]byte, error) {
 	manageKey := types.ManageKey(key)
 	value, err := db.Get([]byte(manageKey))
 	if err != nil {
@@ -456,7 +456,7 @@ func findAccountListByStatus(localdb dbm.KV, status, direction int32, primaryKey
 	return &reply, nil
 }
 
-func queryBalanceByID(statedb, localdb dbm.KV, cfg *types.DplatformConfig, execName string, in *et.QueryBalanceByID) (*et.Balance, error) {
+func queryBalanceByID(statedb, localdb dbm.KV, cfg *types.DplatformOSConfig, execName string, in *et.QueryBalanceByID) (*et.Balance, error) {
 	acc, err := findAccountByID(localdb, in.AccountID)
 	if err != nil {
 		return nil, err

@@ -7,7 +7,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/33cn/dplatform/p2p/utils"
+	"github.com/33cn/dplatformos/p2p/utils"
 
 	"github.com/stretchr/testify/assert"
 )

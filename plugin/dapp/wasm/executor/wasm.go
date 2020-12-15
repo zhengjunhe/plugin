@@ -1,17 +1,17 @@
 package executor
 
 import (
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/system/dapp"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/system/dapp"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 )
 
 var driverName = types2.WasmX
 var log = log15.New("module", "execs."+types2.WasmX)
 
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	if name != driverName {
 		panic("system dapp can not be rename")
 	}

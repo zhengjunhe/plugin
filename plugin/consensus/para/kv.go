@@ -7,7 +7,7 @@ package para
 import (
 	"fmt"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 func calcTitleHeightKey(title string, height int64) []byte {

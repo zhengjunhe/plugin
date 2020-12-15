@@ -36,9 +36,9 @@ const (
 	CollateralizeStatusClose
 )
 
-//暂时只支持dpom
+//暂时只支持dpos
 //const (
-//	CollateralizeAssetTypeDpom = 1 + iota
+//	CollateralizeAssetTypeDpos = 1 + iota
 //	CollateralizeAssetTypeBtc
 //	CollateralizeAssetTypeEth
 //)

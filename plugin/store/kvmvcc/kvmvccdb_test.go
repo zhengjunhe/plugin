@@ -13,10 +13,10 @@ import (
 
 	"fmt"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common"
-	drivers "github.com/33cn/dplatform/system/store"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common"
+	drivers "github.com/33cn/dplatformos/system/store"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -294,7 +294,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 	addr2 := "26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
 	addr3 := "36htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
 	addr4 := "46htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp"
-	accCoin := account.NewCoinsAccount(types.NewDplatformConfigNoInit(types.GetDefaultCfgstring()))
+	accCoin := account.NewCoinsAccount(types.NewDplatformOSConfigNoInit(types.GetDefaultCfgstring()))
 
 	account1 := &types.Account{
 		Balance: 1000 * 1e8,
@@ -344,7 +344,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 	resp := &types.ReplyGetTotalCoins{}
 	resp.Count = 100000
 
-	store.IterateRangeByStateHash(hash, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash, []byte("mavl-coins-dpos-"), []byte("mavl-coins-dpos-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 
@@ -373,7 +373,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 100000
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpos-"), []byte("mavl-coins-dpos-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(14), resp.Num)
@@ -383,7 +383,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 100000
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpos-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-dpos-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(12), resp.Num)
@@ -393,7 +393,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 2
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpos-06htvcBNSEA7fZhAdLJphDwQRQJaHpy003"), []byte("mavl-coins-dpos-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(2), resp.Num)
@@ -403,7 +403,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 2
-	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash1, []byte("mavl-coins-dpos-"), []byte("mavl-coins-dpos-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(2), resp.Num)
@@ -413,7 +413,7 @@ func TestIterateRangeByStateHash(t *testing.T) {
 
 	resp = &types.ReplyGetTotalCoins{}
 	resp.Count = 10000
-	store.IterateRangeByStateHash(hash, []byte("mavl-coins-dpom-"), []byte("mavl-coins-dpom-exec"), true, resp.IterateRangeByStateHash)
+	store.IterateRangeByStateHash(hash, []byte("mavl-coins-dpos-"), []byte("mavl-coins-dpos-exec"), true, resp.IterateRangeByStateHash)
 	fmt.Println("resp.Num=", resp.Num)
 	fmt.Println("resp.Amount=", resp.Amount)
 	assert.Equal(t, int64(0), resp.Num)

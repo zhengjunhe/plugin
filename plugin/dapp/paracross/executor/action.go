@@ -9,14 +9,14 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -85,7 +85,7 @@ func getParacrossNodes(db dbm.KV, title string) (map[string]struct{}, []string, 
 	return getNodes(db, key)
 }
 
-func validTitle(cfg *types.DplatformConfig, title string) bool {
+func validTitle(cfg *types.DplatformOSConfig, title string) bool {
 	if cfg.IsPara() {
 		return cfg.GetTitle() == title
 	}
@@ -99,7 +99,7 @@ func validNode(addr string, nodes map[string]struct{}) bool {
 	return false
 }
 
-func checkCommitInfo(cfg *types.DplatformConfig, commit *pt.ParacrossNodeStatus) error {
+func checkCommitInfo(cfg *types.DplatformOSConfig, commit *pt.ParacrossNodeStatus) error {
 	if commit == nil {
 		return types.ErrInvalidParam
 	}
@@ -188,7 +188,7 @@ func makeRecordReceipt(addr string, commit *pt.ParacrossNodeStatus) *types.Recei
 	}
 }
 
-func makeDoneReceipt(cfg *types.DplatformConfig, execMainHeight, execHeight int64, commit *pt.ParacrossNodeStatus,
+func makeDoneReceipt(cfg *types.DplatformOSConfig, execMainHeight, execHeight int64, commit *pt.ParacrossNodeStatus,
 	most, commitCount, totalCount int32) *types.Receipt {
 
 	log := &pt.ReceiptParacrossDone{
@@ -343,7 +343,7 @@ func updateCommitAddrs(stat *pt.ParacrossHeightStatus, nodes map[string]struct{}
 //自共识分阶段使能，综合考虑挖矿奖励和共识分配奖励，判断是否自共识使能需要采用共识的高度，而不能采用当前区块高度a.height
 //考虑自共识使能区块高度100，如果采用区块高度判断，则在100高度可能收到80~99的20条共识交易，这20条交易在100高度参与共识，则无奖励可分配，而且共识高度将是80而不是100
 //采用共识高度commit.Status.Height判断，则严格执行了产生奖励和分配奖励，且共识高度从100开始
-func paraCheckSelfConsOn(cfg *types.DplatformConfig, db dbm.KV, commit *pt.ParacrossNodeStatus) (bool, *types.Receipt, error) {
+func paraCheckSelfConsOn(cfg *types.DplatformOSConfig, db dbm.KV, commit *pt.ParacrossNodeStatus) (bool, *types.Receipt, error) {
 	if !cfg.IsDappFork(commit.Height, pt.ParaX, pt.ForkParaSelfConsStages) {
 		return true, nil, nil
 	}
@@ -698,7 +698,7 @@ func (a *action) commitTxDoneStep2(nodeStatus *pt.ParacrossNodeStatus, stat *pt.
 	return receipt, nil
 }
 
-func isHaveCrossTxs(cfg *types.DplatformConfig, status *pt.ParacrossNodeStatus) bool {
+func isHaveCrossTxs(cfg *types.DplatformOSConfig, status *pt.ParacrossNodeStatus) bool {
 	//ForkLoopCheckCommitTxDone分叉后只返回全部txResult的结果，要实际过滤出来后才能确定有没有跨链tx
 	if pt.IsParaForkHeight(cfg, status.MainBlockHeight, pt.ForkLoopCheckCommitTxDone) {
 		return true
@@ -1134,7 +1134,7 @@ func (a *action) execCrossTxs(status *pt.ParacrossNodeStatus) (*types.Receipt, e
 	return &receipt, nil
 }
 
-func (a *action) assetTransferMainCheck(cfg *types.DplatformConfig, transfer *types.AssetsTransfer) error {
+func (a *action) assetTransferMainCheck(cfg *types.DplatformOSConfig, transfer *types.AssetsTransfer) error {
 	//主链如果没有nodegroup配置，也不允许跨链,直接返回错误，平行链也不会执行
 	if cfg.IsDappFork(a.height, pt.ParaX, pt.ForkParaAssetTransferRbk) {
 		if len(transfer.To) == 0 {
@@ -1165,7 +1165,7 @@ func (a *action) AssetTransfer(transfer *types.AssetsTransfer) (*types.Receipt, 
 	return receipt, nil
 }
 
-func (a *action) assetWithdrawMainCheck(cfg *types.DplatformConfig, withdraw *types.AssetsWithdraw) error {
+func (a *action) assetWithdrawMainCheck(cfg *types.DplatformOSConfig, withdraw *types.AssetsWithdraw) error {
 	if !cfg.IsDappFork(a.height, pt.ParaX, "ForkParacrossWithdrawFromParachain") {
 		if withdraw.Cointoken != "" {
 			return errors.Wrapf(types.ErrNotSupport, "not support,token=%s", withdraw.Cointoken)

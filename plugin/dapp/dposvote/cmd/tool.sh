@@ -3,7 +3,7 @@ rcpAddr="http://192.168.0.155:9801"
 function impKey() {
     key=$1
     lab=$2
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" account import_key -k "${key}" -l "${lab}"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" account import_key -k "${key}" -l "${lab}"
 }
 
 function trans() {
@@ -11,24 +11,24 @@ function trans() {
     dst=$2
     coins=$3
 
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" coins transfer -a "${coins}" -t "${dst}")
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" coins transfer -a "${coins}" -t "${dst}")
     echo "${tx}"
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${src}" -d "${tx}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${src}" -d "${tx}")
     echo "${sig}"
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" account balance -a "${dst}"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" account balance -a "${dst}"
 }
 
 function init() {
-    seed=$(./dplatform-cli --rpc_laddr=${rcpAddr} seed generate -l 0)
+    seed=$(./dplatformos-cli --rpc_laddr=${rcpAddr} seed generate -l 0)
     echo "${seed}"
     echo "save seed..."
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" seed save -s "${seed}" -p zzh123456
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" seed save -s "${seed}" -p zzh123456
     sleep 1
 
     echo "unlock wallet..."
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet unlock -p zzh123456
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet unlock -p zzh123456
     sleep 1
 
     echo "import key..."
@@ -52,9 +52,9 @@ function init() {
 function send_exec() {
     addr=$1
     coins=$2
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" coins send_exec -a "${coins}" -e dpos)
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" coins send_exec -a "${coins}" -e dpos)
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
 }
 
 function reg() {
@@ -62,9 +62,9 @@ function reg() {
     ip=$2
     key=$3
     echo "dpos regist -a ${addr} -i ${ip} -k ${key}"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos regist -a "${addr}" -i "${ip}" -k "${key}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "$sig"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos regist -a "${addr}" -i "${ip}" -k "${key}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "$sig"
     sleep 3
 }
 
@@ -73,18 +73,18 @@ function reReg() {
     ip=$2
     key=$3
     echo "dpos reRegist -a ${addr} -i ${ip} -k ${key}"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos reRegist -a "${addr}" -i "${ip}" -k "${key}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos reRegist -a "${addr}" -i "${ip}" -k "${key}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
 }
 function cancelReg() {
     addr=$1
     key=$2
     echo "dpos cancelRegist -a ${addr} -k ${key}"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos cancelRegist -a "${addr}" -k "${key}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos cancelRegist -a "${addr}" -k "${key}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
 }
 function vote() {
@@ -92,9 +92,9 @@ function vote() {
     key=$2
     votes=$3
     echo "dpos vote from addr:${addr} to key:${key} $votes votes"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos vote -k "${key}" -v "${votes}" -a "${addr}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos vote -k "${key}" -v "${votes}" -a "${addr}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
 }
 function cancelVote() {
@@ -102,9 +102,9 @@ function cancelVote() {
     key=$2
     index=$3
     echo "dpos cancel vote from addr:${addr} to key:${key} ${votes} votes"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos cancelVote -k "${key}" -i "${index}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos cancelVote -k "${key}" -i "${index}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
 }
 function regM() {
@@ -113,9 +113,9 @@ function regM() {
     m=$3
     cycle=$4
     echo "dpos reg vrfm for addr:${addr}  key:${key} cycle:${cycle}, m:${m}"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos vrfMRegist -k "${key}" -c "${cycle}" -m "${m}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos vrfMRegist -k "${key}" -c "${cycle}" -m "${m}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
 }
 
@@ -143,9 +143,9 @@ function regRP() {
     p=$4
     cycle=$5
     echo "dpos reg vrfrp for addr:${addr}  key:${key} cycle:${cycle}, r:${r}, p:${p}"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos vrfRPRegist -k "${key}" -c "${cycle}" -r "${r}" -p "${p}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos vrfRPRegist -k "${key}" -c "${cycle}" -r "${r}" -p "${p}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "${sig}"
     sleep 3
 }
 
@@ -174,63 +174,63 @@ function recordCB() {
     addr=$5
 
     echo "dpos recordCB for key:${key}  cycle:${cycle} height:${height} hash:${hash}"
-    tx=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos cbRecord -k "${key}" -c "${cycle}" -m "${height}" -s "${hash}")
-    sig=$(./dplatform-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet send -d "$sig"
+    tx=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos cbRecord -k "${key}" -c "${cycle}" -m "${height}" -s "${hash}")
+    sig=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet sign -a "${addr}" -d "${tx}")
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet send -d "$sig"
     sleep 3
 }
 
 function qtx() {
     tx=$1
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" tx query -s "${tx}"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" tx query -s "${tx}"
 }
 function qn() {
-    result=$(./dplatform-cli --rpc_laddr="${rcpAddr}" dpos candidatorQuery -t topN -n "$1")
+    result=$(./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos candidatorQuery -t topN -n "$1")
     echo "$result"
 }
 
 function qk() {
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos candidatorQuery -t pubkeys -k "$1"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos candidatorQuery -t pubkeys -k "$1"
 }
 
 function qv() {
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos voteQuery -a "$1" -k "$2"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos voteQuery -a "$1" -k "$2"
 }
 function qvrf() {
     type=$1
     cycle=$2
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos vrfQuery -t "$type" -c "$cycle"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos vrfQuery -t "$type" -c "$cycle"
 }
 
 function qvrfn() {
     cycle=$1
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos vrfQuery -t "topN" -c "$cycle"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos vrfQuery -t "topN" -c "$cycle"
 }
 
 function qvrfk() {
     cycle=$2
     keys=$1
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos vrfQuery -t "pubkeys" -c "$cycle" -k "${keys}"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos vrfQuery -t "pubkeys" -c "$cycle" -k "${keys}"
 }
 
 function unlock() {
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" wallet unlock -p zzh123456
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" wallet unlock -p zzh123456
 }
 
 function qtopn() {
     version=$1
-    ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos topNQuery -v "${version}"
+    ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos topNQuery -v "${version}"
 }
 
 function qcb() {
     type=$1
     param=$2
     if [ "${type}" == "cycle" ]; then
-        ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos cbQuery -t "cycle" -c "${param}"
+        ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos cbQuery -t "cycle" -c "${param}"
     elif [ "${type}" == "height" ]; then
-        ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos cbQuery -t "height" -m "${param}"
+        ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos cbQuery -t "height" -m "${param}"
     elif [ "${type}" == "hash" ]; then
-        ./dplatform-cli --rpc_laddr="${rcpAddr}" dpos cbQuery -t "hash" -s "${param}"
+        ./dplatformos-cli --rpc_laddr="${rcpAddr}" dpos cbQuery -t "hash" -s "${param}"
     fi
 }
 

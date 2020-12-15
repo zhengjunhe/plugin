@@ -16,24 +16,24 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/blockchain"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/limits"
-	"github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/executor"
-	"github.com/33cn/dplatform/mempool"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/rpc"
-	"github.com/33cn/dplatform/store"
-	mty "github.com/33cn/dplatform/system/dapp/manage/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/blockchain"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/limits"
+	"github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/executor"
+	"github.com/33cn/dplatformos/mempool"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/rpc"
+	"github.com/33cn/dplatformos/store"
+	mty "github.com/33cn/dplatformos/system/dapp/manage/types"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/consensus/tendermint/types"
 	pty "github.com/33cn/plugin/plugin/dapp/norm/types"
 	vty "github.com/33cn/plugin/plugin/dapp/valnode/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin/dapp/init"
 	_ "github.com/33cn/plugin/plugin/store/init"
 )
@@ -42,7 +42,7 @@ var (
 	r         *rand.Rand
 	loopCount = 3
 	conn      *grpc.ClientConn
-	c         types.DplatformClient
+	c         types.DplatformOSClient
 )
 
 func init() {
@@ -88,25 +88,25 @@ func TendermintPerf(t *testing.T) {
 
 func initEnvTendermint() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Module, *executor.Executor, queue.Module) {
 	flag.Parse()
-	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
+	dplatformosCfg := types.NewDplatformOSConfig(types.ReadFile("dplatformos.test.toml"))
 	var q = queue.New("channel")
-	q.SetConfig(dplatformCfg)
-	cfg := dplatformCfg.GetModuleConfig()
-	sub := dplatformCfg.GetSubConfig()
+	q.SetConfig(dplatformosCfg)
+	cfg := dplatformosCfg.GetModuleConfig()
+	sub := dplatformosCfg.GetSubConfig()
 
-	chain := blockchain.New(dplatformCfg)
+	chain := blockchain.New(dplatformosCfg)
 	chain.SetQueueClient(q.Client())
 
-	exec := executor.New(dplatformCfg)
+	exec := executor.New(dplatformosCfg)
 	exec.SetQueueClient(q.Client())
-	dplatformCfg.SetMinFee(0)
-	s := store.New(dplatformCfg)
+	dplatformosCfg.SetMinFee(0)
+	s := store.New(dplatformosCfg)
 	s.SetQueueClient(q.Client())
 
 	cs := New(cfg.Consensus, sub.Consensus["tendermint"])
 	cs.SetQueueClient(q.Client())
 
-	mem := mempool.New(dplatformCfg)
+	mem := mempool.New(dplatformosCfg)
 	mem.SetQueueClient(q.Client())
 
 	rpc.InitCfg(cfg.RPC)
@@ -124,7 +124,7 @@ func createConn() error {
 		fmt.Fprintln(os.Stderr, err)
 		return err
 	}
-	c = types.NewDplatformClient(conn)
+	c = types.NewDplatformOSClient(conn)
 	return nil
 }
 

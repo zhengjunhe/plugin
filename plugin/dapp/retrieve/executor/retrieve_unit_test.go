@@ -13,13 +13,13 @@ import (
 
 	"strings"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/queue"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/queue"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	rt "github.com/33cn/plugin/plugin/dapp/retrieve/types"
 )
 
@@ -248,8 +248,8 @@ func TestExecDelLocalBackup(t *testing.T) {
 }
 
 func constructRetrieveInstance() drivers.Driver {
-	cfgstring := strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1)
-	chainTestCfg := types.NewDplatformConfig(cfgstring)
+	cfgstring := strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1)
+	chainTestCfg := types.NewDplatformOSConfig(cfgstring)
 	Init(rt.RetrieveX, chainTestCfg, nil)
 	q := queue.New("channel")
 	q.SetConfig(chainTestCfg)

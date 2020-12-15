@@ -8,12 +8,12 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
-	wcom "github.com/33cn/dplatform/wallet/common"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
+	wcom "github.com/33cn/dplatformos/wallet/common"
 	privacytypes "github.com/33cn/plugin/plugin/dapp/privacy/types"
 )
 

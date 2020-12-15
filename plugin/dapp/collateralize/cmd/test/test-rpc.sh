@@ -10,4 +10,4 @@ function main() {
     echo "Collateralize cases has integrated in Issuance test"
 }
 
-dplatform_debug_function main "$1"
+dplatformos_debug_function main "$1"

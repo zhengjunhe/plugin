@@ -7,18 +7,18 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common"
-	commonlog "github.com/33cn/dplatform/common/log"
-	drivers "github.com/33cn/dplatform/system/dapp"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	drivers "github.com/33cn/dplatformos/system/dapp"
 	"github.com/stretchr/testify/assert"
 
-	apimock "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
-	dbmock "github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/types"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
+	dbmock "github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/types"
 	mty "github.com/33cn/plugin/plugin/dapp/multisig/types"
 	"github.com/stretchr/testify/mock"
 )
@@ -50,12 +50,12 @@ var (
 	NewWeight             uint64 = 2
 	Requiredweight        uint64 = 5
 	NewRequiredweight     uint64 = 4
-	CoinsDpomDailylimit    uint64 = 100
-	NewCoinsDpomDailylimit uint64 = 10
+	CoinsDposDailylimit    uint64 = 100
+	NewCoinsDposDailylimit uint64 = 10
 	PrintFlag                    = false
 	InAmount              int64  = 10
 	OutAmount             int64  = 5
-	chainTestCfg                 = types.NewDplatformConfig(types.GetDefaultCfgstring())
+	chainTestCfg                 = types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 )
 
 func init() {
@@ -93,12 +93,12 @@ func TestMultiSigAccCreate(t *testing.T) {
 	api := new(apimock.QueueProtocolAPI)
 
 	api.On("GetConfig", mock.Anything).Return(chainTestCfg, nil)
-	// 给账户accountB在multisig合约中写入coins-dpom资产
+	// 给账户accountB在multisig合约中写入coins-dpos资产
 	accB := account.NewCoinsAccount(chainTestCfg)
 	accB.SetDB(stateDB)
 	accB.SaveExecAccount(address.ExecAddress("multisig"), &accountA)
 
-	// 给账户accountD在multisig合约中写入coins-dpom资产
+	// 给账户accountD在multisig合约中写入coins-dpos资产
 	accD := account.NewCoinsAccount(chainTestCfg)
 	accD.SetDB(stateDB)
 	accD.SaveExecAccount(address.ExecAddress("multisig"), &accountD)
@@ -134,11 +134,11 @@ func TestMultiSigAccCreate(t *testing.T) {
 	//t.Log("------testMultiSigAccWeightModify------")
 	testMultiSigAccWeightModify(t, driver, env, multiSigAddr)
 
-	//modify assets DailyLimit NewCoinsDpomDailylimit
+	//modify assets DailyLimit NewCoinsDposDailylimit
 	//t.Log("------testMultiSigAccDailyLimitModify------")
 	testMultiSigAccDailyLimitModify(t, driver, env, multiSigAddr)
 
-	//confirmtx  assets DailyLimit NewCoinsDpomDailylimit
+	//confirmtx  assets DailyLimit NewCoinsDposDailylimit
 	//t.Log("------testMultiSigAccConfirmTx------")
 	testMultiSigAccConfirmTx(t, driver, env, api, multiSigAddr)
 
@@ -163,7 +163,7 @@ func testMultiSigAccCreate(t *testing.T, driver drivers.Driver, env execEnv, loc
 	symboldailylimit := &mty.SymbolDailyLimit{
 		Symbol:     Symbol,
 		Execer:     "coins",
-		DailyLimit: CoinsDpomDailylimit,
+		DailyLimit: CoinsDposDailylimit,
 	}
 
 	param := &mty.MultiSigAccCreate{
@@ -538,7 +538,7 @@ func testMultiSigAccDailyLimitModify(t *testing.T, driver drivers.Driver, env ex
 	assetsDailyLimit := &mty.SymbolDailyLimit{
 		Symbol:     Symbol,
 		Execer:     Asset,
-		DailyLimit: NewCoinsDpomDailylimit,
+		DailyLimit: NewCoinsDposDailylimit,
 	}
 	params := &mty.MultiSigAccOperate{
 		MultiSigAccAddr: multiSigAddr,
@@ -573,11 +573,11 @@ func testMultiSigAccDailyLimitModify(t *testing.T, driver drivers.Driver, env ex
 
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Symbol, Symbol)
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Execer, Asset)
-	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.DailyLimit, CoinsDpomDailylimit)
+	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.DailyLimit, CoinsDposDailylimit)
 
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Symbol, Symbol)
 	assert.Equal(t, receiptMultiSigDailyLimitOperate.PrevDailyLimit.Execer, Asset)
-	assert.Equal(t, receiptMultiSigDailyLimitOperate.CurDailyLimit.DailyLimit, NewCoinsDpomDailylimit)
+	assert.Equal(t, receiptMultiSigDailyLimitOperate.CurDailyLimit.DailyLimit, NewCoinsDposDailylimit)
 
 	//解析kv1
 	//t.Log("TyLogTxCountUpdate kv & log ")
@@ -615,7 +615,7 @@ func testMultiSigAccDailyLimitModify(t *testing.T, driver drivers.Driver, env ex
 //当前账户的信息，txcount：6 Requiredweight:4
 //ownerAddr:"1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR" weight:2
 //ownerAddr:"1MCftFynyvG2F4ED5mdHYgziDxx6vDrScs" weight:10 ]
-//[symbol:"dpom" execer:"coins" dailyLimit:10 ]
+//[symbol:"dpos" execer:"coins" dailyLimit:10 ]
 //6
 // 4}
 func testMultiSigAccConfirmTx(t *testing.T, driver drivers.Driver, env execEnv, api *apimock.QueueProtocolAPI, multiSigAddr string) {

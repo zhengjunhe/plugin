@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/blockchain"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/mempool"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/store"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
-	"github.com/33cn/dplatform/util/testnode"
-	"github.com/33cn/dplatform/wallet"
-	"github.com/33cn/dplatform/wallet/bipwallet"
-	wcom "github.com/33cn/dplatform/wallet/common"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/blockchain"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/mempool"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/store"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
+	"github.com/33cn/dplatformos/util/testnode"
+	"github.com/33cn/dplatformos/wallet"
+	"github.com/33cn/dplatformos/wallet/bipwallet"
+	wcom "github.com/33cn/dplatformos/wallet/common"
 	ty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 
 	privacy "github.com/33cn/plugin/plugin/dapp/privacy/wallet"
@@ -137,11 +137,11 @@ func (mock *testDataMock) importPrivateKey(PrivKey *types.ReqWalletImportPrivkey
 	var cointype uint32
 	signType := wallet.GetSignType()
 	if signType == 1 {
-		cointype = bipwallet.TypeDpom
+		cointype = bipwallet.TypeDpos
 	} else if signType == 2 {
 		cointype = bipwallet.TypeYcc
 	} else {
-		cointype = bipwallet.TypeDpom
+		cointype = bipwallet.TypeDpos
 	}
 
 	privkeybyte, err := common.FromHex(PrivKey.Privkey)

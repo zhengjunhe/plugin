@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	drivers "github.com/33cn/dplatform/system/store"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	drivers "github.com/33cn/dplatformos/system/store"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 )
 

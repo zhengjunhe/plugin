@@ -1,10 +1,10 @@
 FROM ubuntu:16.04
 
 WORKDIR /root
-COPY dplatform dplatform
-COPY dplatform-cli dplatform-cli
+COPY dplatformos dplatformos
+COPY dplatformos-cli dplatformos-cli
 COPY entrypoint.sh entrypoint.sh
-COPY dplatform.toml dplatform*.toml ./
+COPY dplatformos.toml dplatformos*.toml ./
 
 
-CMD ["/root/dplatform", "-f", "/root/dplatform.toml"]
+CMD ["/root/dplatformos", "-f", "/root/dplatformos.toml"]

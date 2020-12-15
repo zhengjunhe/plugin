@@ -89,8 +89,8 @@ function run_single_app() {
 
 function main() {
     if [ "${OP}" == "run" ]; then
-        #copy dplatform system-test-rpc.sh
-        cp "$(go list -f "{{.Dir}}" github.com/33cn/dplatform)"/build/system-test-rpc.sh ./
+        #copy dplatformos system-test-rpc.sh
+        cp "$(go list -f "{{.Dir}}" github.com/33cn/dplatformos)"/build/system-test-rpc.sh ./
         if [ "${DAPP}" == "all" ] || [ "${DAPP}" == "ALL" ]; then
             echo "============ run main start ================="
             if ! ./${DOCKER_COMPOSE_SH} "$PROJ"; then
@@ -142,7 +142,7 @@ function main() {
             ./system-fork-test.sh "${PROJ}"
         fi
     elif [ "${OP}" == "modify" ]; then
-        sed -i $sedfix '/^useGithub=.*/a version=1' dplatform.toml
+        sed -i $sedfix '/^useGithub=.*/a version=1' dplatformos.toml
     fi
 }
 

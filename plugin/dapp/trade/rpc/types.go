@@ -5,8 +5,8 @@
 package rpc
 
 import (
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	ptypes "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 

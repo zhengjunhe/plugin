@@ -3,9 +3,9 @@ package executor
 import (
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 	"github.com/perlin-network/life/compiler"
 	"github.com/perlin-network/life/exec"

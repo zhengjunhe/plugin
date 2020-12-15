@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"sort"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/lottery/types"
 )
 
@@ -24,7 +24,7 @@ type subConfig struct {
 var subCfg subConfig
 
 // Init lottery
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	driverName := GetName()
 	if name != driverName {
 		panic("system dapp can't be rename")

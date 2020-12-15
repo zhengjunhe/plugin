@@ -44,7 +44,7 @@ message Owner {
 
 // 资产symbol的定义，可能存在不同的平行链上发布相同名字的token,
 //或者在主链发布一个token：HYB 而在guodun的平行链上也会发布一个token：HYB
-// coins.dpom和coins.guodun
+// coins.dpos和coins.guodun
 // 1:原始数据
 //主链上：原始币symbol：DPOM,token.symbol(例如：TEST)
 // guodun平行链上的原始币symbol：guodun，token.symbol(例如：TEST)
@@ -288,11 +288,11 @@ message MultiSigTxOwner {
 //具体转币的处理;
 // TyLogMultiSigExecTransfer = 10010
 //入币：将from地址在MultiSig合约中的币转移到指定的多重签名账户ExecTransfer中，并将其冻结ExecFrozen
-//注释：使用dplatform/types中定义的ReceiptExecAccountTransfer即可
+//注释：使用dplatformos/types中定义的ReceiptExecAccountTransfer即可
 
 // TyLogMultiSigWithdraw     = 10011
 //出币：将多重签名地址上冻结的币转给MultiSig合约中TO地址上ExecTransferFrozen
-//注释：使用dplatform/types中定义的ReceiptExecAccountTransfer即可
+//注释：使用dplatformos/types中定义的ReceiptExecAccountTransfer即可
 
 message Uint64 {
     uint64 data = 1;

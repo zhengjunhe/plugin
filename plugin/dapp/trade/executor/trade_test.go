@@ -80,13 +80,13 @@ func TestPriceCheck(t *testing.T) {
 		symbol string
 		result bool
 	}{
-		{"coins", "dpom", true},
-		{"", "dpom", false},
+		{"coins", "dpos", true},
+		{"", "dpos", false},
 		{"coins", "", false},
 		{"token", "TEST", true},
 	}
 
 	for _, c := range cases {
-		assert.Equal(t, c.result, checkPrice(dplatformTestCfg, dplatformTestCfg.GetDappFork(pty.TradeX, pty.ForkTradePriceX), c.exec, c.symbol))
+		assert.Equal(t, c.result, checkPrice(dplatformosTestCfg, dplatformosTestCfg.GetDappFork(pty.TradeX, pty.ForkTradePriceX), c.exec, c.symbol))
 	}
 }

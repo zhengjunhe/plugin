@@ -3,16 +3,16 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/queue"
 	pty "github.com/33cn/plugin/plugin/dapp/game/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,8 +37,8 @@ var (
 )
 
 func TestGame(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	Init(pty.GameX, cfg, nil)
 	total := 100 * types.Coin
 	accountA := types.Account{
@@ -66,16 +66,16 @@ func TestGame(t *testing.T) {
 	stateDB, _ := dbm.NewGoMemDB("1", "2", 1000)
 	_, _, kvdb := util.CreateTestDB()
 
-	accA, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accA, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accA.SaveExecAccount(execAddr, &accountA)
 
-	accB, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accB, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accB.SaveExecAccount(execAddr, &accountB)
 
-	accC, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accC, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accC.SaveExecAccount(execAddr, &accountC)
 
-	accD, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accD, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accD.SaveExecAccount(execAddr, &accountD)
 	env := execEnv{
 		10,

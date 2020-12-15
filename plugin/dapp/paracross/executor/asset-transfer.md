@@ -58,12 +58,12 @@ asset-transfer 分两种， 主链转出， 主链转入
 ```
 				exec                    symbol                              tx.title=user.p.test1   tx.title=user.p.test2
 1. 主链上的资产：
-				coins                   dpom                                 transfer                 transfer
+				coins                   dpos                                 transfer                 transfer
 				paracross               user.p.test1.coins.fzm              withdraw                 transfer
 
 2. 平行链上的资产：
 				user.p.test1.coins      fzm                                 transfer                 NAN
-                user.p.test1.paracross  coins.dpom                           withdraw                 NAN
+                user.p.test1.paracross  coins.dpos                           withdraw                 NAN
                 user.p.test1.paracross  paracross.user.p.test2.coins.cny    withdraw                 NAN
 
 其中user.p.test1.paracross.paracross.user.p.test2.coins.cny资产解释：
@@ -89,31 +89,31 @@ user.p.test1.paracross.是平行链paracross执行器，　paracross.user.p.test
 ```
 帐号      主链部分                                                     平行链部分
 account     主链合约    平行链帐号在主链    用户A在主链       用户B在主链     平行链合约   用户A    用户B
-1 A转账5dpom    5           0                5              0               0       0           0
+1 A转账5dpos    5           0                5              0               0       0           0
 到para合约
-2 B转账5dpom    10          0                5              5               0       0           0
+2 B转账5dpos    10          0                5              5               0       0           0
 到para合约
-3 A跨链4dpom    10          4                1              5               0       0           0      主链执行完
+3 A跨链4dpos    10          4                1              5               0       0           0      主链执行完
 到平行链        10          4                1              5               4       4           0      平行链执行完
-4 A用3dpom      10          4                1              5               1       1           0
+4 A用3dpos      10          4                1              5               1       1           0
 在平行链
-5  B赚到2dpom   10          4                1              5               3       1           2
-在平行链， 并把2dpom转到合约
+5  B赚到2dpos   10          4                1              5               3       1           2
+在平行链， 并把2dpos转到合约
 6 B从平行链     10          4                1              5               3       1           2       主链打包
-提币 1dpom      10          4                1              5               2       1           1       平行链执行完
+提币 1dpos      10          4                1              5               2       1           1       平行链执行完
               10           3                1              6               2       1           1       主链共识完
 ```
 
 ### 主链<->平行链双向转移 cross-transfer　举例
 ```
-# Alice 主链转移５coins-dpom -> user.p.test. 平行链:
+# Alice 主链转移５coins-dpos -> user.p.test. 平行链:
 
-                    coins       paracross:Addr(Alice)   paracross:Addr(user.p.test.paracross)    user.p.test.paracross-coins-dpom:Addr(Alice) 
+                    coins       paracross:Addr(Alice)   paracross:Addr(user.p.test.paracross)    user.p.test.paracross-coins-dpos:Addr(Alice) 
 1 Alice                5
 2 to合约                0　　　　　　　　 5       
 3 cross-transfer       0            5-5=0                   0+5=5                                          0+5=5
 
-# Alice 平行链转移５paracross-coins.dpom -> 主链
+# Alice 平行链转移５paracross-coins.dpos -> 主链
 4 cross-transfer                    　5                   5-5=0                                       5-5=0
 5 withdraw           　5              0
 

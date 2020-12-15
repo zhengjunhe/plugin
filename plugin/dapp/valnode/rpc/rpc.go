@@ -7,7 +7,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	vt "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )
 

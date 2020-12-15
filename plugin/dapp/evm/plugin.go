@@ -5,7 +5,7 @@
 package evm
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/evm/commands"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor"
 	"github.com/33cn/plugin/plugin/dapp/evm/rpc"

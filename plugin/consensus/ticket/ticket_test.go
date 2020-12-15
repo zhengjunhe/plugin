@@ -10,21 +10,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common/crypto"
-	vrf "github.com/33cn/dplatform/common/vrf/secp256k1"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common/crypto"
+	vrf "github.com/33cn/dplatformos/common/vrf/secp256k1"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
+	"github.com/33cn/dplatformos/util/testnode"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	secp256k1 "github.com/btcsuite/btcd/btcec"
 	"github.com/stretchr/testify/assert"
 
-	apimocks "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common/merkle"
-	_ "github.com/33cn/dplatform/system"
-	drivers "github.com/33cn/dplatform/system/consensus"
+	apimocks "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common/merkle"
+	_ "github.com/33cn/dplatformos/system"
+	drivers "github.com/33cn/dplatformos/system/consensus"
 	_ "github.com/33cn/plugin/plugin/dapp/init"
 	_ "github.com/33cn/plugin/plugin/store/init"
 	"github.com/stretchr/testify/mock"
@@ -35,7 +35,7 @@ func TestTicket(t *testing.T) {
 }
 
 func testTicket(t *testing.T) {
-	mock33 := testnode.New("testdata/dplatform.cfg.toml", nil)
+	mock33 := testnode.New("testdata/dplatformos.cfg.toml", nil)
 	defer mock33.Close()
 	cfg := mock33.GetClient().GetConfig()
 	mock33.Listen()
@@ -117,7 +117,7 @@ func testTicket(t *testing.T) {
 	assert.Equal(t, isbestBlock, false)
 }
 
-func createBindMiner(cfg *types.DplatformConfig, t *testing.T, m, r string, priv crypto.PrivKey) *types.Transaction {
+func createBindMiner(cfg *types.DplatformOSConfig, t *testing.T, m, r string, priv crypto.PrivKey) *types.Transaction {
 	ety := types.LoadExecutorType("ticket")
 	tx, err := ety.Create("Tbind", &ty.TicketBind{MinerAddress: m, ReturnAddress: r})
 	assert.Nil(t, err)
@@ -184,7 +184,7 @@ func Test_genPrivHash(t *testing.T) {
 }
 
 func Test_getNextRequiredDifficulty(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.ReadFile("testdata/dplatform.cfg.toml"))
+	cfg := types.NewDplatformOSConfig(types.ReadFile("testdata/dplatformos.cfg.toml"))
 
 	api := new(apimocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)

@@ -5,15 +5,15 @@
 package rpc
 
 import (
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	"golang.org/x/net/context"
 )
 
-func bindMiner(cfg *types.DplatformConfig, param *ty.ReqBindMiner) (*ty.ReplyBindMiner, error) {
+func bindMiner(cfg *types.DplatformOSConfig, param *ty.ReqBindMiner) (*ty.ReplyBindMiner, error) {
 	tBind := &ty.TicketBind{
 		MinerAddress:  param.BindAddr,
 		ReturnAddress: param.OriginAddr,
@@ -53,7 +53,7 @@ func (g *channelClient) CreateBindMiner(ctx context.Context, in *ty.ReqBindMiner
 			return nil, types.ErrAmount
 		}
 
-		getBalance := &types.ReqBalance{Addresses: []string{in.OriginAddr}, Execer: "coins", AssetSymbol: "dpom", AssetExec: "coins"}
+		getBalance := &types.ReqBalance{Addresses: []string{in.OriginAddr}, Execer: "coins", AssetSymbol: "dpos", AssetExec: "coins"}
 		balances, err := g.GetCoinsAccountDB().GetBalance(g, getBalance)
 		if err != nil {
 			return nil, err

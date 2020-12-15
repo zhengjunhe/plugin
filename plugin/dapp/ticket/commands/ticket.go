@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	"github.com/spf13/cobra"
 )
@@ -160,7 +160,7 @@ func listTicket(cmd *cobra.Command, args []string) {
 		req := ty.TicketList{Addr: minerAddr, Status: status}
 		params.Payload = types.MustPBToJSON(&req)
 		var res ty.ReplyTicketList
-		ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+		ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 		ctx.Run()
 		return
 	}
@@ -236,7 +236,7 @@ func getWalletStatus(rpcAddr string) (interface{}, error) {
 		return nil, err
 	}
 	var res rpctypes.WalletStatus
-	err = rpc.Call("Dplatform.GetWalletStatus", nil, &res)
+	err = rpc.Call("DplatformOS.GetWalletStatus", nil, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return nil, err
@@ -273,6 +273,6 @@ func coldAddressOfMiner(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(reqaddr)
 
 	var res types.ReplyStrings
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }

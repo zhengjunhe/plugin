@@ -1,8 +1,8 @@
 package executor
 
 import (
-	dbm "github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/types"
+	dbm "github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 	"github.com/pkg/errors"
 )

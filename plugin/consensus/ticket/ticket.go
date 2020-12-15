@@ -16,17 +16,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/difficulty"
-	"github.com/33cn/dplatform/common/log/log15"
-	vrf "github.com/33cn/dplatform/common/vrf/secp256k1"
-	"github.com/33cn/dplatform/queue"
-	drivers "github.com/33cn/dplatform/system/consensus"
-	driver "github.com/33cn/dplatform/system/dapp"
-	cty "github.com/33cn/dplatform/system/dapp/coins/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/difficulty"
+	"github.com/33cn/dplatformos/common/log/log15"
+	vrf "github.com/33cn/dplatformos/common/vrf/secp256k1"
+	"github.com/33cn/dplatformos/queue"
+	drivers "github.com/33cn/dplatformos/system/consensus"
+	driver "github.com/33cn/dplatformos/system/dapp"
+	cty "github.com/33cn/dplatformos/system/dapp/coins/types"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	secp256k1 "github.com/btcsuite/btcd/btcec"
 	"github.com/golang/protobuf/proto"
@@ -118,7 +118,7 @@ func (client *Client) CreateGenesisTx() (ret []*types.Transaction) {
 }
 
 //316190000 coins
-func createTicket(cfg *types.DplatformConfig, minerAddr, returnAddr string, count int32, height int64) (ret []*types.Transaction) {
+func createTicket(cfg *types.DplatformOSConfig, minerAddr, returnAddr string, count int32, height int64) (ret []*types.Transaction) {
 	tx1 := types.Transaction{}
 	tx1.Execer = []byte("coins")
 
@@ -308,8 +308,8 @@ func (client *Client) getModify(beg, end int64) ([]byte, error) {
 
 // CheckBlock ticket implete checkblock func
 func (client *Client) CheckBlock(parent *types.Block, current *types.BlockDetail) error {
-	dplatformCfg := client.GetAPI().GetConfig()
-	cfg := ty.GetTicketMinerParam(dplatformCfg, current.Block.Height)
+	dplatformosCfg := client.GetAPI().GetConfig()
+	cfg := ty.GetTicketMinerParam(dplatformosCfg, current.Block.Height)
 	if current.Block.BlockTime-types.Now().Unix() > cfg.FutureBlockTime {
 		return types.ErrFutureBlock
 	}
@@ -369,7 +369,7 @@ func (client *Client) CheckBlock(parent *types.Block, current *types.BlockDetail
 		return types.ErrBlockSize
 	}
 	//vrf verify
-	if dplatformCfg.IsDappFork(current.Block.Height, ty.TicketX, "ForkTicketVrf") {
+	if dplatformosCfg.IsDappFork(current.Block.Height, ty.TicketX, "ForkTicketVrf") {
 		var input []byte
 		if current.Block.Height > 1 {
 			LastTicketAction, err := client.getMinerTx(parent)
@@ -443,13 +443,13 @@ func (client *Client) getCurrentTarget(blocktime int64, id string, modify []byte
 // the exported version uses the current best chain as the previous block node
 // while this function accepts any block node.
 func (client *Client) getNextRequiredDifficulty(block *types.Block, bits uint32) (uint32, []byte, error) {
-	dplatformCfg := client.GetAPI().GetConfig()
+	dplatformosCfg := client.GetAPI().GetConfig()
 	// Genesis block.
 	if block == nil {
-		return dplatformCfg.GetP(0).PowLimitBits, defaultModify, nil
+		return dplatformosCfg.GetP(0).PowLimitBits, defaultModify, nil
 	}
-	powLimitBits := dplatformCfg.GetP(block.Height).PowLimitBits
-	cfg := ty.GetTicketMinerParam(dplatformCfg, block.Height)
+	powLimitBits := dplatformosCfg.GetP(block.Height).PowLimitBits
+	cfg := ty.GetTicketMinerParam(dplatformosCfg, block.Height)
 	blocksPerRetarget := int64(cfg.TargetTimespan / cfg.TargetTimePerBlock)
 	// Return the previous block's difficulty requirements if this block
 	// is not at a difficulty retarget interval.
@@ -723,7 +723,7 @@ func (client *Client) createBlock() (*types.Block, *types.Block) {
 }
 
 func (client *Client) updateBlock(block *types.Block, txHashList [][]byte) (*types.Block, *types.Block, [][]byte) {
-	dplatformCfg := client.GetAPI().GetConfig()
+	dplatformosCfg := client.GetAPI().GetConfig()
 	lastBlock := client.GetCurrentBlock()
 	newblock := *block
 	newblock.BlockTime = types.Now().Unix()
@@ -733,9 +733,9 @@ func (client *Client) updateBlock(block *types.Block, txHashList [][]byte) (*typ
 		newblock.Txs = client.CheckTxDup(newblock.Txs)
 		newblock.Txs = client.CheckTxExpire(newblock.Txs, lastBlock.Height+1, newblock.BlockTime)
 	}
-	newblock.ParentHash = lastBlock.Hash(dplatformCfg)
+	newblock.ParentHash = lastBlock.Hash(dplatformosCfg)
 	newblock.Height = lastBlock.Height + 1
-	cfg := dplatformCfg.GetP(newblock.Height)
+	cfg := dplatformosCfg.GetP(newblock.Height)
 	var txs []*types.Transaction
 	if len(newblock.Txs) < int(cfg.MaxTxNumber-1) {
 		txs = client.RequestTx(int(cfg.MaxTxNumber)-1-len(newblock.Txs), txHashList)

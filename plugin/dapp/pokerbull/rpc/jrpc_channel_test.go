@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"testing"
 
-	commonlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/pokerbull/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -37,7 +37,7 @@ func TestJRPCChannel(t *testing.T) {
 	assert.NotNil(t, jrpcClient)
 
 	testCases := []struct {
-		fn func(*testing.T, *types.DplatformConfig, *jsonclient.JSONClient) error
+		fn func(*testing.T, *types.DplatformOSConfig, *jsonclient.JSONClient) error
 	}{
 		{fn: testStartRawTxCmd},
 		{fn: testContinueRawTxCmd},
@@ -74,7 +74,7 @@ func TestJRPCChannel(t *testing.T) {
 	}
 }
 
-func testStartRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testStartRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &pty.PBGameStart{Value: 123}
 	params := &rpctypes.CreateTxIn{
 		Execer:     cfg.ExecName(pty.PokerBullX),
@@ -82,10 +82,10 @@ func testStartRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclien
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testContinueRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testContinueRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &pty.PBGameContinue{GameId: "123"}
 	params := &rpctypes.CreateTxIn{
 		Execer:     cfg.ExecName(pty.PokerBullX),
@@ -93,10 +93,10 @@ func testContinueRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsoncl
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testPlayRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testPlayRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &pty.PBGamePlay{GameId: "123", Round: 1, Value: 5, Address: []string{"a", "b"}}
 	params := &rpctypes.CreateTxIn{
 		Execer:     cfg.ExecName(pty.PokerBullX),
@@ -104,10 +104,10 @@ func testPlayRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testQuitRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testQuitRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &pty.PBGameQuit{GameId: "123"}
 	params := &rpctypes.CreateTxIn{
 		Execer:     cfg.ExecName(pty.PokerBullX),
@@ -115,7 +115,7 @@ func testQuitRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
 func testQueryGameByID(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -126,7 +126,7 @@ func testQueryGameByID(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = pty.FuncNameQueryGameByID
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyPBGame{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryGameByAddr(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -137,7 +137,7 @@ func testQueryGameByAddr(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = pty.FuncNameQueryGameByAddr
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.PBGameRecords{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryGameByIDs(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -148,7 +148,7 @@ func testQueryGameByIDs(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = pty.FuncNameQueryGameListByIDs
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyPBGameList{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryGameByStatus(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -159,7 +159,7 @@ func testQueryGameByStatus(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = pty.FuncNameQueryGameByStatus
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.PBGameRecords{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryGameByRound(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -170,5 +170,5 @@ func testQueryGameByRound(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = pty.FuncNameQueryGameByRound
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.PBGameRecords{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }

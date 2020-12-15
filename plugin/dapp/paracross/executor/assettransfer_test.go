@@ -11,12 +11,12 @@ import (
 	//"github.com/stretchr/testify/mock"
 	"testing"
 
-	"github.com/33cn/dplatform/account"
-	apimock "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common/address"
-	dbm "github.com/33cn/dplatform/common/db"
-	dbmock "github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common/address"
+	dbm "github.com/33cn/dplatformos/common/db"
+	dbmock "github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/pkg/errors"
@@ -60,7 +60,7 @@ func (suite *AssetTransferTestSuite) SetupTest() {
 
 	suite.exec = newParacross().(*Paracross)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestCfg, nil)
 	suite.exec.SetAPI(suite.api)
 	suite.exec.SetLocalDB(suite.localDB)
 	suite.exec.SetStateDB(suite.stateDB)
@@ -71,7 +71,7 @@ func (suite *AssetTransferTestSuite) SetupTest() {
 	blockDetail := &types.BlockDetail{
 		Block: &types.Block{},
 	}
-	MainBlockHash10 = blockDetail.Block.Hash(dplatformTestCfg)
+	MainBlockHash10 = blockDetail.Block.Hash(dplatformosTestCfg)
 
 	// setup title nodes : len = 1
 	nodeConfigKey := calcManageConfigNodesKey(Title)
@@ -104,7 +104,7 @@ func (suite *AssetTransferTestSuite) SetupTest() {
 func (suite *AssetTransferTestSuite) TestExecTransferNobalance() {
 	//types.Init("test", nil)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestMainCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestMainCfg, nil)
 	suite.exec.SetAPI(suite.api)
 
 	toB := Nodes[1]
@@ -124,7 +124,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferNobalance() {
 func (suite *AssetTransferTestSuite) TestExecTransfer() {
 	//types.Init("test", nil)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestMainCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestMainCfg, nil)
 	suite.exec.SetAPI(suite.api)
 
 	toB := Nodes[1]
@@ -135,7 +135,7 @@ func (suite *AssetTransferTestSuite) TestExecTransfer() {
 		Frozen:  0,
 		Addr:    string(Nodes[0]),
 	}
-	acc := account.NewCoinsAccount(dplatformTestCfg)
+	acc := account.NewCoinsAccount(dplatformosTestCfg)
 	acc.SetDB(suite.stateDB)
 	addrMain := address.ExecAddress(pt.ParaX)
 	addrPara := address.ExecAddress(Title + pt.ParaX)
@@ -173,7 +173,7 @@ func (suite *AssetTransferTestSuite) TestExecTransfer() {
 }
 
 func (suite *AssetTransferTestSuite) TestExecTransferInPara() {
-	dplatformTestCfg = types.NewDplatformConfig(testnode.DefaultConfig)
+	dplatformosTestCfg = types.NewDplatformOSConfig(testnode.DefaultConfig)
 	//para_init(Title)
 	toB := Nodes[1]
 
@@ -198,7 +198,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferInPara() {
 		suite.T().Log(string(kv.Key), v)
 	}
 
-	acc, _ := NewParaAccount(dplatformTestCfg, Title, "coins", "dpom", suite.stateDB)
+	acc, _ := NewParaAccount(dplatformosTestCfg, Title, "coins", "dpos", suite.stateDB)
 	resultB := acc.LoadAccount(string(toB))
 	assert.Equal(suite.T(), Amount, resultB.Balance)
 }
@@ -214,7 +214,7 @@ func createAssetTransferTx(s suite.Suite, privFrom string, to []byte) (*types.Tr
 		TokenSymbol: "",
 		ExecName:    Title + pt.ParaX,
 	}
-	tx, err := pt.CreateRawAssetTransferTx(dplatformTestCfg, &param)
+	tx, err := pt.CreateRawAssetTransferTx(dplatformosTestCfg, &param)
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err
@@ -234,7 +234,7 @@ const TestSymbol = "TEST"
 func (suite *AssetTransferTestSuite) TestExecTransferToken() {
 	//types.Init("test", nil)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestMainCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestMainCfg, nil)
 	suite.exec.SetAPI(suite.api)
 
 	toB := Nodes[1]
@@ -245,7 +245,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferToken() {
 		Frozen:  0,
 		Addr:    string(Nodes[0]),
 	}
-	acc, _ := account.NewAccountDB(dplatformTestMainCfg, "token", TestSymbol, suite.stateDB)
+	acc, _ := account.NewAccountDB(dplatformosTestMainCfg, "token", TestSymbol, suite.stateDB)
 	addrMain := address.ExecAddress(pt.ParaX)
 	addrPara := address.ExecAddress(Title + pt.ParaX)
 
@@ -282,7 +282,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferToken() {
 }
 
 func (suite *AssetTransferTestSuite) TestExecTransferTokenInPara() {
-	dplatformTestCfg = types.NewDplatformConfig(testnode.DefaultConfig)
+	dplatformosTestCfg = types.NewDplatformOSConfig(testnode.DefaultConfig)
 	// para_init(Title)
 	toB := Nodes[1]
 
@@ -307,7 +307,7 @@ func (suite *AssetTransferTestSuite) TestExecTransferTokenInPara() {
 		suite.T().Log(string(kv.Key), v)
 	}
 
-	acc, _ := NewParaAccount(dplatformTestCfg, Title, "token", TestSymbol, suite.stateDB)
+	acc, _ := NewParaAccount(dplatformosTestCfg, Title, "token", TestSymbol, suite.stateDB)
 	resultB := acc.LoadAccount(string(toB))
 	assert.Equal(suite.T(), Amount, resultB.Balance)
 }
@@ -323,7 +323,7 @@ func createAssetTransferTokenTx(s suite.Suite, privFrom string, to []byte) (*typ
 		TokenSymbol: TestSymbol,
 		ExecName:    Title + pt.ParaX,
 	}
-	tx, err := pt.CreateRawAssetTransferTx(dplatformTestCfg, &param)
+	tx, err := pt.CreateRawAssetTransferTx(dplatformosTestCfg, &param)
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err
@@ -340,19 +340,19 @@ func createAssetTransferTokenTx(s suite.Suite, privFrom string, to []byte) (*typ
 
 func TestGetCrossAction(t *testing.T) {
 	txExec := "paracross"
-	transfer := &pt.CrossAssetTransfer{AssetExec: "coins", AssetSymbol: "dpom"}
+	transfer := &pt.CrossAssetTransfer{AssetExec: "coins", AssetSymbol: "dpos"}
 	action, err := getCrossAction(transfer, txExec)
 	assert.NotNil(t, err)
 	assert.Equal(t, int64(pt.ParacrossNoneTransfer), action)
 
 	txExec = "user.p.para.paracross."
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.coins", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.coins", AssetSymbol: "dpos"}
 	action, err = getCrossAction(transfer, txExec)
 	t.Log("ParacrossNoneTransfer e=", err)
 	assert.NotNil(t, err)
 	assert.Equal(t, int64(pt.ParacrossNoneTransfer), action)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "coins", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "coins", AssetSymbol: "dpos"}
 	action, err = getCrossAction(transfer, txExec)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(pt.ParacrossMainAssetTransfer), action)
@@ -367,17 +367,17 @@ func TestGetCrossAction(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, int64(pt.ParacrossMainAssetTransfer), action)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.coins", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.coins", AssetSymbol: "dpos"}
 	action, err = getCrossAction(transfer, txExec)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(pt.ParacrossParaAssetTransfer), action)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.paracross", AssetSymbol: "coin.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.paracross", AssetSymbol: "coin.dpos"}
 	action, err = getCrossAction(transfer, txExec)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(pt.ParacrossMainAssetWithdraw), action)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.paracross", AssetSymbol: "paracross.user.p.test.coin.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.paracross", AssetSymbol: "paracross.user.p.test.coin.dpos"}
 	action, err = getCrossAction(transfer, txExec)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(pt.ParacrossMainAssetWithdraw), action)
@@ -386,13 +386,13 @@ func TestGetCrossAction(t *testing.T) {
 
 func TestAmendTransferParam(t *testing.T) {
 	act := int64(pt.ParacrossMainAssetTransfer)
-	transfer := &pt.CrossAssetTransfer{AssetExec: "coins", AssetSymbol: "dpom"}
+	transfer := &pt.CrossAssetTransfer{AssetExec: "coins", AssetSymbol: "dpos"}
 	rst, err := amendTransferParam(transfer, act)
 	assert.Nil(t, err)
 	assert.Equal(t, transfer.AssetExec, rst.AssetExec)
 	assert.Equal(t, transfer.AssetSymbol, rst.AssetSymbol)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "user.p.para.coins.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "user.p.para.coins.dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.Nil(t, err)
 	assert.Equal(t, transfer.AssetExec, rst.AssetExec)
@@ -400,64 +400,64 @@ func TestAmendTransferParam(t *testing.T) {
 
 	//
 	act = int64(pt.ParacrossMainAssetTransfer)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "token", AssetSymbol: "coins.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "token", AssetSymbol: "coins.dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.NotNil(t, err)
-	t.Log("token.coins.dpom,err=", err)
+	t.Log("token.coins.dpos,err=", err)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.NotNil(t, err)
-	t.Log("paracross.dpom,err=", err)
+	t.Log("paracross.dpos,err=", err)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.coins", AssetSymbol: "coins.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.coins", AssetSymbol: "coins.dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.NotNil(t, err)
-	t.Log("user.p.para.coins.coins.dpom,err=", err)
+	t.Log("user.p.para.coins.coins.dpos,err=", err)
 
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.paracross", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.para.paracross", AssetSymbol: "dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.NotNil(t, err)
-	t.Log("user.p.para.paracross.dpom,err=", err)
+	t.Log("user.p.para.paracross.dpos,err=", err)
 
 	//
 	act = int64(pt.ParacrossMainAssetWithdraw)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.paracross", AssetSymbol: "coins.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.paracross", AssetSymbol: "coins.dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.Nil(t, err)
 	assert.Equal(t, "coins", rst.AssetExec)
-	assert.Equal(t, "dpom", rst.AssetSymbol)
+	assert.Equal(t, "dpos", rst.AssetSymbol)
 
 	act = int64(pt.ParacrossMainAssetWithdraw)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test2.paracross", AssetSymbol: "paracross.user.p.test.coins.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test2.paracross", AssetSymbol: "paracross.user.p.test.coins.dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.Nil(t, err)
 	assert.Equal(t, "paracross", rst.AssetExec)
-	assert.Equal(t, "user.p.test.coins.dpom", rst.AssetSymbol)
+	assert.Equal(t, "user.p.test.coins.dpos", rst.AssetSymbol)
 
 	act = int64(pt.ParacrossMainAssetWithdraw)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.paracross", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.paracross", AssetSymbol: "dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.NotNil(t, err)
 
 	//
 	act = int64(pt.ParacrossParaAssetTransfer)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.coins", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "user.p.test.coins", AssetSymbol: "dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.Nil(t, err)
 	assert.Equal(t, "coins", rst.AssetExec)
-	assert.Equal(t, "dpom", rst.AssetSymbol)
+	assert.Equal(t, "dpos", rst.AssetSymbol)
 
 	//
 	act = int64(pt.ParacrossParaAssetWithdraw)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "user.p.test.coins.dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "user.p.test.coins.dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.Nil(t, err)
 	assert.Equal(t, "coins", rst.AssetExec)
-	assert.Equal(t, "dpom", rst.AssetSymbol)
+	assert.Equal(t, "dpos", rst.AssetSymbol)
 
 	act = int64(pt.ParacrossParaAssetWithdraw)
-	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "dpom"}
+	transfer = &pt.CrossAssetTransfer{AssetExec: "paracross", AssetSymbol: "dpos"}
 	rst, err = amendTransferParam(transfer, act)
 	assert.NotNil(t, err)
 

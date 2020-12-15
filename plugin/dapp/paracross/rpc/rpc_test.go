@@ -10,10 +10,10 @@ package rpc
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/client/mocks"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/client/mocks"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	ptestNode "github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -31,7 +31,7 @@ func newJrpc(api client.QueueProtocolAPI) *Jrpc {
 }
 
 func TestChannelClient_IsSync(t *testing.T) {
-	cfg := types.NewDplatformConfig(ptestNode.DefaultConfig)
+	cfg := types.NewDplatformOSConfig(ptestNode.DefaultConfig)
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	client := newGrpc(api)

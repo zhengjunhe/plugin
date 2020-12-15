@@ -5,9 +5,9 @@
 package executor
 
 import (
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/types"
 	pt "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 
@@ -34,7 +34,7 @@ func GetExecSymbol(order *pt.SellOrder) (string, string) {
 	return order.AssetExec, order.TokenSymbol
 }
 
-func checkAsset(cfg *types.DplatformConfig, height int64, exec, symbol string) bool {
+func checkAsset(cfg *types.DplatformOSConfig, height int64, exec, symbol string) bool {
 	if cfg.IsDappFork(height, pt.TradeX, pt.ForkTradeAssetX) {
 		if exec == "" || symbol == "" {
 			return false
@@ -47,7 +47,7 @@ func checkAsset(cfg *types.DplatformConfig, height int64, exec, symbol string) b
 	return true
 }
 
-func checkPrice(cfg *types.DplatformConfig, height int64, exec, symbol string) bool {
+func checkPrice(cfg *types.DplatformOSConfig, height int64, exec, symbol string) bool {
 	if cfg.IsDappFork(height, pt.TradeX, pt.ForkTradePriceX) {
 		if exec == "" && symbol != "" || exec != "" && symbol == "" {
 			return false
@@ -60,7 +60,7 @@ func checkPrice(cfg *types.DplatformConfig, height int64, exec, symbol string) b
 	return true
 }
 
-func notSameAsset(cfg *types.DplatformConfig, height int64, assetExec, assetSymbol, priceExec, priceSymbol string) bool {
+func notSameAsset(cfg *types.DplatformOSConfig, height int64, assetExec, assetSymbol, priceExec, priceSymbol string) bool {
 	if cfg.IsDappFork(height, pt.TradeX, pt.ForkTradePriceX) {
 		if assetExec == priceExec && assetSymbol == priceSymbol {
 			return false
@@ -69,7 +69,7 @@ func notSameAsset(cfg *types.DplatformConfig, height int64, assetExec, assetSymb
 	return true
 }
 
-func createAccountDB(cfg *types.DplatformConfig, height int64, db db.KV, exec, symbol string) (*account.DB, error) {
+func createAccountDB(cfg *types.DplatformOSConfig, height int64, db db.KV, exec, symbol string) (*account.DB, error) {
 	if cfg.IsDappFork(height, pt.TradeX, pt.ForkTradeFixAssetDBX) {
 		if exec == "" {
 			exec = defaultAssetExec
@@ -82,7 +82,7 @@ func createAccountDB(cfg *types.DplatformConfig, height int64, db db.KV, exec, s
 	return account.NewAccountDB(cfg, defaultAssetExec, symbol, db)
 }
 
-func createPriceDB(cfg *types.DplatformConfig, height int64, db db.KV, exec, symbol string) (*account.DB, error) {
+func createPriceDB(cfg *types.DplatformOSConfig, height int64, db db.KV, exec, symbol string) (*account.DB, error) {
 	if cfg.IsDappFork(height, pt.TradeX, pt.ForkTradePriceX) {
 		// 为空默认使用 coins
 		if exec == "" {

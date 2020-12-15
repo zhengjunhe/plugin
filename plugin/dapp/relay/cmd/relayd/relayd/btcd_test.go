@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/33cn/dplatform/common/merkle"
+	"github.com/33cn/dplatformos/common/merkle"
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"

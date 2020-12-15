@@ -9,9 +9,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	jsty "github.com/33cn/plugin/plugin/dapp/js/types"
 	"github.com/33cn/plugin/plugin/dapp/js/types/jsproto"
 
@@ -76,7 +76,7 @@ func createJavaScriptContract(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -116,7 +116,7 @@ func callJavaScript(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -156,6 +156,6 @@ func queryJavaScript(cmd *cobra.Command, args []string) {
 	params.FuncName = "Query"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &jsproto.QueryResult{}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, rep)
 	ctx.Run()
 }

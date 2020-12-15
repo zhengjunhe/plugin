@@ -14,9 +14,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/types"
 	pexec "github.com/33cn/plugin/plugin/dapp/privacy/executor"
 	privacytypes "github.com/33cn/plugin/plugin/dapp/privacy/types"
 )
@@ -24,7 +24,7 @@ import (
 var (
 	pubsByte     [10][]byte
 	secsByte     [10][]byte
-	chainTestCfg = types.NewDplatformConfig(types.GetDefaultCfgstring())
+	chainTestCfg = types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 )
 
 func init() {

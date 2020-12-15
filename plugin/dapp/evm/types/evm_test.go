@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestEvmType_CreateTx 测试RPC创建交易逻辑
 func TestEvmType_CreateTx(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	evm := &EvmType{}
 	evm.SetConfig(cfg)
 	errMap := map[int]string{2: "code must be set in create tx",

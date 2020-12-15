@@ -8,16 +8,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 
-	"github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	"github.com/33cn/dplatformos/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 )
 
 func TestRPC_Call(t *testing.T) {

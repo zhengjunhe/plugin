@@ -7,8 +7,8 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
 )
 
 func init() {
@@ -18,14 +18,14 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(RetrieveX, "Enable", 0)
 	cfg.RegisterDappFork(RetrieveX, ForkRetriveX, 180000)
 	cfg.RegisterDappFork(RetrieveX, ForkRetriveAssetX, 3150000)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(RetrieveX, NewType(cfg))
 }
 
@@ -35,7 +35,7 @@ type RetrieveType struct {
 }
 
 // NewType for retrieve
-func NewType(cfg *types.DplatformConfig) *RetrieveType {
+func NewType(cfg *types.DplatformOSConfig) *RetrieveType {
 	c := &RetrieveType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
 	dpostype "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"
 )

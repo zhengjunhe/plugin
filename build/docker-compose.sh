@@ -18,18 +18,18 @@ export PATH="$PWD:$PATH"
 dockerNamePrefix="${1}"
 echo "dockerNamePrefix : ${dockerNamePrefix}"
 
-NODE3="${1}_dplatform_1"
-CLI="docker exec ${NODE3} /root/dplatform-cli"
+NODE3="${1}_dplatformos_1"
+CLI="docker exec ${NODE3} /root/dplatformos-cli"
 
 NODE2="${1}_chain32_1"
 
 NODE1="${1}_chain31_1"
 
 NODE4="${1}_chain30_1"
-#CLI4="docker exec ${NODE4} /root/dplatform-cli"
+#CLI4="docker exec ${NODE4} /root/dplatformos-cli"
 
 NODE5="${1}_chain29_1"
-CLI5="docker exec ${NODE5} /root/dplatform-cli"
+CLI5="docker exec ${NODE5} /root/dplatformos-cli"
 
 containers=("${NODE1}" "${NODE2}" "${NODE3}" "${NODE4}")
 export COMPOSE_PROJECT_NAME="$1"
@@ -82,51 +82,51 @@ echo "CLI=$CLI"
 
 function base_init() {
     # update test environment
-    sed -i $sedfix 's/^Title.*/Title="local"/g' dplatform.toml
-    sed -i $sedfix 's/^TestNet=.*/TestNet=true/g' dplatform.toml
+    sed -i $sedfix 's/^Title.*/Title="local"/g' dplatformos.toml
+    sed -i $sedfix 's/^TestNet=.*/TestNet=true/g' dplatformos.toml
 
-    sed -i $sedfix 's/^powLimitBits=.*/powLimitBits="0x1f2fffff"/g' dplatform.toml
-    sed -i $sedfix 's/^targetTimePerBlock=.*/targetTimePerBlock=1/g' dplatform.toml
-    sed -i $sedfix 's/^targetTimespan=.*/targetTimespan=10000000/g' dplatform.toml
-    sed -i $sedfix 's/^isLevelFee=.*/isLevelFee=false/g' dplatform.toml
+    sed -i $sedfix 's/^powLimitBits=.*/powLimitBits="0x1f2fffff"/g' dplatformos.toml
+    sed -i $sedfix 's/^targetTimePerBlock=.*/targetTimePerBlock=1/g' dplatformos.toml
+    sed -i $sedfix 's/^targetTimespan=.*/targetTimespan=10000000/g' dplatformos.toml
+    sed -i $sedfix 's/^isLevelFee=.*/isLevelFee=false/g' dplatformos.toml
 
     # p2p
-    sed -i $sedfix '0,/^seeds=.*/s//seeds=["dplatform:13802","chain32:13802","chain31:13802"]/g' dplatform.toml
-    #sed -i $sedfix 's/^enable=.*/enable=true/g' dplatform.toml
-    sed -i $sedfix '0,/^enable=.*/s//enable=true/' dplatform.toml
-    sed -i $sedfix 's/^isSeed=.*/isSeed=true/g' dplatform.toml
-    sed -i $sedfix 's/^innerSeedEnable=.*/innerSeedEnable=false/g' dplatform.toml
-    sed -i $sedfix 's/^useGithub=.*/useGithub=false/g' dplatform.toml
+    sed -i $sedfix '0,/^seeds=.*/s//seeds=["dplatformos:13802","chain32:13802","chain31:13802"]/g' dplatformos.toml
+    #sed -i $sedfix 's/^enable=.*/enable=true/g' dplatformos.toml
+    sed -i $sedfix '0,/^enable=.*/s//enable=true/' dplatformos.toml
+    sed -i $sedfix 's/^isSeed=.*/isSeed=true/g' dplatformos.toml
+    sed -i $sedfix 's/^innerSeedEnable=.*/innerSeedEnable=false/g' dplatformos.toml
+    sed -i $sedfix 's/^useGithub=.*/useGithub=false/g' dplatformos.toml
 
     # rpc
-    sed -i $sedfix 's/^jrpcBindAddr=.*/jrpcBindAddr="0.0.0.0:28803"/g' dplatform.toml
-    sed -i $sedfix 's/^grpcBindAddr=.*/grpcBindAddr="0.0.0.0:28804"/g' dplatform.toml
-    sed -i $sedfix 's/^whitelist=.*/whitelist=["localhost","127.0.0.1","0.0.0.0"]/g' dplatform.toml
+    sed -i $sedfix 's/^jrpcBindAddr=.*/jrpcBindAddr="0.0.0.0:28803"/g' dplatformos.toml
+    sed -i $sedfix 's/^grpcBindAddr=.*/grpcBindAddr="0.0.0.0:28804"/g' dplatformos.toml
+    sed -i $sedfix 's/^whitelist=.*/whitelist=["localhost","127.0.0.1","0.0.0.0"]/g' dplatformos.toml
 
     # wallet
-    sed -i $sedfix 's/^minerdisable=.*/minerdisable=false/g' dplatform.toml
+    sed -i $sedfix 's/^minerdisable=.*/minerdisable=false/g' dplatformos.toml
 
-    sed -i $sedfix 's/^nodeGroupFrozenCoins=.*/nodeGroupFrozenCoins=20/g' dplatform.toml
-    sed -i $sedfix 's/^paraConsensusStopBlocks=.*/paraConsensusStopBlocks=100/g' dplatform.toml
+    sed -i $sedfix 's/^nodeGroupFrozenCoins=.*/nodeGroupFrozenCoins=20/g' dplatformos.toml
+    sed -i $sedfix 's/^paraConsensusStopBlocks=.*/paraConsensusStopBlocks=100/g' dplatformos.toml
 
     # blockchain
     # TODO 剩下evm trade 测试和这个选项有关，在其他pr中解决，不使得这个pr太大
-    sed -i $sedfix 's/^enableReduceLocaldb=.*/enableReduceLocaldb=false/g' dplatform.toml
-    sed -i $sedfix 's/^enablePushSubscribe=.*/enablePushSubscribe=true/g' dplatform.toml
+    sed -i $sedfix 's/^enableReduceLocaldb=.*/enableReduceLocaldb=false/g' dplatformos.toml
+    sed -i $sedfix 's/^enablePushSubscribe=.*/enablePushSubscribe=true/g' dplatformos.toml
 
     # ticket
-    sed -i $sedfix 's/^ticketPrice =.*/ticketPrice = 10000/g' dplatform.toml
+    sed -i $sedfix 's/^ticketPrice =.*/ticketPrice = 10000/g' dplatformos.toml
 
     #relay genesis
-    sed -i $sedfix 's/^genesis="12qyocayNF7.*/genesis="1G5Cjy8LuQex2fuYv3gzb7B8MxAnxLEqt3"/g' dplatform.toml
+    sed -i $sedfix 's/^genesis="12qyocayNF7.*/genesis="1G5Cjy8LuQex2fuYv3gzb7B8MxAnxLEqt3"/g' dplatformos.toml
 
     #autonomy
-    sed -i $sedfix 's/^useBalance=.*/useBalance=true/g' dplatform.toml
-    sed -i $sedfix 's/^total="16htvcBNS.*/total="1Q9sQwothzM1gKSzkVZ8Dt1tqKX1uzSagx"/g' dplatform.toml
+    sed -i $sedfix 's/^useBalance=.*/useBalance=true/g' dplatformos.toml
+    sed -i $sedfix 's/^total="16htvcBNS.*/total="1Q9sQwothzM1gKSzkVZ8Dt1tqKX1uzSagx"/g' dplatformos.toml
 
     if [ "$DAPP" == "x2ethereum" ]; then
-        sed -i $sedfix 's/^enableReduceLocaldb=.*/enableReduceLocaldb=false/g' dplatform.toml
-        sed -i $sedfix 's/^enablePushSubscribe=.*/enablePushSubscribe=true/g' dplatform.toml
+        sed -i $sedfix 's/^enableReduceLocaldb=.*/enableReduceLocaldb=false/g' dplatformos.toml
+        sed -i $sedfix 's/^enablePushSubscribe=.*/enablePushSubscribe=true/g' dplatformos.toml
     fi
 }
 
@@ -150,8 +150,8 @@ function start() {
     set +e
     influxdbcontainer=$(docker ps -a | grep build_influxdb_1)
     if [ -n "$influxdbcontainer" ]; then
-        echo "create database dplatformmetrics in docker container build_influxdb_1"
-        docker exec build_influxdb_1 influx -execute 'create database dplatformmetrics'
+        echo "create database dplatformosmetrics in docker container build_influxdb_1"
+        docker exec build_influxdb_1 influx -execute 'create database dplatformosmetrics'
     fi
     set -e
 
@@ -306,12 +306,12 @@ function block_wait2height() {
 }
 
 function check_docker_status() {
-    status=$(docker-compose ps | grep dplatform_1 | awk '{print $6}')
-    statusPara=$(docker-compose ps | grep dplatform_1 | awk '{print $3}')
+    status=$(docker-compose ps | grep dplatformos_1 | awk '{print $6}')
+    statusPara=$(docker-compose ps | grep dplatformos_1 | awk '{print $3}')
     if [ "${status}" == "Exit" ] || [ "${statusPara}" == "Exit" ]; then
-        echo "=========== dplatform service Exit logs ========== "
-        docker-compose logs dplatform
-        echo "=========== dplatform service Exit logs End========== "
+        echo "=========== dplatformos service Exit logs ========== "
+        docker-compose logs dplatformos
+        echo "=========== dplatformos service Exit logs End========== "
     fi
 
 }

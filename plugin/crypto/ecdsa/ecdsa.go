@@ -15,7 +15,7 @@ import (
 	"encoding/asn1"
 	"math/big"
 
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common/crypto"
 )
 
 const (

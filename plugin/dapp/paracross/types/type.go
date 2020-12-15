@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"reflect"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var (
@@ -50,7 +50,7 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(ParaX, "Enable", 0)
 	cfg.RegisterDappFork(ParaX, "ForkParacrossWithdrawFromParachain", 1298600)
 	cfg.RegisterDappFork(ParaX, ForkCommitTx, 1850000)
@@ -62,12 +62,12 @@ func InitFork(cfg *types.DplatformConfig) {
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(ParaX, NewType(cfg))
 }
 
 // GetExecName get para exec name
-func GetExecName(cfg *types.DplatformConfig) string {
+func GetExecName(cfg *types.DplatformOSConfig) string {
 	return cfg.ExecName(ParaX)
 }
 
@@ -77,7 +77,7 @@ type ParacrossType struct {
 }
 
 // NewType get paracross type
-func NewType(cfg *types.DplatformConfig) *ParacrossType {
+func NewType(cfg *types.DplatformOSConfig) *ParacrossType {
 	c := &ParacrossType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

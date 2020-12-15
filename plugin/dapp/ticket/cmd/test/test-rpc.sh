@@ -18,42 +18,42 @@ ticket_CreateBindMiner() {
     returnPriv=$3
     amount=$4
     req='{"method":"ticket.CreateBindMiner","params":[{"bindAddr":"'"$minerAddr"'", "originAddr":"'"$returnAddr"'", "amount":'"$amount"', "checkBalance":true}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not)' "$FUNCNAME" ".result.txHex"
-    dplatform_SignAndSendTx "$RETURN_RESP" "${returnPriv}" ${MAIN_HTTP}
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not)' "$FUNCNAME" ".result.txHex"
+    dplatformos_SignAndSendTx "$RETURN_RESP" "${returnPriv}" ${MAIN_HTTP}
 }
 
 ticket_SetAutoMining() {
     flag=$1
     req='{"method":"ticket.SetAutoMining","params":[{"flag":'"$flag"'}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.isOK == true)' "$FUNCNAME"
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.isOK == true)' "$FUNCNAME"
 }
 
 ticket_GetTicketCount() {
-    dplatform_Http '{"method":"ticket.GetTicketCount","params":[{}]}' ${MAIN_HTTP} '(.error|not) and (.result > 0)' "$FUNCNAME"
+    dplatformos_Http '{"method":"ticket.GetTicketCount","params":[{}]}' ${MAIN_HTTP} '(.error|not) and (.result > 0)' "$FUNCNAME"
 }
 
 ticket_CloseTickets() {
     addr=$1
     req='{"method":"ticket.CloseTickets","params":[{"minerAddress":"'"$addr"'"}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not)' "$FUNCNAME"
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not)' "$FUNCNAME"
 }
 
 ticket_TicketInfos() {
     tid=$1
     minerAddr=$2
     returnAddr=$3
-    req='{"method":"Dplatform.Query","params":[{"execer":"ticket","funcName":"TicketInfos","payload":{"ticketIds":["'"$tid"'"]}}]}'
+    req='{"method":"DplatformOS.Query","params":[{"execer":"ticket","funcName":"TicketInfos","payload":{"ticketIds":["'"$tid"'"]}}]}'
     resok='(.error|not) and (.result.tickets | length > 0) and (.result.tickets[0].minerAddress == "'"$minerAddr"'") and (.result.tickets[0].returnAddress == "'"$returnAddr"'")'
-    dplatform_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
+    dplatformos_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
 }
 
 ticket_TicketList() {
     minerAddr=$1
     returnAddr=$2
     status=$3
-    req='{"method":"Dplatform.Query","params":[{"execer":"ticket","funcName":"TicketList","payload":{"addr":"'"$minerAddr"'", "status":'"$status"'}}]}'
+    req='{"method":"DplatformOS.Query","params":[{"execer":"ticket","funcName":"TicketList","payload":{"addr":"'"$minerAddr"'", "status":'"$status"'}}]}'
     resok='(.error|not) and (.result.tickets | length > 0) and (.result.tickets[0].minerAddress == "'"$minerAddr"'") and (.result.tickets[0].returnAddress == "'"$returnAddr"'") and (.result.tickets[0].status == '"$status"')'
-    dplatform_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
+    dplatformos_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
 
     ticket0=$(echo "${RETURN_RESP}" | jq -r ".result.tickets[0]")
     echo -e "######\\n  ticket[0] is $ticket0)  \\n######"
@@ -64,24 +64,24 @@ ticket_TicketList() {
 ticket_MinerAddress() {
     returnAddr=$1
     minerAddr=$2
-    req='{"method":"Dplatform.Query","params":[{"execer":"ticket","funcName":"MinerAddress","payload":{"data":"'"$returnAddr"'"}}]}'
+    req='{"method":"DplatformOS.Query","params":[{"execer":"ticket","funcName":"MinerAddress","payload":{"data":"'"$returnAddr"'"}}]}'
     resok='(.error|not) and (.result.data == "'"$minerAddr"'")'
-    dplatform_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
+    dplatformos_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
 }
 
 ticket_MinerSourceList() {
     minerAddr=$1
     returnAddr=$2
-    req='{"method":"Dplatform.Query","params":[{"execer":"ticket","funcName":"MinerSourceList","payload":{"data":"'"$minerAddr"'"}}]}'
+    req='{"method":"DplatformOS.Query","params":[{"execer":"ticket","funcName":"MinerSourceList","payload":{"data":"'"$minerAddr"'"}}]}'
     resok='(.error|not) and (.result.datas | length > 0) and (.result.datas[0] == "'"$returnAddr"'")'
-    dplatform_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
+    dplatformos_Http "$req" ${MAIN_HTTP} "$resok" "$FUNCNAME"
 }
 
 ticket_RandNumHash() {
     hash=$1
     blockNum=$2
-    req='{"method":"Dplatform.Query","params":[{"execer":"ticket","funcName":"RandNumHash","payload":{"hash":"'"$hash"'", "blockNum":'"$blockNum"'}}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.hash != null)' "$FUNCNAME"
+    req='{"method":"DplatformOS.Query","params":[{"execer":"ticket","funcName":"RandNumHash","payload":{"hash":"'"$hash"'", "blockNum":'"$blockNum"'}}]}'
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result.hash != null)' "$FUNCNAME"
 }
 
 function run_testcases() {
@@ -94,8 +94,8 @@ function run_testcases() {
     returnAddr2="1NNaYHkscJaLJ2wUrFNeh6cQXBS4TrFYeB"
     returnPriv2="0x794443611e7369a57b078881445b93b754cbc9b9b8f526535ab9c6d21d29203d"
 
-    dplatform_QueryBalance "${returnAddr2}" "${MAIN_HTTP}"
-    dplatform_applyCoins "${minerAddr2}" 1000000000 "${MAIN_HTTP}"
+    dplatformos_QueryBalance "${returnAddr2}" "${MAIN_HTTP}"
+    dplatformos_applyCoins "${minerAddr2}" 1000000000 "${MAIN_HTTP}"
 
     ticket_SetAutoMining 0
     ticket_GetTicketCount
@@ -108,12 +108,12 @@ function run_testcases() {
     #关闭
     ticket_CloseTickets "${minerAddr1}"
 
-    dplatform_LastBlockhash "${MAIN_HTTP}"
+    dplatformos_LastBlockhash "${MAIN_HTTP}"
     ticket_RandNumHash "${LAST_BLOCK_HASH}" 5
 }
 
 function main() {
-    dplatform_RpcTestBegin Ticket
+    dplatformos_RpcTestBegin Ticket
     MAIN_HTTP="$1"
     echo "main_ip=$MAIN_HTTP"
 
@@ -124,7 +124,7 @@ function main() {
         run_testcases
     fi
 
-    dplatform_RpcTestRst Ticket "$CASE_ERR"
+    dplatformos_RpcTestRst Ticket "$CASE_ERR"
 }
 
-dplatform_debug_function main "$1"
+dplatformos_debug_function main "$1"

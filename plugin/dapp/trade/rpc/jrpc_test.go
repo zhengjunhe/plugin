@@ -8,16 +8,16 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/33cn/dplatform/client/mocks"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client/mocks"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func newTestDplatform() (*mocks.QueueProtocolAPI, *Jrpc) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+func newTestDplatformOS() (*mocks.QueueProtocolAPI, *Jrpc) {
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	cli := &channelClient{
@@ -28,8 +28,8 @@ func newTestDplatform() (*mocks.QueueProtocolAPI, *Jrpc) {
 	return api, &Jrpc{cli: cli}
 }
 
-func TestDplatform_CreateRawTradeSellTx(t *testing.T) {
-	_, client := newTestDplatform()
+func TestDplatformOS_CreateRawTradeSellTx(t *testing.T) {
+	_, client := newTestDplatformOS()
 	var testResult interface{}
 	err := client.CreateRawTradeSellTx(nil, &testResult)
 	assert.NotNil(t, err)
@@ -49,8 +49,8 @@ func TestDplatform_CreateRawTradeSellTx(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDplatform_CreateRawTradeBuyTx(t *testing.T) {
-	_, client := newTestDplatform()
+func TestDplatformOS_CreateRawTradeBuyTx(t *testing.T) {
+	_, client := newTestDplatformOS()
 	var testResult interface{}
 	err := client.CreateRawTradeBuyTx(nil, &testResult)
 	assert.NotNil(t, err)
@@ -67,8 +67,8 @@ func TestDplatform_CreateRawTradeBuyTx(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDplatform_CreateRawTradeRevokeTx(t *testing.T) {
-	_, client := newTestDplatform()
+func TestDplatformOS_CreateRawTradeRevokeTx(t *testing.T) {
+	_, client := newTestDplatformOS()
 	var testResult interface{}
 	err := client.CreateRawTradeRevokeTx(nil, &testResult)
 	assert.NotNil(t, err)
@@ -85,8 +85,8 @@ func TestDplatform_CreateRawTradeRevokeTx(t *testing.T) {
 
 }
 
-func TestDplatform_CreateRawTradeBuyLimitTx(t *testing.T) {
-	_, client := newTestDplatform()
+func TestDplatformOS_CreateRawTradeBuyLimitTx(t *testing.T) {
+	_, client := newTestDplatformOS()
 	var testResult interface{}
 	err := client.CreateRawTradeBuyLimitTx(nil, &testResult)
 	assert.NotNil(t, err)
@@ -107,8 +107,8 @@ func TestDplatform_CreateRawTradeBuyLimitTx(t *testing.T) {
 
 }
 
-func TestDplatform_CreateRawTradeSellMarketTx(t *testing.T) {
-	_, client := newTestDplatform()
+func TestDplatformOS_CreateRawTradeSellMarketTx(t *testing.T) {
+	_, client := newTestDplatformOS()
 	var testResult interface{}
 	err := client.CreateRawTradeSellMarketTx(nil, &testResult)
 	assert.NotNil(t, err)
@@ -126,8 +126,8 @@ func TestDplatform_CreateRawTradeSellMarketTx(t *testing.T) {
 
 }
 
-func TestDplatform_CreateRawTradeRevokeBuyTx(t *testing.T) {
-	_, client := newTestDplatform()
+func TestDplatformOS_CreateRawTradeRevokeBuyTx(t *testing.T) {
+	_, client := newTestDplatformOS()
 	var testResult interface{}
 	err := client.CreateRawTradeRevokeBuyTx(nil, &testResult)
 	assert.NotNil(t, err)
@@ -275,8 +275,8 @@ func TestDecodeLogTradeBuyMarket(t *testing.T) {
 	assert.Equal(t, "LogTradeBuyMarket", result.Logs[0].TyName)
 }
 
-func TestDplatform_GetLastMemPoolOk(t *testing.T) {
-	api, testDplatform := newTestDplatform()
+func TestDplatformOS_GetLastMemPoolOk(t *testing.T) {
+	api, testDplatformOS := newTestDplatformOS()
 	cfg := api.GetConfig()
 
 	var txlist types.ReplyTxList
@@ -294,7 +294,7 @@ func TestDplatform_GetLastMemPoolOk(t *testing.T) {
 
 	var testResult interface{}
 	actual := types.ReqNil{}
-	err := testDplatform.GetLastMemPool(actual, &testResult)
+	err := testDplatformOS.GetLastMemPool(actual, &testResult)
 	assert.Nil(t, err)
 	assert.Equal(t, testResult.(*rpctypes.ReplyTxList).Txs[0].Execer, string(tx.Execer))
 

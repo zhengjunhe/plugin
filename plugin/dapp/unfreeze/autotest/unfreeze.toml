@@ -24,7 +24,7 @@ dep = ["trans"]
 
 [[UnfreezeCreateFix]]
 id = "createFix"
-command = "send unfreeze create fix_amount -a 0.01 -e coins -s dpom -b 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 1 -t 2 -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
+command = "send unfreeze create fix_amount -a 0.01 -e coins -s dpos -b 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -p 1 -t 2 -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 from = "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 to = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 totalAmount = "2"

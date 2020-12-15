@@ -7,10 +7,10 @@ package executor
 import (
 	"fmt"
 
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	gt "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 )
 
@@ -21,7 +21,7 @@ var (
 )
 
 // Init 重命名执行器名称
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	driverName = name
 	gt.BlackwhiteX = driverName
 	gt.ExecerBlackwhite = []byte(driverName)

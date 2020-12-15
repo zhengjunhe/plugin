@@ -5,7 +5,7 @@
 package cert
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/cert/executor"
 	"github.com/33cn/plugin/plugin/dapp/cert/types"
 )

@@ -6,7 +6,7 @@
 package token
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	_ "github.com/33cn/plugin/plugin/dapp/token/autotest" // register token autotest package
 	"github.com/33cn/plugin/plugin/dapp/token/commands"
 	"github.com/33cn/plugin/plugin/dapp/token/executor"

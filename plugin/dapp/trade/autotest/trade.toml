@@ -36,9 +36,9 @@ checkItem = ["balance"]
 dep = ["import1"]
 
 
-#prepare dpom for trade sell and buy
+#prepare dpos for trade sell and buy
 [[TransferCase]]
-id = "dpomToTrade"
+id = "dposToTrade"
 command = "send coins transfer -a 7 -t 1BXvgjmBw1aBgmGn1hjfGyRkmN3krWpFP4 -k 1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 from = "1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 to = "1BXvgjmBw1aBgmGn1hjfGyRkmN3krWpFP4"
@@ -53,13 +53,13 @@ from = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 to = "1BXvgjmBw1aBgmGn1hjfGyRkmN3krWpFP4"
 amount = "50"
 checkItem = ["balance"]
-dep = ["tokenFinish", "dpomToTrade"]
+dep = ["tokenFinish", "dposToTrade"]
 
 
 #token sell case
 [[SellCase]]
 id = "tokenSell1"
-command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 10 -s TS -e token --price_exec coins --price_symbol dpom -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 10 -s TS -e token --price_exec coins --price_symbol dpos -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 from = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 amount = "10"
 checkItem = ["balance", "frozen"]
@@ -68,7 +68,7 @@ dep = ["tokenToTrade"]
 
 [[SellCase]]
 id = "tokenSell2"
-command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 1 -s TS  -e token --price_exec coins --price_symbol dpom -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 1 -s TS  -e token --price_exec coins --price_symbol dpos -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 from = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 amount = "1"
 checkItem = ["balance", "frozen"]
@@ -77,7 +77,7 @@ dep = ["tokenToTrade"]
 
 [[SellCase]]
 id = "tokenSell3"
-command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 10 -s TS  -e token --price_exec coins --price_symbol dpom -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 10 -s TS  -e token --price_exec coins --price_symbol dpos -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 from = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 amount = "10"
 checkItem = ["balance", "frozen"]
@@ -87,7 +87,7 @@ dep = ["tokenToTrade"]
 #no balance
 [[SellCase]]
 id = "failSell"
-command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 100 -s TS  -e token --price_exec coins --price_symbol dpom -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+command = "send trade sell -f 0.01 -m 100 -p 0.01 -t 100 -s TS  -e token --price_exec coins --price_symbol dpos -k 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 from = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 amount = "100"
 checkItem = ["balance", "frozen"]
@@ -100,7 +100,7 @@ id = "tokenBuy"
 command = "send trade buy -c 100 -f 0.01 -k 1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 from = "1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 to = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
-dpomAmount = "1"
+dposAmount = "1"
 tokenAmount = "1"
 checkItem = ["balance", "frozen"]
 dep = ["tokenSell1"]
@@ -114,7 +114,7 @@ id = "failBuy1"
 command = "send trade buy -c 90 -f 0.01 -k 1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 from = "1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 to = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
-dpomAmount = "0.9"
+dposAmount = "0.9"
 tokenAmount = "0.9"
 checkItem = ["balance", "frozen"]
 dep = ["tokenSell1"]
@@ -127,7 +127,7 @@ id = "failBuy2"
 command = "send trade buy -c 200 -f 0.01 -k 1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 from = "1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 to = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
-dpomAmount = "2"
+dposAmount = "2"
 tokenAmount = "2"
 checkItem = ["balance", "frozen"]
 dep = ["tokenSell2"]
@@ -137,13 +137,13 @@ fail = true
 
 
 
-#dpom余额不足
+#dpos余额不足
 [[DependBuyCase]]
 id = "failBuy3"
 command = "send trade buy -c 800 -f 0.01 -k 1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 from = "1Luh4AziYyaC5zP3hUXtXFZS873xAxm6rH"
 to = "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
-dpomAmount = "8"
+dposAmount = "8"
 tokenAmount = "8"
 checkItem = ["balance", "frozen"]
 dep = ["tokenSell3"]

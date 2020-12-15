@@ -5,7 +5,7 @@
 //Package types ...
 package types
 
-import "github.com/33cn/dplatform/types"
+import "github.com/33cn/dplatformos/types"
 
 const (
 	// InvalidAction invalid action type

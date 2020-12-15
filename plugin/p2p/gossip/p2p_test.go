@@ -9,21 +9,21 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/dplatform/p2p"
+	"github.com/33cn/dplatformos/p2p"
 
-	"github.com/33cn/dplatform/p2p/utils"
+	"github.com/33cn/dplatformos/p2p/utils"
 
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/33cn/dplatform/client"
+	"github.com/33cn/dplatformos/client"
 
-	l "github.com/33cn/dplatform/common/log"
+	l "github.com/33cn/dplatformos/common/log"
 
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/wallet"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/wallet"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -121,7 +121,7 @@ func processMsg(q queue.Queue) {
 }
 
 //new p2p
-func newP2p(cfg *types.DplatformConfig, port int32, dbpath string, q queue.Queue) *P2p {
+func newP2p(cfg *types.DplatformOSConfig, port int32, dbpath string, q queue.Queue) *P2p {
 	p2pCfg := cfg.GetModuleConfig().P2P
 	p2pCfg.Enable = true
 	p2pCfg.DbPath = dbpath
@@ -181,7 +181,7 @@ func testNetInfo(t *testing.T, p2p *P2p) {
 
 //测试Peer
 func testPeer(t *testing.T, p2p *P2p, q queue.Queue) {
-	cfg := types.NewDplatformConfig(types.ReadFile("../../../dplatform.toml"))
+	cfg := types.NewDplatformOSConfig(types.ReadFile("../../../dplatformos.toml"))
 	conn, err := grpc.Dial("localhost:53802", grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(grpc.UseCompressor("gzip")))
 	assert.Nil(t, err)
@@ -431,7 +431,7 @@ func testRestart(t *testing.T, p2p *P2p) {
 }
 
 func Test_p2p(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.ReadFile("../../../dplatform.toml"))
+	cfg := types.NewDplatformOSConfig(types.ReadFile("../../../dplatformos.toml"))
 	q := queue.New("channel")
 	q.SetConfig(cfg)
 	go q.Start()

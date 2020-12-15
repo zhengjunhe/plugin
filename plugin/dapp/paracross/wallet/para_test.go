@@ -7,10 +7,10 @@ package wallet_test
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/util"
 
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/types"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin"
 	node "github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 )

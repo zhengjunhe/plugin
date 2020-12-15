@@ -9,15 +9,15 @@ import (
 	"strings"
 	"testing"
 
-	apimock "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
-	dbmock "github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/common/log"
-	mty "github.com/33cn/dplatform/system/dapp/manage/types"
-	"github.com/33cn/dplatform/types"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
+	dbmock "github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/common/log"
+	mty "github.com/33cn/dplatformos/system/dapp/manage/types"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin/crypto/bls"
 	"github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
@@ -55,8 +55,8 @@ var (
 
 	TokenSymbol                = "X"
 	MainBlockHeightForTransfer = int64(9)
-	dplatformTestCfg             = types.NewDplatformConfig(testnode.DefaultConfig)
-	dplatformTestMainCfg         = types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"test\"", 1))
+	dplatformosTestCfg             = types.NewDplatformOSConfig(testnode.DefaultConfig)
+	dplatformosTestMainCfg         = types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"test\"", 1))
 )
 
 type CommitTestSuite struct {
@@ -88,7 +88,7 @@ func makeNodeInfo(key, addr string, cnt int) *types.ConfigItem {
 func init() {
 	log.SetFileLog(nil)
 	log.SetLogLevel("debug")
-	Init(pt.ParaX, dplatformTestCfg, nil)
+	Init(pt.ParaX, dplatformosTestCfg, nil)
 }
 
 func (suite *CommitTestSuite) SetupSuite() {
@@ -98,7 +98,7 @@ func (suite *CommitTestSuite) SetupSuite() {
 	//suite.localDB, _ = dbm.NewGoMemDB("local", "local", 1024)
 	suite.localDB = new(dbmock.KVDB)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestCfg, nil)
 
 	suite.exec = newParacross().(*Paracross)
 	suite.exec.SetAPI(suite.api)
@@ -112,7 +112,7 @@ func (suite *CommitTestSuite) SetupSuite() {
 	blockDetail := &types.BlockDetail{
 		Block: &types.Block{},
 	}
-	MainBlockHash10 = blockDetail.Block.Hash(dplatformTestCfg)
+	MainBlockHash10 = blockDetail.Block.Hash(dplatformosTestCfg)
 	blockDetail.Block.MainHash = MainBlockHash10
 
 	// setup title nodes : len = 4
@@ -185,7 +185,7 @@ func fillRawCommitTx(suite suite.Suite) (*types.Transaction, error) {
 		CrossTxHashs:    [][]byte{},
 	}
 	act := &pt.ParacrossCommitAction{Status: st1}
-	tx, err := pt.CreateRawCommitTx4MainChain(dplatformTestCfg, act, pt.GetExecName(dplatformTestCfg), 0)
+	tx, err := pt.CreateRawCommitTx4MainChain(dplatformosTestCfg, act, pt.GetExecName(dplatformosTestCfg), 0)
 	if err != nil {
 		suite.T().Error("TestExec", "create tx failed", err)
 	}
@@ -474,7 +474,7 @@ func (s *VoteTestSuite) SetupSuite() {
 	//para_init(Title)
 	s.exec = newParacross().(*Paracross)
 	api := new(apimock.QueueProtocolAPI)
-	api.On("GetConfig", mock.Anything).Return(dplatformTestCfg, nil)
+	api.On("GetConfig", mock.Anything).Return(dplatformosTestCfg, nil)
 	s.exec.SetAPI(api)
 
 	s.stateDB, _ = dbm.NewGoMemDB("state", "state", 1024)
@@ -676,7 +676,7 @@ func (s *VoteTestSuite) TestVoteTxFork() {
 }
 
 func (s *VoteTestSuite) createVoteTx(status *pt.ParacrossNodeStatus, privFrom string) (*types.Transaction, error) {
-	tx, err := pt.CreateRawMinerTx(dplatformTestCfg, &pt.ParacrossMinerAction{Status: status})
+	tx, err := pt.CreateRawMinerTx(dplatformosTestCfg, &pt.ParacrossMinerAction{Status: status})
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err
@@ -702,7 +702,7 @@ func createCrossParaTx(s suite.Suite, to []byte) (*types.Transaction, error) {
 		TokenSymbol: "",
 		ExecName:    Title + pt.ParaX,
 	}
-	tx, err := pt.CreateRawAssetTransferTx(dplatformTestCfg, &param)
+	tx, err := pt.CreateRawAssetTransferTx(dplatformosTestCfg, &param)
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err
@@ -720,7 +720,7 @@ func createCrossParaTx(s suite.Suite, to []byte) (*types.Transaction, error) {
 func createCrossCommitTx(s suite.Suite) (*types.Transaction, error) {
 	status := &pt.ParacrossNodeStatus{MainBlockHash: []byte("hash"), MainBlockHeight: 0, Title: Title}
 	act := &pt.ParacrossCommitAction{Status: status}
-	tx, err := pt.CreateRawCommitTx4MainChain(dplatformTestCfg, act, Title+pt.ParaX, 0)
+	tx, err := pt.CreateRawCommitTx4MainChain(dplatformosTestCfg, act, Title+pt.ParaX, 0)
 	assert.Nil(s.T(), err, "create asset transfer failed")
 	if err != nil {
 		return nil, err
@@ -729,11 +729,11 @@ func createCrossCommitTx(s suite.Suite) (*types.Transaction, error) {
 }
 
 func createTxsGroup(s suite.Suite, txs []*types.Transaction) ([]*types.Transaction, error) {
-	group, err := types.CreateTxGroup(txs, dplatformTestCfg.GetMinTxFeeRate())
+	group, err := types.CreateTxGroup(txs, dplatformosTestCfg.GetMinTxFeeRate())
 	if err != nil {
 		return nil, err
 	}
-	err = group.Check(dplatformTestCfg, 0, dplatformTestCfg.GetMinTxFeeRate(), dplatformTestCfg.GetMaxTxFee())
+	err = group.Check(dplatformosTestCfg, 0, dplatformosTestCfg.GetMinTxFeeRate(), dplatformosTestCfg.GetMaxTxFee())
 	if err != nil {
 		return nil, err
 	}
@@ -765,7 +765,7 @@ func createParaNormalTx(s suite.Suite, privFrom string, to []byte) (*types.Trans
 		To:      address.ExecAddress(param.GetExecName()),
 		Fee:     param.Fee,
 	}
-	tx, err := types.FormatTx(dplatformTestCfg, param.GetExecName(), tx)
+	tx, err := types.FormatTx(dplatformosTestCfg, param.GetExecName(), tx)
 	if err != nil {
 		return nil, err
 	}

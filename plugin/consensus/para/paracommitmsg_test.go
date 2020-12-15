@@ -7,10 +7,10 @@ package para
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/queue"
-	_ "github.com/33cn/dplatform/system"
-	drivers "github.com/33cn/dplatform/system/consensus"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/queue"
+	_ "github.com/33cn/dplatformos/system"
+	drivers "github.com/33cn/dplatformos/system/consensus"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	"github.com/stretchr/testify/assert"
 )
@@ -51,7 +51,7 @@ func TestParseSelfConsEnableStr(t *testing.T) {
 }
 
 func TestSetSelfConsEnable(t *testing.T) {
-	cfg := types.NewDplatformConfig(testnode.DefaultConfig)
+	cfg := types.NewDplatformOSConfig(testnode.DefaultConfig)
 	q := queue.New("channel")
 	q.SetConfig(cfg)
 	para := new(client)

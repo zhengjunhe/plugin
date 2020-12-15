@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatformos/common"
+	dbm "github.com/33cn/dplatformos/common/db"
 	proto "github.com/golang/protobuf/proto"
 )
 

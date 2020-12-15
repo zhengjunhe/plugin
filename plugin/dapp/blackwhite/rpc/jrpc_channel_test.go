@@ -8,15 +8,15 @@ import (
 	"strings"
 	"testing"
 
-	commonlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -89,7 +89,7 @@ func testRoundInfoCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = pty.GetBlackwhiteRoundInfo
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyBlackwhiteRoundInfo{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testRoundListCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -100,7 +100,7 @@ func testRoundListCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyBlackwhiteRoundList{}
 
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testLoopResultCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -111,5 +111,5 @@ func testLoopResultCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyLoopResults{}
 
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }

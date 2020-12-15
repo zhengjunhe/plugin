@@ -5,10 +5,10 @@
 package executor
 
 import (
-	log "github.com/33cn/dplatform/common/log/log15"
+	log "github.com/33cn/dplatformos/common/log/log15"
 
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 )
 
@@ -17,7 +17,7 @@ var relaylog = log.New("module", "execs.relay")
 var driverName = "relay"
 
 // Init relay register driver
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newRelay, cfg.GetDappFork(driverName, "Enable")) //TODO: ForkV18Relay
 	InitExecType()
 }

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-/root/dplatform -f "$PARAFILE"
+/root/dplatformos -f "$PARAFILE"

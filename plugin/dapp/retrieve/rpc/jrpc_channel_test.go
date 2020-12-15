@@ -8,19 +8,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatformos/common"
 
-	commonlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 
 	"github.com/33cn/plugin/plugin/dapp/retrieve/rpc"
 	pty "github.com/33cn/plugin/plugin/dapp/retrieve/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -108,5 +108,5 @@ func testRetrieveQueryCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = "GetRetrieveInfo"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.RetrieveQuery{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }

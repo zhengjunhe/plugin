@@ -9,9 +9,9 @@ import (
 
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )
 
@@ -193,7 +193,7 @@ func (e *Paracross) ExecLocal_CrossAssetTransfer(payload *pt.CrossAssetTransfer,
 	return &set, nil
 }
 
-func setMinerTxResult(cfg *types.DplatformConfig, payload *pt.ParacrossMinerAction, txs []*types.Transaction, receipts []*types.ReceiptData) error {
+func setMinerTxResult(cfg *types.DplatformOSConfig, payload *pt.ParacrossMinerAction, txs []*types.Transaction, receipts []*types.ReceiptData) error {
 	isCommitTx := make(map[string]bool)
 	var curTxHashs, paraTxHashs, crossTxHashs [][]byte
 	for _, tx := range txs {
@@ -230,7 +230,7 @@ func setMinerTxResult(cfg *types.DplatformConfig, payload *pt.ParacrossMinerActi
 	return nil
 }
 
-func setMinerTxResultFork(cfg *types.DplatformConfig, status *pt.ParacrossNodeStatus, txs []*types.Transaction, receipts []*types.ReceiptData) error {
+func setMinerTxResultFork(cfg *types.DplatformOSConfig, status *pt.ParacrossNodeStatus, txs []*types.Transaction, receipts []*types.ReceiptData) error {
 	isCommitTx := make(map[string]bool)
 	var curTxHashs [][]byte
 	for _, tx := range txs {

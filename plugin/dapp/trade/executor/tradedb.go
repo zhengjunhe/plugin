@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/33cn/dplatform/client"
-	dbm "github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client"
+	dbm "github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 
@@ -476,7 +476,7 @@ func (action *tradeAction) tradeBuyLimit(buy *pty.TradeForBuyLimit) (*types.Rece
 	if err != nil {
 		return nil, err
 	}
-	// check enough dpom
+	// check enough dpos
 	amount := buy.PricePerBoardlot * buy.TotalBoardlot
 	receipt, err := priceAcc.ExecFrozen(action.fromaddr, action.execaddr, amount)
 	if err != nil {
@@ -626,7 +626,7 @@ func (action *tradeAction) tradeRevokeBuyLimit(revoke *pty.TradeForRevokeBuy) (*
 	//tradelog.Info("tradeRevokeBuyLimit", "total-b", buyOrder.TotalBoardlot, "price", buyOrder.PricePerBoardlot, "amount", tradeRest)
 	receiptFromExecAcc, err := priceAcc.ExecActive(buyOrder.Address, action.execaddr, tradeRest)
 	if err != nil {
-		tradelog.Error("account.ExecActive dpom ", "addrFrom", buyOrder.Address, "execaddr", action.execaddr, "amount", tradeRest)
+		tradelog.Error("account.ExecActive dpos ", "addrFrom", buyOrder.Address, "execaddr", action.execaddr, "amount", tradeRest)
 		return nil, err
 	}
 

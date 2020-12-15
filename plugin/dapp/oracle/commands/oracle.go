@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	oraclety "github.com/33cn/plugin/plugin/dapp/oracle/types"
 	"github.com/spf13/cobra"
 )
@@ -58,10 +58,10 @@ func addPublishEventFlags(cmd *cobra.Command) {
 		return
 	}
 
-	cmd.Flags().StringP("sudpompe", "s", "", "event sudpompe, such as \"Premier League\"")
-	err = cmd.MarkFlagRequired("sudpompe")
+	cmd.Flags().StringP("sudpospe", "s", "", "event sudpospe, such as \"Premier League\"")
+	err = cmd.MarkFlagRequired("sudpospe")
 	if err != nil {
-		fmt.Printf("MarkFlagRequired sudpompe Error: %v", err)
+		fmt.Printf("MarkFlagRequired sudpospe Error: %v", err)
 		return
 	}
 
@@ -101,9 +101,9 @@ func publishEvent(cmd *cobra.Command, args []string) {
 		fmt.Printf("publishEvent get type Error: %v", err)
 		return
 	}
-	subType, err := cmd.Flags().GetString("sudpompe")
+	subType, err := cmd.Flags().GetString("sudpospe")
 	if err != nil {
-		fmt.Printf("publishEvent get sudpompe Error: %v", err)
+		fmt.Printf("publishEvent get sudpospe Error: %v", err)
 		return
 	}
 	introduction, err := cmd.Flags().GetString("introduction")
@@ -135,7 +135,7 @@ func publishEvent(cmd *cobra.Command, args []string) {
 		Payload:    []byte(fmt.Sprintf("{\"type\":\"%s\",\"subType\":\"%s\",\"time\":%d, \"content\":\"%s\", \"introduction\":\"%s\"}", ty, subType, t.Unix(), content, introduction)),
 	}
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -180,7 +180,7 @@ func abortPublishEvent(cmd *cobra.Command, args []string) {
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\"}", eventID)),
 	}
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -249,7 +249,7 @@ func prePublishResult(cmd *cobra.Command, args []string) {
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\", \"source\":\"%s\", \"result\":\"%s\"}", eventID, source, result)),
 	}
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -294,7 +294,7 @@ func abortPrePubResult(cmd *cobra.Command, args []string) {
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\"}", eventID)),
 	}
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -363,7 +363,7 @@ func publishResult(cmd *cobra.Command, args []string) {
 		Payload:    []byte(fmt.Sprintf("{\"eventID\":\"%s\", \"source\":\"%s\", \"result\":\"%s\"}", eventID, source, result)),
 	}
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -469,7 +469,7 @@ func oracleQuery(cmd *cobra.Command, args []string) {
 		req := &oraclety.QueryOracleInfos{EventID: eIDs}
 		params.Payload = types.MustPBToJSON(req)
 		var res oraclety.ReplyOracleStatusList
-		ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+		ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 		ctx.Run()
 	} else if statusStr != "" {
 		if status < 0 || status > 5 {
@@ -484,7 +484,7 @@ func oracleQuery(cmd *cobra.Command, args []string) {
 			params.FuncName = oraclety.FuncNameQueryEventIDByStatus
 		}
 		var res oraclety.ReplyEventIDs
-		ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+		ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 		ctx.Run()
 	} else {
 		fmt.Println("Error: requeres at least one of eventID, eventIDs, status")

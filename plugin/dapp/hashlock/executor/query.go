@@ -4,7 +4,7 @@
 
 package executor
 
-import "github.com/33cn/dplatform/types"
+import "github.com/33cn/dplatformos/types"
 
 // Query_GetHashlocKById get hashlock instance
 func (h *Hashlock) Query_GetHashlocKById(in []byte) (types.Message, error) {

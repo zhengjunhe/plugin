@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var tlog = log15.New("module", ParaX)
@@ -187,11 +187,11 @@ func CalcMinerHeightKey(title string, height int64) []byte {
 }
 
 // CreateRawCommitTx4MainChain create commit tx to main chain
-func CreateRawCommitTx4MainChain(cfg *types.DplatformConfig, status *ParacrossCommitAction, name string, fee int64) (*types.Transaction, error) {
+func CreateRawCommitTx4MainChain(cfg *types.DplatformOSConfig, status *ParacrossCommitAction, name string, fee int64) (*types.Transaction, error) {
 	return createRawCommitTx(cfg, status, name, fee)
 }
 
-func createRawCommitTx(cfg *types.DplatformConfig, commit *ParacrossCommitAction, name string, feeRate int64) (*types.Transaction, error) {
+func createRawCommitTx(cfg *types.DplatformOSConfig, commit *ParacrossCommitAction, name string, feeRate int64) (*types.Transaction, error) {
 	action := &ParacrossAction{
 		Ty:    ParacrossActionCommit,
 		Value: &ParacrossAction_Commit{commit},
@@ -216,7 +216,7 @@ func createRawCommitTx(cfg *types.DplatformConfig, commit *ParacrossCommitAction
 }
 
 // CreateRawAssetTransferTx create asset transfer tx
-func CreateRawAssetTransferTx(cfg *types.DplatformConfig, param *types.CreateTx) (*types.Transaction, error) {
+func CreateRawAssetTransferTx(cfg *types.DplatformOSConfig, param *types.CreateTx) (*types.Transaction, error) {
 	// 跨链交易需要在主链和平行链上执行， 所以应该可以在主链和平行链上构建
 	if !types.IsParaExecName(param.GetExecName()) {
 		tlog.Error("CreateRawAssetTransferTx", "exec", param.GetExecName())
@@ -249,7 +249,7 @@ func CreateRawAssetTransferTx(cfg *types.DplatformConfig, param *types.CreateTx)
 }
 
 // CreateRawMinerTx create miner tx
-func CreateRawMinerTx(cfg *types.DplatformConfig, value *ParacrossMinerAction) (*types.Transaction, error) {
+func CreateRawMinerTx(cfg *types.DplatformOSConfig, value *ParacrossMinerAction) (*types.Transaction, error) {
 
 	action := &ParacrossAction{
 		Ty:    ParacrossActionMiner,
@@ -297,7 +297,7 @@ func (p ParacrossType) CreateRawTransferTx(action string, param json.RawMessage)
 }
 
 //GetDappForkHeight get paracross dapp fork height
-func GetDappForkHeight(cfg *types.DplatformConfig, forkKey string) int64 {
+func GetDappForkHeight(cfg *types.DplatformOSConfig, forkKey string) int64 {
 	var forkHeight int64
 	if cfg.IsPara() {
 		key := forkKey
@@ -329,6 +329,6 @@ func GetDappForkHeight(cfg *types.DplatformConfig, forkKey string) int64 {
 }
 
 // IsParaForkHeight check height more than fork height
-func IsParaForkHeight(cfg *types.DplatformConfig, height int64, forkKey string) bool {
+func IsParaForkHeight(cfg *types.DplatformOSConfig, height int64, forkKey string) bool {
 	return height >= GetDappForkHeight(cfg, forkKey)
 }

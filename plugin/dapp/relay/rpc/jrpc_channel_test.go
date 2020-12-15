@@ -8,15 +8,15 @@ import (
 	"strings"
 	"testing"
 
-	commonlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -64,7 +64,7 @@ func testShowOnesCreateRelayOrdersCmd(t *testing.T, jrpc *jsonclient.JSONClient)
 	params.FuncName = "GetSellRelayOrder"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyRelayOrders{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testShowOnesAcceptRelayOrdersCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -75,7 +75,7 @@ func testShowOnesAcceptRelayOrdersCmd(t *testing.T, jrpc *jsonclient.JSONClient)
 	params.FuncName = "GetBuyRelayOrder"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyRelayOrders{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testShowOnesStatusOrdersCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -86,7 +86,7 @@ func testShowOnesStatusOrdersCmd(t *testing.T, jrpc *jsonclient.JSONClient) erro
 	params.FuncName = "GetRelayOrderByStatus"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyRelayOrders{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testShowBTCHeadHeightListCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -97,7 +97,7 @@ func testShowBTCHeadHeightListCmd(t *testing.T, jrpc *jsonclient.JSONClient) err
 	params.FuncName = "GetBTCHeaderList"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyRelayBtcHeadHeightList{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testGetBTCHeaderCurHeight(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -109,7 +109,7 @@ func testGetBTCHeaderCurHeight(t *testing.T, jrpc *jsonclient.JSONClient) error 
 	params.FuncName = "GetBTCHeaderCurHeight"
 	params.Payload = js
 	rep := &pty.ReplayRelayQryBTCHeadHeight{}
-	err = jrpc.Call("Dplatform.Query", params, rep)
+	err = jrpc.Call("DplatformOS.Query", params, rep)
 	if err != nil {
 		return err
 	}

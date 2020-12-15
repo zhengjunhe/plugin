@@ -1,4 +1,4 @@
-#image: dplatform-build:latest
+#image: dplatformos-build:latest
 
 before_script:
     - export GO_PROJECT_NAMESPACE="$GOPATH/src/gitlab.33.cn/$CI_PROJECT_NAMESPACE"
@@ -29,7 +29,7 @@ go_fmt:
         - make fmt
     only:
         - master
-        - dpom_develop
+        - dpos_develop
 
 go_lint:
     stage: build
@@ -39,7 +39,7 @@ go_lint:
         - make linter
     only:
         - master
-        - dpom_develop
+        - dpos_develop
 
 go_test:
     stage: test
@@ -50,7 +50,7 @@ go_test:
         - make test
     only:
         - master
-        - dpom_develop
+        - dpos_develop
 
 #memory_sanitizer:
 #    stage: test
@@ -59,7 +59,7 @@ go_test:
 #    only:
 #        - master
 #        - develop
-#        - dpom_develop
+#        - dpos_develop
 
 
 
@@ -70,7 +70,7 @@ go_test:
 #    only:
 #        - master
 #        - develop
-#        - dpom_develop
+#        - dpos_develop
 
 deploy:
     stage: deploy
@@ -82,7 +82,7 @@ deploy:
         - make docker-compose-down
     only:
         - master
-        - dpom_develop
+        - dpos_develop
 
 deploy_relay:
     stage: deploy
@@ -116,7 +116,7 @@ code_coverage:
         - fi
     only:
         - master
-        - dpom_develop
+        - dpos_develop
 
 fork_test:
     stage: fork_test

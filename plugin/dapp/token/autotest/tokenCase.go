@@ -5,7 +5,7 @@
 package autotest
 
 import (
-	"github.com/33cn/dplatform/cmd/autotest/types"
+	"github.com/33cn/dplatformos/cmd/autotest/types"
 
 	"strconv"
 )

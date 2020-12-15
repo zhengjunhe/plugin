@@ -7,7 +7,7 @@ package autotest
 import (
 	"strconv"
 
-	"github.com/33cn/dplatform/cmd/autotest/types"
+	"github.com/33cn/dplatformos/cmd/autotest/types"
 )
 
 //PrivToPrivCase pub2priv case

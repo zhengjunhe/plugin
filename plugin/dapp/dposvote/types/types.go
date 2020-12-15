@@ -7,7 +7,7 @@ package types
 import (
 	"reflect"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 func init() {
@@ -18,12 +18,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(DPosX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(DPosX, NewType(cfg))
 }
 
@@ -33,7 +33,7 @@ type DPosType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *DPosType {
+func NewType(cfg *types.DplatformOSConfig) *DPosType {
 	c := &DPosType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

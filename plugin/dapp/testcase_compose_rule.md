@@ -6,11 +6,11 @@
 例如paracross在plugin/dapp/paracross/cmd/build下面
 
 cmd目录下有两个文件Makefile和build.sh 负责在make时候把build里面的内容copy到系统的build/ci目录下的“dapp”目录准备测试
-例如paracross copy到dplatform/build/ci/paracross目录下
+例如paracross copy到dplatformos/build/ci/paracross目录下
 
 通过make docker-compose DAPP="dapp" 来运行测试 (此处dapp是各dapp的名字 比如paracross)
 系统会依据build/ci/dapp目录生成一个临时的dapp-ci目录，把dapp和系统的bin和配置信息等一起copy进去来运行测试
-测试执行完后相应dockers不会自动删除，还可以通过docker exec build_dplatform_1 /root/dplatform-cli [cmd...] 来查看信息
+测试执行完后相应dockers不会自动删除，还可以通过docker exec build_dplatformos_1 /root/dplatformos-cli [cmd...] 来查看信息
 通过make docker-compose-down DAPP="dapp" 来删除此dapp的测试资源，释放docker
 
 也可以通过dapp参数关键字all来run所有的dapp， all模式会自动删除pass的dapp的资源
@@ -32,7 +32,7 @@ build下的文件都是和CI 测试相关的
  1. Dockerfile， 如果本dapp对系统的Dockerfile没有改动，可以不提供，使用系统默认的，如果有改动使用自己的，名字可以保持不变，系统不会覆盖，
     也可以对某个docker改变Dockerfile，使用自己命名的比如Dockerfile-xxx，需要设置到自己的docker-compose yml文件里面
     需要说明的是Dockerfile不能继承，只能替换
- 1. docker-compose yml文件是组织docker service编排的，dplatform至少需要启动2个docker才能挖矿，如果对Dockerfile 命名有修改，可以在
+ 1. docker-compose yml文件是组织docker service编排的，dplatformos至少需要启动2个docker才能挖矿，如果对Dockerfile 命名有修改，可以在
     这里指定，docker-compose文件可以和系统文件继承， 也就是dapp里面可以只写修改的部分，如和系统有重叠，以dapp里面的为准。
     docker-compose yml文件可以对docker service做各种定制
     如果对docker-compose没有修改，也可以不提供

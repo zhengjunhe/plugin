@@ -26,11 +26,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/db"
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/db"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 )
 
@@ -39,7 +39,7 @@ var privacylog = log.New("module", "execs.privacy")
 var driverName = "privacy"
 
 // Init initialize executor driver
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newPrivacy, cfg.GetDappFork(driverName, "Enable"))
 	// 如果需要在开发环境下使用隐私交易，则需要使用下面这行代码，否则用上面的代码
 	//drivers.Register(newPrivacy().GetName(), newPrivacy, 0)

@@ -7,8 +7,8 @@ package autotest
 import (
 	"reflect"
 
-	"github.com/33cn/dplatform/cmd/autotest/types"
-	ca "github.com/33cn/dplatform/system/dapp/coins/autotest"
+	"github.com/33cn/dplatformos/cmd/autotest/types"
+	ca "github.com/33cn/dplatformos/system/dapp/coins/autotest"
 	ta "github.com/33cn/plugin/plugin/dapp/token/autotest"
 )
 

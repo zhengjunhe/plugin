@@ -37,7 +37,7 @@
 
     ```
     {
-        "method" : "Dplatform.CreateTransaction",
+        "method" : "DplatformOS.CreateTransaction",
         "params" : [
             {
             "execer" : "{user.p.para}.paracross",
@@ -56,7 +56,7 @@
 
     |参数|类型|说明|
     |----|----|----|
-    |method|string|Dplatform.CreateTransaction|
+    |method|string|DplatformOS.CreateTransaction|
     |execer|string|必须是平行链的执行器user.p.para.paracross,title:user.p.para.按需调整|
     |actionName|string|ParaBindMiner|
     |bindAction|string|绑定:1，解绑定:2|

@@ -7,7 +7,7 @@ package state
 import (
 	"fmt"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 )
@@ -75,7 +75,7 @@ func InitForkData() {
 }
 
 // ProcessFork 处理硬分叉逻辑
-func ProcessFork(cfg *types.DplatformConfig, blockHeight int64, txHash []byte, receipt *types.Receipt) {
+func ProcessFork(cfg *types.DplatformOSConfig, blockHeight int64, txHash []byte, receipt *types.Receipt) {
 	if cfg.IsLocal() {
 		return
 	}

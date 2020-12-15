@@ -7,14 +7,14 @@ package testnode
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/util/testnode"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 	ticketwallet "github.com/33cn/plugin/plugin/dapp/ticket/wallet"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/types"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -22,7 +22,7 @@ func TestWalletTicket(t *testing.T) {
 	minerAddr := "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 	t.Log("Begin wallet ticket test")
 
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 	mock33 := testnode.NewWithConfig(cfg, nil)
 	defer mock33.Close()

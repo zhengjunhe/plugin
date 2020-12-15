@@ -19,13 +19,13 @@ import (
 
 	"encoding/json"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto/sha3"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	cty "github.com/33cn/dplatform/system/dapp/coins/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto/sha3"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	cty "github.com/33cn/dplatformos/system/dapp/coins/types"
+	"github.com/33cn/dplatformos/types"
 	common2 "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 	"github.com/golang/protobuf/proto"
@@ -66,7 +66,7 @@ func evmToolsCmd() *cobra.Command {
 	return cmd
 }
 
-// transfer address format between ethereum and dplatform
+// transfer address format between ethereum and dplatformos
 func evmToolsAddressCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "address",
@@ -162,7 +162,7 @@ func evmBalance(cmd *cobra.Command, args []string) {
 		StateHash: "",
 	}
 	var res []*rpctypes.Account
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.GetBalance", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.GetBalance", params, &res)
 	ctx.SetResultCb(parseGetBalanceRes)
 	ctx.Run()
 }
@@ -282,11 +282,11 @@ func createContract(cmd *cobra.Command, args []string) {
 		Data: data,
 	}
 
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.SendTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.SendTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
-func createEvmTx(cfg *types.DplatformConfig, action proto.Message, execer, caller, addr, expire, rpcLaddr string, fee uint64) (string, error) {
+func createEvmTx(cfg *types.DplatformOSConfig, action proto.Message, execer, caller, addr, expire, rpcLaddr string, fee uint64) (string, error) {
 	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: 0, To: addr}
 
 	tx.Fee, _ = tx.GetRealFee(cfg.GetMinTxFeeRate())
@@ -313,7 +313,7 @@ func createEvmTx(cfg *types.DplatformConfig, action proto.Message, execer, calle
 		fmt.Fprintln(os.Stderr, err)
 		return "", err
 	}
-	err = client.Call("Dplatform.SignRawTx", unsignedTx, &res)
+	err = client.Call("DplatformOS.SignRawTx", unsignedTx, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return "", err
@@ -322,7 +322,7 @@ func createEvmTx(cfg *types.DplatformConfig, action proto.Message, execer, calle
 	return res, nil
 }
 
-func createEvmTransferTx(cfg *types.DplatformConfig, cmd *cobra.Command, caller, execName, expire, rpcLaddr string, amountInt64 int64, isWithdraw bool) (string, error) {
+func createEvmTransferTx(cfg *types.DplatformOSConfig, cmd *cobra.Command, caller, execName, expire, rpcLaddr string, amountInt64 int64, isWithdraw bool) (string, error) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	var tx *types.Transaction
 	transfer := &cty.CoinsAction{}
@@ -365,7 +365,7 @@ func createEvmTransferTx(cfg *types.DplatformConfig, cmd *cobra.Command, caller,
 		fmt.Fprintln(os.Stderr, err)
 		return "", err
 	}
-	err = client.Call("Dplatform.SignRawTx", unsignedTx, &res)
+	err = client.Call("DplatformOS.SignRawTx", unsignedTx, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return "", err
@@ -423,7 +423,7 @@ func callContract(cmd *cobra.Command, args []string) {
 		Data: data,
 	}
 
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.SendTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.SendTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -731,7 +731,7 @@ func evmTransfer(cmd *cobra.Command, args []string) {
 		Data: data,
 	}
 
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.SendTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.SendTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -782,7 +782,7 @@ func evmWithdraw(cmd *cobra.Command, args []string) {
 		Data: data,
 	}
 
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.SendTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.SendTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -799,7 +799,7 @@ func sendQuery(rpcAddr, funcName string, request types.Message, result proto.Mes
 		return false
 	}
 
-	err = jsonrpc.Call("Dplatform.Query", params, result)
+	err = jsonrpc.Call("DplatformOS.Query", params, result)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return false

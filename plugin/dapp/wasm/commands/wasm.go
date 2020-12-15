@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	wasmtypes "github.com/33cn/plugin/plugin/dapp/wasm/types"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,7 @@ func cmdCheckContract() *cobra.Command {
 func cmdCreateContract() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "publish a new contract on dplatform",
+		Short: "publish a new contract on dplatformos",
 		Run:   createContract,
 	}
 	cmd.Flags().StringP("name", "n", "", "contract name")
@@ -56,7 +56,7 @@ func cmdCreateContract() *cobra.Command {
 func cmdCallContract() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "call",
-		Short: "call contract on dplatform",
+		Short: "call contract on dplatformos",
 		Run:   callContract,
 	}
 	cmd.Flags().StringP("name", "n", "", "contract name")
@@ -80,7 +80,7 @@ func checkContract(cmd *cobra.Command, args []string) {
 	}
 
 	var resp types.Reply
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &resp)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &resp)
 	ctx.Run()
 }
 
@@ -105,7 +105,7 @@ func createContract(cmd *cobra.Command, args []string) {
 		ActionName: "Create",
 		Payload:    types.MustPBToJSON(&payload),
 	}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -129,6 +129,6 @@ func callContract(cmd *cobra.Command, args []string) {
 		ActionName: "Call",
 		Payload:    types.MustPBToJSON(&payload),
 	}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }

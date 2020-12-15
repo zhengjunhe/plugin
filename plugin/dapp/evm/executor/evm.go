@@ -12,9 +12,9 @@ import (
 
 	"reflect"
 
-	"github.com/33cn/dplatform/common/address"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/runtime"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/state"
@@ -31,7 +31,7 @@ var (
 var driverName = evmtypes.ExecutorName
 
 // Init 初始化本合约对象
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	driverName = name
 	drivers.Register(cfg, driverName, newEVMDriver, cfg.GetDappFork(driverName, evmtypes.EVMEnable))
 	EvmAddress = address.ExecAddress(cfg.ExecName(name))

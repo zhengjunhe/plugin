@@ -14,13 +14,13 @@ import (
 
 	"time"
 
-	dbm "github.com/33cn/dplatform/common/db"
-	clog "github.com/33cn/dplatform/common/log"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/queue"
-	drivers "github.com/33cn/dplatform/system/store"
-	mavl "github.com/33cn/dplatform/system/store/mavl/db"
-	"github.com/33cn/dplatform/types"
+	dbm "github.com/33cn/dplatformos/common/db"
+	clog "github.com/33cn/dplatformos/common/log"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/queue"
+	drivers "github.com/33cn/dplatformos/system/store"
+	mavl "github.com/33cn/dplatformos/system/store/mavl/db"
+	"github.com/33cn/dplatformos/types"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -66,7 +66,7 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork("store-kvmvccmavl", "ForkKvmvccmavl", 187*10000)
 }
 
@@ -117,7 +117,7 @@ type subConfig struct {
 }
 
 // New construct KVMVCCStore module
-func New(cfg *types.Store, sub []byte, dplatformcfg *types.DplatformConfig) queue.Module {
+func New(cfg *types.Store, sub []byte, dplatformoscfg *types.DplatformOSConfig) queue.Module {
 	var kvms *KVmMavlStore
 	var subcfg subConfig
 	var subKVMVCCcfg subKVMVCCConfig
@@ -159,8 +159,8 @@ func New(cfg *types.Store, sub []byte, dplatformcfg *types.DplatformConfig) queu
 	// 查询是否是删除裁剪版mavl
 	isPrunedMavl = isPrunedMavlDB(bs.GetDB())
 	// 读取fork高度
-	if dplatformcfg != nil {
-		kvmvccMavlFork = dplatformcfg.GetDappFork("store-kvmvccmavl", "ForkKvmvccmavl")
+	if dplatformoscfg != nil {
+		kvmvccMavlFork = dplatformoscfg.GetDappFork("store-kvmvccmavl", "ForkKvmvccmavl")
 	}
 	delMavlDataHeight = kvmvccMavlFork + 10000
 	bs.SetChild(kvms)

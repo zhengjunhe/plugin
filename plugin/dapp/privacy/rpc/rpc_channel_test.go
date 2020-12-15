@@ -9,15 +9,15 @@ import (
 	"strings"
 	"testing"
 
-	commonlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -100,7 +100,7 @@ func testShowAmountsOfUTXO(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.Payload = types.MustPBToJSON(&reqPrivacyToken)
 
 	var res pty.ReplyPrivacyAmounts
-	err := jrpc.Call("Dplatform.Query", params, &res)
+	err := jrpc.Call("DplatformOS.Query", params, &res)
 	return err
 }
 
@@ -116,7 +116,7 @@ func testShowUTXOs4SpecifiedAmount(t *testing.T, jrpc *jsonclient.JSONClient) er
 	params.Payload = types.MustPBToJSON(&reqPrivacyToken)
 
 	var res pty.ReplyUTXOsOfAmount
-	err := jrpc.Call("Dplatform.Query", params, &res)
+	err := jrpc.Call("DplatformOS.Query", params, &res)
 	return err
 }
 

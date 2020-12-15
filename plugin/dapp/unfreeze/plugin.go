@@ -5,7 +5,7 @@
 package unfreeze
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	_ "github.com/33cn/plugin/plugin/dapp/unfreeze/autotest" // register autotest package
 	"github.com/33cn/plugin/plugin/dapp/unfreeze/commands"
 	"github.com/33cn/plugin/plugin/dapp/unfreeze/executor"

@@ -9,9 +9,9 @@ import (
 
 	"encoding/json"
 
-	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	jsonrpc "github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 	"github.com/spf13/cobra"
 )
@@ -94,7 +94,7 @@ func proposalChange(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -134,7 +134,7 @@ func revokeProposalChange(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -185,7 +185,7 @@ func voteProposalChange(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -226,7 +226,7 @@ func terminateProposalChange(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -289,6 +289,6 @@ func showProposalChange(cmd *cobra.Command, args []string) {
 	}
 	rep = &auty.ReplyQueryProposalChange{}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, rep)
 	ctx.Run()
 }

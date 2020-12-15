@@ -19,9 +19,9 @@ EventTransfer -> 转移资产
 import (
 	"fmt"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 )
 
@@ -29,7 +29,7 @@ var clog = log.New("module", "execs.ticket")
 var driverName = "ticket"
 
 // Init initial
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newTicket, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

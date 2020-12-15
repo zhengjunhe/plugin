@@ -9,16 +9,16 @@ import (
 
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/log"
 	"github.com/stretchr/testify/mock"
 
-	apimocks "github.com/33cn/dplatform/client/mocks"
-	_ "github.com/33cn/dplatform/system"
-	drivers "github.com/33cn/dplatform/system/consensus"
-	"github.com/33cn/dplatform/types"
-	typesmocks "github.com/33cn/dplatform/types/mocks"
+	apimocks "github.com/33cn/dplatformos/client/mocks"
+	_ "github.com/33cn/dplatformos/system"
+	drivers "github.com/33cn/dplatformos/system/consensus"
+	"github.com/33cn/dplatformos/types"
+	typesmocks "github.com/33cn/dplatformos/types/mocks"
 	"github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/stretchr/testify/assert"
@@ -42,7 +42,7 @@ func getPrivKey(t *testing.T) crypto.PrivKey {
 }
 
 func TestCalcCommitMsgTxs(t *testing.T) {
-	cfg := types.NewDplatformConfig(testnode.DefaultConfig)
+	cfg := types.NewDplatformOSConfig(testnode.DefaultConfig)
 	api := new(apimocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	para := &client{BaseClient: &drivers.BaseClient{}}
@@ -85,14 +85,14 @@ func TestCalcCommitMsgTxs(t *testing.T) {
 }
 
 //func TestGetConsensusStatus(t *testing.T) {
-//	dplatformCfg := types.NewDplatformConfig(testnode.DefaultConfig)
+//	dplatformosCfg := types.NewDplatformOSConfig(testnode.DefaultConfig)
 //
 //	api := new(apimocks.QueueProtocolAPI)
-//	api.On("GetConfig", mock.Anything).Return(dplatformCfg, nil)
+//	api.On("GetConfig", mock.Anything).Return(dplatformosCfg, nil)
 //	para := &client{BaseClient: &drivers.BaseClient{}}
 //
 //	para.subCfg = new(subConfig)
-//	grpcClient := &typesmocks.DplatformClient{}
+//	grpcClient := &typesmocks.DplatformOSClient{}
 //	//grpcClient.On("GetFork", mock.Anything, &types.ReqKey{Key: []byte("ForkBlockHash")}).Return(&types.Int64{Data: 1}, errors.New("err")).Once()
 //	para.grpcClient = grpcClient
 //
@@ -125,13 +125,13 @@ func TestCalcCommitMsgTxs(t *testing.T) {
 //}
 
 func TestSendCommitMsg(t *testing.T) {
-	cfg := types.NewDplatformConfig(testnode.DefaultConfig)
+	cfg := types.NewDplatformOSConfig(testnode.DefaultConfig)
 	api := new(apimocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	para := &client{BaseClient: &drivers.BaseClient{}}
 	para.SetAPI(api)
 
-	grpcClient := &typesmocks.DplatformClient{}
+	grpcClient := &typesmocks.DplatformOSClient{}
 	//grpcClient.On("GetFork", mock.Anything, &types.ReqKey{Key: []byte("ForkBlockHash")}).Return(&types.Int64{Data: 1}, errors.New("err")).Once()
 	para.grpcClient = grpcClient
 	commitCli := new(commitMsgClient)

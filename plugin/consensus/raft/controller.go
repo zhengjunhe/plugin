@@ -9,10 +9,10 @@ import (
 	"strings"
 	"sync/atomic"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/queue"
-	drivers "github.com/33cn/dplatform/system/consensus"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/queue"
+	drivers "github.com/33cn/dplatformos/system/consensus"
+	"github.com/33cn/dplatformos/types"
 	"github.com/coreos/etcd/raft/raftpb"
 )
 

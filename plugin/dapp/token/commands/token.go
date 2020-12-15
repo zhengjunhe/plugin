@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/system/dapp/commands"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/system/dapp/commands"
+	"github.com/33cn/dplatformos/types"
 	tokenty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/spf13/cobra"
 )
@@ -159,7 +159,7 @@ func getPreCreatedTokens(cmd *cobra.Command, args []string) {
 		return
 	}
 	var res tokenty.ReplyTokens
-	err = rpc.Call("Dplatform.Query", params, &res)
+	err = rpc.Call("DplatformOS.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -205,7 +205,7 @@ func getFinishCreatedTokens(cmd *cobra.Command, args []string) {
 		return
 	}
 	var res tokenty.ReplyTokens
-	err = rpc.Call("Dplatform.Query", params, &res)
+	err = rpc.Call("DplatformOS.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -261,7 +261,7 @@ func tokenAssets(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res tokenty.ReplyAccountTokenAssets
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.SetResultCb(parseTokenAssetsRes)
 	ctx.Run()
 }
@@ -567,7 +567,7 @@ func getTokenLogs(cmd *cobra.Command, args []string) {
 		return
 	}
 	var res tokenty.ReplyTokenLogs
-	err = rpc.Call("Dplatform.Query", params, &res)
+	err = rpc.Call("DplatformOS.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -620,7 +620,7 @@ func getToken(cmd *cobra.Command, args []string) {
 	}
 
 	var res tokenty.LocalToken
-	err = rpc.Call("Dplatform.Query", params, &res)
+	err = rpc.Call("DplatformOS.Query", params, &res)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
@@ -685,6 +685,6 @@ func queryTx(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res types.ReplyTxInfos
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }

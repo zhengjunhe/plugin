@@ -316,22 +316,22 @@ account.prototype.execTransActiveToFrozen = function(execer, from, to, amount) {
 
 COINS = 100000000
 
-function kvcreator(ddpompe) {
+function kvcreator(ddpospe) {
     this.data = {}
     this.kvs = []
 	this.logs = []
-	this.type = ddpompe
+	this.type = ddpospe
 	this.getstate = getstatedb
 	this.getloal = getlocaldb
 	this.list = listdb
-    if (ddpompe == "exec" || ddpompe == "init") {
+    if (ddpospe == "exec" || ddpospe == "init") {
         this.getdb = this.getstate
-    } else if (ddpompe == "local") {
+    } else if (ddpospe == "local") {
         this.getdb = this.getlocal
-    } else if (ddpompe == "query") {
+    } else if (ddpospe == "query") {
 		this.getdb = this.getlocal
 	} else {
-		throw new Error("dplatform.js: ddpompe error")
+		throw new Error("dplatformos.js: ddpospe error")
 	}
 }
 
@@ -488,14 +488,14 @@ function callcode(context, f, args, loglist) {
 	}
     var farr = f.split("_", 2)
     if (farr.length !=  2) {
-        throw new Error("dplatform.js: invalid function name format")
+        throw new Error("dplatformos.js: invalid function name format")
     }
     var prefix = farr[0]
     var funcname = farr[1]
     var runobj = {}
     var logs = []
     if (!Array.isArray(loglist)) {
-        throw new Error("dplatform.js: loglist must be array")
+        throw new Error("dplatformos.js: loglist must be array")
     }
     for (var i = 0; i < loglist.length; i++) {
         logs.push(JSON.parse(loglist[i]))
@@ -507,11 +507,11 @@ function callcode(context, f, args, loglist) {
 	} else if (prefix == "query") {
 		runobj = new Query(JSON.parse(context))
 	} else {
-        throw new Error("dplatform.js: invalid function prefix format")
+        throw new Error("dplatformos.js: invalid function prefix format")
     }
     var arg = JSON.parse(args)
     if (typeof runobj[funcname] != "function") {
-        throw new Error("dplatform.js: invalid function name not found->" + funcname)
+        throw new Error("dplatformos.js: invalid function name not found->" + funcname)
     }
     return runobj[funcname](arg)
 }
@@ -568,7 +568,7 @@ var MIN_WAIT_BLOCK = 2
 var RAND_MAX = 10
 
 function ExecInit() {
-    this.acc = new account(this.kvc, "coins", "dpom")
+    this.acc = new account(this.kvc, "coins", "dpos")
 }
 
 Exec.prototype.NewGame = function(args) {

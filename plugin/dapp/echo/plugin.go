@@ -5,7 +5,7 @@
 package echo
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/echo/commands"
 	"github.com/33cn/plugin/plugin/dapp/echo/executor"
 	"github.com/33cn/plugin/plugin/dapp/echo/rpc"

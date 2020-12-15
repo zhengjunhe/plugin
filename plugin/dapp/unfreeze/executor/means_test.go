@@ -9,7 +9,7 @@ import (
 )
 
 func TestCalcFrozen(t *testing.T) {
-	m, err := newMeans(dplatformTestCfg, "LeftProportion", 15000000)
+	m, err := newMeans(dplatformosTestCfg, "LeftProportion", 15000000)
 	assert.Nil(t, err)
 	assert.NotNil(t, m)
 
@@ -33,7 +33,7 @@ func TestCalcFrozen(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "dpom",
+				AssetSymbol: "dpos",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       "LeftProportion",
@@ -88,7 +88,7 @@ func TestLeftV1(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "dpom",
+				AssetSymbol: "dpos",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       pty.LeftProportionX,
@@ -144,7 +144,7 @@ func TestFixV1(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "dpom",
+				AssetSymbol: "dpos",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       pty.FixAmountX,
@@ -199,7 +199,7 @@ func TestLeftV2(t *testing.T) {
 			create := pty.UnfreezeCreate{
 				StartTime:   c.start,
 				AssetExec:   "coins",
-				AssetSymbol: "dpom",
+				AssetSymbol: "dpos",
 				TotalCount:  c.total,
 				Beneficiary: "x",
 				Means:       pty.LeftProportionX,

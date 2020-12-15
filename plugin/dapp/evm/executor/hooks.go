@@ -5,9 +5,9 @@
 package executor
 
 import (
-	"github.com/33cn/dplatform/client"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/state"
 )

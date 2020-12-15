@@ -7,8 +7,8 @@ package privacy
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/log"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/log"
 
 	"github.com/stretchr/testify/assert"
 )

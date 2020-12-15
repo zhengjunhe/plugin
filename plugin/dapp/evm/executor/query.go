@@ -11,7 +11,7 @@ import (
 
 	"errors"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"

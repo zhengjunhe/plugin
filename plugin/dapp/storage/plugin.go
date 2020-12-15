@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/storage/commands"
 	"github.com/33cn/plugin/plugin/dapp/storage/executor"
 	"github.com/33cn/plugin/plugin/dapp/storage/rpc"

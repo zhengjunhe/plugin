@@ -9,10 +9,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -32,7 +32,7 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(ExecutorName, EVMEnable, 500000)
 	// EVM合约中的数据分散存储，支持大数据量
 	cfg.RegisterDappFork(ExecutorName, ForkEVMState, 650000)
@@ -49,7 +49,7 @@ func InitFork(cfg *types.DplatformConfig) {
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(ExecutorName, NewType(cfg))
 }
 
@@ -59,7 +59,7 @@ type EvmType struct {
 }
 
 // NewType 新建EVM类型对象
-func NewType(cfg *types.DplatformConfig) *EvmType {
+func NewType(cfg *types.DplatformOSConfig) *EvmType {
 	c := &EvmType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -130,7 +130,7 @@ func (evm *EvmType) GetLogMap() map[int64]*types.LogInfo {
 	return logInfo
 }
 
-func createEvmTx(cfg *types.DplatformConfig, param *CreateCallTx) (*types.Transaction, error) {
+func createEvmTx(cfg *types.DplatformOSConfig, param *CreateCallTx) (*types.Transaction, error) {
 	if param == nil {
 		elog.Error("createEvmTx", "param", param)
 		return nil, types.ErrInvalidParam
@@ -171,7 +171,7 @@ func createEvmTx(cfg *types.DplatformConfig, param *CreateCallTx) (*types.Transa
 	return createRawTx(cfg, action, param.Name, param.Fee)
 }
 
-func createRawTx(cfg *types.DplatformConfig, action proto.Message, name string, fee int64) (*types.Transaction, error) {
+func createRawTx(cfg *types.DplatformOSConfig, action proto.Message, name string, fee int64) (*types.Transaction, error) {
 	tx := &types.Transaction{}
 	if len(name) == 0 {
 		tx = &types.Transaction{

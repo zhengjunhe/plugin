@@ -12,8 +12,8 @@ import (
 
 	"strings"
 
-	"github.com/33cn/dplatform/rpc/grpcclient"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/grpcclient"
+	"github.com/33cn/dplatformos/types"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 
 type connectCli struct {
 	ip        string
-	conn      types.DplatformClient
+	conn      types.DplatformOSClient
 	downTimes int64
 	timeout   uint32
 }
@@ -403,7 +403,7 @@ func (d *downloadJob) checkDownLoadRate() {
 
 }
 
-func requestMainBlocks(cfg *types.DplatformConfig, inv *inventory) (*types.ParaTxDetails, error) {
+func requestMainBlocks(cfg *types.DplatformOSConfig, inv *inventory) (*types.ParaTxDetails, error) {
 	req := &types.ReqParaTxByTitle{IsSeq: false, Start: inv.curHeight, End: inv.end, Title: cfg.GetTitle()}
 	txs, err := inv.connCli.conn.GetParaTxByTitle(context.Background(), req)
 	if err != nil {
@@ -421,7 +421,7 @@ func requestMainBlocks(cfg *types.DplatformConfig, inv *inventory) (*types.ParaT
 	return validMainBlocks(txs), nil
 }
 
-func requestMainBlockWithTime(cfg *types.DplatformConfig, inv *inventory) *types.ParaTxDetails {
+func requestMainBlockWithTime(cfg *types.DplatformOSConfig, inv *inventory) *types.ParaTxDetails {
 	retCh := make(chan *types.ParaTxDetails, 1)
 	go func() {
 		tx, err := requestMainBlocks(cfg, inv)

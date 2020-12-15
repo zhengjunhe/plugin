@@ -7,7 +7,7 @@ package executor
 import (
 	"fmt"
 
-	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatformos/common"
 )
 
 const (

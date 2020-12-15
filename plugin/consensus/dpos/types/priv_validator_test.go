@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

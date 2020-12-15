@@ -7,10 +7,10 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var (
@@ -24,13 +24,13 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(HashlockX, "Enable", 0)
 	cfg.RegisterDappFork(HashlockX, ForkBadRepeatSecretX, 2715575)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(HashlockX, NewType(cfg))
 }
 
@@ -40,7 +40,7 @@ type HashlockType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *HashlockType {
+func NewType(cfg *types.DplatformOSConfig) *HashlockType {
 	c := &HashlockType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -106,7 +106,7 @@ func (hashlock *HashlockType) GetLogMap() map[int64]*types.LogInfo {
 }
 
 // CreateRawHashlockLockTx method
-func CreateRawHashlockLockTx(cfg *types.DplatformConfig, parm *HashlockLockTx) (*types.Transaction, error) {
+func CreateRawHashlockLockTx(cfg *types.DplatformOSConfig, parm *HashlockLockTx) (*types.Transaction, error) {
 	if parm == nil {
 		hlog.Error("CreateRawHashlockLockTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -137,7 +137,7 @@ func CreateRawHashlockLockTx(cfg *types.DplatformConfig, parm *HashlockLockTx) (
 }
 
 // CreateRawHashlockUnlockTx method
-func CreateRawHashlockUnlockTx(cfg *types.DplatformConfig, parm *HashlockUnlockTx) (*types.Transaction, error) {
+func CreateRawHashlockUnlockTx(cfg *types.DplatformOSConfig, parm *HashlockUnlockTx) (*types.Transaction, error) {
 	if parm == nil {
 		hlog.Error("CreateRawHashlockUnlockTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -166,7 +166,7 @@ func CreateRawHashlockUnlockTx(cfg *types.DplatformConfig, parm *HashlockUnlockT
 }
 
 // CreateRawHashlockSendTx method
-func CreateRawHashlockSendTx(cfg *types.DplatformConfig, parm *HashlockSendTx) (*types.Transaction, error) {
+func CreateRawHashlockSendTx(cfg *types.DplatformOSConfig, parm *HashlockSendTx) (*types.Transaction, error) {
 	if parm == nil {
 		hlog.Error("CreateRawHashlockSendTx", "parm", parm)
 		return nil, types.ErrInvalidParam

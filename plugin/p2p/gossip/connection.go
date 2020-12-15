@@ -5,7 +5,7 @@
 package gossip
 
 import (
-	pb "github.com/33cn/dplatform/types"
+	pb "github.com/33cn/dplatformos/types"
 	"google.golang.org/grpc"
 )
 

@@ -15,9 +15,9 @@ privateKey = "22968d29c6de695381a8719ef7bf00e2edb6cce500bb59a4fc73c41887610962"
 publicKey = ""
 address = ""
 
-[dplatform]
-id = "dplatform"
-host = "dplatform:28804"
+[dplatformos]
+id = "dplatformos"
+host = "dplatformos:28804"
 user = ""
 pass = ""
 disableAutoReconnect = true

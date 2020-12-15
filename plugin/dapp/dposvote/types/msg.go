@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common/crypto"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 )
 

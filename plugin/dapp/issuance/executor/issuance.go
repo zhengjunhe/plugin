@@ -5,9 +5,9 @@
 package executor
 
 import (
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/issuance/types"
 )
 
@@ -21,7 +21,7 @@ func InitExecType() {
 }
 
 // Init issuance
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	driverName := GetName()
 	if name != driverName {
 		panic("system dapp can't be rename")

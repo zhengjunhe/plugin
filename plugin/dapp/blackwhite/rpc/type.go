@@ -8,8 +8,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	bw "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 )
 

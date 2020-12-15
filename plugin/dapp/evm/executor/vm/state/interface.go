@@ -5,7 +5,7 @@
 package state
 
 import (
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 )
@@ -84,5 +84,5 @@ type EVMStateDB interface {
 	GetBlockHeight() int64
 
 	// GetConfig 获取系统配置
-	GetConfig() *types.DplatformConfig
+	GetConfig() *types.DplatformOSConfig
 }

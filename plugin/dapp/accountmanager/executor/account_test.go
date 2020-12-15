@@ -3,15 +3,15 @@ package executor
 import (
 	"time"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 
 	"testing"
 
@@ -40,8 +40,8 @@ var (
 
 func TestAccountManager(t *testing.T) {
 	//环境准备
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	Init(et.AccountmanagerX, cfg, nil)
 	total := 100 * types.Coin
 	accountA := types.Account{
@@ -69,16 +69,16 @@ func TestAccountManager(t *testing.T) {
 	//defer util.CloseTestDB(dir, stateDB)
 	execAddr := address.ExecAddress(et.AccountmanagerX)
 
-	accA, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accA, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accA.SaveExecAccount(execAddr, &accountA)
 
-	accB, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accB, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accB.SaveExecAccount(execAddr, &accountB)
 
-	accC, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accC, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accC.SaveExecAccount(execAddr, &accountC)
 
-	accD, _ := account.NewAccountDB(cfg, "coins", "dpom", stateDB)
+	accD, _ := account.NewAccountDB(cfg, "coins", "dpos", stateDB)
 	accD.SaveExecAccount(execAddr, &accountD)
 	env := &execEnv{
 		time.Now().Unix(),
@@ -127,7 +127,7 @@ func TestAccountManager(t *testing.T) {
 	assert.Nil(t, err)
 	Exec_Block(t, stateDB, kvdb, env, tx3)
 	//转账
-	tx4, err := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2020", Asset: &types.Asset{Exec: "coins", Symbol: "dpom", Amount: 1e8}}, PrivKeyB)
+	tx4, err := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2020", Asset: &types.Asset{Exec: "coins", Symbol: "dpos", Amount: 1e8}}, PrivKeyB)
 	assert.Equal(t, err, nil)
 	err = Exec_Block(t, stateDB, kvdb, env, tx4)
 	assert.Equal(t, err, nil)
@@ -152,11 +152,11 @@ func TestAccountManager(t *testing.T) {
 	assert.Equal(t, err, nil)
 	err = Exec_Block(t, stateDB, kvdb, env, tx6)
 	assert.Nil(t, err)
-	tx7, _ := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2015", Asset: &types.Asset{Exec: "coins", Symbol: "dpom", Amount: 1e8}}, PrivKeyD)
+	tx7, _ := CreateTransfer(&et.Transfer{FromAccountID: "harrylee2015", ToAccountID: "harrylee2015", Asset: &types.Asset{Exec: "coins", Symbol: "dpos", Amount: 1e8}}, PrivKeyD)
 
 	err = Exec_Block(t, stateDB, kvdb, env, tx7)
 	assert.Equal(t, err, nil)
-	balance, err := Exec_QueryBalanceByID(&et.QueryBalanceByID{AccountID: "harrylee2015", Asset: &types.Asset{Symbol: "dpom", Exec: "coins"}}, stateDB, kvdb)
+	balance, err := Exec_QueryBalanceByID(&et.QueryBalanceByID{AccountID: "harrylee2015", Asset: &types.Asset{Symbol: "dpos", Exec: "coins"}}, stateDB, kvdb)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, balance.Balance, 199*types.Coin)
 
@@ -218,8 +218,8 @@ func CreateRegister(register *et.Register, privKey string) (tx *types.Transactio
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	tx, err = types.FormatTx(cfg, et.AccountmanagerX, tx)
 	if err != nil {
 		return nil, err
@@ -237,8 +237,8 @@ func CreateReset(reset *et.ResetKey, privKey string) (tx *types.Transaction, err
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	tx, err = types.FormatTx(cfg, et.AccountmanagerX, tx)
 	if err != nil {
 		return nil, err
@@ -256,8 +256,8 @@ func CreateTransfer(tranfer *et.Transfer, privKey string) (tx *types.Transaction
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	tx, err = types.FormatTx(cfg, et.AccountmanagerX, tx)
 	if err != nil {
 		return nil, err
@@ -275,8 +275,8 @@ func CreateSupervise(supervise *et.Supervise, privKey string) (tx *types.Transac
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	tx, err = types.FormatTx(cfg, et.AccountmanagerX, tx)
 	if err != nil {
 		return nil, err
@@ -294,8 +294,8 @@ func CreateApply(apply *et.Apply, privKey string) (tx *types.Transaction, err er
 	if err != nil {
 		return nil, err
 	}
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	tx, err = types.FormatTx(cfg, et.AccountmanagerX, tx)
 	if err != nil {
 		return nil, err
@@ -309,8 +309,8 @@ func CreateApply(apply *et.Apply, privKey string) (tx *types.Transaction, err er
 
 //模拟区块中交易得执行过程
 func Exec_Block(t *testing.T, stateDB db.DB, kvdb db.KVDB, env *execEnv, txs ...*types.Transaction) error {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	exec := newAccountmanager()
 	e := exec.(*Accountmanager)
 	q := queue.New("channel")
@@ -354,8 +354,8 @@ func Exec_Block(t *testing.T, stateDB db.DB, kvdb db.KVDB, env *execEnv, txs ...
 }
 
 func Exec_QueryAccountByID(accountID string, stateDB db.KV, kvdb db.KVDB) (*et.Account, error) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	exec := newAccountmanager()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -371,8 +371,8 @@ func Exec_QueryAccountByID(accountID string, stateDB db.KV, kvdb db.KVDB) (*et.A
 }
 
 func Exec_QueryAccountByAddr(addr string, stateDB db.KV, kvdb db.KVDB) (*et.Account, error) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	exec := newAccountmanager()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -388,8 +388,8 @@ func Exec_QueryAccountByAddr(addr string, stateDB db.KV, kvdb db.KVDB) (*et.Acco
 }
 
 func Exec_QueryAccountsByStatus(status int32, stateDB db.KV, kvdb db.KVDB) (*et.ReplyAccountList, error) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	exec := newAccountmanager()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -405,8 +405,8 @@ func Exec_QueryAccountsByStatus(status int32, stateDB db.KV, kvdb db.KVDB) (*et.
 }
 
 func Exec_QueryBalanceByID(in *et.QueryBalanceByID, stateDB db.KV, kvdb db.KVDB) (*et.Balance, error) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	exec := newAccountmanager()
 	q := queue.New("channel")
 	q.SetConfig(cfg)
@@ -422,8 +422,8 @@ func Exec_QueryBalanceByID(in *et.QueryBalanceByID, stateDB db.KV, kvdb db.KVDB)
 }
 
 func Exec_QueryExpiredAccounts(expiredtime int64, stateDB db.KV, kvdb db.KVDB) (*et.ReplyAccountList, error) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	exec := newAccountmanager()
 	q := queue.New("channel")
 	q.SetConfig(cfg)

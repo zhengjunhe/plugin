@@ -1,27 +1,27 @@
 version: '3'
 
 services:
-  dplatform:
+  dplatformos:
     entrypoint: /root/entrypoint.sh
     environment:
-      PARAFILE: "/root/dplatform.para33.toml"
+      PARAFILE: "/root/dplatformos.para33.toml"
     expose:
      - "28804"
 
   chain32:
     entrypoint: /root/entrypoint.sh
     environment:
-      PARAFILE: "/root/dplatform.para32.toml"
+      PARAFILE: "/root/dplatformos.para32.toml"
 
   chain31:
     entrypoint: /root/entrypoint.sh
     environment:
-      PARAFILE: "/root/dplatform.para31.toml"
+      PARAFILE: "/root/dplatformos.para31.toml"
 
   chain30:
     entrypoint: /root/entrypoint.sh
     environment:
-      PARAFILE: "/root/dplatform.para30.toml"
+      PARAFILE: "/root/dplatformos.para30.toml"
     expose:
      - "28804"
 
@@ -29,7 +29,7 @@ services:
   nginx:
     image: nginx:latest
     depends_on:
-     - dplatform
+     - dplatformos
      - chain30
     volumes:
      - ./nginx.conf:/etc/nginx/nginx.conf

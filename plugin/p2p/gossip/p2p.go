@@ -12,12 +12,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/dplatform/p2p"
+	"github.com/33cn/dplatformos/p2p"
 
-	"github.com/33cn/dplatform/client"
-	l "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client"
+	l "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/types"
 
 	_ "google.golang.org/grpc/encoding/gzip" // register gzip
 )

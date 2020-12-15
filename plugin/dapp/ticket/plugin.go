@@ -5,7 +5,7 @@
 package ticket
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/ticket/commands"
 	"github.com/33cn/plugin/plugin/dapp/ticket/executor"
 	"github.com/33cn/plugin/plugin/dapp/ticket/rpc"

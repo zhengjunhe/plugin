@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"reflect"
 
-	log "github.com/33cn/dplatform/common/log/log15"
+	log "github.com/33cn/dplatformos/common/log/log15"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 var tokenlog = log.New("module", "execs.token.types")
@@ -22,7 +22,7 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(TokenX, "Enable", 100899)
 	cfg.RegisterDappFork(TokenX, ForkTokenBlackListX, 190000)
 	cfg.RegisterDappFork(TokenX, ForkBadTokenSymbolX, 184000)
@@ -32,7 +32,7 @@ func InitFork(cfg *types.DplatformConfig) {
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(TokenX, NewType(cfg))
 }
 
@@ -42,7 +42,7 @@ type TokenType struct {
 }
 
 // NewType 创建执行器类型
-func NewType(cfg *types.DplatformConfig) *TokenType {
+func NewType(cfg *types.DplatformOSConfig) *TokenType {
 	c := &TokenType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

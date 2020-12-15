@@ -6,9 +6,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/33cn/dplatform/common"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	ptypes "github.com/33cn/plugin/plugin/dapp/js/types"
 	"github.com/33cn/plugin/plugin/dapp/js/types/jsproto"
 	lru "github.com/hashicorp/golang-lru"
@@ -24,7 +24,7 @@ var codecache *lru.Cache
 var isinit int64
 
 //Init 插件初始化
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	if atomic.CompareAndSwapInt64(&isinit, 0, 1) {
 		//最新的64个code做cache
 		var err error

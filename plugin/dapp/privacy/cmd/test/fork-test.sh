@@ -171,7 +171,7 @@ function syn_block_timeout() {
         else
             isSyn="true"
             for ((k = 0; k < ${#names[@]}; k++)); do
-                sync_status=$(docker exec "${names[$k]}" /root/dplatform-cli net is_sync)
+                sync_status=$(docker exec "${names[$k]}" /root/dplatformos-cli net is_sync)
                 if [ "${sync_status}" = "false" ]; then
                     isSyn="false"
                     break
@@ -204,7 +204,7 @@ function SendToPrivacyExec() {
     execAdd=$3
     note=$4
     amount=$5
-    #sudo docker exec -it $name ./dplatform-cli send coins transfer -k $fromAdd -t $execAdd -n $note -a $amount
+    #sudo docker exec -it $name ./dplatformos-cli send coins transfer -k $fromAdd -t $execAdd -n $note -a $amount
     result=$($name send coins transfer -k "${fromAdd}" -t "${execAdd}" -n "${note}" -a "${amount}")
     echo "hash : $result"
     returnStr1=$result
@@ -223,7 +223,7 @@ function pub2priv() {
     note=$4
     amount=$5
     expire=$6
-    #sudo docker exec -it $name ./dplatform-cli privacy pub2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
+    #sudo docker exec -it $name ./dplatformos-cli privacy pub2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
     result=$($name privacy pub2priv -f "${fromAdd}" -p "${priAdd}" -a "${amount}" -n "${note}" --expire "${expire}" | jq -r ".hash")
     echo "hash : $result"
     returnStr1=$result
@@ -244,7 +244,7 @@ function priv2priv() {
     amount=$5
     mixcount=$6
     expire=$7
-    #sudo docker exec -it $name ./dplatform-cli privacy priv2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
+    #sudo docker exec -it $name ./dplatformos-cli privacy priv2priv -f $fromAdd -p $priAdd -a $amount -n $note --expire $expire
     result=$($name privacy priv2priv -f "${fromAdd}" -p "${priAdd}" -a "${amount}" -n "${note}" --expire "${expire}" | jq -r ".hash")
     echo "hash : $result"
     returnStr1=$result
@@ -265,7 +265,7 @@ function priv2pub() {
     amount=$5
     mixcount=$6
     expire=$7
-    #sudo docker exec -it $name ./dplatform-cli privacy priv2pub -f $fromAdd -t $toAdd -a $amount -n $note -m $mixcount --expire $expire
+    #sudo docker exec -it $name ./dplatformos-cli privacy priv2pub -f $fromAdd -t $toAdd -a $amount -n $note -m $mixcount --expire $expire
     result=$($name privacy priv2pub -f "${fromAdd}" -t "${toAdd}" -a "${amount}" -n "${note}" -m "${mixcount}" --expire "${expire}" | jq -r ".hash")
     echo "hash : $result"
     returnStr1=$result
@@ -326,8 +326,8 @@ function createPrivacyPub2PrivTx() {
     amount=$3
     expire=$4
     note="public_2_privacy_transaction"
-    echo "$name" dpom pub2priv -p "${keypair}" -a "${amount}" -n "${note}" --expire "${expire}"
-    result=$($name dpom pub2priv -p "${keypair}" -a "${amount}" -n "${note}" --expire "${expire}")
+    echo "$name" dpos pub2priv -p "${keypair}" -a "${amount}" -n "${note}" --expire "${expire}"
+    result=$($name dpos pub2priv -p "${keypair}" -a "${amount}" -n "${note}" --expire "${expire}")
     returnStr1=$result
 }
 
@@ -344,8 +344,8 @@ function createPrivacyPriv2PrivTx() {
     sender=$4
     expire=$5
     note="private_2_privacy_transaction"
-    echo "$name" dpom priv2priv -p "${keypair}" -a "${amount}" -s "${sender}" -n "${note}" --expire "${expire}"
-    result=$($name dpom priv2priv -p "${keypair}" -a "${amount}" -s "${sender}" -n "${note}" --expire "${expire}")
+    echo "$name" dpos priv2priv -p "${keypair}" -a "${amount}" -s "${sender}" -n "${note}" --expire "${expire}"
+    result=$($name dpos priv2priv -p "${keypair}" -a "${amount}" -s "${sender}" -n "${note}" --expire "${expire}")
     returnStr1=$result
 }
 
@@ -363,8 +363,8 @@ function createPrivacyPriv2PubTx() {
     amount=$4
     expire=$5
     note="private_2_public_transaction"
-    echo "$name" dpom priv2pub -f "${from}" -o "${to}" -a "${amount}" -n "${note}" --expire "${expire}"
-    result=$($name dpom priv2pub -f "${from}" -o "${to}" -a "${amount}" -n "${note}" --expire "${expire}")
+    echo "$name" dpos priv2pub -f "${from}" -o "${to}" -a "${amount}" -n "${note}" --expire "${expire}"
+    result=$($name dpos priv2pub -f "${from}" -o "${to}" -a "${amount}" -n "${note}" --expire "${expire}")
     returnStr1=$result
 }
 

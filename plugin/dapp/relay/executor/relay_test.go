@@ -7,19 +7,19 @@ package executor
 import (
 	"testing"
 
-	apimock "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/types"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 )
 
-var chainTestCfg = types.NewDplatformConfig(types.GetDefaultCfgstring())
+var chainTestCfg = types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 
 func init() {
 	Init(ty.RelayX, chainTestCfg, nil)

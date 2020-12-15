@@ -6,10 +6,10 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/33cn/plugin?svg=true&branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20failed&pendingText=Windows%20-%20pending)](https://ci.appveyor.com/project/33cn/plugin)
 [![codecov](https://codecov.io/gh/33cn/plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/33cn/plugin)
 
-# dplatform 官方插件系统（v6.4.0）
+# dplatformos 官方插件系统（v6.4.0）
 
-* dplatform地址: https://github.com/33cn/dplatform
-* dplatform官网: https://chain.33.cn
+* dplatformos地址: https://github.com/33cn/dplatformos
+* dplatformos官网: https://chain.33.cn
 
 ### 环境
 
@@ -38,9 +38,9 @@ make
 ## 运行
 
 ```
-./dplatform -f dplatform.toml
+./dplatformos -f dplatformos.toml
 ```
-注意，默认配置会连接dplatform 测试网络
+注意，默认配置会连接dplatformos 测试网络
 
 ## 注意:
 
@@ -50,12 +50,12 @@ make
 
 ## 贡献代码：
 
-详细的细节步骤可以见 https://github.com/33cn/dplatform
+详细的细节步骤可以见 https://github.com/33cn/dplatformos
 这里只是简单的步骤：
 
 #### 准备阶段:
 
-* 首先点击 右上角的 fork 图标， 把dplatform fork 到自己的分支 比如我的是 vipwzw/plugin
+* 首先点击 右上角的 fork 图标， 把dplatformos fork 到自己的分支 比如我的是 vipwzw/plugin
 * `git clone https://github.com/vipwzw/plugin.git $GOPATH/src/github.com/33cn/plugin`
 
 ```

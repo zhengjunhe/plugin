@@ -7,16 +7,16 @@ package executor
 import (
 	"fmt"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 )
 
 var clog = log.New("module", "execs.valnode")
 var driverName = "valnode"
 
 // Init method
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	clog.Debug("register valnode execer")
 	drivers.Register(cfg, GetName(), newValNode, 0)
 	InitExecType()

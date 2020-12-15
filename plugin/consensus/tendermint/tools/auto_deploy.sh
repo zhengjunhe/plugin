@@ -12,7 +12,7 @@
 # shellcheck disable=SC2162
 # shellcheck disable=SC2181
 
-package="dplatform_tendermint_config.tar.gz"
+package="dplatformos_tendermint_config.tar.gz"
 log_file=".auto_deploy.log"
 config_file="auto_deploy.config"
 serverStr="servers"
@@ -37,7 +37,7 @@ Log() {
 }
 
 GetInputFile() {
-    echo 'Please input the file: (such as "dplatform dplatform-cli genesis.json" ...) '
+    echo 'Please input the file: (such as "dplatformos dplatformos-cli genesis.json" ...) '
     read file
 
     # todo: file detection
@@ -53,7 +53,7 @@ GetUserNamePasswdAndPath() {
     echo "Which way to get environment? 1) Input 2) Config file"
     read choice
     if [ "${choice}" -eq 1 ]; then
-        echo 'Please input the username, password and path of the destination: (such as "ubuntu 123456 /home/ubuntu/dplatform")'
+        echo 'Please input the username, password and path of the destination: (such as "ubuntu 123456 /home/ubuntu/dplatformos")'
 
         read destInfo
         username=$(echo "${destInfo}" | awk -F ' ' '{print $1}')

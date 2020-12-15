@@ -7,31 +7,31 @@ package executor
 import (
 	"strings"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/db"
-	coins "github.com/33cn/dplatform/system/dapp/coins/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/db"
+	coins "github.com/33cn/dplatformos/system/dapp/coins/types"
+	"github.com/33cn/dplatformos/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	token "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/pkg/errors"
 )
 
-//SymbolDpom ...
-const SymbolDpom = "dpom"
+//SymbolDpos ...
+const SymbolDpos = "dpos"
 
 /*
 资产　=　assetExec + assetSymbol 唯一确定一个资产
 
 				exec              		symbol								tx.title=user.p.test1   tx.title=user.p.test2
 1. 主链上的资产：
-				coins					dpom                     	  		transfer                 transfer
+				coins					dpos                     	  		transfer                 transfer
 				paracross				user.p.test1.coins.fzm    			withdraw                 transfer
 
 2. 平行链上的资产：
 				user.p.test1.coins		fzm              					transfer                 NAN
-    			user.p.test1.paracross	coins.dpom    						withdraw                 NAN
+    			user.p.test1.paracross	coins.dpos    						withdraw                 NAN
     			user.p.test1.paracross	paracross.user.p.test2.coins.cny	withdraw                 NAN
 
 其中user.p.test1.paracross.paracross.user.p.test2.coins.cny资产解释：
@@ -65,17 +65,17 @@ func getCrossAction(transfer *pt.CrossAssetTransfer, txExecer string) (int64, er
 /*
 修正原生执行器名字
 								      								type			realExec    realSymbol
-coins+dpom															mainTransfer	coins		dpom
-paracross+user.p.test1.coins.dpom									paraWithdraw	coins		dpom
-user.p.test1.coins+dpom												paraTransfer    coins		dpom
-user.p.test1.paracross+coins.dpom									mainWithdraw	coins		dpom
-paracross+user.p.test1.coins.dpom(->user.p.test2)					mainTransfer 	paracross   user.p.test1.coins.dpom
-user.p.test2.paracross+paracross.user.p.test1.coins.dpom 			mainWithdraw	paracross   user.p.test1.coins.dpom
+coins+dpos															mainTransfer	coins		dpos
+paracross+user.p.test1.coins.dpos									paraWithdraw	coins		dpos
+user.p.test1.coins+dpos												paraTransfer    coins		dpos
+user.p.test1.paracross+coins.dpos									mainWithdraw	coins		dpos
+paracross+user.p.test1.coins.dpos(->user.p.test2)					mainTransfer 	paracross   user.p.test1.coins.dpos
+user.p.test2.paracross+paracross.user.p.test1.coins.dpos 			mainWithdraw	paracross   user.p.test1.coins.dpos
 注意:
-1. user.p.test1.coins+dpom只是对外表示平行链资产，真正执行器也是coins，因为account模型的mavl-coins-dpom-　在主链和平行链都一样，平行链模型并不是mavl-user.p.test.coins-dpom-
+1. user.p.test1.coins+dpos只是对外表示平行链资产，真正执行器也是coins，因为account模型的mavl-coins-dpos-　在主链和平行链都一样，平行链模型并不是mavl-user.p.test.coins-dpos-
 2. paracross执行器下的资产都是外来资产，在withdraw时候，真正的原生执行器是在symbol里面
-　　a. 销毁资产　mavl-paracross-coins.dpom-exec-addr(user)
-　　b. 恢复资产　mavl-coins-dpom-exec-addr{paracross}:addr{user}, 在原生coins执行器上恢复资产
+　　a. 销毁资产　mavl-paracross-coins.dpos-exec-addr(user)
+　　b. 恢复资产　mavl-coins-dpos-exec-addr{paracross}:addr{user}, 在原生coins执行器上恢复资产
 */
 func amendTransferParam(transfer *pt.CrossAssetTransfer, act int64) (*pt.CrossAssetTransfer, error) {
 	newTransfer := *transfer
@@ -375,7 +375,7 @@ func (a *action) paraAssetWithdrawRollback(wtw *pt.CrossAssetTransfer, withdrawT
 	return nil, nil
 }
 
-func (a *action) createAccount(cfg *types.DplatformConfig, db db.KV, exec, symbol string) (*account.DB, error) {
+func (a *action) createAccount(cfg *types.DplatformOSConfig, db db.KV, exec, symbol string) (*account.DB, error) {
 	var accDB *account.DB
 	if symbol == "" {
 		accDB = account.NewCoinsAccount(cfg)
@@ -391,7 +391,7 @@ func (a *action) createAccount(cfg *types.DplatformConfig, db db.KV, exec, symbo
 func adaptNullAssetExec(transfer *pt.CrossAssetTransfer) {
 	if transfer.AssetSymbol == "" {
 		transfer.AssetExec = coins.CoinsX
-		transfer.AssetSymbol = SymbolDpom
+		transfer.AssetSymbol = SymbolDpos
 		return
 	}
 	if transfer.AssetExec == "" {

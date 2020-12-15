@@ -9,10 +9,10 @@ import (
 
 	"encoding/json"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 )
@@ -29,7 +29,7 @@ func testPropChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testRevokeProposalChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -44,7 +44,7 @@ func testRevokeProposalChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) er
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testVoteProposalChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -59,7 +59,7 @@ func testVoteProposalChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) erro
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testTerminateProposalChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -74,7 +74,7 @@ func testTerminateProposalChangeTxCmd(t *testing.T, jrpc *jsonclient.JSONClient)
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testGetProposalChangeCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -84,7 +84,7 @@ func testGetProposalChangeCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.GetProposalChange
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalChange{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testListProposalChangeCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -94,5 +94,5 @@ func testListProposalChangeCmd(t *testing.T, jrpc *jsonclient.JSONClient) error 
 	params.FuncName = auty.ListProposalChange
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalChange{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }

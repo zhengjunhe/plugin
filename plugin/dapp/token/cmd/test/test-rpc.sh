@@ -17,7 +17,7 @@ function queryTransaction() {
     validator=$1
     expectRes=$2
     #  echo "txhash=${RAW_TX_HASH}"
-    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"'"${RAW_TX_HASH}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r "${validator}")
+    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.QueryTransaction","params":[{"hash":"'"${RAW_TX_HASH}"'"}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r "${validator}")
     if [ "${res}" != "${expectRes}" ]; then
         return 1
     else
@@ -26,7 +26,7 @@ function queryTransaction() {
 }
 
 function signRawTxAndQuery() {
-    dplatform_SignAndSendTx "${unsignedTx}" "${superManager}" "${MAIN_HTTP}"
+    dplatformos_SignAndSendTx "${unsignedTx}" "${superManager}" "${MAIN_HTTP}"
     queryTransaction ".error | not" "true"
     echo_rst "$1 queryExecRes" "$?"
 }
@@ -34,48 +34,48 @@ function signRawTxAndQuery() {
 function init() {
     ispara=$(echo '"'"${MAIN_HTTP}"'"' | jq '.|contains("8901")')
     echo "ipara=$ispara"
-    dplatform_ImportPrivkey "${superManager}" "${tokenAddr}" "tokenAddr" "${MAIN_HTTP}"
+    dplatformos_ImportPrivkey "${superManager}" "${tokenAddr}" "tokenAddr" "${MAIN_HTTP}"
 
     local main_ip=${MAIN_HTTP//8901/28803}
-    dplatform_ImportPrivkey "0x882c963ce2afbedc2353cb417492aa9e889becd878a10f2529fc9e6c3b756128" "1CLrYLNhHfCfMUV7mtdqhbMSF6vGmtTvzq" "token1" "${main_ip}"
+    dplatformos_ImportPrivkey "0x882c963ce2afbedc2353cb417492aa9e889becd878a10f2529fc9e6c3b756128" "1CLrYLNhHfCfMUV7mtdqhbMSF6vGmtTvzq" "token1" "${main_ip}"
 
     local ACCOUNT_A="1CLrYLNhHfCfMUV7mtdqhbMSF6vGmtTvzq"
 
     if [ "$ispara" == false ]; then
-        dplatform_applyCoins "$ACCOUNT_A" 12000000000 "${main_ip}"
-        dplatform_QueryBalance "${ACCOUNT_A}" "$main_ip"
+        dplatformos_applyCoins "$ACCOUNT_A" 12000000000 "${main_ip}"
+        dplatformos_QueryBalance "${ACCOUNT_A}" "$main_ip"
     else
-        dplatform_applyCoins "$ACCOUNT_A" 1000000000 "${main_ip}"
-        dplatform_QueryBalance "${ACCOUNT_A}" "$main_ip"
+        dplatformos_applyCoins "$ACCOUNT_A" 1000000000 "${main_ip}"
+        dplatformos_QueryBalance "${ACCOUNT_A}" "$main_ip"
 
         local para_ip="${MAIN_HTTP}"
-        dplatform_ImportPrivkey "0x882c963ce2afbedc2353cb417492aa9e889becd878a10f2529fc9e6c3b756128" "1CLrYLNhHfCfMUV7mtdqhbMSF6vGmtTvzq" "token1" "$para_ip"
+        dplatformos_ImportPrivkey "0x882c963ce2afbedc2353cb417492aa9e889becd878a10f2529fc9e6c3b756128" "1CLrYLNhHfCfMUV7mtdqhbMSF6vGmtTvzq" "token1" "$para_ip"
 
-        dplatform_applyCoins "$ACCOUNT_A" 12000000000 "${para_ip}"
-        dplatform_QueryBalance "${ACCOUNT_A}" "$para_ip"
+        dplatformos_applyCoins "$ACCOUNT_A" 12000000000 "${para_ip}"
+        dplatformos_QueryBalance "${ACCOUNT_A}" "$para_ip"
     fi
 
     if [ "$ispara" == true ]; then
         execName="user.p.para.token"
-        token_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"user.p.para.token"}]}' ${MAIN_HTTP} | jq -r ".result")
-        dplatform_SendToAddress "$recvAddr" "$tokenAddr" 10000000000 "${MAIN_HTTP}"
-        dplatform_BlockWait 2 "${MAIN_HTTP}"
-        dplatform_SendToAddress "$tokenAddr" "$token_addr" 1000000000 "${MAIN_HTTP}"
-        dplatform_BlockWait 2 "${MAIN_HTTP}"
+        token_addr=$(curl -ksd '{"method":"DplatformOS.ConvertExectoAddr","params":[{"execname":"user.p.para.token"}]}' ${MAIN_HTTP} | jq -r ".result")
+        dplatformos_SendToAddress "$recvAddr" "$tokenAddr" 10000000000 "${MAIN_HTTP}"
+        dplatformos_BlockWait 2 "${MAIN_HTTP}"
+        dplatformos_SendToAddress "$tokenAddr" "$token_addr" 1000000000 "${MAIN_HTTP}"
+        dplatformos_BlockWait 2 "${MAIN_HTTP}"
     else
-        token_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"token"}]}' ${MAIN_HTTP} | jq -r ".result")
+        token_addr=$(curl -ksd '{"method":"DplatformOS.ConvertExectoAddr","params":[{"execname":"token"}]}' ${MAIN_HTTP} | jq -r ".result")
         from="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
-        dplatform_SendToAddress "$from" "$tokenAddr" 10000000000 "${MAIN_HTTP}"
-        dplatform_BlockWait 2 "${MAIN_HTTP}"
-        dplatform_SendToAddress "$tokenAddr" "$token_addr" 1000000000 "${MAIN_HTTP}"
-        dplatform_BlockWait 2 "${MAIN_HTTP}"
+        dplatformos_SendToAddress "$from" "$tokenAddr" 10000000000 "${MAIN_HTTP}"
+        dplatformos_BlockWait 2 "${MAIN_HTTP}"
+        dplatformos_SendToAddress "$tokenAddr" "$token_addr" 1000000000 "${MAIN_HTTP}"
+        dplatformos_BlockWait 2 "${MAIN_HTTP}"
     fi
     echo "token=$token_addr"
     updateConfig
 }
 
 function updateConfig() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "DPOM","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.CreateTransaction","params":[{"execer": "manage","actionName":"Modify","payload":{ "key": "token-blacklist","value": "DPOM","op": "add","addr": ""}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "update config create tx" 1
         return
@@ -93,7 +93,7 @@ function token_preCreate() {
 }
 
 function token_getPreCreated() {
-    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.Query","params":[{"execer":"'"${execName}"'","funcName":"GetTokens","payload":{"queryAll":true,"status":0,"tokens":[],"symbolOnly":false}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".error | not")
+    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.Query","params":[{"execer":"'"${execName}"'","funcName":"GetTokens","payload":{"queryAll":true,"status":0,"tokens":[],"symbolOnly":false}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".error | not")
     if [ "${res}" != "true" ]; then
         echo_rst "token preCreate create tx" 1
         return
@@ -111,12 +111,12 @@ function token_finish() {
 }
 
 function token_getFinishCreated() {
-    req='{"method":"Dplatform.Query","params":[{"execer":"'"${execName}"'","funcName":"GetTokens","payload":{"queryAll":true,"status":1,"tokens":[],"symbolOnly":false}}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} "(.result.tokens[0].symbol != null)" "$FUNCNAME"
+    req='{"method":"DplatformOS.Query","params":[{"execer":"'"${execName}"'","funcName":"GetTokens","payload":{"queryAll":true,"status":1,"tokens":[],"symbolOnly":false}}]}'
+    dplatformos_Http "$req" ${MAIN_HTTP} "(.result.tokens[0].symbol != null)" "$FUNCNAME"
 }
 
 function token_assets() {
-    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.Query","params":[{"execer": "'"${execName}"'","funcName":"GetAccountTokenAssets","payload": {"address":"'"${recvAddr}"'", "execer": "token"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP})
+    res=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.Query","params":[{"execer": "'"${execName}"'","funcName":"GetAccountTokenAssets","payload": {"address":"'"${recvAddr}"'", "execer": "token"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP})
 
     if [ "${res}" == "" ]; then
         echo_rst "token get balance tx" 1
@@ -170,7 +170,7 @@ function token_mint() {
     signRawTxAndQuery "$FUNCNAME"
 }
 function token_transfer() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "'"${execName}"'","actionName":"Transfer","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "1000000000", "note": "", "to": "'"${recvAddr}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.CreateTransaction","params":[{"execer": "'"${execName}"'","actionName":"Transfer","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "1000000000", "note": "", "to": "'"${recvAddr}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "token transfer create tx" 1
         return
@@ -179,7 +179,7 @@ function token_transfer() {
 }
 
 function token_sendExec() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "'"${execName}"'","actionName":"TransferToExec","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "10", "note": "", "to": "'"${token_addr}"'", "execName": "'"${execName}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.CreateTransaction","params":[{"execer": "'"${execName}"'","actionName":"TransferToExec","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "10", "note": "", "to": "'"${token_addr}"'", "execName": "'"${execName}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "token sendExec create tx" 1
         return
@@ -188,7 +188,7 @@ function token_sendExec() {
 }
 
 function token_withdraw() {
-    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"Dplatform.CreateTransaction","params":[{"execer": "'"${execName}"'","actionName":"Withdraw","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "10", "note": "", "to": "'"${token_addr}"'", "execName": "'"${execName}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
+    unsignedTx=$(curl -s --data-binary '{"jsonrpc":"2.0","id":2,"method":"DplatformOS.CreateTransaction","params":[{"execer": "'"${execName}"'","actionName":"Withdraw","payload": {"cointoken":"'"${tokenSymbol}"'", "amount": "10", "note": "", "to": "'"${token_addr}"'", "execName": "'"${execName}"'"}}]}' -H 'content-type:text/plain;' ${MAIN_HTTP} | jq -r ".result")
     if [ "${unsignedTx}" == "" ]; then
         echo_rst "token withdraw create tx" 1
         return
@@ -214,14 +214,14 @@ function run_test() {
 }
 
 function main() {
-    dplatform_RpcTestBegin token
+    dplatformos_RpcTestBegin token
     local ip=$1
     MAIN_HTTP=$ip
     echo "main_ip=$MAIN_HTTP"
 
     init
     run_test "$ip"
-    dplatform_RpcTestRst token "$CASE_ERR"
+    dplatformos_RpcTestRst token "$CASE_ERR"
 }
 
-dplatform_debug_function main "$1"
+dplatformos_debug_function main "$1"

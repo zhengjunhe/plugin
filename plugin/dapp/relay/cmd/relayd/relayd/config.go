@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/BurntSushi/toml"
 	"github.com/btcsuite/btcd/rpcclient"
 )
@@ -22,12 +22,12 @@ type Config struct {
 	BtcdOrWeb      int
 	SyncSetup      uint64
 	SyncSetupCount uint64
-	Dplatform        Dplatform
+	DplatformOS        DplatformOS
 	FirstBtcHeight uint64
 	Btcd           Btcd
 	Log            types.Log
 	Auth           Auth
-	DplatformCfg     *types.DplatformConfig
+	DplatformOSCfg     *types.DplatformOSConfig
 }
 
 // Btcd adapt to btcd
@@ -79,8 +79,8 @@ func (b *Btcd) BitConnConfig() *rpcclient.ConnConfig {
 	return conn
 }
 
-// Dplatform define adapt to dplatform relay exec
-type Dplatform struct {
+// DplatformOS define adapt to dplatformos relay exec
+type DplatformOS struct {
 	ID                   string
 	Host                 string
 	User                 string

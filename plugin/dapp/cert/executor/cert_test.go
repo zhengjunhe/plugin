@@ -5,18 +5,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	apimock "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/system/dapp"
-	pty "github.com/33cn/dplatform/system/dapp/manage/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/system/dapp"
+	pty "github.com/33cn/dplatformos/system/dapp/manage/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	_ "github.com/33cn/plugin/plugin/crypto/init"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/utils"
@@ -34,7 +34,7 @@ type execEnv struct {
 	api         client.QueueProtocolAPI
 	db          dbm.KV
 	execAddr    string
-	cfg         *types.DplatformConfig
+	cfg         *types.DplatformOSConfig
 	ldb         dbm.DB
 	user        *authority.User
 }
@@ -74,8 +74,8 @@ func manageKeySet(key string, value string, db dbm.KV) {
 }
 
 func initEnv() (*execEnv, error) {
-	cfg := types.NewDplatformConfig(types.ReadFile("./test/dplatform.toml"))
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.ReadFile("./test/dplatformos.toml"))
+	cfg.SetTitleOnlyForTest("dplatformos")
 
 	sub := cfg.GetSubConfig()
 	var subcfg ct.Authority

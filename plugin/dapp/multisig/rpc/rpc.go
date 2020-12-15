@@ -7,7 +7,7 @@ package rpc
 import (
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	mty "github.com/33cn/plugin/plugin/dapp/multisig/types"
 )
 

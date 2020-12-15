@@ -16,8 +16,8 @@ import (
 	"reflect"
 	"time"
 
-	sm2_util "github.com/33cn/dplatform/system/crypto/sm2"
-	"github.com/33cn/dplatform/types"
+	sm2_util "github.com/33cn/dplatformos/system/crypto/sm2"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/utils"
 	"github.com/tjfoc/gmsm/sm2"
 )

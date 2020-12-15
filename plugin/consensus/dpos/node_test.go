@@ -10,22 +10,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/system/p2p/dht/protocol"
+	"github.com/33cn/dplatformos/system/p2p/dht/protocol"
 
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/executor"
-	"github.com/33cn/dplatform/p2p"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/rpc"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/executor"
+	"github.com/33cn/dplatformos/p2p"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/rpc"
+	"github.com/33cn/dplatformos/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/33cn/dplatform/blockchain"
-	"github.com/33cn/dplatform/mempool"
-	"github.com/33cn/dplatform/store"
-	_ "github.com/33cn/dplatform/system"
+	"github.com/33cn/dplatformos/blockchain"
+	"github.com/33cn/dplatformos/mempool"
+	"github.com/33cn/dplatformos/store"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin/store/init"
 )
 
@@ -37,9 +37,9 @@ var (
 	privKey          = "B3DC4C0725884EBB7264B92F1D8D37584A64ADE1799D997EC64B4FE3973E08DE220ACBE680DF2473A0CB48987A00FCC1812F106A7390BE6B8E2D31122C992A19"
 	expectAddress    = "02A13174B92727C4902DB099E51A3339F48BD45E"
 
-	//localGenesis = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"dplatform-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""},{"pub_key":{"type":"secp256k1","data":"027848E7FA630B759DB406940B5506B666A344B1060794BBF314EB459D40881BB3"},"name":""},{"pub_key":{"type":"secp256k1","data":"03F4AB6659E61E8512C9A24AC385CC1AC4D52B87D10ADBDF060086EA82BE62CDDE"},"name":""}],"app_hash":null}`
+	//localGenesis = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"dplatformos-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""},{"pub_key":{"type":"secp256k1","data":"027848E7FA630B759DB406940B5506B666A344B1060794BBF314EB459D40881BB3"},"name":""},{"pub_key":{"type":"secp256k1","data":"03F4AB6659E61E8512C9A24AC385CC1AC4D52B87D10ADBDF060086EA82BE62CDDE"},"name":""}],"app_hash":null}`
 
-	localGenesis = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"dplatform-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""}],"app_hash":null}`
+	localGenesis = `{"genesis_time":"2018-08-16T15:38:56.951569432+08:00","chain_id":"dplatformos-Z2cgFj","validators":[{"pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"name":""}],"app_hash":null}`
 	localPriv    = `{"address":"2FA286246F0222C4FF93210E91AECE0C66723F15","pub_key":{"type":"secp256k1","data":"03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"},"last_height":1679,"last_round":0,"last_step":3,"last_signature":{"type":"secp256k1","data":"37892A916D6E487ADF90F9E88FE37024597677B6C6FED47444AD582F74144B3D6E4B364EAF16AF03A4E42827B6D3C86415D734A5A6CCA92E114B23EB9265AF09"},"last_signbytes":"7B22636861696E5F6964223A22636861696E33332D5A326367466A222C22766F7465223A7B22626C6F636B5F6964223A7B2268617368223A224F6A657975396B2B4149426A6E4859456739584765356A7A462B673D222C227061727473223A7B2268617368223A6E756C6C2C22746F74616C223A307D7D2C22686569676874223A313637392C22726F756E64223A302C2274696D657374616D70223A22323031382D30382D33315430373A35313A34332E3935395A222C2274797065223A327D7D","priv_key":{"type":"secp256k1","data":"5A6A14DA6F5A42835E529D75D87CC8904544F59EEE5387A37D87EEAD194D7EB2"}}`
 
 	config1 = `Title="local"
@@ -48,7 +48,7 @@ var (
 loglevel = "debug"
 logConsoleLevel = "info"
 # 日志文件名，可带目录，所有生成的日志文件都放到此目录下
-logFile = "logs/dplatform.log"
+logFile = "logs/dplatformos.log"
 # 单个日志文件的最大值（单位：兆）
 maxFileSize = 300
 # 最多保存的历史日志文件个数
@@ -191,7 +191,7 @@ signType="auth_ecdsa"
 loglevel = "debug"
 logConsoleLevel = "info"
 # 日志文件名，可带目录，所有生成的日志文件都放到此目录下
-logFile = "logs/dplatform.log"
+logFile = "logs/dplatformos.log"
 # 单个日志文件的最大值（单位：兆）
 maxFileSize = 300
 # 最多保存的历史日志文件个数
@@ -374,13 +374,13 @@ func Init() {
 	os.Remove("genesis.json")
 	os.Remove("priv_validator.json")
 
-	os.Remove("dplatform.test1.toml")
-	os.Remove("dplatform.test2.toml")
+	os.Remove("dplatformos.test1.toml")
+	os.Remove("dplatformos.test2.toml")
 
 	ioutil.WriteFile("genesis.json", []byte(localGenesis), 0664)
 	ioutil.WriteFile("priv_validator.json", []byte(localPriv), 0664)
-	ioutil.WriteFile("dplatform.test1.toml", []byte(config1), 0664)
-	ioutil.WriteFile("dplatform.test2.toml", []byte(config2), 0664)
+	ioutil.WriteFile("dplatformos.test1.toml", []byte(config1), 0664)
+	ioutil.WriteFile("dplatformos.test2.toml", []byte(config2), 0664)
 }
 
 func TestParallel(t *testing.T) {
@@ -438,7 +438,7 @@ func TestNode(t *testing.T) {
 	fmt.Println("=======start TestNode!=======")
 	Init()
 	protocol.ClearEventHandler()
-	q1, chain1, s1, mem1, exec1, cs1, p2p1 := initEnvDpos1("dplatform.test1.toml")
+	q1, chain1, s1, mem1, exec1, cs1, p2p1 := initEnvDpos1("dplatformos.test1.toml")
 
 	defer clearTestData1()
 	defer chain1.Close()
@@ -479,7 +479,7 @@ func TestNode(t *testing.T) {
 	nodeinfo.Version = "0.0.0"
 	require.Nil(t, cs1.(*Client).GetNode().CompatibleWith(nodeinfo))
 	nodeinfo.Version = cs1.(*Client).GetNode().Version
-	nodeinfo.Network = "dplatform-Z2cgFi"
+	nodeinfo.Network = "dplatformos-Z2cgFi"
 	require.NotNil(t, cs1.(*Client).GetNode().CompatibleWith(nodeinfo))
 
 	fmt.Println("TestNodeCompatibleWith ok")
@@ -532,8 +532,8 @@ func TestNode(t *testing.T) {
 func clearTestData1() {
 	fmt.Println("=======start clear test data1!=======")
 
-	os.Remove("dplatform.test1.toml")
-	os.Remove("dplatform.test2.toml")
+	os.Remove("dplatformos.test1.toml")
+	os.Remove("dplatformos.test2.toml")
 	os.Remove("genesis.json")
 	os.Remove("priv_validator.json")
 
@@ -554,29 +554,29 @@ func clearTestData1() {
 
 func initEnvDpos1(configName string) (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Module, *executor.Executor, queue.Module, queue.Module) {
 	flag.Parse()
-	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
+	dplatformosCfg := types.NewDplatformOSConfig(types.ReadFile("dplatformos.test.toml"))
 	var q = queue.New("channel")
-	q.SetConfig(dplatformCfg)
-	cfg := dplatformCfg.GetModuleConfig()
-	sub := dplatformCfg.GetSubConfig()
+	q.SetConfig(dplatformosCfg)
+	cfg := dplatformosCfg.GetModuleConfig()
+	sub := dplatformosCfg.GetSubConfig()
 	rpc.InitCfg(cfg.RPC)
 
-	chain := blockchain.New(dplatformCfg)
+	chain := blockchain.New(dplatformosCfg)
 	chain.SetQueueClient(q.Client())
 
-	exec := executor.New(dplatformCfg)
+	exec := executor.New(dplatformosCfg)
 	exec.SetQueueClient(q.Client())
-	dplatformCfg.SetMinFee(0)
-	s := store.New(dplatformCfg)
+	dplatformosCfg.SetMinFee(0)
+	s := store.New(dplatformosCfg)
 	s.SetQueueClient(q.Client())
 
 	cs := New(cfg.Consensus, sub.Consensus["dpos"])
 	cs.(*Client).SetTestFlag()
 	cs.SetQueueClient(q.Client())
 
-	mem := mempool.New(dplatformCfg)
+	mem := mempool.New(dplatformosCfg)
 	mem.SetQueueClient(q.Client())
-	network := p2p.NewP2PMgr(dplatformCfg)
+	network := p2p.NewP2PMgr(dplatformosCfg)
 
 	network.SetQueueClient(q.Client())
 

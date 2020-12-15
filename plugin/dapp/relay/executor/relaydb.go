@@ -9,12 +9,12 @@ import (
 
 	"strconv"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	dbm "github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	dbm "github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	token "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/pkg/errors"
@@ -23,7 +23,7 @@ import (
 const (
 	lockingTime   = 12 * time.Hour //as currently one BTC tx may need wait quite long time
 	lockBtcHeight = 12 * 6
-	lockDpomAmount = 100 * 1e8
+	lockDposAmount = 100 * 1e8
 )
 
 type relayLog struct {
@@ -164,9 +164,9 @@ func (action *relayDB) create(order *ty.RelayCreate) (*types.Receipt, error) {
 		}
 
 	} else {
-		receipt, err = accDb.ExecFrozen(action.fromAddr, action.execAddr, int64(lockDpomAmount))
+		receipt, err = accDb.ExecFrozen(action.fromAddr, action.execAddr, int64(lockDposAmount))
 		if err != nil {
-			relaylog.Error("account.ExecFrozen relay ", "addrFrom", action.fromAddr, "execAddr", action.execAddr, "amount", lockDpomAmount)
+			relaylog.Error("account.ExecFrozen relay ", "addrFrom", action.fromAddr, "execAddr", action.execAddr, "amount", lockDposAmount)
 			return nil, err
 		}
 	}
@@ -290,9 +290,9 @@ func (action *relayDB) revokeCreate(revoke *ty.RelayRevoke) (*types.Receipt, err
 			return nil, err
 		}
 
-		receiptTransfer, err = accDb.ExecTransferFrozen(order.CreaterAddr, order.AcceptAddr, action.execAddr, int64(lockDpomAmount))
+		receiptTransfer, err = accDb.ExecTransferFrozen(order.CreaterAddr, order.AcceptAddr, action.execAddr, int64(lockDposAmount))
 		if err != nil {
-			relaylog.Error("revokeAccept", "from", order.AcceptAddr, "to", order.CreaterAddr, "execAddr", action.execAddr, "amount", lockDpomAmount)
+			relaylog.Error("revokeAccept", "from", order.AcceptAddr, "to", order.CreaterAddr, "execAddr", action.execAddr, "amount", lockDposAmount)
 			return nil, err
 		}
 	}
@@ -342,9 +342,9 @@ func (action *relayDB) accept(accept *ty.RelayAccept) (*types.Receipt, error) {
 
 	var receipt *types.Receipt
 	if order.Operation == ty.RelayOrderBuy {
-		receipt, err = accDb.ExecFrozen(action.fromAddr, action.execAddr, int64(lockDpomAmount))
+		receipt, err = accDb.ExecFrozen(action.fromAddr, action.execAddr, int64(lockDposAmount))
 		if err != nil {
-			relaylog.Error("relay accept frozen fail ", "addrFrom", action.fromAddr, "execAddr", action.execAddr, "amount", lockDpomAmount)
+			relaylog.Error("relay accept frozen fail ", "addrFrom", action.fromAddr, "execAddr", action.execAddr, "amount", lockDposAmount)
 			return nil, err
 		}
 
@@ -438,9 +438,9 @@ func (action *relayDB) revokeAccept(revoke *ty.RelayRevoke) (*types.Receipt, err
 
 	var receiptTransfer *types.Receipt
 	if order.Operation == ty.RelayOrderBuy {
-		receiptTransfer, err = accDb.ExecTransferFrozen(order.AcceptAddr, order.CreaterAddr, action.execAddr, int64(lockDpomAmount))
+		receiptTransfer, err = accDb.ExecTransferFrozen(order.AcceptAddr, order.CreaterAddr, action.execAddr, int64(lockDposAmount))
 		if err != nil {
-			relaylog.Error("revokeAccept", "from", order.AcceptAddr, "to", order.CreaterAddr, "execAddr", action.execAddr, "amount", lockDpomAmount)
+			relaylog.Error("revokeAccept", "from", order.AcceptAddr, "to", order.CreaterAddr, "execAddr", action.execAddr, "amount", lockDposAmount)
 			return nil, err
 		}
 	}
@@ -571,16 +571,16 @@ func (action *relayDB) verifyTx(verify *ty.RelayVerify) (*types.Receipt, error) 
 
 	var receiptTransfer *types.Receipt
 	if order.Operation == ty.RelayOrderBuy {
-		receiptTransfer, err = accDb.ExecActive(order.AcceptAddr, action.execAddr, int64(lockDpomAmount))
+		receiptTransfer, err = accDb.ExecActive(order.AcceptAddr, action.execAddr, int64(lockDposAmount))
 		if err != nil {
-			relaylog.Error("verify exec active", "from", order.AcceptAddr, "amount", lockDpomAmount)
+			relaylog.Error("verify exec active", "from", order.AcceptAddr, "amount", lockDposAmount)
 			return nil, err
 		}
 
 	} else {
-		receiptTransfer, err = accDb.ExecActive(order.CreaterAddr, action.execAddr, int64(lockDpomAmount))
+		receiptTransfer, err = accDb.ExecActive(order.CreaterAddr, action.execAddr, int64(lockDposAmount))
 		if err != nil {
-			relaylog.Error("verify exec active", "from", order.CreaterAddr, "amount", lockDpomAmount)
+			relaylog.Error("verify exec active", "from", order.CreaterAddr, "amount", lockDposAmount)
 			return nil, err
 		}
 	}

@@ -8,8 +8,8 @@ import (
 	"bytes"
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )
 
@@ -47,7 +47,7 @@ func checkReceiptExecOk(receipt *types.ReceiptData) bool {
 // 1, 主链+平行链 user.p.xx.paracross 交易组				混合跨链资产转移  paracross主链执行成功
 // 2, 平行链	    user.p.xx.paracross + user.p.xx.other   混合平行链组合    paracross主链执行成功
 // 3, 平行链     user.p.xx.other  交易组					混合平行链组合    other主链pack
-func filterParaTxGroup(cfg *types.DplatformConfig, tx *types.Transaction, allTxs []*types.TxDetail, index int, mainBlockHeight, forkHeight int64) ([]*types.Transaction, int) {
+func filterParaTxGroup(cfg *types.DplatformOSConfig, tx *types.Transaction, allTxs []*types.TxDetail, index int, mainBlockHeight, forkHeight int64) ([]*types.Transaction, int) {
 	var headIdx int
 
 	for i := index; i >= 0; i-- {
@@ -80,7 +80,7 @@ func filterParaTxGroup(cfg *types.DplatformConfig, tx *types.Transaction, allTxs
 }
 
 //FilterTxsForPara include some main tx in tx group before ForkParacrossCommitTx
-func FilterTxsForPara(cfg *types.DplatformConfig, main *types.ParaTxDetail) []*types.Transaction {
+func FilterTxsForPara(cfg *types.DplatformOSConfig, main *types.ParaTxDetail) []*types.Transaction {
 	var txs []*types.Transaction
 	forkHeight := pt.GetDappForkHeight(cfg, pt.ForkCommitTx)
 	for i := 0; i < len(main.TxDetails); i++ {

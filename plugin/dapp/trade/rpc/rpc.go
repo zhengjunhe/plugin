@@ -7,7 +7,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	ptypes "github.com/33cn/plugin/plugin/dapp/trade/types"
 )
 

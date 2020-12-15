@@ -7,8 +7,8 @@ package para
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/types"
-	typesmocks "github.com/33cn/dplatform/types/mocks"
+	"github.com/33cn/dplatformos/types"
+	typesmocks "github.com/33cn/dplatformos/types/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -54,7 +54,7 @@ func TestGetHeightsArry(t *testing.T) {
 
 func TestFetchHeightListBlocks(t *testing.T) {
 	para := &client{}
-	grpcClient := &typesmocks.DplatformClient{}
+	grpcClient := &typesmocks.DplatformOSClient{}
 	para.grpcClient = grpcClient
 	jump := &jumpDldClient{paraClient: para}
 

@@ -7,7 +7,7 @@ package executor
 import (
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )
 

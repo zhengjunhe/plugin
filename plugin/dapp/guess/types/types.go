@@ -7,7 +7,7 @@ package types
 import (
 	"reflect"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 func init() {
@@ -18,12 +18,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(GuessX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(GuessX, NewType(cfg))
 }
 
@@ -33,7 +33,7 @@ type GuessType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *GuessType {
+func NewType(cfg *types.DplatformOSConfig) *GuessType {
 	c := &GuessType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

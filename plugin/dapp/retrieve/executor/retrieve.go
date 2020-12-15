@@ -7,10 +7,10 @@ package executor
 import (
 	"fmt"
 
-	dbm "github.com/33cn/dplatform/common/db"
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	dbm "github.com/33cn/dplatformos/common/db"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	rt "github.com/33cn/plugin/plugin/dapp/retrieve/types"
 )
 
@@ -28,7 +28,7 @@ var (
 var driverName = "retrieve"
 
 //Init retrieve
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newRetrieve, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

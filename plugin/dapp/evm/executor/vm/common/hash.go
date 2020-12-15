@@ -9,7 +9,7 @@ import (
 
 	"github.com/holiman/uint256"
 
-	"github.com/33cn/dplatform/common"
+	"github.com/33cn/dplatformos/common"
 )
 
 const (

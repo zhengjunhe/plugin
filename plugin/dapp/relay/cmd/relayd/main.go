@@ -13,17 +13,17 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/33cn/dplatform/common/limits"
-	clog "github.com/33cn/dplatform/common/log"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/limits"
+	clog "github.com/33cn/dplatformos/common/log"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/relay/cmd/relayd/relayd"
 )
 
 var (
 	cpuNum            = runtime.NumCPU()
 	configPath        = flag.String("f", "relayd.toml", "configfile")
-	dplatformConfigPath = flag.String("dplatformflie", "", "dplatformconfigfile")
+	dplatformosConfigPath = flag.String("dplatformosflie", "", "dplatformosconfigfile")
 )
 
 func main() {
@@ -42,8 +42,8 @@ func main() {
 	flag.Parse()
 	cfg := relayd.NewConfig(*configPath)
 	clog.SetFileLog(&cfg.Log)
-	if *dplatformConfigPath != "" {
-		cfg.DplatformCfg = types.NewDplatformConfig(types.ReadFile(*dplatformConfigPath))
+	if *dplatformosConfigPath != "" {
+		cfg.DplatformOSCfg = types.NewDplatformOSConfig(types.ReadFile(*dplatformosConfigPath))
 	}
 
 	if cfg.Watch {

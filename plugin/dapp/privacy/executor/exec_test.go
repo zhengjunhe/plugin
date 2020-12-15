@@ -7,8 +7,8 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	pty "github.com/33cn/plugin/plugin/dapp/privacy/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -86,7 +86,7 @@ func TestPrivacy_CheckTx(t *testing.T) {
 	defer mock.FreeEnv()
 	//用于测试双花
 	testKeyImage := []byte("testKeyImage")
-	mock.stateDB.Set(calcPrivacyKeyImageKey("coins", "dpom", testKeyImage), []byte("testval"))
+	mock.stateDB.Set(calcPrivacyKeyImageKey("coins", "dpos", testKeyImage), []byte("testval"))
 	tcArr := []*testcase{
 		{
 			index:          1,
@@ -95,44 +95,44 @@ func TestPrivacy_CheckTx(t *testing.T) {
 		},
 		{
 			index:   2,
-			payload: &pty.Public2Privacy{Tokenname: "dpom"},
+			payload: &pty.Public2Privacy{Tokenname: "dpos"},
 		},
 		{
 			index:          4,
-			payload:        &pty.Privacy2Public{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{}}},
+			payload:        &pty.Privacy2Public{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{}}},
 			expectCheckErr: pty.ErrNilUtxoInput,
 		},
 		{
 			index:          5,
-			payload:        &pty.Privacy2Privacy{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
+			payload:        &pty.Privacy2Privacy{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
 			expectCheckErr: pty.ErrNilUtxoOutput,
 		},
 		{
 			index:          6,
-			payload:        &pty.Privacy2Public{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
+			payload:        &pty.Privacy2Public{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
 			expectCheckErr: pty.ErrRingSign,
 		},
 		{
 			index:          7,
-			payload:        &pty.Privacy2Public{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{KeyImage: testKeyImage}}}},
+			payload:        &pty.Privacy2Public{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{KeyImage: testKeyImage}}}},
 			expectCheckErr: pty.ErrDoubleSpendOccur,
 			testSign:       types.Encode(&types.RingSignature{Items: []*types.RingSignatureItem{{Pubkey: [][]byte{[]byte("test")}}}}),
 		},
 		{
 			index:          8,
-			payload:        &pty.Privacy2Public{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{UtxoGlobalIndex: []*pty.UTXOGlobalIndex{{}}}}}},
+			payload:        &pty.Privacy2Public{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{UtxoGlobalIndex: []*pty.UTXOGlobalIndex{{}}}}}},
 			expectCheckErr: pty.ErrPubkeysOfUTXO,
 			testSign:       types.Encode(&types.RingSignature{Items: []*types.RingSignatureItem{{Pubkey: [][]byte{[]byte("test")}}}}),
 		},
 		{
 			index:          9,
-			payload:        &pty.Privacy2Public{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
+			payload:        &pty.Privacy2Public{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
 			expectCheckErr: pty.ErrPrivacyTxFeeNotEnough,
 			testSign:       types.Encode(&types.RingSignature{Items: []*types.RingSignatureItem{{Pubkey: [][]byte{[]byte("test")}}}}),
 		},
 		{
 			index:          10,
-			payload:        &pty.Privacy2Public{Tokenname: "dpom", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
+			payload:        &pty.Privacy2Public{Tokenname: "dpos", Input: &pty.PrivacyInput{Keyinput: []*pty.KeyInput{{}}}},
 			expectCheckErr: pty.ErrPrivacyTxFeeNotEnough,
 			testSign:       types.Encode(&types.RingSignature{Items: []*types.RingSignatureItem{{Pubkey: [][]byte{[]byte("test")}}}}),
 			testFee:        pty.PrivacyTxFee,

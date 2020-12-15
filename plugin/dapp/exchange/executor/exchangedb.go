@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	dbm "github.com/33cn/dplatform/common/db"
-	tab "github.com/33cn/dplatform/common/db/table"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	dbm "github.com/33cn/dplatformos/common/db"
+	tab "github.com/33cn/dplatformos/common/db/table"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	et "github.com/33cn/plugin/plugin/dapp/exchange/types"
 )
 
@@ -123,7 +123,7 @@ func (a *Action) LimitOrder(payload *et.LimitOrder) (*types.Receipt, error) {
 	leftAsset := payload.GetLeftAsset()
 	rightAsset := payload.GetRightAsset()
 	//TODO 参数要合法，必须有严格的校验，后面统一加入到checkTx里面
-	//coins执行器下面只有dpom
+	//coins执行器下面只有dpos
 	if !CheckExchangeAsset(leftAsset, rightAsset) {
 		return nil, et.ErrAsset
 	}

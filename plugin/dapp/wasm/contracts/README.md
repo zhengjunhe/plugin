@@ -1,5 +1,5 @@
 ### 合约开发
-新建 cpp 和 hpp 文件，并导入 common.h 头文件，其中 common.h 中声明了 dplatform 中的回调函数，是合约调用 dplatform 系统方法的接口。   
+新建 cpp 和 hpp 文件，并导入 common.h 头文件，其中 common.h 中声明了 dplatformos 中的回调函数，是合约调用 dplatformos 系统方法的接口。   
 
 合约中的导出方法的所有参数都只能是数字类型，且必须有一个数字类型的返回值，其中非负值表示执行成功，负值表示执行失败。
 
@@ -33,7 +33,7 @@ em++ -o dice.wasm dice.cpp -s WASM=1 -O3 -s EXPORTED_FUNCTIONS="[_startgame, _de
 - -s WASM=1 指定生成 wasm 文件   
 - -O3 优化等级，可以优化生成的 wasm 文件大小，可指定为 1～3   
 - -s EXPORTED_FUNCTIONS 指定导出方法列表，以逗号分隔，合约外部只可以调用导出方法，不能调用非导出方法，导出方法的函数名需要额外加一个 "_"
-- -s ERROR_ON_UNDEFINED_SYMBOLS=0 忽略未定义错误，因为 common.h 中声明的方法没有具体的 c/c++ 实现，而是在 dplatform 中用 go 实现，因此需要忽略该错误，否则将编译失败
+- -s ERROR_ON_UNDEFINED_SYMBOLS=0 忽略未定义错误，因为 common.h 中声明的方法没有具体的 c/c++ 实现，而是在 dplatformos 中用 go 实现，因此需要忽略该错误，否则将编译失败
 
 参考文档：https://developer.mozilla.org/en-US/docs/WebAssembly
 
@@ -55,22 +55,22 @@ wabt/bin/wasm2wat dice.wasm
 
 ### 发布合约
 ```bash
-./dplatform-cli send wasm create -n 指定合约名 -p wasm合约路径 -k 用户私钥
+./dplatformos-cli send wasm create -n 指定合约名 -p wasm合约路径 -k 用户私钥
 ```
 
 ### 调用合约
 ```bash
 #其中参数为用逗号分隔的数字
-./dplatform-cli send wasm call -n 发布合约时指定的合约 -m 调用合约方法名 -p 参数 -k 用户私钥  
+./dplatformos-cli send wasm call -n 发布合约时指定的合约 -m 调用合约方法名 -p 参数 -k 用户私钥  
 ```
 
 ### 转账及提款
 ```bash
 #部分合约调用可能需要在合约中有余额，需要先转账到 wasm 合约
-./dplatform-cli send coins send_exec -e wasm -a 数量 -k 用户私钥
+./dplatformos-cli send coins send_exec -e wasm -a 数量 -k 用户私钥
 
 #提款
-./dplatform-cli send coins withdraw -e wasm -a 数量 -k 用户私钥
+./dplatformos-cli send coins withdraw -e wasm -a 数量 -k 用户私钥
 ```
 ### RPC接口调用
 ```bash
@@ -78,8 +78,8 @@ wabt/bin/wasm2wat dice.wasm
 curl http://localhost:28803 -ksd '{"method":"wasm.CallContract", "params":[{"contract":"dice","method":"play","parameters":[1000000000, 10]}]}'
 
 #签名
-curl http://localhost:28803 -ksd '{"method":"Dplatform.SignRawTx","params":[{"privkey":"0x4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01","txhex":"0x0a047761736d1218180212140a04646963651204706c61791a068094ebdc030a20a08d0630ec91c19ede9ef4d1693a22314b3732554137393845775a66427855546b4265686864766b656f3277377446344c","expire":"300s"}]}'
+curl http://localhost:28803 -ksd '{"method":"DplatformOS.SignRawTx","params":[{"privkey":"0x4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01","txhex":"0x0a047761736d1218180212140a04646963651204706c61791a068094ebdc030a20a08d0630ec91c19ede9ef4d1693a22314b3732554137393845775a66427855546b4265686864766b656f3277377446344c","expire":"300s"}]}'
 
 #发送
-curl http://localhost:28803 -ksd '{"method":"Dplatform.SendTransaction","params":[{"data":"0a047761736d1218180212140a04646963651204706c61791a068094ebdc030a1a6d080112210320bbac09528e19c55b0f89cb37ab265e7e856b1a8c388780322dbbfd194b52ba1a46304402201dc04e89da9220e42b2768a23cd2e6a7c452b2bfd30e0799f5c6f1b035151d1402201160929f74feb26be4205cf4432bdf377eb775f189db2883556cedc31c4fb01920a08d0628b2cb90fb0530ec91c19ede9ef4d1693a22314b3732554137393845775a66427855546b4265686864766b656f3277377446344c"}]}'
+curl http://localhost:28803 -ksd '{"method":"DplatformOS.SendTransaction","params":[{"data":"0a047761736d1218180212140a04646963651204706c61791a068094ebdc030a1a6d080112210320bbac09528e19c55b0f89cb37ab265e7e856b1a8c388780322dbbfd194b52ba1a46304402201dc04e89da9220e42b2768a23cd2e6a7c452b2bfd30e0799f5c6f1b035151d1402201160929f74feb26be4205cf4432bdf377eb775f189db2883556cedc31c4fb01920a08d0628b2cb90fb0530ec91c19ede9ef4d1693a22314b3732554137393845775a66427855546b4265686864766b656f3277377446344c"}]}'
 ```

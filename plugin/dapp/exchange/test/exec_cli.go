@@ -5,19 +5,19 @@ import (
 	"log"
 	"time"
 
-	"github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatformos/common/db"
 	"github.com/33cn/plugin/plugin/dapp/exchange/executor"
 	"github.com/golang/protobuf/proto"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/queue"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/queue"
 	et "github.com/33cn/plugin/plugin/dapp/exchange/types"
 )
 
@@ -29,7 +29,7 @@ type ExecCli struct {
 	blockTime  int64
 	difficulty uint64
 	q          queue.Queue
-	cfg        *types.DplatformConfig
+	cfg        *types.DplatformOSConfig
 	execAddr   string
 
 	accA  *account.DB //exec account
@@ -57,8 +57,8 @@ func NewExecCli() *ExecCli {
 	dir, sdb, ldb := util.CreateTestDB()
 	log.Println(dir)
 
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 
 	executor.Init(et.ExchangeX, cfg, nil)
 	total := 100000000 * types.Coin
@@ -86,16 +86,16 @@ func NewExecCli() *ExecCli {
 
 	execAddr := address.ExecAddress(et.ExchangeX)
 
-	accA, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
+	accA, _ := account.NewAccountDB(cfg, "coins", "dpos", sdb)
 	accA.SaveExecAccount(execAddr, accountA)
 
-	accB, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
+	accB, _ := account.NewAccountDB(cfg, "coins", "dpos", sdb)
 	accB.SaveExecAccount(execAddr, accountB)
 
-	accC, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
+	accC, _ := account.NewAccountDB(cfg, "coins", "dpos", sdb)
 	accC.SaveExecAccount(execAddr, accountC)
 
-	accD, _ := account.NewAccountDB(cfg, "coins", "dpom", sdb)
+	accD, _ := account.NewAccountDB(cfg, "coins", "dpos", sdb)
 	accD.SaveExecAccount(execAddr, accountD)
 
 	accA1, _ := account.NewAccountDB(cfg, "token", "CCNY", sdb)
@@ -222,7 +222,7 @@ func signTx(tx *types.Transaction, hexPrivKey string) (*types.Transaction, error
 
 //GetExecAccount ...
 func (c *ExecCli) GetExecAccount(addr string, exec string, symbol string) (*types.Account, error) {
-	//mavl-{coins}-{dpom}-exec-{26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp}:{1JmFaA6unrCFYEWPGRi7uuXY1KthTJxJEP}
+	//mavl-{coins}-{dpos}-exec-{26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp}:{1JmFaA6unrCFYEWPGRi7uuXY1KthTJxJEP}
 	//mavl-{token}-{ccny}-exec-{26htvcBNSEA7fZhAdLJphDwQRQJaHpyHTp}:{1JmFaA6unrCFYEWPGRi7uuXY1KthTJxJEP}
 	key := []byte(fmt.Sprintf("mavl-%s-%s-exec-%s:%s", exec, symbol, c.execAddr, addr))
 	bytes, err := c.sdb.Get(key)

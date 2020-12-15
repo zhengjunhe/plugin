@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	rpctypes "github.com/33cn/dplatform/rpc/types"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
 	exchangetypes "github.com/33cn/plugin/plugin/dapp/exchange/types"
 )
 

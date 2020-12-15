@@ -3,8 +3,8 @@ package echo
 import (
 	"reflect"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 // 定义本执行器支持的Action种类
@@ -43,12 +43,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(EchoX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(EchoX, NewType(cfg))
 }
 
@@ -58,7 +58,7 @@ type Type struct {
 }
 
 // NewType 初始化本执行器类型
-func NewType(cfg *types.DplatformConfig) *Type {
+func NewType(cfg *types.DplatformOSConfig) *Type {
 	c := &Type{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

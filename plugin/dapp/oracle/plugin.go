@@ -7,7 +7,7 @@
 package oracle
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/oracle/commands"
 	"github.com/33cn/plugin/plugin/dapp/oracle/executor"
 	"github.com/33cn/plugin/plugin/dapp/oracle/types"

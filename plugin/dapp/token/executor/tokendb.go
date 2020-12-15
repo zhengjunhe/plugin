@@ -9,12 +9,12 @@ import (
 
 	"strings"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common/address"
-	dbm "github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common/address"
+	dbm "github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 )
 
@@ -22,7 +22,7 @@ type tokenDB struct {
 	token pty.Token
 }
 
-func newTokenDB(cfg *types.DplatformConfig, preCreate *pty.TokenPreCreate, creator string, height int64) *tokenDB {
+func newTokenDB(cfg *types.DplatformOSConfig, preCreate *pty.TokenPreCreate, creator string, height int64) *tokenDB {
 	t := &tokenDB{}
 	t.token.Name = preCreate.GetName()
 	t.token.Symbol = preCreate.GetSymbol()
@@ -383,7 +383,7 @@ func checkTokenHasPrecreate(token, owner string, status int32, db dbm.KV) bool {
 	return err == nil
 }
 
-func checkTokenHasPrecreateWithHeight(cfg *types.DplatformConfig, token, owner string, db dbm.KV, height int64) bool {
+func checkTokenHasPrecreateWithHeight(cfg *types.DplatformOSConfig, token, owner string, db dbm.KV, height int64) bool {
 	if !cfg.IsDappFork(height, pty.TokenX, pty.ForkTokenCheckX) {
 		return checkTokenHasPrecreate(token, owner, pty.TokenStatusPreCreated, db)
 	}
@@ -541,7 +541,7 @@ func validSymbolOriginal(cs []byte) bool {
 	return upSymbol == symbol
 }
 
-func validSymbolWithHeight(cfg *types.DplatformConfig, cs []byte, height int64) bool {
+func validSymbolWithHeight(cfg *types.DplatformOSConfig, cs []byte, height int64) bool {
 	if cfg.IsDappFork(height, pty.TokenX, pty.ForkTokenSymbolWithNumberX) {
 		return validSymbolForkTokenSymbolWithNumber(cs)
 	} else if cfg.IsDappFork(height, pty.TokenX, pty.ForkBadTokenSymbolX) {
@@ -618,8 +618,8 @@ func (action *tokenAction) burn(burn *pty.TokenBurn) (*types.Receipt, error) {
 		tokenlog.Error("token burn ", "symbol", burn.GetSymbol(), "error", err, "from", action.fromaddr, "owner", tokendb.token.Owner)
 		return nil, err
 	}
-	dplatformcfg := action.api.GetConfig()
-	tokenAccount, err := account.NewAccountDB(dplatformcfg, "token", burn.GetSymbol(), action.db)
+	dplatformoscfg := action.api.GetConfig()
+	tokenAccount, err := account.NewAccountDB(dplatformoscfg, "token", burn.GetSymbol(), action.db)
 	if err != nil {
 		return nil, err
 	}

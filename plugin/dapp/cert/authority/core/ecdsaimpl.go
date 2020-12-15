@@ -18,8 +18,8 @@ import (
 
 	"crypto/ecdsa"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	ecdsa_util "github.com/33cn/plugin/plugin/crypto/ecdsa"
 	"github.com/33cn/plugin/plugin/dapp/cert/authority/utils"
 )

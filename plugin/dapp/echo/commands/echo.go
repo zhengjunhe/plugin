@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
 	echotypes "github.com/33cn/plugin/plugin/dapp/echo/types/echo"
 	"github.com/spf13/cobra"
 )

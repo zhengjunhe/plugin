@@ -4,18 +4,18 @@ import (
 	"log"
 	"testing"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	cty "github.com/33cn/dplatform/system/dapp/coins/types"
-	drivers "github.com/33cn/dplatform/system/mempool"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	cty "github.com/33cn/dplatformos/system/dapp/coins/types"
+	drivers "github.com/33cn/dplatformos/system/mempool"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
+	"github.com/33cn/dplatformos/util/testnode"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 )
 
 var (
@@ -43,7 +43,7 @@ func initEnv(size int64) *Queue {
 	if size == 0 {
 		size = 1000
 	}
-	_, sub := types.InitCfg("dplatform.test.toml")
+	_, sub := types.InitCfg("dplatformos.test.toml")
 	var subcfg subConfig
 	types.MustDecode(sub.Mempool["price"], &subcfg)
 	subcfg.PoolCacheSize = size
@@ -183,7 +183,7 @@ func TestGetProperFee(t *testing.T) {
 }
 
 func TestRealNodeMempool(t *testing.T) {
-	mock33 := testnode.New("dplatform.test.toml", nil)
+	mock33 := testnode.New("dplatformos.test.toml", nil)
 	cfg := mock33.GetClient().GetConfig()
 	defer mock33.Close()
 	mock33.Listen()

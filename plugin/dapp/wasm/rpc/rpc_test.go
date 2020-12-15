@@ -5,18 +5,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/33cn/dplatform/client/mocks"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client/mocks"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-var cfg *types.DplatformConfig
+var cfg *types.DplatformOSConfig
 
 func init() {
-	cfg = types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg = types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 }
 
 func TestJrpc_CheckContract(t *testing.T) {

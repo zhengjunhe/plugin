@@ -7,7 +7,7 @@ package rpc
 import (
 	"golang.org/x/net/context"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	bw "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 )
 

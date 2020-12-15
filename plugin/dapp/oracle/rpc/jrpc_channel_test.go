@@ -12,15 +12,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	commonlog "github.com/33cn/dplatform/common/log"
-	_ "github.com/33cn/dplatform/system"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 	oty "github.com/33cn/plugin/plugin/dapp/oracle/types"
 )
@@ -42,7 +42,7 @@ func TestJRPCChannel(t *testing.T) {
 	assert.NotNil(t, jrpcClient)
 
 	testCases := []struct {
-		fn func(*testing.T, *types.DplatformConfig, *jsonclient.JSONClient) error
+		fn func(*testing.T, *types.DplatformOSConfig, *jsonclient.JSONClient) error
 	}{
 		{fn: testPublishEventRawCmd},
 		{fn: testAbortEventRawTxCmd},
@@ -81,7 +81,7 @@ func TestJRPCChannel(t *testing.T) {
 	}
 }
 
-func testPublishEventRawCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testPublishEventRawCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	timeStr := "2019-01-21 15:30:00"
 	layout := "2006-01-02 15:04:05"
 	ti, err := time.Parse(layout, timeStr)
@@ -102,10 +102,10 @@ func testPublishEventRawCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *json
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testAbortEventRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testAbortEventRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &oty.EventAbort{EventID: "123"}
 	params := &rpctypes.CreateTxIn{
 		Execer:     cfg.ExecName(oty.OracleX),
@@ -113,10 +113,10 @@ func testAbortEventRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *json
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testPrePublishResultRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testPrePublishResultRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &oty.ResultPrePublish{
 		EventID: "123",
 		Source:  "新浪体育",
@@ -128,10 +128,10 @@ func testPrePublishResultRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testAbortPrePubResultRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testAbortPrePubResultRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &oty.EventAbort{EventID: "123"}
 	params := &rpctypes.CreateTxIn{
 		Execer:     cfg.ExecName(oty.OracleX),
@@ -139,10 +139,10 @@ func testAbortPrePubResultRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrp
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
-func testPublishResultRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *jsonclient.JSONClient) error {
+func testPublishResultRawTxCmd(t *testing.T, cfg *types.DplatformOSConfig, jrpc *jsonclient.JSONClient) error {
 	payload := &oty.ResultPrePublish{
 		EventID: "123",
 		Source:  "新浪体育",
@@ -154,7 +154,7 @@ func testPublishResultRawTxCmd(t *testing.T, cfg *types.DplatformConfig, jrpc *j
 		Payload:    types.MustPBToJSON(payload),
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", params, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", params, &res)
 }
 
 func testQueryOracleListByIDsRawTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -165,7 +165,7 @@ func testQueryOracleListByIDsRawTxCmd(t *testing.T, jrpc *jsonclient.JSONClient)
 	params.FuncName = oty.FuncNameQueryOracleListByIDs
 	params.Payload = types.MustPBToJSON(req)
 	rep = &oty.ReplyOracleStatusList{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryEventIDByAddrAndStatusRawTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -176,7 +176,7 @@ func testQueryEventIDByAddrAndStatusRawTxCmd(t *testing.T, jrpc *jsonclient.JSON
 	params.FuncName = oty.FuncNameQueryEventIDByAddrAndStatus
 	params.Payload = types.MustPBToJSON(req)
 	rep = &oty.ReplyEventIDs{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryEventIDByTypeAndStatusRawTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -191,7 +191,7 @@ func testQueryEventIDByTypeAndStatusRawTxCmd(t *testing.T, jrpc *jsonclient.JSON
 	params.FuncName = oty.FuncNameQueryEventIDByTypeAndStatus
 	params.Payload = types.MustPBToJSON(req)
 	rep = &oty.ReplyEventIDs{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testQueryEventIDByStatusRawTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -206,5 +206,5 @@ func testQueryEventIDByStatusRawTxCmd(t *testing.T, jrpc *jsonclient.JSONClient)
 	params.FuncName = oty.FuncNameQueryEventIDByStatus
 	params.Payload = types.MustPBToJSON(req)
 	rep = &oty.ReplyEventIDs{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }

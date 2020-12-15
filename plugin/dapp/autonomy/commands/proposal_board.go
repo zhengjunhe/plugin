@@ -9,9 +9,9 @@ import (
 
 	"encoding/json"
 
-	jsonrpc "github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	jsonrpc "github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 	"github.com/spf13/cobra"
 )
@@ -135,7 +135,7 @@ func proposalBoard(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -175,7 +175,7 @@ func revokeProposalBoard(cmd *cobra.Command, args []string) {
 		Payload:    payLoad,
 	}
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -233,7 +233,7 @@ func voteProposalBoard(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -274,7 +274,7 @@ func terminateProposalBoard(cmd *cobra.Command, args []string) {
 	}
 
 	var res string
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", pm, &res)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", pm, &res)
 	ctx.RunWithoutMarshal()
 }
 
@@ -337,7 +337,7 @@ func showProposalBoard(cmd *cobra.Command, args []string) {
 	}
 	rep = &auty.ReplyQueryProposalBoard{}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, rep)
 	ctx.Run()
 }
 
@@ -360,6 +360,6 @@ func showActiveBoard(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&types.ReqString{})
 	rep := &auty.ActiveBoard{}
 
-	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, rep)
+	ctx := jsonrpc.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, rep)
 	ctx.Run()
 }

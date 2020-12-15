@@ -3,7 +3,7 @@ package types
 import (
 	"reflect"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 /*
@@ -91,12 +91,12 @@ func init() {
 }
 
 // InitFork defines register fork
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(ExchangeX, "Enable", 0)
 }
 
 // InitExecutor defines register executor
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(ExchangeX, NewType(cfg))
 }
 
@@ -106,7 +106,7 @@ type ExchangeType struct {
 }
 
 //NewType ...
-func NewType(cfg *types.DplatformConfig) *ExchangeType {
+func NewType(cfg *types.DplatformOSConfig) *ExchangeType {
 	c := &ExchangeType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

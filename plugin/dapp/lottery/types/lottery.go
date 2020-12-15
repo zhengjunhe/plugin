@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var (
@@ -24,12 +24,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(LotteryX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(LotteryX, NewType(cfg))
 }
 
@@ -39,7 +39,7 @@ type LotteryType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *LotteryType {
+func NewType(cfg *types.DplatformOSConfig) *LotteryType {
 	c := &LotteryType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -118,7 +118,7 @@ func (lottery LotteryType) GetTypeMap() map[string]int32 {
 }
 
 // CreateRawLotteryCreateTx method
-func CreateRawLotteryCreateTx(cfg *types.DplatformConfig, parm *LotteryCreateTx) (*types.Transaction, error) {
+func CreateRawLotteryCreateTx(cfg *types.DplatformOSConfig, parm *LotteryCreateTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawLotteryCreateTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -149,7 +149,7 @@ func CreateRawLotteryCreateTx(cfg *types.DplatformConfig, parm *LotteryCreateTx)
 }
 
 // CreateRawLotteryBuyTx method
-func CreateRawLotteryBuyTx(cfg *types.DplatformConfig, parm *LotteryBuyTx) (*types.Transaction, error) {
+func CreateRawLotteryBuyTx(cfg *types.DplatformOSConfig, parm *LotteryBuyTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawLotteryBuyTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -180,7 +180,7 @@ func CreateRawLotteryBuyTx(cfg *types.DplatformConfig, parm *LotteryBuyTx) (*typ
 }
 
 // CreateRawLotteryDrawTx method
-func CreateRawLotteryDrawTx(cfg *types.DplatformConfig, parm *LotteryDrawTx) (*types.Transaction, error) {
+func CreateRawLotteryDrawTx(cfg *types.DplatformOSConfig, parm *LotteryDrawTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawLotteryDrawTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -208,7 +208,7 @@ func CreateRawLotteryDrawTx(cfg *types.DplatformConfig, parm *LotteryDrawTx) (*t
 }
 
 // CreateRawLotteryCloseTx method
-func CreateRawLotteryCloseTx(cfg *types.DplatformConfig, parm *LotteryCloseTx) (*types.Transaction, error) {
+func CreateRawLotteryCloseTx(cfg *types.DplatformOSConfig, parm *LotteryCloseTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawLotteryCloseTx", "parm", parm)
 		return nil, types.ErrInvalidParam

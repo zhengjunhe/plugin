@@ -5,7 +5,7 @@
 package types
 
 import (
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 // NormX name
@@ -18,12 +18,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(NormX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(NormX, NewType(cfg))
 }
 
@@ -33,7 +33,7 @@ type NormType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *NormType {
+func NewType(cfg *types.DplatformOSConfig) *NormType {
 	c := &NormType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

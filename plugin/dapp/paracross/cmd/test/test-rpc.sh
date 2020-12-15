@@ -8,7 +8,7 @@ IS_PARA=false
 source ../dapp-test-common.sh
 
 paracross_GetBlock2MainInfo() {
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName": "GetBlock2MainInfo", "payload" : {"start":1,"end":3}}]}' ${UNIT_HTTP} '(.result.items[1].height == "2")' "$FUNCNAME"
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName": "GetBlock2MainInfo", "payload" : {"start":1,"end":3}}]}' ${UNIT_HTTP} '(.result.items[1].height == "2")' "$FUNCNAME"
 }
 
 function paracross_QueryParaBalance() {
@@ -21,12 +21,12 @@ function paracross_QueryParaBalance() {
     ip_http=${UNIT_HTTP%:*}
     para_http="$ip_http:8901"
     local exec=$2
-    local symbol="coins.dpom"
+    local symbol="coins.dpos"
     if [ -n "$3" ]; then
         symbol="$3"
     fi
 
-    req='{"method":"Dplatform.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "'"${exec}"'","asset_exec":"paracross","asset_symbol":"'"${symbol}"'"}]}'
+    req='{"method":"DplatformOS.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "'"${exec}"'","asset_exec":"paracross","asset_symbol":"'"${symbol}"'"}]}'
     resp=$(curl -ksd "$req" "${para_http}")
     balance=$(jq -r '.result[0].balance' <<<"$resp")
     echo "$balance"
@@ -43,7 +43,7 @@ function paracross_QueryMainBalance() {
     ip_http=${UNIT_HTTP%:*}
     main_http="$ip_http:28803"
 
-    req='{"method":"Dplatform.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "paracross"}]}'
+    req='{"method":"DplatformOS.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "paracross"}]}'
     resp=$(curl -ksd "$req" "${main_http}")
     balance=$(jq -r '.result[0].balance' <<<"$resp")
     echo "$balance"
@@ -60,12 +60,12 @@ function paracross_QueryMainAssetBalance() {
     ip_http=${UNIT_HTTP%:*}
     main_http="$ip_http:28803"
     local exec=$2
-    local symbol="dpom"
+    local symbol="dpos"
     if [ -n "$3" ]; then
         symbol="$3"
     fi
 
-    req='{"method":"Dplatform.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "'"${exec}"'","asset_exec":"paracross","asset_symbol":"'"${symbol}"'"}]}'
+    req='{"method":"DplatformOS.GetBalance", "params":[{"addresses" : ["'"$1"'"], "execer" : "'"${exec}"'","asset_exec":"paracross","asset_symbol":"'"${symbol}"'"}]}'
     resp=$(curl -ksd "$req" "${main_http}")
     balance=$(jq -r '.result[0].balance' <<<"$resp")
     echo "$balance"
@@ -114,8 +114,8 @@ function paracross_Transfer_Withdraw_Inner() {
     local main_withdraw_real
 
     #2  存钱到合约地址
-    tx_hash=$(curl -ksd '{"method":"Dplatform.CreateRawTransaction","params":[{"to":"'"$paracross_addr"'","amount":'$amount_save'}]}' ${UNIT_HTTP} | jq -r ".result")
-    dplatform_SignAndSendTx "$tx_hash" "$privkey" ${UNIT_HTTP}
+    tx_hash=$(curl -ksd '{"method":"DplatformOS.CreateRawTransaction","params":[{"to":"'"$paracross_addr"'","amount":'$amount_save'}]}' ${UNIT_HTTP} | jq -r ".result")
+    dplatformos_SignAndSendTx "$tx_hash" "$privkey" ${UNIT_HTTP}
 
     #1. 查询资产转移前余额状态
     para_balance_before=$(paracross_QueryParaBalance "$from_addr" "paracross")
@@ -124,8 +124,8 @@ function paracross_Transfer_Withdraw_Inner() {
     echo "main before transferring:$main_balance_before"
 
     #3  资产从主链转移到平行链
-    tx_hash=$(curl -ksd '{"method":"Dplatform.CreateTransaction","params":[{"execer":"'"$execer_name"'","actionName":"ParacrossAssetTransfer","payload":{"execName":"'"$execer_name"'","to":"'"$from_addr"'","amount":'$amount_should'}}]}' ${UNIT_HTTP} | jq -r ".result")
-    dplatform_SignAndSendTx "$tx_hash" "$privkey" ${UNIT_HTTP}
+    tx_hash=$(curl -ksd '{"method":"DplatformOS.CreateTransaction","params":[{"execer":"'"$execer_name"'","actionName":"ParacrossAssetTransfer","payload":{"execName":"'"$execer_name"'","to":"'"$from_addr"'","amount":'$amount_should'}}]}' ${UNIT_HTTP} | jq -r ".result")
+    dplatformos_SignAndSendTx "$tx_hash" "$privkey" ${UNIT_HTTP}
 
     #4 查询转移后余额状态
     local times=200
@@ -139,7 +139,7 @@ function paracross_Transfer_Withdraw_Inner() {
         main_amount_real=$((main_balance_before - main_balance_after))
         #echo $amount_real
         if [ "$para_amount_real" != "$amount_should" ] || [ "$main_amount_real" != "$amount_should" ]; then
-            dplatform_BlockWait 2 ${UNIT_HTTP}
+            dplatformos_BlockWait 2 ${UNIT_HTTP}
             times=$((times - 1))
             if [ $times -le 0 ]; then
                 echo "para_cross_transfer_withdraw failed"
@@ -152,8 +152,8 @@ function paracross_Transfer_Withdraw_Inner() {
     done
 
     #5 取钱
-    tx_hash=$(curl -ksd '{"method":"Dplatform.CreateTransaction","params":[{"execer":"'"$execer_name"'","actionName":"ParacrossAssetWithdraw","payload":{"IsWithdraw":true,"execName":"'"$execer_name"'","to":"'"$from_addr"'","amount":'$withdraw_should'}}]}' ${UNIT_HTTP} | jq -r ".result")
-    dplatform_SignAndSendTx "$tx_hash" "$privkey" ${UNIT_HTTP}
+    tx_hash=$(curl -ksd '{"method":"DplatformOS.CreateTransaction","params":[{"execer":"'"$execer_name"'","actionName":"ParacrossAssetWithdraw","payload":{"IsWithdraw":true,"execName":"'"$execer_name"'","to":"'"$from_addr"'","amount":'$withdraw_should'}}]}' ${UNIT_HTTP} | jq -r ".result")
+    dplatformos_SignAndSendTx "$tx_hash" "$privkey" ${UNIT_HTTP}
 
     #6 查询取钱后余额状态
     local times=200
@@ -166,7 +166,7 @@ function paracross_Transfer_Withdraw_Inner() {
         para_withdraw_real=$((para_balance_after - para_balance_withdraw_after))
         main_withdraw_real=$((main_balance_withdraw_after - main_balance_after))
         if [ "$withdraw_should" != "$para_withdraw_real" ] && [ "$withdraw_should" != "$main_withdraw_real" ]; then
-            dplatform_BlockWait 2 ${UNIT_HTTP}
+            dplatformos_BlockWait 2 ${UNIT_HTTP}
             times=$((times - 1))
             if [ $times -le 0 ]; then
                 echo "para_cross_transfer_withdraw failed"
@@ -201,36 +201,36 @@ function paracross_IsSync() {
     if [ "$IS_PARA" == "true" ]; then
         req='{"method":"paracross.IsSync","params":[]}'
     else
-        req='{"method":"Dplatform.IsSync","params":[]}'
+        req='{"method":"DplatformOS.IsSync","params":[]}'
     fi
-    dplatform_Http "$req" ${UNIT_HTTP} '(.error|not)' "$FUNCNAME"
+    dplatformos_Http "$req" ${UNIT_HTTP} '(.error|not)' "$FUNCNAME"
 }
 
 function paracross_ListTitles() {
     local main_ip=${UNIT_HTTP//8901/28803}
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName": "ListTitles", "payload" : {}}]}' ${main_ip} '(.error|not) and (.result| [has("titles"),true])' "$FUNCNAME"
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName": "ListTitles", "payload" : {}}]}' ${main_ip} '(.error|not) and (.result| [has("titles"),true])' "$FUNCNAME"
 }
 
 function paracross_GetHeight() {
     if [ "$IS_PARA" == "true" ]; then
-        dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName": "GetHeight", "payload" : {}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("consensHeight"),true])' "$FUNCNAME"
+        dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName": "GetHeight", "payload" : {}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("consensHeight"),true])' "$FUNCNAME"
     fi
 }
 
 function paracross_GetNodeGroupAddrs() {
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeGroupAddrs","payload":{"title":"user.p.para."}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("key","value"),true])' "$FUNCNAME"
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeGroupAddrs","payload":{"title":"user.p.para."}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("key","value"),true])' "$FUNCNAME"
 }
 
 function paracross_GetNodeGroupStatus() {
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeGroupStatus","payload":{"title":"user.p.para."}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("status"),true])' "$FUNCNAME"
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeGroupStatus","payload":{"title":"user.p.para."}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("status"),true])' "$FUNCNAME"
 }
 
 function paracross_ListNodeGroupStatus() {
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"ListNodeGroupStatus","payload":{"title":"user.p.para.","status":2}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("status"),true])' "$FUNCNAME"
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"ListNodeGroupStatus","payload":{"title":"user.p.para.","status":2}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("status"),true])' "$FUNCNAME"
 }
 
 function paracross_ListNodeStatus() {
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"ListNodeStatusInfo","payload":{"title":"user.p.para.","status":3}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("status"),true])' "$FUNCNAME"
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"ListNodeStatusInfo","payload":{"title":"user.p.para.","status":3}}]}' ${UNIT_HTTP} '(.error|not) and (.result| [has("status"),true])' "$FUNCNAME"
 }
 
 para_test_addr="1MAuE8QSbbech3bVKK2JPJJxYxNtT95oSU"
@@ -243,12 +243,12 @@ function paracross_txgroupex() {
     local para_title=$4
 
     local coins_exec="$5"
-    local dpom_symbol="$6"
+    local dpos_symbol="$6"
     local paracross_execer_name="$para_title.paracross"
     local trade_exec_name="$para_title.trade"
 
     #  资产从主链转移到平行链
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"CrossAssetTransfer","payload":{"assetExec":"'"${coins_exec}"'","assetSymbol":"'"${dpom_symbol}"'","toAddr":"'"${para_test_addr}"'","amount":'${amount_transfer}'}}]'
+    req='"method":"DplatformOS.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"CrossAssetTransfer","payload":{"assetExec":"'"${coins_exec}"'","assetSymbol":"'"${dpos_symbol}"'","toAddr":"'"${para_test_addr}"'","amount":'${amount_transfer}'}}]'
     echo "$req"
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
@@ -260,7 +260,7 @@ function paracross_txgroupex() {
     tx_hash_asset=$(jq -r ".result" <<<"$resp")
 
     #  资产从平行链转移到平行链合约
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"TransferToExec","payload":{"execName":"'"${paracross_execer_name}"'","to":"'"${trade_exec_addr}"'","amount":'${amount_trade}', "cointoken":"coins.dpom"}}]'
+    req='"method":"DplatformOS.CreateTransaction","params":[{"execer":"'"${paracross_execer_name}"'","actionName":"TransferToExec","payload":{"execName":"'"${paracross_execer_name}"'","to":"'"${trade_exec_addr}"'","amount":'${amount_trade}', "cointoken":"coins.dpos"}}]'
     echo "$req"
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
@@ -272,7 +272,7 @@ function paracross_txgroupex() {
     tx_hash_transferExec=$(jq -r ".result" <<<"$resp")
 
     #create tx group with none
-    req='"method":"Dplatform.CreateNoBlanaceTxs","params":[{"txHexs":["'"${tx_hash_asset}"'","'"${tx_hash_transferExec}"'"],"privkey":"'"${para_test_prikey}"'","expire":"120s"}]'
+    req='"method":"DplatformOS.CreateNoBlanaceTxs","params":[{"txHexs":["'"${tx_hash_asset}"'","'"${tx_hash_transferExec}"'"],"privkey":"'"${para_test_prikey}"'","expire":"120s"}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     err=$(jq '(.error)' <<<"$resp")
     if [ "$err" != null ]; then
@@ -282,12 +282,12 @@ function paracross_txgroupex() {
     tx_hash_group=$(jq -r ".result" <<<"$resp")
 
     #sign 1
-    tx_sign=$(curl -ksd '{"method":"Dplatform.SignRawTx","params":[{"privkey":"'"$para_test_prikey"'","txHex":"'"$tx_hash_group"'","index":2,"expire":"120s"}]}' "${para_ip}" | jq -r ".result")
+    tx_sign=$(curl -ksd '{"method":"DplatformOS.SignRawTx","params":[{"privkey":"'"$para_test_prikey"'","txHex":"'"$tx_hash_group"'","index":2,"expire":"120s"}]}' "${para_ip}" | jq -r ".result")
     #sign 2
-    tx_sign2=$(curl -ksd '{"method":"Dplatform.SignRawTx","params":[{"privkey":"'"$para_test_prikey"'","txHex":"'"$tx_sign"'","index":3,"expire":"120s"}]}' "${para_ip}" | jq -r ".result")
+    tx_sign2=$(curl -ksd '{"method":"DplatformOS.SignRawTx","params":[{"privkey":"'"$para_test_prikey"'","txHex":"'"$tx_sign"'","index":3,"expire":"120s"}]}' "${para_ip}" | jq -r ".result")
 
     #send
-    dplatform_SendTx "${tx_sign2}" "${para_ip}"
+    dplatformos_SendTx "${tx_sign2}" "${para_ip}"
 }
 
 #测试平行链交易组跨链失败,主链自动恢复原值
@@ -299,7 +299,7 @@ function paracross_testTxGroupFail() {
     local paracross_addr=""
     local main_ip=${para_ip//8901/28803}
 
-    paracross_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"paracross"}]}' "${main_ip}" | jq -r ".result")
+    paracross_addr=$(curl -ksd '{"method":"DplatformOS.ConvertExectoAddr","params":[{"execname":"paracross"}]}' "${main_ip}" | jq -r ".result")
     echo "paracross_addr=$paracross_addr"
 
     #execer
@@ -316,7 +316,7 @@ function paracross_testTxGroupFail() {
         exit 1
     fi
 
-    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "dpom"
+    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "dpos"
 
     #跨链失败后仍应该有５个，之前transfer到trade的２个应该保持不变
     local count=0
@@ -331,7 +331,7 @@ function paracross_testTxGroupFail() {
         left_exec_val=$(paracross_QueryMainBalance "${para_test_addr}")
         if [ "${left_exec_val}" != $amount_left ] || [ "${transfer_val}" != $transfer_expect ] || [ "${transfer_exec_val}" != $exec_expect ]; then
             echo "trans=${transfer_val}-expect=${transfer_expect},trader=${transfer_exec_val}-expect=${exec_expect},left=${left_exec_val}-expect=${amount_left}"
-            dplatform_BlockWait 2 ${UNIT_HTTP}
+            dplatformos_BlockWait 2 ${UNIT_HTTP}
             times=$((times - 1))
             if [ $times -le 0 ]; then
                 echo "para_cross_transfer_testfail failed"
@@ -382,7 +382,7 @@ function paracross_testParaAssetWithdrawFail() {
         left_exec_val=$(paracross_QueryMainAssetBalance "${game_token_test_addr}" "paracross" "user.p.game.coins.para")
         if [ "${left_exec_val}" != $amount_left ]; then
             echo "left=${left_exec_val}-expect=${amount_left}"
-            dplatform_BlockWait 2 ${UNIT_HTTP}
+            dplatformos_BlockWait 2 ${UNIT_HTTP}
             times=$((times - 1))
             if [ $times -le 0 ]; then
                 echo "para_cross_transfer_testfail failed"
@@ -407,7 +407,7 @@ function paracross_testTxGroup() {
     local paracross_addr=""
     local main_ip=${para_ip//8901/28803}
 
-    paracross_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"paracross"}]}' "${main_ip}" | jq -r ".result")
+    paracross_addr=$(curl -ksd '{"method":"DplatformOS.ConvertExectoAddr","params":[{"execname":"paracross"}]}' "${main_ip}" | jq -r ".result")
     echo "paracross_addr=$paracross_addr"
 
     #execer
@@ -418,17 +418,17 @@ function paracross_testTxGroup() {
     local amount_deposit=800000000
     local amount_transfer=300000000
     local amount_left=500000000
-    dplatform_ImportPrivkey "${para_test_prikey}" "${para_test_addr}" "paracross-transfer6" "${main_ip}"
+    dplatformos_ImportPrivkey "${para_test_prikey}" "${para_test_addr}" "paracross-transfer6" "${main_ip}"
 
     # tx fee + transfer 10 coins
-    dplatform_applyCoins "${para_test_addr}" 1000000000 "${main_ip}"
-    dplatform_QueryBalance "${para_test_addr}" "$main_ip"
+    dplatformos_applyCoins "${para_test_addr}" 1000000000 "${main_ip}"
+    dplatformos_QueryBalance "${para_test_addr}" "$main_ip"
 
     #deposit 8 coins to paracross
-    dplatform_SendToAddress "${para_test_addr}" "$paracross_addr" "$amount_deposit" "${main_ip}"
-    dplatform_QueryExecBalance "${para_test_addr}" "paracross" "${main_ip}"
+    dplatformos_SendToAddress "${para_test_addr}" "$paracross_addr" "$amount_deposit" "${main_ip}"
+    dplatformos_QueryExecBalance "${para_test_addr}" "paracross" "${main_ip}"
 
-    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "dpom"
+    paracross_txgroupex "${amount_transfer}" "${amount_trade}" "${para_ip}" "user.p.para" "coins" "dpos"
 
     local transfer_expect="200000000"
     local exec_expect="100000000"
@@ -454,7 +454,7 @@ function paracross_testTxGroup() {
 
 paracross_testSelfConsensStages() {
     local para_ip=$1
-    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName": "GetHeight", "payload" : {}}]'
+    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName": "GetHeight", "payload" : {}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     err=$(jq '(.error)' <<<"$resp")
     if [ "$err" != null ]; then
@@ -464,13 +464,13 @@ paracross_testSelfConsensStages() {
     chainheight=$(jq -r '(.result.chainHeight)' <<<"$resp")
     newHeight=$((chainheight + 2000))
     echo "1. apply stage startHeight=$newHeight"
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "SelfStageConfig","payload" : {"title":"user.p.para.","ty" : "1", "stage" : {"startHeight":'"$newHeight"',"enable":2} }}]'
+    req='"method":"DplatformOS.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "SelfStageConfig","payload" : {"title":"user.p.para.","ty" : "1", "stage" : {"startHeight":'"$newHeight"',"enable":2} }}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     rawtx=$(jq -r ".result" <<<"$resp")
-    dplatform_SignAndSendTx "$rawtx" "$para_test_prikey" "${para_ip}"
+    dplatformos_SignAndSendTx "$rawtx" "$para_test_prikey" "${para_ip}"
 
     echo "2. get stage apply id"
-    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"ListSelfStages","payload":{"status":1,"count":1}}]'
+    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"ListSelfStages","payload":{"status":1,"count":1}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
     id=$(jq -r ".result.stageInfo[0].id" <<<"$resp")
@@ -484,33 +484,33 @@ paracross_testSelfConsensStages() {
     JR_PRI="0x19c069234f9d3e61135fefbeb7791b149cdf6af536f26bebb310d4cd22c3fee4"
     NL_PRI="0x7a80a1f75d7360c6123c32a78ecf978c1ac55636f87892df38d8b85a9aeff115"
 
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "SelfStageConfig","payload":{"title":"user.p.para.","ty":"2","vote":{"id":"'"$id"'","value":1} }}]'
+    req='"method":"DplatformOS.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "SelfStageConfig","payload":{"title":"user.p.para.","ty":"2","vote":{"id":"'"$id"'","value":1} }}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     rawtx=$(jq -r ".result" <<<"$resp")
     echo "send vote 1"
-    dplatform_SignAndSendTx "$rawtx" "$KS_PRI" "${para_ip}"
+    dplatformos_SignAndSendTx "$rawtx" "$KS_PRI" "${para_ip}"
     echo "send vote 2"
-    dplatform_SignAndSendTx "$rawtx" "$JR_PRI" "${para_ip}" "130s"
+    dplatformos_SignAndSendTx "$rawtx" "$JR_PRI" "${para_ip}" "130s"
     echo "send vote 3"
-    dplatform_SignAndSendTx "$rawtx" "$NL_PRI" "${para_ip}" "140s"
+    dplatformos_SignAndSendTx "$rawtx" "$NL_PRI" "${para_ip}" "140s"
 
     echo "query status"
-    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"ListSelfStages","payload":{"status":3,"count":1}}]'
+    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"ListSelfStages","payload":{"status":3,"count":1}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
     ok1=$(jq '(.error|not) and (.result| [has("id"),true])' <<<"$resp")
 
-    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetSelfConsStages","payload":{}}]'
+    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetSelfConsStages","payload":{}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
     ok2=$(jq '(.error|not) and (.result| [has("startHeight"),true])' <<<"$resp")
 
-    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetSelfConsOneStage","payload":{"data":1000}}]'
+    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetSelfConsOneStage","payload":{"data":1000}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
     ok3=$(jq '(.error|not) and (.result.enable==1)' <<<"$resp")
 
-    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetSelfConsOneStage","payload":{"data":'"$newHeight"'}}]'
+    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetSelfConsOneStage","payload":{"data":'"$newHeight"'}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     echo "$resp"
     ok4=$(jq '(.error|not) and (.result.enable==2)' <<<"$resp")
@@ -528,34 +528,34 @@ paracross_testBind() {
     local para_ip=$1
     echo "bind miner"
     echo "1. create tx"
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "ParaBindMiner","payload" : {"bindAction":"1","bindCoins":5, "targetNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]'
+    req='"method":"DplatformOS.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "ParaBindMiner","payload" : {"bindAction":"1","bindCoins":5, "targetNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     rawtx=$(jq -r ".result" <<<"$resp")
-    dplatform_SignAndSendTxWait "$rawtx" "${priv1q9}" "${para_ip}"
+    dplatformos_SignAndSendTxWait "$rawtx" "${priv1q9}" "${para_ip}"
 
     echo "2. get bind"
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1KSBd17H7Z"),true])' "$FUNCNAME" '(.result.List)'
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1Q9sQw"),true])' "$FUNCNAME" '(.result.List)'
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1KSBd17H7Z"),true])' "$FUNCNAME" '(.result.List)'
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1Q9sQw"),true])' "$FUNCNAME" '(.result.List)'
 }
 
 paracross_testUnBind() {
     local para_ip=$1
     echo "unBind miner"
     echo "1. create tx"
-    req='"method":"Dplatform.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "ParaBindMiner","payload" : {"bindAction":"2", "targetNode" : "1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]'
+    req='"method":"DplatformOS.CreateTransaction","params":[{"execer" : "user.p.para.paracross","actionName" : "ParaBindMiner","payload" : {"bindAction":"2", "targetNode" : "1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]'
     resp=$(curl -ksd "{$req}" "${para_ip}")
     rawtx=$(jq -r ".result" <<<"$resp")
-    dplatform_SignAndSendTxWait "$rawtx" "${priv1q9}" "${para_ip}"
+    dplatformos_SignAndSendTxWait "$rawtx" "${priv1q9}" "${para_ip}"
 
     echo "2. get bind"
-    #    req='"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"data":$nodeAddr}]'
+    #    req='"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"data":$nodeAddr}]'
     #    resp=$(curl -ksd "{$req}" "${para_ip}")
     #    echo "$resp"
     #    superNode=$(jq -r ".result.List.SuperNode" <<<"$resp")
     #    miners=$(jq -r ".result.List.Miners" <<<"$resp")
 
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1KSBd17H7Z"),true])' "$FUNCNAME" '(.result.List)'
-    dplatform_Http '{"method":"Dplatform.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1Q9sQw"),false])' "$FUNCNAME" '(.result.List)'
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1KSBd17H7Z"),true])' "$FUNCNAME" '(.result.List)'
+    dplatformos_Http '{"method":"DplatformOS.Query","params":[{ "execer":"paracross", "funcName":"GetNodeBindMinerList","payload":{"superNode":"1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"}}]}' "${para_ip}" '(.error|not) and (.result.List| [has("1Q9sQw"),false])' "$FUNCNAME" '(.result.List)'
 }
 
 paracross_testBindMiner() {
@@ -571,20 +571,20 @@ paracross_testBindMiner() {
 function apply_coins() {
     local main_ip=${UNIT_HTTP//8901/28803}
 
-    dplatform_applyCoins "${addr1q9}" 1000000000 "${main_ip}"
-    dplatform_QueryBalance "${addr1q9}" "$main_ip"
+    dplatformos_applyCoins "${addr1q9}" 1000000000 "${main_ip}"
+    dplatformos_QueryBalance "${addr1q9}" "$main_ip"
 
     local para_ip="${UNIT_HTTP}"
 
-    dplatform_applyCoins "${addr1q9}" 1000000000 "${para_ip}"
-    dplatform_QueryBalance "${addr1q9}" "$para_ip"
+    dplatformos_applyCoins "${addr1q9}" 1000000000 "${para_ip}"
+    dplatformos_QueryBalance "${addr1q9}" "$para_ip"
 
-    dplatform_ImportPrivkey "$priv1q9" "$addr1q9" "bindminer" "$para_ip"
+    dplatformos_ImportPrivkey "$priv1q9" "$addr1q9" "bindminer" "$para_ip"
 
     local para_exec_addr=""
-    para_exec_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"user.p.para.paracross"}]}' ${para_ip} | jq -r ".result")
-    dplatform_SendToAddress "$addr1q9" "${para_exec_addr}" 900000000 "${para_ip}"
-    dplatform_QueryExecBalance "${addr1q9}" "user.p.para.paracross" "$para_ip"
+    para_exec_addr=$(curl -ksd '{"method":"DplatformOS.ConvertExectoAddr","params":[{"execname":"user.p.para.paracross"}]}' ${para_ip} | jq -r ".result")
+    dplatformos_SendToAddress "$addr1q9" "${para_exec_addr}" 900000000 "${para_ip}"
+    dplatformos_QueryExecBalance "${addr1q9}" "user.p.para.paracross" "$para_ip"
 
 }
 
@@ -607,7 +607,7 @@ function run_testcases() {
 }
 
 function main() {
-    dplatform_RpcTestBegin paracross
+    dplatformos_RpcTestBegin paracross
     UNIT_HTTP=$1
     IS_PARA=$(echo '"'"${UNIT_HTTP}"'"' | jq '.|contains("8901")')
 
@@ -624,7 +624,7 @@ function main() {
         echo "=========== # start cross transfer monitor ============="
         while true; do
             paracross_Transfer_Withdraw_Inner "$from_addr" "$privkey" "$paracross_addr" "$execer_name"
-            dplatform_BlockWait 1 "${UNIT_HTTP}"
+            dplatformos_BlockWait 1 "${UNIT_HTTP}"
         done
     else
         if [ "$IS_PARA" == "true" ]; then
@@ -634,9 +634,9 @@ function main() {
         fi
     fi
 
-    dplatform_RpcTestRst paracross "$CASE_ERR"
+    dplatformos_RpcTestRst paracross "$CASE_ERR"
 }
 
-dplatform_debug_function main "$1" "$2" "$3" "$4"
+dplatformos_debug_function main "$1" "$2" "$3" "$4"
 #main http://127.0.0.1:28803
 #main http://47.98.253.127:28803 1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4 0x6da92a632ab7deb67d38c0f6560bcfed28167998f6496db64c258d5e8393a81b user.p.fzmtest.paracross

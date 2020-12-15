@@ -17,11 +17,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )
 
@@ -151,7 +151,7 @@ func Put(ip string, size string, privkey string) {
 	tx.To = address.ExecAddress("user.write")
 	tx.Expire = TxHeightOffset + types.TxHeightFlag
 	tx.Sign(types.SECP256K1, getprivkey(privkey))
-	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Dplatform.SendTransaction","params":[{"data":"%v"}]}`,
+	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"DplatformOS.SendTransaction","params":[{"data":"%v"}]}`,
 		common.ToHex(types.Encode(tx)))
 
 	resp, err := http.Post(url, "application/json", bytes.NewBufferString(poststr))
@@ -174,7 +174,7 @@ func Get(ip string, hash string) {
 	url := "http://" + ip + ":28803"
 	fmt.Println("transaction hash:", hash)
 
-	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Dplatform.QueryTransaction","params":[{"hash":"%s"}]}`, hash)
+	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"DplatformOS.QueryTransaction","params":[{"hash":"%s"}]}`, hash)
 	resp, err := http.Post(url, "application/json", bytes.NewBufferString(poststr))
 	if err != nil {
 		fmt.Println(err)
@@ -192,7 +192,7 @@ func Get(ip string, hash string) {
 
 func setTxHeight(ip string) {
 	url := "http://" + ip + ":28803"
-	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Dplatform.GetLastHeader","params":[]}`)
+	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"DplatformOS.GetLastHeader","params":[]}`)
 	resp, err := http.Post(url, "application/json", bytes.NewBufferString(poststr))
 	if err != nil {
 		fmt.Println(err)
@@ -286,7 +286,7 @@ func ValNode(ip, pubkey, power string) {
 	tx.Nonce = r.Int63()
 	tx.Sign(types.SECP256K1, getprivkey(privkey))
 
-	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"Dplatform.SendTransaction","params":[{"data":"%v"}]}`,
+	poststr := fmt.Sprintf(`{"jsonrpc":"2.0","id":2,"method":"DplatformOS.SendTransaction","params":[{"data":"%v"}]}`,
 		common.ToHex(types.Encode(tx)))
 
 	resp, err := http.Post(url, "application/json", bytes.NewBufferString(poststr))

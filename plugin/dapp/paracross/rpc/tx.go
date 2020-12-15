@@ -4,4 +4,4 @@
 
 package rpc
 
-//"github.com/33cn/dplatform/rpc/types"
+//"github.com/33cn/dplatformos/rpc/types"

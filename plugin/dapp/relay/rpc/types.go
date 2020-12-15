@@ -5,7 +5,7 @@
 package rpc
 
 import (
-	"github.com/33cn/dplatform/rpc/types"
+	"github.com/33cn/dplatformos/rpc/types"
 )
 
 // Jrpc relay Jrpc interface

@@ -8,10 +8,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatformos/common/address"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var tlog = log.New("module", "exectype."+ValNodeX)
@@ -23,12 +23,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(ValNodeX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(ValNodeX, NewType(cfg))
 }
 
@@ -38,7 +38,7 @@ type ValNodeType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *ValNodeType {
+func NewType(cfg *types.DplatformOSConfig) *ValNodeType {
 	c := &ValNodeType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -85,7 +85,7 @@ func (t *ValNodeType) CreateTx(action string, message json.RawMessage) (*types.T
 }
 
 // CreateNodeUpdateTx ...
-func CreateNodeUpdateTx(cfg *types.DplatformConfig, parm *NodeUpdateTx) (*types.Transaction, error) {
+func CreateNodeUpdateTx(cfg *types.DplatformOSConfig, parm *NodeUpdateTx) (*types.Transaction, error) {
 	if parm == nil {
 		tlog.Error("CreateNodeUpdateTx", "parm", parm)
 		return nil, types.ErrInvalidParam

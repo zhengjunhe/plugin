@@ -8,8 +8,8 @@ import (
 	"encoding/hex"
 	"testing"
 
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 )
 

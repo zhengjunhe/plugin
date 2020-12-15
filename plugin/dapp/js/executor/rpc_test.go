@@ -7,16 +7,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	ptypes "github.com/33cn/plugin/plugin/dapp/js/types"
 	"github.com/33cn/plugin/plugin/dapp/js/types/jsproto"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -25,7 +25,7 @@ func init() {
 }
 
 func TestJsVM(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	cfg.GetModuleConfig().Consensus.Name = "ticket"
 
 	mocker := testnode.NewWithConfig(cfg, nil)
@@ -46,7 +46,7 @@ func TestJsVM(t *testing.T) {
 		Payload:    types.MustPBToJSON(create),
 	}
 	var txhex string
-	err := mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err := mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	hash, err := mocker.SendAndSign(mocker.GetHotKey(), txhex)
 	assert.Nil(t, err)
@@ -65,7 +65,7 @@ func TestJsVM(t *testing.T) {
 		ActionName: "Call",
 		Payload:    types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	hash, err = mocker.SendAndSign(mocker.GetHotKey(), txhex)
 	assert.Nil(t, err)
@@ -85,7 +85,7 @@ func TestJsVM(t *testing.T) {
 		Payload:  types.MustPBToJSON(call),
 	}
 	var queryresult jsproto.QueryResult
-	err = mocker.GetJSONC().Call("Dplatform.Query", query, &queryresult)
+	err = mocker.GetJSONC().Call("DplatformOS.Query", query, &queryresult)
 	assert.Nil(t, err)
 	t.Log(queryresult.Data)
 }
@@ -113,7 +113,7 @@ func TestJsGame(t *testing.T) {
 		Payload:    types.MustPBToJSON(create),
 	}
 	var txhex string
-	err = mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	hash, err := mocker.SendAndSign(mocker.GetHotKey(), txhex)
 	assert.Nil(t, err)
@@ -133,7 +133,7 @@ func TestJsGame(t *testing.T) {
 		TokenSymbol: "",
 		ExecName:    "user.jsvm." + contractName,
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateRawTransaction", reqtx, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateRawTransaction", reqtx, &txhex)
 	assert.Nil(t, err)
 	hash, err = mocker.SendAndSign(mocker.GetHotKey(), txhex)
 	assert.Nil(t, err)
@@ -153,7 +153,7 @@ func TestJsGame(t *testing.T) {
 		TokenSymbol: "",
 		ExecName:    "user.jsvm." + contractName,
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateRawTransaction", reqtx, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateRawTransaction", reqtx, &txhex)
 	assert.Nil(t, err)
 	hash, err = mocker.SendAndSign(mocker.GetGenesisKey(), txhex)
 	assert.Nil(t, err)
@@ -181,7 +181,7 @@ func TestJsGame(t *testing.T) {
 		ActionName: "Call",
 		Payload:    types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	hash, err = mocker.SendAndSignNonce(mocker.GetHotKey(), txhex, nonce)
 	assert.Nil(t, err)
@@ -200,7 +200,7 @@ func TestJsGame(t *testing.T) {
 		ActionName: "Call",
 		Payload:    types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	hash, err = mocker.SendAndSignNonce(mocker.GetGenesisKey(), txhex, nonce)
 	assert.Nil(t, err)
@@ -219,7 +219,7 @@ func TestJsGame(t *testing.T) {
 		ActionName: "Call",
 		Payload:    types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	t.Log(mocker.GetHotAddress())
 	hash, err = mocker.SendAndSignNonce(mocker.GetGenesisKey(), txhex, nonce)
@@ -239,7 +239,7 @@ func TestJsGame(t *testing.T) {
 		ActionName: "Call",
 		Payload:    types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.CreateTransaction", req, &txhex)
+	err = mocker.GetJSONC().Call("DplatformOS.CreateTransaction", req, &txhex)
 	assert.Nil(t, err)
 	t.Log(mocker.GetHotAddress())
 	hash, err = mocker.SendAndSignNonce(mocker.GetHotKey(), txhex, nonce)
@@ -259,7 +259,7 @@ func TestJsGame(t *testing.T) {
 		Payload:  types.MustPBToJSON(call),
 	}
 	var queryresult jsproto.QueryResult
-	err = mocker.GetJSONC().Call("Dplatform.Query", query, &queryresult)
+	err = mocker.GetJSONC().Call("DplatformOS.Query", query, &queryresult)
 	assert.Nil(t, err)
 	t.Log(queryresult.Data)
 
@@ -274,7 +274,7 @@ func TestJsGame(t *testing.T) {
 		FuncName: "Query",
 		Payload:  types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.Query", query, &queryresult)
+	err = mocker.GetJSONC().Call("DplatformOS.Query", query, &queryresult)
 	assert.Nil(t, err)
 	joinkey := queryresult.Data
 	reqjson := make(map[string]interface{})
@@ -290,12 +290,12 @@ func TestJsGame(t *testing.T) {
 		FuncName: "Query",
 		Payload:  types.MustPBToJSON(call),
 	}
-	err = mocker.GetJSONC().Call("Dplatform.Query", query, &queryresult)
+	err = mocker.GetJSONC().Call("DplatformOS.Query", query, &queryresult)
 	assert.Nil(t, err)
 	t.Log(queryresult.Data)
 }
 
-func configCreator(mocker *testnode.DplatformMock, t *testing.T) {
+func configCreator(mocker *testnode.DplatformOSMock, t *testing.T) {
 	// 需要配置
 	addr := address.PubKeyToAddress(mocker.GetHotKey().PubKey().Bytes()).String()
 	creator := &types.ModifyConfig{
@@ -310,7 +310,7 @@ func configCreator(mocker *testnode.DplatformMock, t *testing.T) {
 		Payload:    types.MustPBToJSON(creator),
 	}
 	var cfgtxhex string
-	err := mocker.GetJSONC().Call("Dplatform.CreateTransaction", cfgReq, &cfgtxhex)
+	err := mocker.GetJSONC().Call("DplatformOS.CreateTransaction", cfgReq, &cfgtxhex)
 	assert.Nil(t, err)
 	hash1, err := mocker.SendAndSign(mocker.GetHotKey(), cfgtxhex)
 	assert.Nil(t, err)

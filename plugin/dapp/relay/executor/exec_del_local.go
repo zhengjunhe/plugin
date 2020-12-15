@@ -5,7 +5,7 @@
 package executor
 
 import (
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	rty "github.com/33cn/plugin/plugin/dapp/relay/types"
 )
 

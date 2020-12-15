@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/rpc/grpcclient"
-	"github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/rpc/grpcclient"
+	"github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	types2 "github.com/33cn/plugin/plugin/dapp/wasm/types"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -33,11 +33,11 @@ var (
 	}
 	wasmAddr string
 
-	cfg *types.DplatformConfig
+	cfg *types.DplatformOSConfig
 )
 
 func init() {
-	cfg = types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg = types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 	Init(types2.WasmX, cfg, nil)
 }
 
@@ -289,7 +289,7 @@ func testCall(t *testing.T, acc *account.DB, stateDB db.KV) {
 
 func initAccount(t *testing.T, db db.KV) *account.DB {
 	wasmAddr = address.ExecAddress(cfg.ExecName(types2.WasmX))
-	acc, err := account.NewAccountDB(cfg, "coins", "dpom", db)
+	acc, err := account.NewAccountDB(cfg, "coins", "dpos", db)
 	require.Nil(t, err, "new account db error")
 	acc.SaveAccount(&types.Account{
 		Balance: 1e10,

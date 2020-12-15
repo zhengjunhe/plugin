@@ -12,10 +12,10 @@ import (
 
 	"strings"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/client/mocks"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/client/mocks"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	vt "github.com/33cn/plugin/plugin/dapp/valnode/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,7 +33,7 @@ func newJrpc(api client.QueueProtocolAPI) *Jrpc {
 }
 
 func TestChannelClient_IsSync(t *testing.T) {
-	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg := types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	client := newGrpc(api)
@@ -57,7 +57,7 @@ func TestJrpc_IsSync(t *testing.T) {
 }
 
 func TestChannelClient_GetNodeInfo(t *testing.T) {
-	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg := types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg, nil)
 	client := newGrpc(api)

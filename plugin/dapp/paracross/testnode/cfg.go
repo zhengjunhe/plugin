@@ -3,7 +3,7 @@ package testnode
 //DefaultConfig default config for testnode
 var DefaultConfig = `
 Title="user.p.test."
-CoinSymbol="dpom"
+CoinSymbol="dpos"
 # TestNet=true
 
 [log]
@@ -11,7 +11,7 @@ CoinSymbol="dpom"
 loglevel = "debug"
 logConsoleLevel = "info"
 # 日志文件名，可带目录，所有生成的日志文件都放到此目录下
-logFile = "logs/dplatform.para.log"
+logFile = "logs/dplatformos.para.log"
 # 单个日志文件的最大值（单位：兆）
 maxFileSize = 300
 # 最多保存的历史日志文件个数

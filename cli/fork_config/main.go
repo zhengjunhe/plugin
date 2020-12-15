@@ -6,13 +6,13 @@ import (
 	"sort"
 	"strings"
 
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/types"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin"
 )
 
 func main() {
-	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg := types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 	forks, err := cfg.GetForks()
 	if err != nil {
 		fmt.Printf("clone fork failed: %v", err)

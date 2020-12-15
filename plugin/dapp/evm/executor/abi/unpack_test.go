@@ -689,7 +689,7 @@ func TestUnmarshal(t *testing.T) {
 	buff.Write(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000000020")) // offset
 	buff.Write(common.Hex2Bytes("0000000000000000000000000000000000000000000000000000000000000001")) // size
 	buff.Write(common.Hex2Bytes("0000000000000000000000000100000000000000000000000000000000000000"))
-	//适配dplatform中evm地址
+	//适配dplatformos中evm地址
 	var outAddr []common.Hash160Address
 	err = abi.Unpack(&outAddr, "addressSliceSingle", buff.Bytes())
 	if err != nil {

@@ -10,34 +10,34 @@ import (
 	"io"
 	"time"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-// Client33 to connect with dplatform
+// Client33 to connect with dplatformos
 type Client33 struct {
-	config     *Dplatform
+	config     *DplatformOS
 	isSyncing  bool
 	isClosed   bool
 	lastHeight int64
-	types.DplatformClient
+	types.DplatformOSClient
 	closer io.Closer
 }
 
 // NewClient33 new client instance
-func NewClient33(cfg *Dplatform) *Client33 {
+func NewClient33(cfg *DplatformOS) *Client33 {
 	conn, err := grpc.Dial(cfg.Host, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
 
-	client := types.NewDplatformClient(conn)
+	client := types.NewDplatformOSClient(conn)
 	c := &Client33{
 		config:        cfg,
 		closer:        conn,
-		DplatformClient: client,
+		DplatformOSClient: client,
 	}
 	return c
 }
@@ -46,7 +46,7 @@ func (c *Client33) heartbeat(ctx context.Context) {
 	reconnectAttempts := c.config.ReconnectAttempts
 out:
 	for {
-		log.Info("dplatform heartbeat.......")
+		log.Info("dplatformos heartbeat.......")
 		select {
 		case <-ctx.Done():
 			break out
@@ -54,7 +54,7 @@ out:
 		case <-time.After(time.Second * 60):
 			err := c.ping(ctx)
 			if err != nil {
-				log.Error("heartbeat", "heartbeat dplatform error: ", err.Error(), "reconnectAttempts: ", reconnectAttempts)
+				log.Error("heartbeat", "heartbeat dplatformos error: ", err.Error(), "reconnectAttempts: ", reconnectAttempts)
 				c.autoReconnect(ctx)
 				reconnectAttempts--
 			} else {
@@ -68,7 +68,7 @@ out:
 	}
 }
 
-// Start begin heartbeat to dplatform
+// Start begin heartbeat to dplatformos
 func (c *Client33) Start(ctx context.Context) {
 	go c.heartbeat(ctx)
 }
@@ -104,23 +104,23 @@ func (c *Client33) autoReconnect(ctx context.Context) {
 			panic(err)
 		}
 
-		client := types.NewDplatformClient(conn)
+		client := types.NewDplatformOSClient(conn)
 		c.closer = conn
-		c.DplatformClient = client
+		c.DplatformOSClient = client
 		c.isClosed = true
 		c.Start(ctx)
 	}
 }
 
-// SendTransaction send tx to dplatform
+// SendTransaction send tx to dplatformos
 func (c *Client33) SendTransaction(ctx context.Context, in *types.Transaction) (*types.Reply, error) {
 	if c.isSyncing {
 		return nil, errors.New("node is syncing")
 	}
-	return c.DplatformClient.SendTransaction(ctx, in)
+	return c.DplatformOSClient.SendTransaction(ctx, in)
 }
 
-// Close dplatform close
+// Close dplatformos close
 func (c *Client33) Close() error {
 	return c.closer.Close()
 }

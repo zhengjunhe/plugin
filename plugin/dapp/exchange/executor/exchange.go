@@ -1,9 +1,9 @@
 package executor
 
 import (
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	exchangetypes "github.com/33cn/plugin/plugin/dapp/exchange/types"
 )
 
@@ -20,7 +20,7 @@ var (
 var driverName = exchangetypes.ExchangeX
 
 // Init register dapp
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), NewExchange, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

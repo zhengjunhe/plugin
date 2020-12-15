@@ -7,7 +7,7 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 // blackwhite action type
@@ -29,13 +29,13 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(BlackwhiteX, "ForkBlackWhiteV2", 900000)
 	cfg.RegisterDappFork(BlackwhiteX, "Enable", 850000)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(BlackwhiteX, NewType(cfg))
 }
 
@@ -45,7 +45,7 @@ type BlackwhiteType struct {
 }
 
 // NewType 创建执行器类型
-func NewType(cfg *types.DplatformConfig) *BlackwhiteType {
+func NewType(cfg *types.DplatformOSConfig) *BlackwhiteType {
 	c := &BlackwhiteType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

@@ -9,12 +9,12 @@ package types
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateRawGamePreCreateTx(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	param := &GamePreCreateTx{
 		Amount:   100,
 		HashType: "SHA256",
@@ -27,7 +27,7 @@ func TestCreateRawGamePreCreateTx(t *testing.T) {
 }
 
 func TestCreateRawGamePreMatchTx(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	param := &GamePreMatchTx{
 		GameID: "xxxxxxxxxxxxxxxxxxxxxxxxxx",
 		Guess:  1,
@@ -40,7 +40,7 @@ func TestCreateRawGamePreMatchTx(t *testing.T) {
 }
 
 func TestCreateRawGamePreCloseTx(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	param := &GamePreCloseTx{
 		GameID: "xxxxxxxxxxxxxxxxxxxxxxxxxx",
 		Result: 1,
@@ -53,7 +53,7 @@ func TestCreateRawGamePreCloseTx(t *testing.T) {
 }
 
 func TestCreateRawGamePreCancelTx(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	param := &GamePreCancelTx{
 		GameID: "xxxxxxxxxxxxxxxxxxxxxxxxxx",
 	}

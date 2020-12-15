@@ -26,8 +26,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/33cn/dplatform/common"
-	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatformos/common"
+	dbm "github.com/33cn/dplatformos/common/db"
 )
 
 func newEmptySecure() *SecureTrie {

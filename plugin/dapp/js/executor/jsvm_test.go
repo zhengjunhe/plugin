@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/rpc/grpcclient"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/rpc/grpcclient"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	ptypes "github.com/33cn/plugin/plugin/dapp/js/types"
 	"github.com/33cn/plugin/plugin/dapp/js/types/jsproto"
 	"github.com/robertkrimen/otto"
@@ -22,7 +22,7 @@ import (
 )
 
 func initExec(ldb db.DB, kvdb db.KVDB, code string, t assert.TestingT) *js {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	Init(ptypes.JsX, cfg, nil)
 
 	e := newjs().(*js)

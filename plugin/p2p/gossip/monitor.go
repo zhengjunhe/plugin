@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/dplatform/p2p/utils"
+	"github.com/33cn/dplatformos/p2p/utils"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 var (
@@ -67,7 +67,7 @@ func (n *Node) getAddrFromGithub() {
 		return
 	}
 	//从github 上下载种子节点文件
-	res, err := http.Get("https://raw.githubusercontent.com/chainseed/seeds/master/dpom.txt")
+	res, err := http.Get("https://raw.githubusercontent.com/chainseed/seeds/master/dpos.txt")
 	if err != nil {
 		log.Error("getAddrFromGithub", "http.Get", err.Error())
 		return

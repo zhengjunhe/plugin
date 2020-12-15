@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	evm "github.com/33cn/plugin/plugin/dapp/evm/types"
 )
 

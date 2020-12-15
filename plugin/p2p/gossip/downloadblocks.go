@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	pb "github.com/33cn/dplatform/types"
+	pb "github.com/33cn/dplatformos/types"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )

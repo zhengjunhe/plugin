@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-/root/dplatform -f /root/dplatform.toml &
+/root/dplatformos -f /root/dplatformos.toml &
 # to wait nginx start
 sleep 15
-/root/dplatform -f "$PARAFILE"
+/root/dplatformos -f "$PARAFILE"

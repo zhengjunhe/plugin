@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/common/merkle"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/common/merkle"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"

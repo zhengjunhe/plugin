@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"time"
 
-	//log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	//log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 // 0 -> 未成熟 1 -> 可挖矿 2 -> 已挖成功 3-> 已关闭
@@ -76,14 +76,14 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(TicketX, "Enable", 0)
 	cfg.RegisterDappFork(TicketX, "ForkTicketId", 1062000)
 	cfg.RegisterDappFork(TicketX, "ForkTicketVrf", 1770000)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(TicketX, NewType(cfg))
 }
 
@@ -93,7 +93,7 @@ type TicketType struct {
 }
 
 // NewType new type
-func NewType(cfg *types.DplatformConfig) *TicketType {
+func NewType(cfg *types.DplatformOSConfig) *TicketType {
 	c := &TicketType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -160,7 +160,7 @@ type TicketMinerParam struct {
 }
 
 // GetTicketMinerParam 获取ticket miner config params
-func GetTicketMinerParam(cfg *types.DplatformConfig, height int64) *TicketMinerParam {
+func GetTicketMinerParam(cfg *types.DplatformOSConfig, height int64) *TicketMinerParam {
 	conf := types.Conf(cfg, "mver.consensus.ticket")
 	c := &TicketMinerParam{}
 	c.CoinDevFund = conf.MGInt("coinDevFund", height) * types.Coin

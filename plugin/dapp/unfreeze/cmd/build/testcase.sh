@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CLI="docker exec ${NODE3} /root/dplatform-cli"
+CLI="docker exec ${NODE3} /root/dplatformos-cli"
 beneficiary=12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv
 beneficiary_key=0x4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01
 #owner=14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
@@ -17,13 +17,13 @@ function unfreeze_test() {
     fi
     block_wait "${CLI}" 2
 
-    echo "=== 2 prepare: transfer dpom to unfreeze "
+    echo "=== 2 prepare: transfer dpos to unfreeze "
     result=$($CLI send coins transfer -a 5 -n test -t ${unfreeze_exec_addr} -k ${owner_key})
     echo "${result}"
     block_wait "${CLI}" 2
 
     echo "=== 3 create unfreeze tx"
-    tx_hash=$(${CLI} send unfreeze create fix_amount -a 0.01 -e coins -s dpom -b ${beneficiary} -p 20 -t 2 -k ${owner_key})
+    tx_hash=$(${CLI} send unfreeze create fix_amount -a 0.01 -e coins -s dpos -b ${beneficiary} -p 20 -t 2 -k ${owner_key})
     block_wait "${CLI}" 2
     unfreeze_id=$(${CLI} tx query -s "${tx_hash}" | jq ".receipt.logs[2].log.current.unfreezeID")
     echo "${unfreeze_id}"

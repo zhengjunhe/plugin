@@ -12,7 +12,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common/crypto"
 	tmtypes "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )
 

@@ -13,10 +13,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/dplatform/p2p/utils"
+	"github.com/33cn/dplatformos/p2p/utils"
 
-	"github.com/33cn/dplatform/common/version"
-	pb "github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/version"
+	pb "github.com/33cn/dplatformos/types"
 	"golang.org/x/net/context"
 
 	pr "google.golang.org/grpc/peer"

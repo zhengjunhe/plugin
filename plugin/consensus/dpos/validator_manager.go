@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/33cn/dplatform/common/address"
+	"github.com/33cn/dplatformos/common/address"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"
 )

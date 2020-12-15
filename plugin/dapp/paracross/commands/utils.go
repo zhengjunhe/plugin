@@ -7,8 +7,8 @@ package commands
 import (
 	"strings"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
 )
 
 // GetExecAddr 获取执行器地址

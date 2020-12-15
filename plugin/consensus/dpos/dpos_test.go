@@ -18,22 +18,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/util"
 
-	"github.com/33cn/dplatform/blockchain"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/limits"
-	"github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/executor"
-	"github.com/33cn/dplatform/mempool"
-	"github.com/33cn/dplatform/p2p"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/rpc"
-	"github.com/33cn/dplatform/store"
-	_ "github.com/33cn/dplatform/system"
-	cty "github.com/33cn/dplatform/system/dapp/coins/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/blockchain"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/limits"
+	"github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/executor"
+	"github.com/33cn/dplatformos/mempool"
+	"github.com/33cn/dplatformos/p2p"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/rpc"
+	"github.com/33cn/dplatformos/store"
+	_ "github.com/33cn/dplatformos/system"
+	cty "github.com/33cn/dplatformos/system/dapp/coins/types"
+	"github.com/33cn/dplatformos/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/dpos/types"
 	dty "github.com/33cn/plugin/plugin/dapp/dposvote/types"
 	_ "github.com/33cn/plugin/plugin/dapp/init"
@@ -46,7 +46,7 @@ var (
 	random    *rand.Rand
 	loopCount = 10
 	conn      *grpc.ClientConn
-	c         types.DplatformClient
+	c         types.DplatformOSClient
 	strPubkey = "03EF0E1D3112CF571743A3318125EDE2E52A4EB904BCBAA4B1F75020C2846A7EB4"
 	pubkey    []byte
 
@@ -373,27 +373,27 @@ func DposPerf() {
 
 func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Module, *executor.Executor, queue.Module, queue.Module) {
 	flag.Parse()
-	dplatformCfg := types.NewDplatformConfig(types.ReadFile("dplatform.test.toml"))
+	dplatformosCfg := types.NewDplatformOSConfig(types.ReadFile("dplatformos.test.toml"))
 	var q = queue.New("channel")
-	q.SetConfig(dplatformCfg)
-	cfg := dplatformCfg.GetModuleConfig()
-	sub := dplatformCfg.GetSubConfig()
+	q.SetConfig(dplatformosCfg)
+	cfg := dplatformosCfg.GetModuleConfig()
+	sub := dplatformosCfg.GetSubConfig()
 
-	chain := blockchain.New(dplatformCfg)
+	chain := blockchain.New(dplatformosCfg)
 	chain.SetQueueClient(q.Client())
 
-	exec := executor.New(dplatformCfg)
+	exec := executor.New(dplatformosCfg)
 	exec.SetQueueClient(q.Client())
-	dplatformCfg.SetMinFee(0)
-	s := store.New(dplatformCfg)
+	dplatformosCfg.SetMinFee(0)
+	s := store.New(dplatformosCfg)
 	s.SetQueueClient(q.Client())
 
 	cs := New(cfg.Consensus, sub.Consensus["dpos"])
 	cs.SetQueueClient(q.Client())
 
-	mem := mempool.New(dplatformCfg)
+	mem := mempool.New(dplatformosCfg)
 	mem.SetQueueClient(q.Client())
-	network := p2p.NewP2PMgr(dplatformCfg)
+	network := p2p.NewP2PMgr(dplatformosCfg)
 
 	network.SetQueueClient(q.Client())
 
@@ -403,7 +403,7 @@ func initEnvDpos() (queue.Queue, *blockchain.BlockChain, queue.Module, queue.Mod
 	return q, chain, s, mem, exec, cs, network
 }
 
-func createConn(url string) (*grpc.ClientConn, types.DplatformClient, error) {
+func createConn(url string) (*grpc.ClientConn, types.DplatformOSClient, error) {
 	var err error
 	//url := "127.0.0.1:28804"
 	fmt.Println("grpc url:", url)
@@ -412,7 +412,7 @@ func createConn(url string) (*grpc.ClientConn, types.DplatformClient, error) {
 		fmt.Fprintln(os.Stderr, err)
 		return conn1, nil, err
 	}
-	c1 := types.NewDplatformClient(conn)
+	c1 := types.NewDplatformOSClient(conn)
 	//r = rand.New(rand.NewSource(types.Now().UnixNano()))
 	return conn1, c1, nil
 }
@@ -426,7 +426,7 @@ func createConn2() error {
 		fmt.Fprintln(os.Stderr, err)
 		return err
 	}
-	c = types.NewDplatformClient(conn)
+	c = types.NewDplatformOSClient(conn)
 	return nil
 }
 
@@ -576,7 +576,7 @@ func sendRegistVrfRPTx(cs *ConsensusState, info *dty.DposVrfRPRegist) bool {
 	return true
 }
 
-func sendTransferTx(cfg *types.DplatformConfig, fromKey, to string, amount int64) bool {
+func sendTransferTx(cfg *types.DplatformOSConfig, fromKey, to string, amount int64) bool {
 	signer := util.HexToPrivkey(fromKey)
 	var tx *types.Transaction
 	transfer := &cty.CoinsAction{}
@@ -610,7 +610,7 @@ func sendTransferTx(cfg *types.DplatformConfig, fromKey, to string, amount int64
 	return true
 }
 
-func sendTransferToExecTx(cfg *types.DplatformConfig, fromKey, execName string, amount int64) bool {
+func sendTransferToExecTx(cfg *types.DplatformOSConfig, fromKey, execName string, amount int64) bool {
 	signer := util.HexToPrivkey(fromKey)
 	var tx *types.Transaction
 	transfer := &cty.CoinsAction{}
@@ -647,7 +647,7 @@ func sendTransferToExecTx(cfg *types.DplatformConfig, fromKey, execName string, 
 	return true
 }
 
-func sendRegistCandidatorTx(cfg *types.DplatformConfig, ppubkey, addr, ip, privKey string) bool {
+func sendRegistCandidatorTx(cfg *types.DplatformOSConfig, ppubkey, addr, ip, privKey string) bool {
 	signer := util.HexToPrivkey(privKey)
 	var tx *types.Transaction
 	action := &dty.DposVoteAction{}

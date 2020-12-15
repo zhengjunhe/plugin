@@ -7,8 +7,8 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/types"
 	ty "github.com/33cn/plugin/plugin/dapp/relay/types"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/golang/protobuf/proto"

@@ -8,10 +8,10 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 
-	rpctypes "github.com/33cn/dplatform/rpc/types"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
 )
 
 func init() {

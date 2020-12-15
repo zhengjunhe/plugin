@@ -7,7 +7,7 @@ package types
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/stretchr/testify/assert"
 )

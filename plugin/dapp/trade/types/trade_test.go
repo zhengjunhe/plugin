@@ -7,18 +7,18 @@ package types
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTradeType_GetName(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	tp := NewType(cfg)
 	assert.Equal(t, TradeX, tp.GetName())
 }
 
 func TestTradeType_GetTypeMap(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	tp := NewType(cfg)
 	actoins := tp.GetTypeMap()
 	assert.NotNil(t, actoins)
@@ -26,7 +26,7 @@ func TestTradeType_GetTypeMap(t *testing.T) {
 }
 
 func TestTradeType_GetLogMap(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	tp := NewType(cfg)
 	l := tp.GetLogMap()
 	assert.NotNil(t, l)

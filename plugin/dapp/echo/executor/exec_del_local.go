@@ -3,7 +3,7 @@ package executor
 import (
 	"fmt"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	echotypes "github.com/33cn/plugin/plugin/dapp/echo/types/echo"
 )
 

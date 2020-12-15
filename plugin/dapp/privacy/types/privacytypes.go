@@ -4,7 +4,7 @@
 
 package types
 
-import "github.com/33cn/dplatform/types"
+import "github.com/33cn/dplatformos/types"
 
 // IsExpire 检查FTXO是否过期，过期返回true
 func (ftxos *FTXOsSTXOsInOneTx) IsExpire(blockheight, blocktime int64) bool {

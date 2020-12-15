@@ -8,10 +8,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/33cn/dplatform/p2p/utils"
+	"github.com/33cn/dplatformos/p2p/utils"
 
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/types"
 )
 
 // NodeInfo is interface object of the node

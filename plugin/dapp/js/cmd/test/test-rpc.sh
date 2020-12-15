@@ -10,7 +10,7 @@ function init() {
 
     beneficiary_key=0xf146df80206194c81e0b3171db6aa40c7ad6182a24560698d4871d4dc75223ce
     beneficiary=1DwHQp8S7RS9krQTyrqePxRyvaLcuoQGks
-    dplatform_applyCoins "${beneficiary}" 10000000000 "${MAIN_HTTP}"
+    dplatformos_applyCoins "${beneficiary}" 10000000000 "${MAIN_HTTP}"
     echo "ipara=$ispara"
     manager_name="manage"
     exec_name="jsvm"
@@ -24,9 +24,9 @@ function init() {
         super_manager=0xc34b5d9d44ac7b754806f761d3d4d2c4fe5214f6b074c19f069c4f5c2a29c8cc
         ## fee
         local main_ip=${MAIN_HTTP//8901/28803}
-        dplatform_applyCoins "${beneficiary}" 10000000000 "${main_ip}"
+        dplatformos_applyCoins "${beneficiary}" 10000000000 "${main_ip}"
     fi
-    exec_addr=$(curl -ksd '{"method":"Dplatform.ConvertExectoAddr","params":[{"execname":"'${exec_name}'"}]}' ${MAIN_HTTP} | jq -r ".result")
+    exec_addr=$(curl -ksd '{"method":"DplatformOS.ConvertExectoAddr","params":[{"execname":"'${exec_name}'"}]}' ${MAIN_HTTP} | jq -r ".result")
     echo "exec_addr=${exec_addr}"
 
     # json 中 \n \t 需要转意, " 影响json的结构， 需要转意
@@ -34,26 +34,26 @@ function init() {
 }
 
 function configJSCreator() {
-    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"'${manager_name}'","actionName":"Modify","payload":{"key":"js-creator","op":"add","value":"'${beneficiary}'"}}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    dplatform_SignAndSendTx "$RETURN_RESP" "${super_manager}" "${MAIN_HTTP}"
+    req='{"method":"DplatformOS.CreateTransaction","params":[{"execer":"'${manager_name}'","actionName":"Modify","payload":{"key":"js-creator","op":"add","value":"'${beneficiary}'"}}]}'
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatformos_SignAndSendTx "$RETURN_RESP" "${super_manager}" "${MAIN_HTTP}"
 }
 
 function createJSContract() {
-    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"'${exec_name}'","actionName":"Create","payload":{"name":"'${game}'","code":"'${jsCode}'"}}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    dplatform_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
+    req='{"method":"DplatformOS.CreateTransaction","params":[{"execer":"'${exec_name}'","actionName":"Create","payload":{"name":"'${game}'","code":"'${jsCode}'"}}]}'
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatformos_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
 }
 
 function callJS() {
-    req='{"method":"Dplatform.CreateTransaction","params":[{"execer":"'${user_game}'","actionName":"Call","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
-    dplatform_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
+    req='{"method":"DplatformOS.CreateTransaction","params":[{"execer":"'${user_game}'","actionName":"Call","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME" ".result"
+    dplatformos_SignAndSendTx "$RETURN_RESP" "${beneficiary_key}" "${MAIN_HTTP}"
 }
 
 function queryJS() {
-    req='{"method":"Dplatform.Query","params":[{"execer":"'${user_game}'","funcName":"Query","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
-    dplatform_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME"
+    req='{"method":"DplatformOS.Query","params":[{"execer":"'${user_game}'","funcName":"Query","payload":{"name":"'${game}'","funcname":"hello","args":"{}"}}]}'
+    dplatformos_Http "$req" ${MAIN_HTTP} '(.error|not) and (.result != null)' "$FUNCNAME"
 }
 
 function run_testcases() {
@@ -64,13 +64,13 @@ function run_testcases() {
 }
 
 function rpc_test() {
-    dplatform_RpcTestBegin js
+    dplatformos_RpcTestBegin js
     MAIN_HTTP="$1"
     echo "main_ip=$MAIN_HTTP"
 
     init
     run_testcases
-    dplatform_RpcTestRst js "$CASE_ERR"
+    dplatformos_RpcTestRst js "$CASE_ERR"
 }
 
-dplatform_debug_function rpc_test "$1"
+dplatformos_debug_function rpc_test "$1"

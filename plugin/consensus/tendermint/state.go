@@ -12,10 +12,10 @@ import (
 	"io/ioutil"
 	"sync"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/types"
 	ttypes "github.com/33cn/plugin/plugin/consensus/tendermint/types"
 	tmtypes "github.com/33cn/plugin/plugin/dapp/valnode/types"
 )

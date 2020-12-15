@@ -50,7 +50,7 @@ var MIN_WAIT_BLOCK = 2
 var RAND_MAX = 10
 
 function ExecInit() {
-    this.acc = new account(this.kvc, "coins", "dpom")
+    this.acc = new account(this.kvc, "coins", "dpos")
 }
 
 Exec.prototype.NewGame = function(args) {

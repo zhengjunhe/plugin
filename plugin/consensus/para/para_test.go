@@ -11,14 +11,14 @@ import (
 
 	"testing"
 
-	apimocks "github.com/33cn/dplatform/client/mocks"
+	apimocks "github.com/33cn/dplatformos/client/mocks"
 
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/queue"
-	qmocks "github.com/33cn/dplatform/queue/mocks"
-	drivers "github.com/33cn/dplatform/system/consensus"
-	"github.com/33cn/dplatform/types"
-	typesmocks "github.com/33cn/dplatform/types/mocks"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/queue"
+	qmocks "github.com/33cn/dplatformos/queue/mocks"
+	drivers "github.com/33cn/dplatformos/system/consensus"
+	"github.com/33cn/dplatformos/types"
+	typesmocks "github.com/33cn/dplatformos/types/mocks"
 	paraexec "github.com/33cn/plugin/plugin/dapp/paracross/executor"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/stretchr/testify/mock"
@@ -31,7 +31,7 @@ var (
 )
 
 func TestFilterTxsForPara(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.ReadFile("../../../plugin/dapp/paracross/cmd/build/dplatform.para.test.toml"))
+	cfg := types.NewDplatformOSConfig(types.ReadFile("../../../plugin/dapp/paracross/cmd/build/dplatformos.para.test.toml"))
 
 	detail, filterTxs, _ := createTestTxs(cfg, t)
 	rst := paraexec.FilterTxsForPara(cfg, detail.FilterParaTxsByTitle(cfg, Title))
@@ -40,7 +40,7 @@ func TestFilterTxsForPara(t *testing.T) {
 
 }
 
-func createCrossParaTx(cfg *types.DplatformConfig, to string, amount int64) (*types.Transaction, error) {
+func createCrossParaTx(cfg *types.DplatformOSConfig, to string, amount int64) (*types.Transaction, error) {
 	param := types.CreateTx{
 		To:          to,
 		Amount:      amount,
@@ -56,7 +56,7 @@ func createCrossParaTx(cfg *types.DplatformConfig, to string, amount int64) (*ty
 	return tx, err
 }
 
-func createCrossParaTempTx(cfg *types.DplatformConfig, to string, amount int64) (*types.Transaction, error) {
+func createCrossParaTempTx(cfg *types.DplatformOSConfig, to string, amount int64) (*types.Transaction, error) {
 	param := types.CreateTx{
 		To:          to,
 		Amount:      amount,
@@ -72,7 +72,7 @@ func createCrossParaTempTx(cfg *types.DplatformConfig, to string, amount int64) 
 	return tx, err
 }
 
-func createTxsGroup(cfg *types.DplatformConfig, txs []*types.Transaction) ([]*types.Transaction, error) {
+func createTxsGroup(cfg *types.DplatformOSConfig, txs []*types.Transaction) ([]*types.Transaction, error) {
 
 	group, err := types.CreateTxGroup(txs, cfg.GetMinTxFeeRate())
 	if err != nil {
@@ -85,7 +85,7 @@ func createTxsGroup(cfg *types.DplatformConfig, txs []*types.Transaction) ([]*ty
 	return group.Txs, nil
 }
 
-func createTestTxs(cfg *types.DplatformConfig, t *testing.T) (*types.BlockDetail, []*types.Transaction, []*types.Transaction) {
+func createTestTxs(cfg *types.DplatformOSConfig, t *testing.T) (*types.BlockDetail, []*types.Transaction, []*types.Transaction) {
 	//all para tx group
 	tx5, err := createCrossParaTx(cfg, "toB", 5)
 	assert.Nil(t, err)
@@ -151,7 +151,7 @@ func createTestTxs(cfg *types.DplatformConfig, t *testing.T) (*types.BlockDetail
 }
 
 func TestAddMinerTx(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.ReadFile("../../../plugin/dapp/paracross/cmd/build/dplatform.para.test.toml"))
+	cfg := types.NewDplatformOSConfig(types.ReadFile("../../../plugin/dapp/paracross/cmd/build/dplatformos.para.test.toml"))
 	pk, err := hex.DecodeString(minerPrivateKey)
 	assert.Nil(t, err)
 
@@ -207,7 +207,7 @@ func getMockLastBlock(para *client, returnBlock *types.Block) {
 
 func TestGetLastBlockInfo(t *testing.T) {
 	para := new(client)
-	grpcClient := &typesmocks.DplatformClient{}
+	grpcClient := &typesmocks.DplatformOSClient{}
 	para.grpcClient = grpcClient
 
 	block := &types.Block{Height: 0}

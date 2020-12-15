@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/js/types/jsproto"
 )
 
@@ -42,14 +42,14 @@ var (
 	ErrJsReturnKVSFormat  = errors.New("ErrJsReturnKVSFormat")
 	ErrJsReturnLogsFormat = errors.New("ErrJsReturnLogsFormat")
 	//ErrInvalidFuncFormat 错误的函数调用格式(没有_)
-	ErrInvalidFuncFormat = errors.New("dplatform.js: invalid function name format")
+	ErrInvalidFuncFormat = errors.New("dplatformos.js: invalid function name format")
 	//ErrInvalidFuncPrefix not exec_ execloal_ query_
-	ErrInvalidFuncPrefix = errors.New("dplatform.js: invalid function prefix format")
+	ErrInvalidFuncPrefix = errors.New("dplatformos.js: invalid function prefix format")
 	//ErrFuncNotFound 函数没有找到
-	ErrFuncNotFound = errors.New("dplatform.js: invalid function name not found")
-	ErrSymbolName   = errors.New("dplatform.js: ErrSymbolName")
-	ErrExecerName   = errors.New("dplatform.js: ErrExecerName")
-	ErrDBType       = errors.New("dplatform.js: ErrDBType")
+	ErrFuncNotFound = errors.New("dplatformos.js: invalid function name not found")
+	ErrSymbolName   = errors.New("dplatformos.js: ErrSymbolName")
+	ErrExecerName   = errors.New("dplatformos.js: ErrExecerName")
+	ErrDBType       = errors.New("dplatformos.js: ErrDBType")
 	// ErrJsCreator
 	ErrJsCreator = errors.New("ErrJsCreator")
 )
@@ -61,12 +61,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(JsX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(JsX, NewType(cfg))
 }
 
@@ -76,7 +76,7 @@ type JsType struct {
 }
 
 //NewType 新建一个plugin 类型
-func NewType(cfg *types.DplatformConfig) *JsType {
+func NewType(cfg *types.DplatformOSConfig) *JsType {
 	c := &JsType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

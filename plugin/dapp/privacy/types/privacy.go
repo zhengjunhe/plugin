@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/types"
 )
 
 // PrivacyX privacy executor name
@@ -46,12 +46,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(PrivacyX, "Enable", 980000)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(PrivacyX, NewType(cfg))
 }
 
@@ -61,7 +61,7 @@ type PrivacyType struct {
 }
 
 // NewType create PrivacyType object
-func NewType(cfg *types.DplatformConfig) *PrivacyType {
+func NewType(cfg *types.DplatformOSConfig) *PrivacyType {
 	c := &PrivacyType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)

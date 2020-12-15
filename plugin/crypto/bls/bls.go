@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common/crypto"
 	"github.com/phoreproject/bls/g1pubs"
 )
 

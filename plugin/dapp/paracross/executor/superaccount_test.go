@@ -11,10 +11,10 @@ import (
 	//"github.com/stretchr/testify/mock"
 	"testing"
 
-	apimock "github.com/33cn/dplatform/client/mocks"
-	dbm "github.com/33cn/dplatform/common/db"
-	dbmock "github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/types"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	dbm "github.com/33cn/dplatformos/common/db"
+	dbmock "github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/types"
 
 	"strings"
 
@@ -80,7 +80,7 @@ func (suite *NodeManageTestSuite) SetupSuite() {
 	//suite.localDB, _ = dbm.NewGoMemDB("local", "local", 1024)
 	suite.localDB = new(dbmock.KVDB)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestCfg, nil)
 
 	suite.exec = newParacross().(*Paracross)
 	suite.exec.SetAPI(suite.api)
@@ -96,15 +96,15 @@ func (suite *NodeManageTestSuite) SetupSuite() {
 	//
 	//}
 
-	dplatformTestCfg.S("config.consensus.sub.para.MainForkParacrossCommitTx", int64(1))
-	dplatformTestCfg.S("config.exec.sub.manage.superManager", []interface{}{Account12Q})
+	dplatformosTestCfg.S("config.consensus.sub.para.MainForkParacrossCommitTx", int64(1))
+	dplatformosTestCfg.S("config.exec.sub.manage.superManager", []interface{}{Account12Q})
 
 	// TODO, more fields
 	// setup block
 	blockDetail := &types.BlockDetail{
 		Block: &types.Block{},
 	}
-	MainBlockHash10 = blockDetail.Block.Hash(dplatformTestCfg)
+	MainBlockHash10 = blockDetail.Block.Hash(dplatformosTestCfg)
 
 }
 
@@ -210,7 +210,7 @@ func checkVoteDoneReceipt(suite *NodeManageTestSuite, receipt *types.Receipt, co
 func voteTest(suite *NodeManageTestSuite, id string, join bool) {
 	var count int
 	config := &pt.ParaNodeAddrConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Op:    pt.ParaOpVote,
 		Id:    id,
 		Value: pt.ParaVoteYes,
@@ -239,7 +239,7 @@ func voteTest(suite *NodeManageTestSuite, id string, join bool) {
 
 func (suite *NodeManageTestSuite) testNodeGroupConfigQuit() {
 	config := &pt.ParaNodeGroupConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Addrs: applyAddrs,
 		Op:    pt.ParacrossNodeGroupApply,
 	}
@@ -255,7 +255,7 @@ func (suite *NodeManageTestSuite) testNodeGroupConfigQuit() {
 	suite.Nil(err)
 
 	config = &pt.ParaNodeGroupConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Id:    g.Current.Id,
 		Op:    pt.ParacrossNodeGroupQuit,
 	}
@@ -271,7 +271,7 @@ func (suite *NodeManageTestSuite) testNodeGroupConfig() {
 	suite.testNodeGroupConfigQuit()
 
 	config := &pt.ParaNodeGroupConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Addrs: applyAddrs,
 		Op:    pt.ParacrossNodeGroupApply,
 	}
@@ -287,7 +287,7 @@ func (suite *NodeManageTestSuite) testNodeGroupConfig() {
 	suite.Nil(err)
 
 	config = &pt.ParaNodeGroupConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Id:    g.Current.Id,
 		Op:    pt.ParacrossNodeGroupApprove,
 	}
@@ -302,7 +302,7 @@ func (suite *NodeManageTestSuite) testNodeGroupConfig() {
 func (suite *NodeManageTestSuite) testNodeConfig() {
 	//Join test
 	config := &pt.ParaNodeAddrConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Op:    pt.ParaOpNewApply,
 		Addr:  Account14K,
 	}
@@ -322,7 +322,7 @@ func (suite *NodeManageTestSuite) testNodeConfig() {
 
 	//Quit test
 	config = &pt.ParaNodeAddrConfig{
-		Title: dplatformTestCfg.GetTitle(),
+		Title: dplatformosTestCfg.GetTitle(),
 		Op:    pt.ParaOpQuit,
 		Addr:  Account14K,
 	}

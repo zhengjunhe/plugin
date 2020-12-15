@@ -11,10 +11,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/system/dapp/commands"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/system/dapp/commands"
+	"github.com/33cn/dplatformos/types"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/spf13/cobra"
 )
@@ -69,7 +69,7 @@ func addCreateAssetTransferFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpos, symbol for token")
 }
 
 func createAssetTransfer(cmd *cobra.Command, args []string) {
@@ -101,7 +101,7 @@ func addCreateAssetWithdrawFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("to", "t", "", "receiver account address")
 	cmd.MarkFlagRequired("to")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpos, symbol for token")
 }
 
 func createAssetWithdraw(cmd *cobra.Command, args []string) {
@@ -174,7 +174,7 @@ func addCreateTransferFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpos, symbol for token")
 	cmd.MarkFlagRequired("symbol")
 }
 
@@ -199,7 +199,7 @@ func addCreateTransferToExecFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "coins.dpom", "default for dpom, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "coins.dpos", "default for dpos, symbol for token")
 	cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("exec", "e", "", "asset deposit exec")
@@ -227,7 +227,7 @@ func addCreateWithdrawFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info")
 
-	cmd.Flags().StringP("symbol", "s", "", "default for dpom, symbol for token")
+	cmd.Flags().StringP("symbol", "s", "", "default for dpos, symbol for token")
 	cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("exec", "e", "", "asset deposit exec")
@@ -253,7 +253,7 @@ func addCreateCrossAssetTransferFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "exec of asset resident")
 	cmd.MarkFlagRequired("exec")
 
-	cmd.Flags().StringP("symbol", "s", "", "asset symbol like dpom")
+	cmd.Flags().StringP("symbol", "s", "", "asset symbol like dpos")
 	cmd.MarkFlagRequired("symbol")
 
 	cmd.Flags().StringP("to", "t", "", "transfer to account")
@@ -301,7 +301,7 @@ func createCrossAssetTransfer(cmd *cobra.Command, args []string) {
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	var res string
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, &res)
 	_, err := ctx.RunResult()
 	if err != nil {
 		fmt.Println(err)
@@ -366,7 +366,7 @@ func createNodeJoinTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -404,7 +404,7 @@ func createNodeVoteTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -440,7 +440,7 @@ func createNodeQuitTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -476,7 +476,7 @@ func createNodeCancelTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -515,7 +515,7 @@ func createNodeModifyTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -564,7 +564,7 @@ func createNodeBindTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -597,7 +597,7 @@ func nodeBindInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&pt.ParaNodeBindOne{SuperNode: node, Miner: miner})
 
 	var res pt.RespParaNodeBindList
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -633,7 +633,7 @@ func nodeInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParaNodeAddrIdStatus
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -669,7 +669,7 @@ func nodeIDInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParaNodeIdStatus
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -705,7 +705,7 @@ func nodeList(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.RespParacrossNodeAddrs
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -735,7 +735,7 @@ func selfConsStage(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -774,7 +774,7 @@ func createVoteTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -805,7 +805,7 @@ func stageCancelTx(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 
 }
@@ -903,7 +903,7 @@ func nodeGroupApply(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -934,7 +934,7 @@ func nodeGroupApprove(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -969,7 +969,7 @@ func nodeGroupQuit(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -1004,7 +1004,7 @@ func nodeGroupModify(cmd *cobra.Command, args []string) {
 	}
 
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.CreateTransaction", params, nil)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.CreateTransaction", params, nil)
 	ctx.RunWithoutMarshal()
 }
 
@@ -1112,7 +1112,7 @@ func consusHeight(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParacrossConsensusStatus
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1149,7 +1149,7 @@ func blockInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParaBlock2MainInfo
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1215,7 +1215,7 @@ func paraInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParacrossHeightStatusRsp
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1251,7 +1251,7 @@ func paraList(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.RespParacrossTitles
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1284,7 +1284,7 @@ func paraAssetTransfer(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParacrossAsset
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1310,7 +1310,7 @@ func nodeGroup(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res types.ReplyConfig
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1337,7 +1337,7 @@ func nodeGroupStatus(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ParaNodeGroupStatus
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1370,7 +1370,7 @@ func nodeGroupList(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.RespParacrossNodeGroups
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1384,7 +1384,7 @@ func stagesInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.SelfConsensStages
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1410,7 +1410,7 @@ func stageOneInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.SelfConsensStage
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1474,7 +1474,7 @@ func showSelfStages(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.ReplyQuerySelfStages
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 
@@ -1499,7 +1499,7 @@ func consensDoneInfo(cmd *cobra.Command, args []string) {
 	params.Payload = types.MustPBToJSON(&req)
 
 	var res pt.RespParacrossDone
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Dplatform.Query", params, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "DplatformOS.Query", params, &res)
 	ctx.Run()
 }
 

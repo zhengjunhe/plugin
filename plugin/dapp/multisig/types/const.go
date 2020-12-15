@@ -5,8 +5,8 @@
 package types
 
 import (
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var multisiglog = log15.New("module", "execs.multisig")

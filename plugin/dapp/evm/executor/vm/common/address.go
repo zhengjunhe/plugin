@@ -9,10 +9,10 @@ import (
 
 	"encoding/hex"
 
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto/sha3"
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto/sha3"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	"github.com/holiman/uint256"
 )
 
@@ -86,13 +86,13 @@ func (h Hash160Address) Hex() string {
 	return "0x" + string(result)
 }
 
-// ToAddress 返回Dplatform格式的地址
+// ToAddress 返回DplatformOS格式的地址
 func (h Hash160Address) ToAddress() Address {
 	return BytesToAddress(h[:])
 }
 
 // NewAddress xHash生成EVM合约地址
-func NewAddress(cfg *types.DplatformConfig, txHash []byte) Address {
+func NewAddress(cfg *types.DplatformOSConfig, txHash []byte) Address {
 	execAddr := address.GetExecAddress(cfg.ExecName("user.evm.") + BytesToHash(txHash).Hex())
 	return Address{Addr: execAddr}
 }

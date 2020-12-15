@@ -9,10 +9,10 @@ import (
 
 	"encoding/json"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 )
@@ -29,7 +29,7 @@ func testPropRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testRevokeProposalRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -44,7 +44,7 @@ func testRevokeProposalRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) erro
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testVoteProposalRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -59,7 +59,7 @@ func testVoteProposalRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error 
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testTerminateProposalRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -74,7 +74,7 @@ func testTerminateProposalRuleTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) e
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testGetProposalRuleCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -84,7 +84,7 @@ func testGetProposalRuleCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.GetProposalRule
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalRule{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testListProposalRuleCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -94,7 +94,7 @@ func testListProposalRuleCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.ListProposalRule
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalRule{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testGetActiveRuleCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -103,7 +103,7 @@ func testGetActiveRuleCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = auty.GetActiveRule
 	params.Payload = types.MustPBToJSON(&types.ReqString{})
 	rep = &auty.RuleConfig{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testTransferFundTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -118,7 +118,7 @@ func testTransferFundTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testCommentProposalTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -133,7 +133,7 @@ func testCommentProposalTxCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 		Payload:    payLoad,
 	}
 	var res string
-	return jrpc.Call("Dplatform.CreateTransaction", pm, &res)
+	return jrpc.Call("DplatformOS.CreateTransaction", pm, &res)
 }
 
 func testListProposalCommentCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -143,5 +143,5 @@ func testListProposalCommentCmd(t *testing.T, jrpc *jsonclient.JSONClient) error
 	params.FuncName = auty.ListProposalComment
 	params.Payload = types.MustPBToJSON(req)
 	rep = &auty.ReplyQueryProposalComment{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }

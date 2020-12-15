@@ -7,13 +7,13 @@ package rpc_test
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	mty "github.com/33cn/plugin/plugin/dapp/multisig/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -57,7 +57,7 @@ func signTx(tx *types.Transaction, hexPrivKey string) (*types.Transaction, error
 	return tx, nil
 }
 
-func getRPCClient(t *testing.T, mocker *testnode.DplatformMock) *jsonclient.JSONClient {
+func getRPCClient(t *testing.T, mocker *testnode.DplatformOSMock) *jsonclient.JSONClient {
 	jrpcClient := mocker.GetJSONC()
 	assert.NotNil(t, jrpcClient)
 	return jrpcClient
@@ -105,7 +105,7 @@ func TestMultiSigAccount(t *testing.T) {
 }
 
 //创建多重签名账户
-func testAccCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient) string {
+func testAccCreateTx(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient) string {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 	//1. MultiSigAccCreateTx 创建交易
@@ -144,7 +144,7 @@ func testAccCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *j
 	params.FuncName = "MultiSigAccCount"
 	params.Payload = types.MustPBToJSON(&types.ReqNil{})
 	rep := &types.Int64{}
-	err = jrpcClient.Call("Dplatform.Query", &params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", &params, rep)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(1), rep.Data)
 
@@ -158,7 +158,7 @@ func testAccCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *j
 	params.FuncName = "MultiSigAccounts"
 	params.Payload = types.MustPBToJSON(&req1)
 	rep1 := &mty.ReplyMultiSigAccs{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep1)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep1)
 	assert.Nil(t, err)
 	//t.Log(rep1)
 
@@ -172,7 +172,7 @@ func testAccCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *j
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req2)
 	rep2 := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep2)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep2)
 	assert.Nil(t, err)
 	assert.Equal(t, AddrA, rep2.Owners[0].OwnerAddr)
 	assert.Equal(t, AddrB, rep2.Owners[1].OwnerAddr)
@@ -188,7 +188,7 @@ func testAccCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *j
 	params.FuncName = "MultiSigAccAllAddress"
 	params.Payload = types.MustPBToJSON(&req3)
 	rep3 := &mty.AccAddress{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep3)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep3)
 	assert.Nil(t, err)
 	assert.Equal(t, rep3.Address[0], multiSigAccAddr)
 	//t.Log(rep3)
@@ -205,7 +205,7 @@ func testAccCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *j
 }
 
 //多重签名地址转入操作
-func testTransferInTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testTransferInTx(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 	//send to exec
@@ -221,7 +221,7 @@ func testTransferInTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *
 		ExecName:    mty.MultiSigX,
 	}
 	var res4 string
-	err := jrpcClient.Call("Dplatform.CreateRawTransaction", req3, &res4)
+	err := jrpcClient.Call("DplatformOS.CreateRawTransaction", req3, &res4)
 	assert.Nil(t, err)
 	tx := getTx(t, res4)
 	tx.Sign(types.SECP256K1, gen)
@@ -273,7 +273,7 @@ func testTransferInTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *
 	params.FuncName = "MultiSigAccAssets"
 	params.Payload = types.MustPBToJSON(&req4)
 	rep4 := &mty.ReplyAccAssets{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep4)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep4)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(4000000000), rep4.AccAssets[0].Account.Frozen)
 	assert.Equal(t, int64(4000000000), rep4.AccAssets[0].RecvAmount)
@@ -281,7 +281,7 @@ func testTransferInTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *
 }
 
 //多重签名地址转出操作 AddrB
-func testTransferOutTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testTransferOutTx(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -319,7 +319,7 @@ func testTransferOutTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient 
 	params.FuncName = "MultiSigAccAssets"
 	params.Payload = types.MustPBToJSON(&req7)
 	rep7 := &mty.ReplyAccAssets{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep7)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep7)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(2000000000), rep7.AccAssets[0].Account.Frozen)
 	assert.Equal(t, int64(4000000000), rep7.AccAssets[0].RecvAmount)
@@ -340,7 +340,7 @@ func testTransferOutTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient 
 	params.FuncName = "MultiSigAccAssets"
 	params.Payload = types.MustPBToJSON(&req8)
 	rep8 := &mty.ReplyAccAssets{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep8)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep8)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(2000000000), rep8.AccAssets[0].Account.Balance)
 	assert.Equal(t, int64(2000000000), rep8.AccAssets[0].RecvAmount)
@@ -348,7 +348,7 @@ func testTransferOutTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient 
 }
 
 //owner add AddrE
-func testAddOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testAddOwner(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -377,7 +377,7 @@ func testAddOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *json
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req10)
 	rep10 := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep10)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep10)
 	assert.Nil(t, err)
 	find := false
 	for _, tempowner := range rep10.Owners {
@@ -391,7 +391,7 @@ func testAddOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *json
 }
 
 //owner del AddrE
-func testDelOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testDelOwner(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -420,7 +420,7 @@ func testDelOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *json
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	find := false
 	for _, tempowner := range rep.Owners {
@@ -434,7 +434,7 @@ func testDelOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *json
 }
 
 //ModifyOwnerWeight
-func testModifyOwnerWeight(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testModifyOwnerWeight(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -464,7 +464,7 @@ func testModifyOwnerWeight(t *testing.T, mocker *testnode.DplatformMock, jrpcCli
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	find := false
 	for _, tempowner := range rep.Owners {
@@ -478,7 +478,7 @@ func testModifyOwnerWeight(t *testing.T, mocker *testnode.DplatformMock, jrpcCli
 }
 
 //testReplaceOwner owner AddrA replace by  AddrE
-func testReplaceOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testReplaceOwner(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -508,7 +508,7 @@ func testReplaceOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	find := false
 	for _, tempowner := range rep.Owners {
@@ -522,7 +522,7 @@ func testReplaceOwner(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *
 }
 
 //testModifyDailyLimit modify dailylimit coins:DPOM  1200000000
-func testModifyDailyLimit(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testModifyDailyLimit(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -556,7 +556,7 @@ func testModifyDailyLimit(t *testing.T, mocker *testnode.DplatformMock, jrpcClie
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	find := false
 	for _, dailyLimit := range rep.DailyLimits {
@@ -570,7 +570,7 @@ func testModifyDailyLimit(t *testing.T, mocker *testnode.DplatformMock, jrpcClie
 }
 
 //testAddDailyLimit add dailylimit token:HYB  1000000000
-func testAddDailyLimit(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testAddDailyLimit(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -604,7 +604,7 @@ func testAddDailyLimit(t *testing.T, mocker *testnode.DplatformMock, jrpcClient 
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	find := false
 	for _, dailyLimit := range rep.DailyLimits {
@@ -618,7 +618,7 @@ func testAddDailyLimit(t *testing.T, mocker *testnode.DplatformMock, jrpcClient 
 }
 
 //testModifyRequestWeight Modify RequestWeight 16
-func testModifyRequestWeight(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testModifyRequestWeight(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	gen := mocker.GetGenesisKey()
 	var params rpctypes.Query4Jrpc
 
@@ -647,12 +647,12 @@ func testModifyRequestWeight(t *testing.T, mocker *testnode.DplatformMock, jrpcC
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	assert.Equal(t, uint64(16), rep.RequiredWeight)
 	//t.Log(rep)
 }
-func testConfirmTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
+func testConfirmTx(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string) {
 	var params rpctypes.Query4Jrpc
 
 	//1. 转账到AddrB地址，
@@ -668,7 +668,7 @@ func testConfirmTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jso
 		ExecName:    "",
 	}
 	var res string
-	err := jrpcClient.Call("Dplatform.CreateRawTransaction", req, &res)
+	err := jrpcClient.Call("DplatformOS.CreateRawTransaction", req, &res)
 	assert.Nil(t, err)
 	gen := mocker.GetGenesisKey()
 	tx := getTx(t, res)
@@ -722,7 +722,7 @@ func testConfirmTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jso
 	params.FuncName = "MultiSigAccountInfo"
 	params.Payload = types.MustPBToJSON(&req9)
 	rep9 := &mty.MultiSig{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep9)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep9)
 	assert.Nil(t, err)
 	find := false
 	for _, dailyLimit := range rep9.DailyLimits {
@@ -768,7 +768,7 @@ func testConfirmTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jso
 	params.FuncName = "MultiSigAccTxCount"
 	params.Payload = types.MustPBToJSON(&req11)
 	rep11 := &mty.Uint64{}
-	err = jrpcClient.Call("Dplatform.Query", params, rep11)
+	err = jrpcClient.Call("DplatformOS.Query", params, rep11)
 	assert.Nil(t, err)
 	//t.Log(rep11)
 	txid := rep11.Data - 1
@@ -809,7 +809,7 @@ func checkTxInfo(t *testing.T, jrpcClient *jsonclient.JSONClient, multiSigAccAdd
 	params.FuncName = "MultiSigTxInfo"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.MultiSigTx{}
-	err := jrpcClient.Call("Dplatform.Query", params, rep)
+	err := jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	//t.Log(rep)
 
@@ -827,7 +827,7 @@ func checkTxInfo(t *testing.T, jrpcClient *jsonclient.JSONClient, multiSigAccAdd
 	}
 	assert.Equal(t, true, find)
 }
-func confirmTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string, privKey string, txid uint64, confirmOrRevoke bool) {
+func confirmTx(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, multiSigAccAddr string, privKey string, txid uint64, confirmOrRevoke bool) {
 	//撤销这个交易的确认信息
 	req := &mty.MultiSigConfirmTx{
 		MultiSigAccAddr: multiSigAccAddr,
@@ -862,7 +862,7 @@ func checkMultiSigAccAssets(t *testing.T, jrpcClient *jsonclient.JSONClient, add
 	params.FuncName = "MultiSigAccAssets"
 	params.Payload = types.MustPBToJSON(&req)
 	rep := &mty.ReplyAccAssets{}
-	err := jrpcClient.Call("Dplatform.Query", params, rep)
+	err := jrpcClient.Call("DplatformOS.Query", params, rep)
 	assert.Nil(t, err)
 	if isMultiSigAddr {
 		assert.Equal(t, amount, rep.AccAssets[0].Account.Frozen)
@@ -874,7 +874,7 @@ func checkMultiSigAccAssets(t *testing.T, jrpcClient *jsonclient.JSONClient, add
 }
 
 //异常测试，主要是参数的合法性校验
-func testAbnormal(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient) {
+func testAbnormal(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient) {
 	//1. MultiSigAccCreateTx owner重复
 	var owners []*mty.Owner
 	owmer1 := &mty.Owner{OwnerAddr: AddrA, Weight: 20}
@@ -966,7 +966,7 @@ func testAbnormal(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *json
 	}
 	testAbnormalCreateTx(t, mocker, jrpcClient, req, mty.ErrInvalidWeight)
 }
-func testAbnormalCreateTx(t *testing.T, mocker *testnode.DplatformMock, jrpcClient *jsonclient.JSONClient, req *mty.MultiSigAccCreate, expecterr error) {
+func testAbnormalCreateTx(t *testing.T, mocker *testnode.DplatformOSMock, jrpcClient *jsonclient.JSONClient, req *mty.MultiSigAccCreate, expecterr error) {
 	gen := mocker.GetGenesisKey()
 	var res string
 	err := jrpcClient.Call("multisig.MultiSigAccCreateTx", req, &res)

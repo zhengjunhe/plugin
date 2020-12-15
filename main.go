@@ -12,11 +12,11 @@
 package main
 
 import (
-	_ "github.com/33cn/dplatform/system"
-	"github.com/33cn/dplatform/util/cli"
+	_ "github.com/33cn/dplatformos/system"
+	"github.com/33cn/dplatformos/util/cli"
 	_ "github.com/33cn/plugin/plugin"
 )
 
 func main() {
-	cli.RunDplatform("", "")
+	cli.RunDplatformOS("", "")
 }

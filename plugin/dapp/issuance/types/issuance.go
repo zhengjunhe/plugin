@@ -9,9 +9,9 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var (
@@ -25,13 +25,13 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(IssuanceX, "Enable", 0)
 	cfg.RegisterDappFork(IssuanceX, ForkIssuanceTableUpdate, 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(IssuanceX, NewType(cfg))
 }
 
@@ -41,7 +41,7 @@ type IssuanceType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *IssuanceType {
+func NewType(cfg *types.DplatformOSConfig) *IssuanceType {
 	c := &IssuanceType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -140,7 +140,7 @@ func (issuance IssuanceType) GetTypeMap() map[string]int32 {
 }
 
 // CreateRawIssuanceCreateTx method
-func CreateRawIssuanceCreateTx(cfg *types.DplatformConfig, parm *IssuanceCreateTx) (*types.Transaction, error) {
+func CreateRawIssuanceCreateTx(cfg *types.DplatformOSConfig, parm *IssuanceCreateTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawIssuanceCreateTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -171,7 +171,7 @@ func CreateRawIssuanceCreateTx(cfg *types.DplatformConfig, parm *IssuanceCreateT
 }
 
 // CreateRawIssuanceDebtTx method
-func CreateRawIssuanceDebtTx(cfg *types.DplatformConfig, parm *IssuanceDebtTx) (*types.Transaction, error) {
+func CreateRawIssuanceDebtTx(cfg *types.DplatformOSConfig, parm *IssuanceDebtTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawIssuanceBorrowTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -200,7 +200,7 @@ func CreateRawIssuanceDebtTx(cfg *types.DplatformConfig, parm *IssuanceDebtTx) (
 }
 
 // CreateRawIssuanceRepayTx method
-func CreateRawIssuanceRepayTx(cfg *types.DplatformConfig, parm *IssuanceRepayTx) (*types.Transaction, error) {
+func CreateRawIssuanceRepayTx(cfg *types.DplatformOSConfig, parm *IssuanceRepayTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawIssuanceRepayTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -229,7 +229,7 @@ func CreateRawIssuanceRepayTx(cfg *types.DplatformConfig, parm *IssuanceRepayTx)
 }
 
 // CreateRawIssuanceFeedTx method
-func CreateRawIssuanceFeedTx(cfg *types.DplatformConfig, parm *IssuanceFeedTx) (*types.Transaction, error) {
+func CreateRawIssuanceFeedTx(cfg *types.DplatformOSConfig, parm *IssuanceFeedTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawIssuancePriceFeedTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -261,7 +261,7 @@ func CreateRawIssuanceFeedTx(cfg *types.DplatformConfig, parm *IssuanceFeedTx) (
 }
 
 // CreateRawIssuanceCloseTx method
-func CreateRawIssuanceCloseTx(cfg *types.DplatformConfig, parm *IssuanceCloseTx) (*types.Transaction, error) {
+func CreateRawIssuanceCloseTx(cfg *types.DplatformOSConfig, parm *IssuanceCloseTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawIssuanceCloseTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -290,7 +290,7 @@ func CreateRawIssuanceCloseTx(cfg *types.DplatformConfig, parm *IssuanceCloseTx)
 }
 
 // CreateRawIssuanceManageTx method
-func CreateRawIssuanceManageTx(cfg *types.DplatformConfig, parm *IssuanceManageTx) (*types.Transaction, error) {
+func CreateRawIssuanceManageTx(cfg *types.DplatformOSConfig, parm *IssuanceManageTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawIssuanceManageTx", "parm", parm)
 		return nil, types.ErrInvalidParam

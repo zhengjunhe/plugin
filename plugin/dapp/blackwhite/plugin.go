@@ -6,7 +6,7 @@
 package blackwhite
 
 import (
-	"github.com/33cn/dplatform/pluginmgr"
+	"github.com/33cn/dplatformos/pluginmgr"
 	"github.com/33cn/plugin/plugin/dapp/blackwhite/commands"
 	"github.com/33cn/plugin/plugin/dapp/blackwhite/executor"
 	"github.com/33cn/plugin/plugin/dapp/blackwhite/rpc"

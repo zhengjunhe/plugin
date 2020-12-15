@@ -17,11 +17,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	rlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	rlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/norm/types"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
@@ -31,7 +31,7 @@ const fee = 1e6
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 var conn *grpc.ClientConn
-var c types.DplatformClient
+var c types.DplatformOSClient
 var r *rand.Rand
 
 func createConn(ip string) {
@@ -43,7 +43,7 @@ func createConn(ip string) {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	c = types.NewDplatformClient(conn)
+	c = types.NewDplatformOSClient(conn)
 	r = rand.New(rand.NewSource(types.Now().UnixNano()))
 }
 func main() {

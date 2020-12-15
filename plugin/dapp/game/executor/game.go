@@ -7,9 +7,9 @@ package executor
 import (
 	"fmt"
 
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	gt "github.com/33cn/plugin/plugin/dapp/game/types"
 )
 
@@ -18,7 +18,7 @@ var glog = log.New("module", "execs.game")
 var driverName = gt.GameX
 
 // Init register dapp
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, GetName(), newGame, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

@@ -7,19 +7,19 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	apimock "github.com/33cn/dplatform/client/mocks"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
-	dbmock "github.com/33cn/dplatform/common/db/mocks"
-	commonlog "github.com/33cn/dplatform/common/log"
-	"github.com/33cn/dplatform/queue"
-	_ "github.com/33cn/dplatform/system"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
+	dbmock "github.com/33cn/dplatformos/common/db/mocks"
+	commonlog "github.com/33cn/dplatformos/common/log"
+	"github.com/33cn/dplatformos/queue"
+	_ "github.com/33cn/dplatformos/system"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 	auty "github.com/33cn/plugin/plugin/dapp/autonomy/types"
 	ticket "github.com/33cn/plugin/plugin/dapp/ticket/executor"
 	ticketTy "github.com/33cn/plugin/plugin/dapp/ticket/types"
@@ -121,7 +121,7 @@ func init() {
 
 // InitEnv 初始化环境
 func InitEnv() (*ExecEnv, drivers.Driver, dbm.KV, dbm.KVDB) {
-	//cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	//cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	accountA := types.Account{
 		Balance: total,
 		Frozen:  0,

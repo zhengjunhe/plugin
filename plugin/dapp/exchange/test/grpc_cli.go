@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/exchange/executor"
 	et "github.com/33cn/plugin/plugin/dapp/exchange/types"
 	tt "github.com/33cn/plugin/plugin/dapp/token/types"
@@ -18,7 +18,7 @@ import (
 
 //GRPCCli ...
 type GRPCCli struct {
-	client types.DplatformClient
+	client types.DplatformOSClient
 }
 
 //NewGRPCCli ...
@@ -27,9 +27,9 @@ func NewGRPCCli(grpcAddr string) *GRPCCli {
 	if err != nil {
 		panic(err)
 	}
-	client := types.NewDplatformClient(conn)
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	client := types.NewDplatformOSClient(conn)
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	executor.Init(et.ExchangeX, cfg, nil)
 	return &GRPCCli{
 		client: client,
@@ -79,7 +79,7 @@ func (c *GRPCCli) Query(fn string, msg proto.Message) ([]byte, error) {
 //GetExecAccount ...
 func (c *GRPCCli) GetExecAccount(addr string, exec string, symbol string) (*types.Account, error) {
 	if exec == "coins" {
-		// dpom
+		// dpos
 		var addrs []string
 		addrs = append(addrs, addr)
 		params := &types.ReqBalance{
@@ -138,8 +138,8 @@ func (c *GRPCCli) sendAndWaitReceipt(tx *types.Transaction, hexKey string) (txHa
 
 //SendTx ...
 func (c *GRPCCli) SendTx(tx *types.Transaction, hexKey string) (reply *types.Reply, err error) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
-	cfg.SetTitleOnlyForTest("dplatform")
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
+	cfg.SetTitleOnlyForTest("dplatformos")
 	tx, err = types.FormatTx(cfg, et.ExchangeX, tx)
 	if err != nil {
 		return nil, err

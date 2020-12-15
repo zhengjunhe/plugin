@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-PARA_CLI="docker exec ${NODE3} /root/dplatform-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
+PARA_CLI="docker exec ${NODE3} /root/dplatformos-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
 
-PARA_CLI2="docker exec ${NODE2} /root/dplatform-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
-PARA_CLI1="docker exec ${NODE1} /root/dplatform-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
-PARA_CLI4="docker exec ${NODE4} /root/dplatform-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
-PARA_CLI5="docker exec ${NODE5} /root/dplatform-cli --paraName user.p.game. --rpc_laddr http://localhost:8901"
-MAIN_CLI="docker exec ${NODE3} /root/dplatform-cli"
+PARA_CLI2="docker exec ${NODE2} /root/dplatformos-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
+PARA_CLI1="docker exec ${NODE1} /root/dplatformos-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
+PARA_CLI4="docker exec ${NODE4} /root/dplatformos-cli --paraName user.p.para. --rpc_laddr http://localhost:8901"
+PARA_CLI5="docker exec ${NODE5} /root/dplatformos-cli --paraName user.p.game. --rpc_laddr http://localhost:8901"
+MAIN_CLI="docker exec ${NODE3} /root/dplatformos-cli"
 
 PARANAME="para"
 PARANAME_GAME="game"
@@ -27,22 +27,22 @@ fi
 #source test-rpc.sh
 
 function para_init() {
-    para_set_toml dplatform.para33.toml "$PARANAME" "$1"
-    para_set_toml dplatform.para32.toml "$PARANAME" "$1"
-    para_set_toml dplatform.para31.toml "$PARANAME" "$1"
-    para_set_toml dplatform.para30.toml "$PARANAME" "$1"
+    para_set_toml dplatformos.para33.toml "$PARANAME" "$1"
+    para_set_toml dplatformos.para32.toml "$PARANAME" "$1"
+    para_set_toml dplatformos.para31.toml "$PARANAME" "$1"
+    para_set_toml dplatformos.para30.toml "$PARANAME" "$1"
 
-    sed -i $xsedfix 's/^authAccount=.*/authAccount="1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"/g' dplatform.para33.toml
-    sed -i $xsedfix 's/^authAccount=.*/authAccount="1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR"/g' dplatform.para32.toml
-    sed -i $xsedfix 's/^authAccount=.*/authAccount="1NLHPEcbTWWxxU3dGUZBhayjrCHD3psX7k"/g' dplatform.para31.toml
-    sed -i $xsedfix 's/^authAccount=.*/authAccount="1MCftFynyvG2F4ED5mdHYgziDxx6vDrScs"/g' dplatform.para30.toml
+    sed -i $xsedfix 's/^authAccount=.*/authAccount="1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"/g' dplatformos.para33.toml
+    sed -i $xsedfix 's/^authAccount=.*/authAccount="1JRNjdEqp4LJ5fqycUBm9ayCKSeeskgMKR"/g' dplatformos.para32.toml
+    sed -i $xsedfix 's/^authAccount=.*/authAccount="1NLHPEcbTWWxxU3dGUZBhayjrCHD3psX7k"/g' dplatformos.para31.toml
+    sed -i $xsedfix 's/^authAccount=.*/authAccount="1MCftFynyvG2F4ED5mdHYgziDxx6vDrScs"/g' dplatformos.para30.toml
 
-    para_set_toml dplatform.para29.toml "$PARANAME_GAME" "$1"
-    sed -i $xsedfix 's/^authAccount=.*/authAccount="1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"/g' dplatform.para29.toml
+    para_set_toml dplatformos.para29.toml "$PARANAME_GAME" "$1"
+    sed -i $xsedfix 's/^authAccount=.*/authAccount="1KSBd17H7ZK8iT37aJztFB22XGwsPTdwE4"/g' dplatformos.para29.toml
 }
 
 function para_set_toml() {
-    cp dplatform.para.toml "${1}"
+    cp dplatformos.para.toml "${1}"
     local paraname="$2"
 
     sed -i $xsedfix 's/^Title.*/Title="user.p.'''"$paraname"'''."/g' "${1}"
@@ -382,7 +382,7 @@ function para_cross_transfer_withdraw() {
     local times=200
     while true; do
         acc=$(${CLI} account balance -e paracross -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv | jq -r ".balance")
-        acc_para=$(${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.dpom | jq -r ".balance")
+        acc_para=$(${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.dpos | jq -r ".balance")
         echo "account balance is ${acc}, expect 9.3, para acct balance is ${acc_para},expect 0.7 "
         if [ "${acc}" != "9.3000" ] || [ "${acc_para}" != "0.7000" ]; then
             block_wait "${CLI}" 2
@@ -391,7 +391,7 @@ function para_cross_transfer_withdraw() {
                 echo "para_cross_transfer_withdraw failed"
                 ${CLI} tx query -s "$hash2"
                 ${PARA_CLI} tx query -s "$hash2"
-                ${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.dpom
+                ${PARA_CLI} asset balance -a 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv --asset_exec paracross --asset_symbol coins.dpos
                 exit 1
             fi
         else

@@ -8,14 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/33cn/dplatform/rpc/jsonclient"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util/testnode"
+	"github.com/33cn/dplatformos/rpc/jsonclient"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util/testnode"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin"
 )
 
@@ -60,7 +60,7 @@ func testGetTokensPreCreatedCmd(t *testing.T, jrpc *jsonclient.JSONClient) error
 	params.FuncName = "GetTokens"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyTokens{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testGetTokensFinishCreatedCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -70,7 +70,7 @@ func testGetTokensFinishCreatedCmd(t *testing.T, jrpc *jsonclient.JSONClient) er
 		Payload:  types.MustPBToJSON(&pty.ReqTokens{}),
 	}
 	var res pty.ReplyTokens
-	return jrpc.Call("Dplatform.Query", params, &res)
+	return jrpc.Call("DplatformOS.Query", params, &res)
 }
 
 func testGetTokenAssetsCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
@@ -81,7 +81,7 @@ func testGetTokenAssetsCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {
 	params.FuncName = "GetAccountTokenAssets"
 	params.Payload = types.MustPBToJSON(req)
 	rep = &pty.ReplyAccountTokenAssets{}
-	return jrpc.Call("Dplatform.Query", params, rep)
+	return jrpc.Call("DplatformOS.Query", params, rep)
 }
 
 func testGetTokenBalanceCmd(t *testing.T, jrpc *jsonclient.JSONClient) error {

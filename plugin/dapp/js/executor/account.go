@@ -1,14 +1,14 @@
 package executor
 
 import (
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
 	"github.com/robertkrimen/otto"
 )
 
 /*
-//dplatform 相关的账户操作函数 （操作某个execer 下面的 symbol）
+//dplatformos 相关的账户操作函数 （操作某个execer 下面的 symbol）
 function Account(execer, symbol) {
 	this.execer = execer
 	this.symbol = symbol

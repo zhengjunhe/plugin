@@ -7,15 +7,15 @@ package para
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/common/crypto"
-	drivers "github.com/33cn/dplatform/system/consensus"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/crypto"
+	drivers "github.com/33cn/dplatformos/system/consensus"
+	"github.com/33cn/dplatformos/types"
 
 	"encoding/hex"
 	"sync/atomic"
 
-	"github.com/33cn/dplatform/queue"
-	typesmocks "github.com/33cn/dplatform/types/mocks"
+	"github.com/33cn/dplatformos/queue"
+	typesmocks "github.com/33cn/dplatformos/types/mocks"
 	"github.com/33cn/plugin/plugin/dapp/paracross/testnode"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/pkg/errors"
@@ -56,7 +56,7 @@ func createParaTestInstance(t *testing.T, q queue.Queue) *client {
 	para.InitClient(q.Client(), initTestSyncBlock)
 
 	//生成rpc Client
-	grpcClient := &typesmocks.DplatformClient{}
+	grpcClient := &typesmocks.DplatformOSClient{}
 	para.grpcClient = grpcClient
 
 	//生成私钥
@@ -432,7 +432,7 @@ func execTest(t *testing.T, para *client, testLoopCount int32) {
 
 //测试入口
 func TestSyncBlocks(t *testing.T) {
-	cfg := types.NewDplatformConfig(testnode.DefaultConfig)
+	cfg := types.NewDplatformOSConfig(testnode.DefaultConfig)
 	q := queue.New("channel")
 	q.SetConfig(cfg)
 	defer q.Close()

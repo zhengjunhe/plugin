@@ -15,10 +15,10 @@ import (
 
 	"strings"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/types"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -32,8 +32,8 @@ var (
 var (
 	mainNetgrpcAddr = "localhost:28804"
 	ParaNetgrpcAddr = "localhost:8902"
-	mainClient      types.DplatformClient
-	paraClient      types.DplatformClient
+	mainClient      types.DplatformOSClient
+	paraClient      types.DplatformOSClient
 	r               *rand.Rand
 
 	ErrTest = errors.New("ErrTest")
@@ -83,13 +83,13 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	mainClient = types.NewDplatformClient(conn)
+	mainClient = types.NewDplatformOSClient(conn)
 
 	conn, err = grpc.Dial(ParaNetgrpcAddr, grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
-	paraClient = types.NewDplatformClient(conn)
+	paraClient = types.NewDplatformOSClient(conn)
 
 	r = rand.New(rand.NewSource(time.Now().UnixNano()))
 	addrexec = address.ExecAddress("user.p.guodun.token")
@@ -424,7 +424,7 @@ func getprivkey(key string) crypto.PrivKey {
 }
 
 func TestToken_validSymbolWithHeight(t *testing.T) {
-	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg := types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 	forkBadTokenSymbol := cfg.GetDappFork(pty.TokenX, pty.ForkBadTokenSymbolX)
 	forkTokenSymbolWithNumber := cfg.GetDappFork(pty.TokenX, pty.ForkTokenSymbolWithNumberX)
 	t.Log("x", "1", forkBadTokenSymbol, "2", forkTokenSymbolWithNumber)

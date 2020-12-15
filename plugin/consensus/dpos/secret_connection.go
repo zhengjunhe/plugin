@@ -20,7 +20,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/33cn/dplatform/common/crypto"
+	"github.com/33cn/dplatformos/common/crypto"
 	"github.com/33cn/plugin/plugin/consensus/dpos/types"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"

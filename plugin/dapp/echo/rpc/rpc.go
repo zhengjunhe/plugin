@@ -3,8 +3,8 @@ package rpc
 import (
 	"context"
 
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	echotypes "github.com/33cn/plugin/plugin/dapp/echo/types/echo"
 )
 

@@ -35,9 +35,9 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/33cn/dplatform/common"
-	dbm "github.com/33cn/dplatform/common/db"
-	comTy "github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	dbm "github.com/33cn/dplatformos/common/db"
+	comTy "github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/store/mpt/db2/rlp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

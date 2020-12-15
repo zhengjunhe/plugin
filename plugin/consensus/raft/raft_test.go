@@ -11,20 +11,20 @@ import (
 	"time"
 
 	//加载系统内置store, 不要依赖plugin
-	_ "github.com/33cn/dplatform/system/dapp/init"
-	_ "github.com/33cn/dplatform/system/mempool/init"
-	_ "github.com/33cn/dplatform/system/store/init"
-	"github.com/33cn/dplatform/util"
-	"github.com/33cn/dplatform/util/testnode"
+	_ "github.com/33cn/dplatformos/system/dapp/init"
+	_ "github.com/33cn/dplatformos/system/mempool/init"
+	_ "github.com/33cn/dplatformos/system/store/init"
+	"github.com/33cn/dplatformos/util"
+	"github.com/33cn/dplatformos/util/testnode"
 
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	_ "github.com/33cn/plugin/plugin/dapp/init"
 	_ "github.com/33cn/plugin/plugin/store/init"
 )
 
 // 执行： go test -cover
 func TestRaft(t *testing.T) {
-	mock33 := testnode.New("dplatform.test.toml", nil)
+	mock33 := testnode.New("dplatformos.test.toml", nil)
 	cfg := mock33.GetClient().GetConfig()
 	defer mock33.Close()
 	mock33.Listen()
@@ -44,9 +44,9 @@ func TestRaft(t *testing.T) {
 }
 
 func clearTestData() {
-	err := os.RemoveAll("dplatform_raft-1")
+	err := os.RemoveAll("dplatformos_raft-1")
 	if err != nil {
-		fmt.Println("delete dplatform_raft dir have a err:", err.Error())
+		fmt.Println("delete dplatformos_raft dir have a err:", err.Error())
 	}
 	fmt.Println("test data clear successfully!")
 }

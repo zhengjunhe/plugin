@@ -4,10 +4,10 @@
 
 * 作为一个独立的进程，运行信息可以配置，守护进程(supervisor)，跨平台，高性能。
 * 连接多个比特币节点数，进行数据筛选，防止节点的攻击。
-* relayd 连接dplatform通过GRPC实现，连接btcd可以通过websockets，或者HTTPS，两者都要实现。
+* relayd 连接dplatformos通过GRPC实现，连接btcd可以通过websockets，或者HTTPS，两者都要实现。
 * 本地监听通过GRPC或者HTTP来实现，监听外部消息。
-* 定时获取btc链的同步信息，以及定时获取dplatform的订单信息，以及触发超时信息工作。
-* 心跳检查，连接dplatform与btc两个TCP连接。
+* 定时获取btc链的同步信息，以及定时获取dplatformos的订单信息，以及触发超时信息工作。
+* 心跳检查，连接dplatformos与btc两个TCP连接。
 
 ## 关注那些信息
 
@@ -85,9 +85,9 @@ finish状态要等待BTC n个块之后，n缺省为6，可以由买BTC的一方�
 
 ## 答疑
 
-* 会有人问，随便发送个hash，怎么确定交易？ 答：不正确的hash，relayd得不到正确的查询，返回错误，取消dplatform订单的unlock状态。
+* 会有人问，随便发送个hash，怎么确定交易？ 答：不正确的hash，relayd得不到正确的查询，返回错误，取消dplatformos订单的unlock状态。
 * 如果转账不正确，怎确认？ 答：根据relayd获取的金额进行确认，查看是否正确。
-* 双花问题：即在dplatform这条链上怎么确认?同样是交易，dplatform会检查，另外executor(relay)执行时，会检查hash是否被记录过，即：hash锁定。即只有转账人才能确定，锁定转账人。
+* 双花问题：即在dplatformos这条链上怎么确认?同样是交易，dplatformos会检查，另外executor(relay)执行时，会检查hash是否被记录过，即：hash锁定。即只有转账人才能确定，锁定转账人。
 * 双花问题：认证交易是否属于这个转账人，在不知道用户私钥的情况下。仅仅就是一个交易hash怎么判断？两次交易，怎么挂钩？挂钩任意一个吗？
-* 双花问题：hash代表的价值是否被双向挂钩无法确定，即，解决双花问题，dplatform的的订单关联的锁定btc的地址，需要被锁定，意味着，btc地址占时锁定在dplatform的订单上。
+* 双花问题：hash代表的价值是否被双向挂钩无法确定，即，解决双花问题，dplatformos的的订单关联的锁定btc的地址，需要被锁定，意味着，btc地址占时锁定在dplatformos的订单上。
     锁定时间从订单的开始到结束。

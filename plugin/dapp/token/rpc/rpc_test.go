@@ -7,9 +7,9 @@ package rpc
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/client/mocks"
-	rpctypes "github.com/33cn/dplatform/rpc/types"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client/mocks"
+	rpctypes "github.com/33cn/dplatformos/rpc/types"
+	"github.com/33cn/dplatformos/types"
 	tokenty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,7 +17,7 @@ import (
 )
 
 func newTestChannelClient() *channelClient {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	api := &mocks.QueueProtocolAPI{}
 	api.On("GetConfig", mock.Anything).Return(cfg)
 	return &channelClient{
@@ -30,7 +30,7 @@ func newTestJrpcClient() *Jrpc {
 }
 
 func testChannelClientGetTokenBalanceToken(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg)
 
@@ -62,7 +62,7 @@ func testChannelClientGetTokenBalanceToken(t *testing.T) {
 }
 
 func testChannelClientGetTokenBalanceOther(t *testing.T) {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	api := new(mocks.QueueProtocolAPI)
 	api.On("GetConfig", mock.Anything).Return(cfg)
 

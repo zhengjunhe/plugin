@@ -7,11 +7,11 @@
 package main
 
 import (
-	_ "github.com/33cn/dplatform/system"
+	_ "github.com/33cn/dplatformos/system"
 	"github.com/33cn/plugin/cli/buildflags"
 	_ "github.com/33cn/plugin/plugin"
 
-	"github.com/33cn/dplatform/util/cli"
+	"github.com/33cn/dplatformos/util/cli"
 )
 
 func main() {

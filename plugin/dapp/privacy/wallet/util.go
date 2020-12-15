@@ -8,8 +8,8 @@ import (
 	"encoding/hex"
 	"unsafe"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/types"
 	privacy "github.com/33cn/plugin/plugin/dapp/privacy/crypto"
 	privacytypes "github.com/33cn/plugin/plugin/dapp/privacy/types"
 )

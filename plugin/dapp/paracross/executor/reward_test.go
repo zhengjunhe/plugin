@@ -7,10 +7,10 @@ package executor
 import (
 	"testing"
 
-	apimock "github.com/33cn/dplatform/client/mocks"
-	dbm "github.com/33cn/dplatform/common/db"
-	dbmock "github.com/33cn/dplatform/common/db/mocks"
-	"github.com/33cn/dplatform/types"
+	apimock "github.com/33cn/dplatformos/client/mocks"
+	dbm "github.com/33cn/dplatformos/common/db"
+	dbmock "github.com/33cn/dplatformos/common/db/mocks"
+	"github.com/33cn/dplatformos/types"
 	_ "github.com/33cn/plugin/plugin/crypto/bls"
 	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 	"github.com/stretchr/testify/mock"
@@ -36,7 +36,7 @@ func (suite *RewardTestSuite) SetupSuite() {
 	//suite.localDB, _ = dbm.NewGoMemDB("local", "local", 1024)
 	suite.localDB = new(dbmock.KVDB)
 	suite.api = new(apimock.QueueProtocolAPI)
-	suite.api.On("GetConfig", mock.Anything).Return(dplatformTestCfg, nil)
+	suite.api.On("GetConfig", mock.Anything).Return(dplatformosTestCfg, nil)
 
 	suite.exec = newParacross().(*Paracross)
 	suite.exec.SetAPI(suite.api)

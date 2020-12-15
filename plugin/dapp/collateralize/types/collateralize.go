@@ -9,9 +9,9 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var (
@@ -25,13 +25,13 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(CollateralizeX, "Enable", 0)
 	cfg.RegisterDappFork(CollateralizeX, ForkCollateralizeTableUpdate, 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(CollateralizeX, NewType(cfg))
 }
 
@@ -41,7 +41,7 @@ type CollateralizeType struct {
 }
 
 // NewType method
-func NewType(cfg *types.DplatformConfig) *CollateralizeType {
+func NewType(cfg *types.DplatformOSConfig) *CollateralizeType {
 	c := &CollateralizeType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -150,7 +150,7 @@ func (collateralize CollateralizeType) GetTypeMap() map[string]int32 {
 }
 
 // CreateRawCollateralizeCreateTx method
-func CreateRawCollateralizeCreateTx(cfg *types.DplatformConfig, parm *CollateralizeCreateTx) (*types.Transaction, error) {
+func CreateRawCollateralizeCreateTx(cfg *types.DplatformOSConfig, parm *CollateralizeCreateTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizeCreateTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -178,7 +178,7 @@ func CreateRawCollateralizeCreateTx(cfg *types.DplatformConfig, parm *Collateral
 }
 
 // CreateRawCollateralizeBorrowTx method
-func CreateRawCollateralizeBorrowTx(cfg *types.DplatformConfig, parm *CollateralizeBorrowTx) (*types.Transaction, error) {
+func CreateRawCollateralizeBorrowTx(cfg *types.DplatformOSConfig, parm *CollateralizeBorrowTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizeBorrowTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -207,7 +207,7 @@ func CreateRawCollateralizeBorrowTx(cfg *types.DplatformConfig, parm *Collateral
 }
 
 // CreateRawCollateralizeRepayTx method
-func CreateRawCollateralizeRepayTx(cfg *types.DplatformConfig, parm *CollateralizeRepayTx) (*types.Transaction, error) {
+func CreateRawCollateralizeRepayTx(cfg *types.DplatformOSConfig, parm *CollateralizeRepayTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizeRepayTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -236,7 +236,7 @@ func CreateRawCollateralizeRepayTx(cfg *types.DplatformConfig, parm *Collaterali
 }
 
 // CreateRawCollateralizeAppendTx method
-func CreateRawCollateralizeAppendTx(cfg *types.DplatformConfig, parm *CollateralizeAppendTx) (*types.Transaction, error) {
+func CreateRawCollateralizeAppendTx(cfg *types.DplatformOSConfig, parm *CollateralizeAppendTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizeAppendTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -266,7 +266,7 @@ func CreateRawCollateralizeAppendTx(cfg *types.DplatformConfig, parm *Collateral
 }
 
 // CreateRawCollateralizeFeedTx method
-func CreateRawCollateralizeFeedTx(cfg *types.DplatformConfig, parm *CollateralizeFeedTx) (*types.Transaction, error) {
+func CreateRawCollateralizeFeedTx(cfg *types.DplatformOSConfig, parm *CollateralizeFeedTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizePriceFeedTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -299,7 +299,7 @@ func CreateRawCollateralizeFeedTx(cfg *types.DplatformConfig, parm *Collateraliz
 }
 
 // CreateRawCollateralizeRetrieveTx method
-func CreateRawCollateralizeRetrieveTx(cfg *types.DplatformConfig, parm *CollateralizeRetrieveTx) (*types.Transaction, error) {
+func CreateRawCollateralizeRetrieveTx(cfg *types.DplatformOSConfig, parm *CollateralizeRetrieveTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizeCloseTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -329,7 +329,7 @@ func CreateRawCollateralizeRetrieveTx(cfg *types.DplatformConfig, parm *Collater
 }
 
 // CreateRawCollateralizeManageTx method
-func CreateRawCollateralizeManageTx(cfg *types.DplatformConfig, parm *CollateralizeManageTx) (*types.Transaction, error) {
+func CreateRawCollateralizeManageTx(cfg *types.DplatformOSConfig, parm *CollateralizeManageTx) (*types.Transaction, error) {
 	if parm == nil {
 		llog.Error("CreateRawCollateralizeManageTx", "parm", parm)
 		return nil, types.ErrInvalidParam

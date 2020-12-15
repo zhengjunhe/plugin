@@ -4,7 +4,7 @@
 
 package types
 
-import "github.com/33cn/dplatform/types"
+import "github.com/33cn/dplatformos/types"
 
 //game action ty
 const (

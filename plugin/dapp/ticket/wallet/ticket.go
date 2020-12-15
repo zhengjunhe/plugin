@@ -12,14 +12,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/common/crypto"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
-	wcom "github.com/33cn/dplatform/wallet/common"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/common/crypto"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
+	wcom "github.com/33cn/dplatformos/wallet/common"
 	ty "github.com/33cn/plugin/plugin/dapp/ticket/types"
 )
 
@@ -408,8 +408,8 @@ func (policy *ticketPolicy) forceCloseTicketList(height int64, priv crypto.PrivK
 	var ids []string
 	var tl []*ty.Ticket
 	now := types.Now().Unix()
-	dplatformCfg := policy.walletOperate.GetAPI().GetConfig()
-	cfg := ty.GetTicketMinerParam(dplatformCfg, height)
+	dplatformosCfg := policy.walletOperate.GetAPI().GetConfig()
+	cfg := ty.GetTicketMinerParam(dplatformosCfg, height)
 	for _, t := range tlist {
 		if !t.IsGenesis {
 			if t.Status == ty.TicketOpened && now-t.GetCreateTime() < cfg.TicketWithdrawTime {
@@ -502,8 +502,8 @@ func (policy *ticketPolicy) closeTicketsByAddr(height int64, priv crypto.PrivKey
 	var ids []string
 	var tl []*ty.Ticket
 	now := types.Now().Unix()
-	dplatformCfg := policy.walletOperate.GetAPI().GetConfig()
-	cfg := ty.GetTicketMinerParam(dplatformCfg, height)
+	dplatformosCfg := policy.walletOperate.GetAPI().GetConfig()
+	cfg := ty.GetTicketMinerParam(dplatformosCfg, height)
 	for _, t := range tlist {
 		if !t.IsGenesis {
 			if now-t.GetCreateTime() < cfg.TicketWithdrawTime {
@@ -642,8 +642,8 @@ func (policy *ticketPolicy) buyTicketOne(height int64, priv crypto.PrivKey) ([]b
 	}
 	//留一个币作为手续费，如果手续费不够了，不能挖矿
 	//判断手续费是否足够，如果不足要及时补充。
-	dplatformCfg := policy.walletOperate.GetAPI().GetConfig()
-	cfg := ty.GetTicketMinerParam(dplatformCfg, height)
+	dplatformosCfg := policy.walletOperate.GetAPI().GetConfig()
+	cfg := ty.GetTicketMinerParam(dplatformosCfg, height)
 	fee := types.Coin
 	if acc1.Balance+acc2.Balance-2*fee >= cfg.TicketPrice {
 		// 如果可用余额+冻结余额，可以凑成新票，则转币到冻结余额
@@ -748,8 +748,8 @@ func (policy *ticketPolicy) buyMinerAddrTicketOne(height int64, priv crypto.Priv
 	}
 	total := 0
 	var hashes [][]byte
-	dplatformCfg := policy.walletOperate.GetAPI().GetConfig()
-	cfg := ty.GetTicketMinerParam(dplatformCfg, height)
+	dplatformosCfg := policy.walletOperate.GetAPI().GetConfig()
+	cfg := ty.GetTicketMinerParam(dplatformosCfg, height)
 	for i := 0; i < len(addrs); i++ {
 		bizlog.Info("sourceaddr", "addr", addrs[i])
 		ok := checkMinerWhiteList(addrs[i])

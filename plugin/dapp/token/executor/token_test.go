@@ -3,21 +3,21 @@ package executor
 import (
 	"testing"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/common/address"
-	"github.com/33cn/dplatform/types"
-	"github.com/33cn/dplatform/util"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/common/address"
+	"github.com/33cn/dplatformos/types"
+	"github.com/33cn/dplatformos/util"
 
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/common/crypto"
-	dbm "github.com/33cn/dplatform/common/db"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/common/crypto"
+	dbm "github.com/33cn/dplatformos/common/db"
 	pty "github.com/33cn/plugin/plugin/dapp/token/types"
 	"github.com/stretchr/testify/assert"
 
-	//"github.com/33cn/dplatform/types/jsonpb"
+	//"github.com/33cn/dplatformos/types/jsonpb"
 	"strings"
 
-	apimock "github.com/33cn/dplatform/client/mocks"
+	apimock "github.com/33cn/dplatformos/client/mocks"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -45,7 +45,7 @@ var (
 )
 
 func TestToken(t *testing.T) {
-	cfg := types.NewDplatformConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatform\"", 1))
+	cfg := types.NewDplatformOSConfig(strings.Replace(types.GetDefaultCfgstring(), "Title=\"local\"", "Title=\"dplatformos\"", 1))
 	Init(pty.TokenX, cfg, nil)
 	tokenTotal := int64(10000 * 1e8)
 	tokenBurn := int64(10 * 1e8)
@@ -82,7 +82,7 @@ func TestToken(t *testing.T) {
 	item := &types.ConfigItem{
 		Key: "mavl-manage-token-blacklist",
 		Value: &types.ConfigItem_Arr{
-			Arr: &types.ArrayConfig{Value: []string{"dpom"}},
+			Arr: &types.ArrayConfig{Value: []string{"dpos"}},
 		},
 	}
 	stateDB.Set([]byte(item.Key), types.Encode(item))

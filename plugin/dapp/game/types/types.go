@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"reflect"
 
-	"github.com/33cn/dplatform/common/address"
-	log "github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/common/address"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 )
 
 var tlog = log.New("module", GameX)
@@ -23,12 +23,12 @@ func init() {
 }
 
 //InitFork ...
-func InitFork(cfg *types.DplatformConfig) {
+func InitFork(cfg *types.DplatformOSConfig) {
 	cfg.RegisterDappFork(GameX, "Enable", 0)
 }
 
 //InitExecutor ...
-func InitExecutor(cfg *types.DplatformConfig) {
+func InitExecutor(cfg *types.DplatformOSConfig) {
 	types.RegistorExecutor(GameX, NewType(cfg))
 }
 
@@ -36,12 +36,12 @@ func InitExecutor(cfg *types.DplatformConfig) {
 //如果paraName == "", 那么自动用 types.ExecName("game")
 //如果设置了paraName , 那么强制用paraName
 //也就是说，我们可以构造其他平行链的交易
-func getRealExecName(cfg *types.DplatformConfig, paraName string) string {
+func getRealExecName(cfg *types.DplatformOSConfig, paraName string) string {
 	return cfg.ExecName(paraName + GameX)
 }
 
 // NewType  new type
-func NewType(cfg *types.DplatformConfig) *GameType {
+func NewType(cfg *types.DplatformOSConfig) *GameType {
 	c := &GameType{}
 	c.SetChild(c)
 	c.SetConfig(cfg)
@@ -128,7 +128,7 @@ func (gt GameType) CreateTx(action string, message json.RawMessage) (*types.Tran
 }
 
 // CreateRawGamePreCreateTx  unused,just empty implementation
-func CreateRawGamePreCreateTx(cfg *types.DplatformConfig, parm *GamePreCreateTx) (*types.Transaction, error) {
+func CreateRawGamePreCreateTx(cfg *types.DplatformOSConfig, parm *GamePreCreateTx) (*types.Transaction, error) {
 	if parm == nil {
 		tlog.Error("CreateRawGamePreCreateTx", "parm", parm)
 		return nil, types.ErrInvalidParam
@@ -158,7 +158,7 @@ func CreateRawGamePreCreateTx(cfg *types.DplatformConfig, parm *GamePreCreateTx)
 }
 
 // CreateRawGamePreMatchTx  unused,just empty implementation
-func CreateRawGamePreMatchTx(cfg *types.DplatformConfig, parm *GamePreMatchTx) (*types.Transaction, error) {
+func CreateRawGamePreMatchTx(cfg *types.DplatformOSConfig, parm *GamePreMatchTx) (*types.Transaction, error) {
 	if parm == nil {
 		return nil, types.ErrInvalidParam
 	}
@@ -186,7 +186,7 @@ func CreateRawGamePreMatchTx(cfg *types.DplatformConfig, parm *GamePreMatchTx) (
 }
 
 // CreateRawGamePreCancelTx  unused,just empty implementation
-func CreateRawGamePreCancelTx(cfg *types.DplatformConfig, parm *GamePreCancelTx) (*types.Transaction, error) {
+func CreateRawGamePreCancelTx(cfg *types.DplatformOSConfig, parm *GamePreCancelTx) (*types.Transaction, error) {
 	if parm == nil {
 		return nil, types.ErrInvalidParam
 	}
@@ -212,7 +212,7 @@ func CreateRawGamePreCancelTx(cfg *types.DplatformConfig, parm *GamePreCancelTx)
 }
 
 // CreateRawGamePreCloseTx  unused,just empty implementation
-func CreateRawGamePreCloseTx(cfg *types.DplatformConfig, parm *GamePreCloseTx) (*types.Transaction, error) {
+func CreateRawGamePreCloseTx(cfg *types.DplatformOSConfig, parm *GamePreCloseTx) (*types.Transaction, error) {
 	if parm == nil {
 		return nil, types.ErrInvalidParam
 	}

@@ -7,9 +7,9 @@
 package executor
 
 import (
-	log "github.com/33cn/dplatform/common/log/log15"
-	drivers "github.com/33cn/dplatform/system/dapp"
-	"github.com/33cn/dplatform/types"
+	log "github.com/33cn/dplatformos/common/log/log15"
+	drivers "github.com/33cn/dplatformos/system/dapp"
+	"github.com/33cn/dplatformos/types"
 	oty "github.com/33cn/plugin/plugin/dapp/oracle/types"
 )
 
@@ -17,7 +17,7 @@ var olog = log.New("module", "execs.oracle")
 var driverName = oty.OracleX
 
 // Init 执行器初始化
-func Init(name string, cfg *types.DplatformConfig, sub []byte) {
+func Init(name string, cfg *types.DplatformOSConfig, sub []byte) {
 	drivers.Register(cfg, newOracle().GetName(), newOracle, cfg.GetDappFork(driverName, "Enable"))
 	InitExecType()
 }

@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/33cn/dplatform/account"
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common/db"
-	"github.com/33cn/dplatform/common/log/log15"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/account"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common/db"
+	"github.com/33cn/dplatformos/common/log/log15"
+	"github.com/33cn/dplatformos/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
@@ -157,7 +157,7 @@ func (mdb *MemoryStateDB) GetBalance(addr string) uint64 {
 	return 0
 }
 
-// GetNonce 目前dplatform中没有保留账户的nonce信息，这里临时添加到合约账户中；
+// GetNonce 目前dplatformos中没有保留账户的nonce信息，这里临时添加到合约账户中；
 // 所以，目前只有合约对象有nonce值
 func (mdb *MemoryStateDB) GetNonce(addr string) uint64 {
 	acc := mdb.GetAccount(addr)
@@ -600,7 +600,7 @@ func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool
 	return true
 }
 
-// 因为dplatform的限制，在执行器中转账只能在以下几个方向进行：
+// 因为dplatformos的限制，在执行器中转账只能在以下几个方向进行：
 // A账户的X合约 <-> B账户的X合约；
 // 其它情况不支持，所以要想实现EVM合约与账户之间的转账需要经过中转处理，比如A要向B创建的X合约转账，则执行以下流程：
 // A -> A:X -> B:X；  (其中第一步需要外部手工执行)
@@ -645,7 +645,7 @@ func (mdb *MemoryStateDB) transfer2Contract(sender, recipient string, amount int
 	return ret, nil
 }
 
-// dplatform转账限制请参考方法 Transfer2Contract ；
+// dplatformos转账限制请参考方法 Transfer2Contract ；
 // 本方法封装从合约账户到外部账户的转账逻辑；
 func (mdb *MemoryStateDB) transfer2External(sender, recipient string, amount int64) (ret *types.Receipt, err error) {
 	// 首先获取合约的创建者信息
@@ -740,6 +740,6 @@ func (mdb *MemoryStateDB) GetBlockHeight() int64 {
 }
 
 // GetConfig 获取系统配置
-func (mdb *MemoryStateDB) GetConfig() *types.DplatformConfig {
+func (mdb *MemoryStateDB) GetConfig() *types.DplatformOSConfig {
 	return mdb.api.GetConfig()
 }

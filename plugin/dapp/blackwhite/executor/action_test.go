@@ -11,16 +11,16 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/33cn/dplatform/client"
-	"github.com/33cn/dplatform/common"
-	"github.com/33cn/dplatform/queue"
-	"github.com/33cn/dplatform/types"
+	"github.com/33cn/dplatformos/client"
+	"github.com/33cn/dplatformos/common"
+	"github.com/33cn/dplatformos/queue"
+	"github.com/33cn/dplatformos/types"
 	gt "github.com/33cn/plugin/plugin/dapp/blackwhite/types"
 	"github.com/stretchr/testify/require"
 )
 
 func newTestAction() *action {
-	cfg := types.NewDplatformConfig(types.GetDefaultCfgstring())
+	cfg := types.NewDplatformOSConfig(types.GetDefaultCfgstring())
 	au := &action{}
 	q := queue.New("channel")
 	q.SetConfig(cfg)
