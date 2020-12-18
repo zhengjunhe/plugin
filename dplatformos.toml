@@ -1,5 +1,6 @@
 Title="dplatformos"
-TestNet=true
+#TestNet=true
+TestNet=false
 FixTime=false
 version="6.3.0"
 
@@ -55,7 +56,7 @@ enableIfDelLocalChunk=false
 
 [p2p]
 # p2p类型
-types=["dht", "gossip"]
+types=["gossip"]
 # 是否启动P2P服务
 enable=true
 # 使用的数据库类型
@@ -71,11 +72,11 @@ waitPid=false
 
 
 [p2p.sub.gossip]
-seeds=[]
+seeds=["8.210.69.248:28805", "47.241.62.103:28805", "47.91.11.155:28805", "8.210.60.155:28805"]
 isSeed=false
 serverStart=true
 innerSeedEnable=true
-useGithub=true
+useGithub=false
 innerBounds=300
 
 [p2p.sub.dht]

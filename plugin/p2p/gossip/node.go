@@ -99,7 +99,7 @@ func NewNode(mgr *p2p.Manager, mcfg *subConfig) (*Node, error) {
 		pubsub:     pubsub.NewPubSub(10200),
 		p2pMgr:     mgr,
 	}
-	node.listenPort = 13802
+	node.listenPort = 28805
 	if mcfg.Port != 0 && mcfg.Port <= 65535 && mcfg.Port > 1024 {
 		node.listenPort = int(mcfg.Port)
 
@@ -148,7 +148,7 @@ func (n *Node) natOk() bool {
 }
 
 func (n *Node) doNat() {
-	//测试是否在外网，当连接节点数大于0的时候，测试13802端口
+	//测试是否在外网，当连接节点数大于0的时候，测试28805端口
 	for {
 		if n.Size() > 0 {
 			break

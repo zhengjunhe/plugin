@@ -73,7 +73,7 @@ function base_init() {
     sed -i $sedfix 's/^TestNet=.*/TestNet=true/g' dplatformos.toml
 
     # p2p
-    sed -i $sedfix 's/^seeds=.*/seeds=["dplatformos:13802","chain32:13802","chain31:13802","chain30:13802","chain29:13802","chain28:13802"]/g' dplatformos.toml
+    sed -i $sedfix 's/^seeds=.*/seeds=["dplatformos:28805","chain32:28805","chain31:28805","chain30:28805","chain29:28805","chain28:28805"]/g' dplatformos.toml
     sed -i $sedfix 's/^enable=.*/enable=true/g' dplatformos.toml
     sed -i $sedfix 's/^isSeed=.*/isSeed=true/g' dplatformos.toml
     sed -i $sedfix 's/^innerSeedEnable=.*/innerSeedEnable=false/g' dplatformos.toml

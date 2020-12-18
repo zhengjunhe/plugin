@@ -43,7 +43,7 @@ dbCache=4
 grpcLogFile="grpc33.log"
 
 [p2p.sub.gossip]
-seeds=["127.0.0.1:13802"]
+seeds=["127.0.0.1:28805"]
 isSeed=true
 serverStart=true
 innerBounds=300
