@@ -26,6 +26,7 @@ import (
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	cty "github.com/33cn/chain33/system/dapp/coins/types"
 	"github.com/33cn/chain33/types"
+	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	common2 "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 	"github.com/golang/protobuf/proto"
@@ -207,6 +208,7 @@ func addCreateContractFlags(cmd *cobra.Command) {
 	addCommonFlags(cmd)
 	cmd.Flags().StringP("alias", "s", "", "human readable contract alias name")
 	cmd.Flags().StringP("abi", "b", "", "bind the abi data")
+	cmd.Flags().StringP("parameter", "p", "", "parameter for constructor and should be input as constructor(xxx,xxx,xxx)")
 
 	cmd.Flags().StringP("sol", "", "", "sol file path")
 	cmd.Flags().StringP("solc", "", "solc", "solc compiler")
@@ -228,6 +230,7 @@ func createContract(cmd *cobra.Command, args []string) {
 	abi, _ := cmd.Flags().GetString("abi")
 	sol, _ := cmd.Flags().GetString("sol")
 	solc, _ := cmd.Flags().GetString("solc")
+	constructorPara, _ := cmd.Flags().GetString("parameter")
 
 	feeInt64 := uint64(fee*1e4) * 1e4
 
@@ -271,6 +274,13 @@ func createContract(cmd *cobra.Command, args []string) {
 		action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: alias, Abi: abi}
 	}
 
+	packData, err := evmAbi.PackContructorPara(constructorPara, abi)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Pack Contructor Para error:", err)
+		return
+	}
+
+	action.Code = append(action.Code, packData...)
 	data, err := createEvmTx(cfg, &action, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, feeInt64)
 
 	if err != nil {
@@ -443,7 +453,7 @@ func addCommonFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("caller", "c", "", "the caller address")
 	cmd.MarkFlagRequired("caller")
 
-	cmd.Flags().StringP("expire", "p", "120s", "transaction expire time (optional)")
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 

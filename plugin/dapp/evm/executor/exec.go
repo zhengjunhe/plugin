@@ -53,7 +53,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	// 为了方便计费，即使合约为新生成，也将地址的初始化放到外面操作
 	if isCreate {
 		// 使用随机生成的地址作为合约地址（这个可以保证每次创建的合约地址不会重复，不存在冲突的情况）
-		contractAddr = evm.getNewAddr(txHash)
+		contractAddr = evm.createContractAddress(msg.From())
 		if !env.StateDB.Empty(contractAddr.String()) {
 			return receipt, model.ErrContractAddressCollision
 		}
@@ -155,6 +155,11 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	state.ProcessFork(cfg, evm.GetHeight(), txHash, receipt)
 
 	evm.collectEvmTxLog(txHash, contractReceipt, receipt)
+
+	if isCreate {
+		log.Info("innerExec", "Succeed to created new contract with name", msg.Alias(),
+			"created contract address", contractAddr.String())
+	}
 
 	return receipt, nil
 }

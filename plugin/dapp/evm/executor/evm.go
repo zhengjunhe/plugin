@@ -67,10 +67,9 @@ type EVMExecutor struct {
 func NewEVMExecutor() *EVMExecutor {
 	exec := &EVMExecutor{}
 
-	exec.vmCfg = &runtime.Config{
-	}
+	exec.vmCfg = &runtime.Config{}
 	//exec.vmCfg.Tracer = runtime.NewJSONLogger(os.Stdout)
-	exec.vmCfg.Tracer=runtime.NewMarkdownLogger(
+	exec.vmCfg.Tracer = runtime.NewMarkdownLogger(
 		&runtime.LogConfig{
 			DisableMemory:     false,
 			DisableStack:      false,
@@ -80,7 +79,7 @@ func NewEVMExecutor() *EVMExecutor {
 			Limit:             0,
 		},
 		os.Stdout,
-		)
+	)
 
 	exec.SetChild(exec)
 	return exec
@@ -150,6 +149,11 @@ func (evm *EVMExecutor) CheckReceiptExecOk() bool {
 func (evm *EVMExecutor) getNewAddr(txHash []byte) common.Address {
 	cfg := evm.GetAPI().GetConfig()
 	return common.NewAddress(cfg, txHash)
+}
+
+// createContractAddress creates an ethereum address given the bytes and the nonce
+func (evm *EVMExecutor) createContractAddress(b common.Address) common.Address {
+	return common.NewContractAddress(b, evm.mStateDB.GetNonce(b.String()))
 }
 
 // CheckTx 校验交易

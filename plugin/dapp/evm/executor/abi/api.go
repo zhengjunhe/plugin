@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -67,6 +68,44 @@ func Pack(param, abiData string, readOnly bool) (methodName string, packData []b
 	// 使用Abi对象将方法和参数进行打包
 	packData, err = abi.Pack(methodName, paramVals...)
 	return methodName, packData, err
+}
+
+func PackContructorPara(param, abiStr string) (packData []byte, err error) {
+	_, params, err := procFuncCall(param)
+	if err != nil {
+		return nil, err
+	}
+
+	parsedAbi, err := JSON(strings.NewReader(abiStr))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "parse evm code error", err)
+		return
+	}
+
+	method := parsedAbi.Constructor
+
+	paramVals := []interface{}{}
+	if len(params) != 0 {
+		// 首先检查参数个数和ABI中定义的是否一致
+		if method.Inputs.LengthNonIndexed() != len(params) {
+			err = fmt.Errorf("function Params count error: %v", param)
+			return nil, err
+		}
+
+		for i, v := range method.Inputs.NonIndexed() {
+			paramVal, err := str2GoValue(v.Type, params[i])
+			if err != nil {
+				return nil, err
+			}
+			paramVals = append(paramVals, paramVal)
+		}
+	}
+	packData, err = parsedAbi.Constructor.Inputs.Pack(paramVals...)
+	if err != nil {
+		return nil, err
+	}
+	return packData, nil
+
 }
 
 // Unpack 将调用返回结果按照ABI的格式序列化为json

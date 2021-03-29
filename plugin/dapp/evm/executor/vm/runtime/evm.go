@@ -5,9 +5,10 @@
 package runtime
 
 import (
-	log "github.com/33cn/chain33/common/log/log15"
 	"math/big"
 	"sync/atomic"
+
+	log "github.com/33cn/chain33/common/log/log15"
 
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
@@ -20,7 +21,7 @@ import (
 
 type (
 	// CanTransferFunc 检查制定账户是否有足够的金额进行转账
-	CanTransferFunc func(state.EVMStateDB, common.Address, common.Address, uint64) bool
+	CanTransferFunc func(state.EVMStateDB, common.Address, uint64) bool
 
 	// TransferFunc 执行转账逻辑
 	TransferFunc func(state.EVMStateDB, common.Address, common.Address, uint64) bool
@@ -31,7 +32,7 @@ type (
 )
 
 // 依据合约地址判断是否为预编译合约，如果不是，则全部通过解释器解释执行
-func run(evm *EVM, contract *Contract, input []byte,readOnly bool) (ret []byte, err error) {
+func run(evm *EVM, contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
 	if contract.CodeAddr != nil {
 		// 预编译合约以拜占庭分支为初始版本，后继如有分叉，需要在此处理
 		precompiles := PrecompiledContractsByzantium
@@ -39,13 +40,13 @@ func run(evm *EVM, contract *Contract, input []byte,readOnly bool) (ret []byte, 
 		if evm.cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMYoloV1) {
 			//precompiles = PrecompiledContractsYoloV1
 		}
-		precompiles =PrecompiledContractsBerlin
+		precompiles = PrecompiledContractsBerlin
 		if p := precompiles[*contract.CodeAddr]; p != nil {
 			return RunPrecompiledContract(p, input, contract)
 		}
 	}
 	// 在此处打印下自定义合约的错误信息
-	ret, err = evm.Interpreter.Run(contract, input,readOnly)
+	ret, err = evm.Interpreter.Run(contract, input, readOnly)
 	if err != nil {
 		log.Error("error occurs while run evm contract", "error info", err)
 	}
@@ -114,7 +115,6 @@ type EVM struct {
 
 	// chain33配置
 	cfg *types.Chain33Config
-
 }
 
 // NewEVM 创建一个新的EVM实例对象
@@ -153,7 +153,7 @@ func (evm *EVM) SetMaxCodeSize(maxCodeSize int) {
 }
 
 // 封装合约的各种调用逻辑中通用的预检查逻辑
-func (evm *EVM) preCheck(caller ContractRef, recipient common.Address, value uint64) (pass bool, err error) {
+func (evm *EVM) preCheck(caller ContractRef, value uint64) (pass bool, err error) {
 	// 检查调用深度是否合法
 	if evm.VMConfig.NoRecursion && evm.depth > 0 {
 		return false, nil
@@ -166,7 +166,7 @@ func (evm *EVM) preCheck(caller ContractRef, recipient common.Address, value uin
 
 	// 如有转账，检查余额是否充足
 	if value > 0 {
-		if !evm.Context.CanTransfer(evm.StateDB, caller.Address(), recipient, value) {
+		if !evm.Context.CanTransfer(evm.StateDB, caller.Address(), value) {
 			return false, model.ErrInsufficientBalance
 		}
 	}
@@ -179,7 +179,7 @@ func (evm *EVM) preCheck(caller ContractRef, recipient common.Address, value uin
 // 根据合约地址调用已经存在的合约，input为合约调用参数
 // 合约调用逻辑支持在合约调用的同时进行向合约转账的操作
 func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value uint64) (ret []byte, snapshot int, leftOverGas uint64, err error) {
-	pass, err := evm.preCheck(caller, addr, value)
+	pass, err := evm.preCheck(caller, value)
 	if !pass {
 		return nil, -1, gas, err
 	}
@@ -242,7 +242,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 		evm.StateDB.TransferStateData(addr.String())
 	}
 
-	ret, err = run(evm, contract, input,false)
+	ret, err = run(evm, contract, input, false)
 
 	// 当合约调用出错时，操作将会回滚（对数据的变更操作会被恢复），并且会消耗掉所有的gas
 	if err != nil {
@@ -258,7 +258,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 // 执行逻辑同Call方法，但是有以下几点不同：
 // 在创建合约对象时，合约对象的上下文地址（合约对象的self属性）被设置为caller的地址
 func (evm *EVM) CallCode(caller ContractRef, addr common.Address, input []byte, gas uint64, value uint64) (ret []byte, leftOverGas uint64, err error) {
-	pass, err := evm.preCheck(caller, addr, value)
+	pass, err := evm.preCheck(caller, value)
 	if !pass {
 		return nil, gas, err
 	}
@@ -278,7 +278,7 @@ func (evm *EVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 	// 正常从合约地址加载合约代码
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr.String()), evm.StateDB.GetCode(addr.String()))
 
-	ret, err = run(evm, contract, input,false)
+	ret, err = run(evm, contract, input, false)
 	if err != nil {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != model.ErrExecutionReverted {
@@ -292,7 +292,7 @@ func (evm *EVM) CallCode(caller ContractRef, addr common.Address, input []byte, 
 // 不支持向合约转账
 // 和CallCode不同的是，它会把合约的外部调用地址设置成caller的caller
 func (evm *EVM) DelegateCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
-	pass, err := evm.preCheck(caller, addr, 0)
+	pass, err := evm.preCheck(caller, 0)
 	if !pass {
 		return nil, gas, err
 	}
@@ -313,7 +313,7 @@ func (evm *EVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr.String()), evm.StateDB.GetCode(addr.String()))
 
 	// 其它逻辑同StaticCall
-	ret, err = run(evm, contract, input,true)
+	ret, err = run(evm, contract, input, true)
 	if err != nil {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != model.ErrExecutionReverted {
@@ -327,7 +327,7 @@ func (evm *EVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 // 不支持向合约转账
 // 在合约逻辑中，可以指定其它的合约地址以及输入参数进行合约调用，但是，这种情况下禁止修改MemoryStateDB中的任何数据，否则执行会出错
 func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
-	pass, err := evm.preCheck(caller, addr, 0)
+	pass, err := evm.preCheck(caller, 0)
 	if !pass {
 		return nil, gas, err
 	}
@@ -354,7 +354,7 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr.String()), evm.StateDB.GetCode(addr.String()))
 
 	// 执行合约指令时如果出错，需要进行回滚，并且扣除剩余的Gas
-	ret, err = run(evm, contract, input,false)
+	ret, err = run(evm, contract, input, false)
 	if err != nil {
 		// 合约执行出错时进行回滚
 		// 注意，虽然内部调用合约不允许变更数据，但是可以进行生成日志等其它操作，这种情况下也是需要回滚的
@@ -373,7 +373,7 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 // 目前chain33为了保证账户安全，不允许合约中涉及到外部账户的转账操作，
 // 所以，本步骤不接收转账金额参数
 func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []byte, gas uint64, execName, alias, abi string) (ret []byte, snapshot int, leftOverGas uint64, err error) {
-	pass, err := evm.preCheck(caller, contractAddr, 0)
+	pass, err := evm.preCheck(caller, 0)
 	if !pass {
 		return nil, -1, gas, err
 	}
@@ -392,7 +392,7 @@ func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []b
 	start := types.Now()
 
 	// 通过预编译指令和解释器执行合约
-	ret, err = run(evm, contract, nil,false)
+	ret, err = run(evm, contract, nil, false)
 
 	// 检查部署后的合约代码大小是否超限
 	maxCodeSizeExceeded := len(ret) > evm.maxCodeSize
@@ -435,4 +435,3 @@ func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []b
 
 	return ret, snapshot, contract.Gas, err
 }
-

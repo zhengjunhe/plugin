@@ -5,6 +5,7 @@
 package common
 
 import (
+	"fmt"
 	"math/big"
 
 	"encoding/hex"
@@ -94,6 +95,11 @@ func (h Hash160Address) ToAddress() Address {
 // NewAddress xHash生成EVM合约地址
 func NewAddress(cfg *types.Chain33Config, txHash []byte) Address {
 	execAddr := address.GetExecAddress(cfg.ExecName("user.evm.") + BytesToHash(txHash).Hex())
+	return Address{Addr: execAddr}
+}
+
+func NewContractAddress(b Address, nonce uint64) Address {
+	execAddr := address.GetExecAddress(b.String() + fmt.Sprintf("%u", nonce))
 	return Address{Addr: execAddr}
 }
 

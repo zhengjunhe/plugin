@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/33cn/chain33/common/address"
+
 	"github.com/33cn/chain33/account"
 	"github.com/33cn/chain33/client"
 	"github.com/33cn/chain33/common/db"
@@ -33,6 +35,9 @@ type MemoryStateDB struct {
 
 	// CoinsAccount Coins账户操作对象，从执行器框架传入
 	CoinsAccount *account.DB
+
+	//evm 平台账户地址
+	evmPlatformAddr string
 
 	// 缓存账户对象
 	accounts map[string]*ContractAccount
@@ -70,18 +75,19 @@ type MemoryStateDB struct {
 // 开始执行下一个区块时（执行器框架调用setEnv设置的区块高度发生变更时），会重新创建此DB对象
 func NewMemoryStateDB(StateDB db.KV, LocalDB db.KVDB, CoinsAccount *account.DB, blockHeight int64, api client.QueueProtocolAPI) *MemoryStateDB {
 	mdb := &MemoryStateDB{
-		StateDB:      StateDB,
-		LocalDB:      LocalDB,
-		CoinsAccount: CoinsAccount,
-		accounts:     make(map[string]*ContractAccount),
-		logs:         make(map[common.Hash][]*model.ContractLog),
-		preimages:    make(map[common.Hash][]byte),
-		stateDirty:   make(map[string]interface{}),
-		dataDirty:    make(map[string]interface{}),
-		blockHeight:  blockHeight,
-		refund:       0,
-		txIndex:      0,
-		api:          api,
+		StateDB:         StateDB,
+		LocalDB:         LocalDB,
+		CoinsAccount:    CoinsAccount,
+		evmPlatformAddr: address.GetExecAddress(api.GetConfig().ExecName("evm")).String(),
+		accounts:        make(map[string]*ContractAccount),
+		logs:            make(map[common.Hash][]*model.ContractLog),
+		preimages:       make(map[common.Hash][]byte),
+		stateDirty:      make(map[string]interface{}),
+		dataDirty:       make(map[string]interface{}),
+		blockHeight:     blockHeight,
+		refund:          0,
+		txIndex:         0,
+		api:             api,
 	}
 	return mdb
 }
@@ -125,36 +131,10 @@ func (mdb *MemoryStateDB) AddBalance(addr, caddr string, value uint64) {
 	log15.Debug("transfer result", "from", addr, "to", caddr, "amount", value, "result", res)
 }
 
-// GetBalance 这里需要区分对待，如果是合约账户，则查看合约账户所有者地址在此合约下的余额；
-// 如果是外部账户，则直接返回外部账户的余额
+// GetBalance
 func (mdb *MemoryStateDB) GetBalance(addr string) uint64 {
-	if mdb.CoinsAccount == nil {
-		return 0
-	}
-	isExec := mdb.Exist(addr)
-	var ac *types.Account
-	if isExec {
-		cfg := mdb.api.GetConfig()
-		if cfg.IsDappFork(mdb.GetBlockHeight(), "evm", evmtypes.ForkEVMFrozen) {
-			ac = mdb.CoinsAccount.LoadExecAccount(addr, addr)
-		} else {
-			contract := mdb.GetAccount(addr)
-			if contract == nil {
-				return 0
-			}
-			creator := contract.GetCreator()
-			if len(creator) == 0 {
-				return 0
-			}
-			ac = mdb.CoinsAccount.LoadExecAccount(creator, addr)
-		}
-	} else {
-		ac = mdb.CoinsAccount.LoadAccount(addr)
-	}
-	if ac != nil {
-		return uint64(ac.Balance)
-	}
-	return 0
+	ac := mdb.CoinsAccount.LoadExecAccount(addr, mdb.evmPlatformAddr)
+	return uint64(ac.Balance)
 }
 
 // GetNonce 目前chain33中没有保留账户的nonce信息，这里临时添加到合约账户中；
@@ -428,78 +408,9 @@ func (mdb *MemoryStateDB) GetChangedData(version int) (kvSet []*types.KeyValue, 
 }
 
 // CanTransfer 借助coins执行器进行转账相关操作
-func (mdb *MemoryStateDB) CanTransfer(sender, recipient string, amount uint64) bool {
-
-	log15.Debug("check CanTransfer", "sender", sender, "recipient", recipient, "amount", amount)
-
-	tType, errInfo := mdb.checkTransfer(sender, recipient, amount)
-
-	if errInfo != nil {
-		log15.Error("check transfer error", "sender", sender, "recipient", recipient, "amount", amount, "err info", errInfo)
-		return false
-	}
-
-	value := int64(amount)
-	if value < 0 {
-		return false
-	}
-
-	switch tType {
-	case NoNeed:
-		return true
-	case ToExec:
-		// 无论其它账户还是创建者向合约地址转账，都需要检查其当前合约账户活动余额是否充足
-		accFrom := mdb.CoinsAccount.LoadExecAccount(sender, recipient)
-		b := accFrom.GetBalance() - value
-		if b < 0 {
-			log15.Error("check transfer error", "error info", types.ErrNoBalance)
-			return false
-		}
-		return true
-	case FromExec:
-		return mdb.checkExecAccount(sender, value)
-	default:
-		return false
-	}
-}
-func (mdb *MemoryStateDB) checkExecAccount(execAddr string, value int64) bool {
-	var err error
-	defer func() {
-		if err != nil {
-			log15.Error("checkExecAccount error", "error info", err)
-		}
-	}()
-	// 如果是合约地址，则需要判断创建者在本合约中的余额是否充足
-	if !types.CheckAmount(value) {
-		err = types.ErrAmount
-		return false
-	}
-	contract := mdb.GetAccount(execAddr)
-	if contract == nil {
-		err = model.ErrAddrNotExists
-		return false
-	}
-	creator := contract.GetCreator()
-	if len(creator) == 0 {
-		err = model.ErrNoCreator
-		return false
-	}
-
-	var accFrom *types.Account
-	cfg := mdb.api.GetConfig()
-	if cfg.IsDappFork(mdb.GetBlockHeight(), "evm", evmtypes.ForkEVMFrozen) {
-		// 分叉后，需要检查合约地址下的金额是否足够
-		accFrom = mdb.CoinsAccount.LoadExecAccount(execAddr, execAddr)
-	} else {
-		accFrom = mdb.CoinsAccount.LoadExecAccount(creator, execAddr)
-	}
-	balance := accFrom.GetBalance()
-	remain := balance - value
-	if remain < 0 {
-		err = types.ErrNoBalance
-		return false
-	}
-	return true
+func (mdb *MemoryStateDB) CanTransfer(sender string, amount uint64) bool {
+	senderAcc := mdb.CoinsAccount.LoadExecAccount(sender, mdb.evmPlatformAddr)
+	return senderAcc.Balance > int64(amount)
 }
 
 // TransferType 定义转账类型
@@ -552,17 +463,8 @@ func (mdb *MemoryStateDB) checkTransfer(sender, recipient string, amount uint64)
 }
 
 // Transfer 借助coins执行器进行转账相关操作
-// 只支持 合约账户到合约账户，其它情况不支持
 func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool {
 	log15.Debug("transfer from contract to external(contract)", "sender", sender, "recipient", recipient, "amount", amount)
-
-	tType, errInfo := mdb.checkTransfer(sender, recipient, amount)
-
-	if errInfo != nil {
-		log15.Error("transfer error", "sender", sender, "recipient", recipient, "amount", amount, "err info", errInfo)
-		return false
-	}
-
 	var (
 		ret *types.Receipt
 		err error
@@ -573,17 +475,7 @@ func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool
 		return false
 	}
 
-	switch tType {
-	case NoNeed:
-		return true
-	case ToExec:
-		ret, err = mdb.transfer2Contract(sender, recipient, value)
-	case FromExec:
-		ret, err = mdb.transfer2External(sender, recipient, value)
-	default:
-		return false
-	}
-
+	ret, err = mdb.CoinsAccount.ExecTransfer(sender, recipient, mdb.evmPlatformAddr, int64(amount))
 	// 这种情况下转账失败并不进行处理，也不会从sender账户扣款，打印日志即可
 	if err != nil {
 		log15.Error("transfer error", "sender", sender, "recipient", recipient, "amount", amount, "err info", err)
