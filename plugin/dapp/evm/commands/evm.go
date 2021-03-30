@@ -43,6 +43,7 @@ func EvmCmd() *cobra.Command {
 
 	cmd.AddCommand(
 		createContractCmd(),
+		createExContractCmd(),
 		callContractCmd(),
 		abiCmd(),
 		estimateContractCmd(),
@@ -382,6 +383,34 @@ func createEvmTransferTx(cfg *types.Chain33Config, cmd *cobra.Command, caller, e
 	}
 
 	return res, nil
+}
+
+// 创建EVM合约
+func createExContractCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "createEx",
+		Short: "Create a new EVM contract",
+		Run:   createExContract,
+	}
+	addCreateExContractFlags(cmd)
+	return cmd
+}
+
+func addCreateExContractFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("caller", "c", "", "the caller address")
+	cmd.MarkFlagRequired("caller")
+
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
+	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
+	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
+	cmd.Flags().StringP("parameter", "p", "", "construction contract parameter")
+}
+
+func createExContract(cmd *cobra.Command, args []string) {
+	err := DeployPancake(cmd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
 
 // 调用EVM合约
