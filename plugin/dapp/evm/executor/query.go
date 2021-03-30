@@ -186,3 +186,10 @@ func (evm *EVMExecutor) Query_QueryABI(in *evmtypes.EvmQueryAbiReq) (types.Messa
 
 	return &evmtypes.EvmQueryAbiResp{Address: in.GetAddress(), Abi: abiData}, nil
 }
+
+func (evm *EVMExecutor) Query_GetNonce(in *evmtypes.EvmGetNonceReq) (types.Message, error) {
+	evm.CheckInit()
+	nonce := evm.mStateDB.GetNonce(in.Address)
+
+	return &evmtypes.EvmGetNonceRespose{Nonce: int64(nonce)}, nil
+}

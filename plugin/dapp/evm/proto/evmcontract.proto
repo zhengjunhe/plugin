@@ -179,3 +179,12 @@ message EvmContractTransferReq {
     bool   isWithdraw = 5;
     string paraName   = 6;
 }
+
+message EvmGetNonceReq {
+    string address     = 1;
+}
+
+message EvmGetNonceRespose {
+    int64 nonce     = 1;
+}
+
