@@ -20,8 +20,11 @@ import (
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	//evmcommon "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
+	ethereumcommon "github.com/ethereum/go-ethereum/common"
 )
 
+var ERC20BinFile = "./ci/evm/ERC20.bin"
+var ERC20AbiFile = "./ci/evm/ERC20.abi"
 var PancakeFactoryBinFile = "./ci/evm/PancakeFactory.bin"
 var PancakeFactoryAbiFile = "./ci/evm/PancakeFactory.abi"
 var WETH9BinFile = "./ci/evm/WETH9.bin"
@@ -34,6 +37,34 @@ func DeployPancake(cmd *cobra.Command) error {
 	parameter, _ := cmd.Flags().GetString("parameter")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
+	txhexERC20, err := deployContract(cmd, ERC20BinFile, ERC20AbiFile, "ycc, ycc, 3300000000, "+caller, "ERC20")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	{
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(1 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("Deploy ERC20 timeout")
+			case <-oneSecondtimeout.C:
+				data, _ := getTxByHashesRpc(txhexERC20, rpcLaddr)
+				if data == "" {
+					fmt.Println("No receipt received yet for Deploy ERC20 tx and continue to wait")
+					continue
+				} else if data != "2" {
+					return errors.New("Deploy ERC20 failed due to" + ", ty = " + data)
+				}
+				fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\\n")
+				goto deployPancakeFactory
+
+			}
+		}
+	}
+
+deployPancakeFactory:
 	txhexPancakeFactory, err := deployContract(cmd, PancakeFactoryBinFile, PancakeFactoryAbiFile, parameter, "PancakeFactory")
 	if err != nil {
 		return errors.New(err.Error())
@@ -45,16 +76,16 @@ func DeployPancake(cmd *cobra.Command) error {
 		for {
 			select {
 			case <-timeout.C:
-				panic("DeployPancakeFactory timeout")
+				panic("Deploy PancakeFactory timeout")
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(txhexPancakeFactory, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for DeployPancakeFactory tx and continue to wait")
+					fmt.Println("No receipt received yet for Deploy PancakeFactory tx and continue to wait")
 					continue
 				} else if data != "2" {
-					return errors.New("DeployPancakeFactory failed due to" + ", ty = " + data)
+					return errors.New("Deploy PancakeFactory failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy pancakeFactory with address =", txhexPancakeFactory, "\\n")
+				fmt.Println("Succeed to deploy pancakeFactory with address =", getContractAddr(caller, txhexPancakeFactory), "\\n")
 				goto deployWeth9
 			}
 		}
@@ -81,15 +112,15 @@ deployWeth9:
 				} else if data != "2" {
 					return errors.New("Deploy Weth9 failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy Weth9 with address =", txhexWeth9, "\\n")
+				fmt.Println("Succeed to deploy Weth9 with address =", getContractAddr(caller, txhexWeth9), "\\n")
 				goto deployPancakeRouter
 			}
 		}
 	}
 
 deployPancakeRouter:
-	param := address.GetExecAddress(caller+txhexPancakeFactory).String() + "," + address.GetExecAddress(caller+txhexWeth9).String()
-	txhex, err := deployContract(cmd, PancakeRouterBinFile, PancakeRouterAbiFile, param, "PancakeRouter")
+	param := getContractAddr(caller, txhexPancakeFactory) + "," + getContractAddr(caller, txhexWeth9)
+	txhexPancakeRouter, err := deployContract(cmd, PancakeRouterBinFile, PancakeRouterAbiFile, param, "PancakeRouter")
 	if err != nil {
 		return errors.New(err.Error())
 	}
@@ -102,20 +133,24 @@ deployPancakeRouter:
 			case <-timeout.C:
 				panic("Deploy PancakeRouter timeout")
 			case <-oneSecondtimeout.C:
-				data, _ := getTxByHashesRpc(txhex, rpcLaddr)
+				data, _ := getTxByHashesRpc(txhexPancakeRouter, rpcLaddr)
 				if data == "" {
 					fmt.Println("No receipt received yet for Deploy PancakeRouter tx and continue to wait")
 					continue
 				} else if data != "2" {
 					return errors.New("Deploy PancakeRouter failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy PancakeRouter with address =", txhex, "\\n")
+				fmt.Println("Succeed to deploy PancakeRouter with address =", getContractAddr(caller, txhexPancakeRouter), "\\n")
 				return nil
 			}
 		}
 	}
 
 	return nil
+}
+
+func getContractAddr(caller, txhex string) string {
+	return address.GetExecAddress(caller + ethereumcommon.Bytes2Hex(common.HexToHash(txhex).Bytes())).String()
 }
 
 func deployContract(cmd *cobra.Command, binFile, abiFile, parameter, contractName string) (string, error) {
