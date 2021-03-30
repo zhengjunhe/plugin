@@ -42,6 +42,7 @@ func EvmCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		deployPancakeCmd(),
 		createContractCmd(),
 		callContractCmd(),
 		abiCmd(),
@@ -52,6 +53,7 @@ func EvmCmd() *cobra.Command {
 		evmWithdrawCmd(),
 		getEvmBalanceCmd(),
 		evmToolsCmd(),
+		getNonceCmd(),
 	)
 
 	return cmd
@@ -274,13 +276,16 @@ func createContract(cmd *cobra.Command, args []string) {
 		action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: alias, Abi: abi}
 	}
 
-	packData, err := evmAbi.PackContructorPara(constructorPara, abi)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Pack Contructor Para error:", err)
-		return
+	if "" != constructorPara {
+		packData, err := evmAbi.PackContructorPara(constructorPara, abi)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Pack Contructor Para error:", err)
+			return
+		}
+
+		action.Code = append(action.Code, packData...)
 	}
 
-	action.Code = append(action.Code, packData...)
 	data, err := createEvmTx(cfg, &action, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, feeInt64)
 
 	if err != nil {
@@ -399,30 +404,23 @@ func callContract(cmd *cobra.Command, args []string) {
 	title, _ := cmd.Flags().GetString("title")
 	cfg := types.GetCliSysParam(title)
 
-	code, _ := cmd.Flags().GetString("input")
+	//code, _ := cmd.Flags().GetString("input")
 	caller, _ := cmd.Flags().GetString("caller")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	fee, _ := cmd.Flags().GetFloat64("fee")
-	name, _ := cmd.Flags().GetString("exec")
-	abi, _ := cmd.Flags().GetString("abi")
+	toAddr, _ := cmd.Flags().GetString("exec")
+	parameter, _ := cmd.Flags().GetString("parameter")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	amountInt64 := uint64(amount*1e4) * 1e4
 	feeInt64 := uint64(fee*1e4) * 1e4
-	toAddr := address.ExecAddress(name)
 
-	bCode, err := common.FromHex(code)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "parse evm code error", err)
-		return
-	}
-
-	action := evmtypes.EVMContractAction{Amount: amountInt64, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Abi: abi}
+	action := evmtypes.EVMContractAction{Amount: amountInt64, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
 
 	//name表示发给哪个执行器
-	data, err := createEvmTx(cfg, &action, name, caller, toAddr, expire, rpcLaddr, feeInt64)
+	data, err := createEvmTx(cfg, &action, "evm", caller, toAddr, expire, rpcLaddr, feeInt64)
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "call contract error", err)
@@ -438,13 +436,22 @@ func callContract(cmd *cobra.Command, args []string) {
 }
 
 func addCallContractFlags(cmd *cobra.Command) {
-	addCommonFlags(cmd)
-	cmd.Flags().StringP("exec", "e", "", "evm contract name, like user.evm.xxxxx")
+	cmd.Flags().StringP("caller", "c", "", "the caller address")
+	cmd.MarkFlagRequired("caller")
+
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
+
+	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
+
+	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
+	cmd.MarkFlagRequired("fee")
+
+	cmd.Flags().StringP("exec", "e", "", "evm contract address")
 	cmd.MarkFlagRequired("exec")
 
 	cmd.Flags().Float64P("amount", "a", 0, "the amount transfer to the contract (optional)")
 
-	cmd.Flags().StringP("abi", "b", "", "call with abi")
+	cmd.Flags().StringP("parameter", "p", "", "tx input parameter as:approve(13nBqpmC4VaJpEZ6J6G9NUM1Y55FQvw558, 100000000)")
 }
 
 func addCommonFlags(cmd *cobra.Command) {
@@ -837,4 +844,52 @@ func checksumAddr(address []byte) string {
 		}
 	}
 	return "0x" + string(result)
+}
+
+func getNonceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "nonce",
+		Short: "Get user's nonce",
+		Run:   getNonce,
+	}
+	getNonceFlags(cmd)
+	return cmd
+}
+
+func getNonceFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("addr", "a", "", "account addr")
+	cmd.MarkFlagRequired("addr")
+}
+
+func getNonce(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	addr, _ := cmd.Flags().GetString("addr")
+	err := address.CheckAddress(addr)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, types.ErrInvalidAddress)
+		return
+	}
+
+	params := evmtypes.EvmGetNonceReq{
+		Address: addr,
+	}
+
+	var resp evmtypes.EvmGetNonceRespose
+	query := sendQuery(rpcLaddr, "GetNonce", &params, &resp)
+
+	if query {
+		fmt.Println("Nonce=", resp.Nonce)
+	} else {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to get nonce!")
+	}
+}
+
+func deployPancakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deploy",
+		Short: "deploy pancake",
+		Run:   getNonce,
+	}
+	getNonceFlags(cmd)
+	return cmd
 }

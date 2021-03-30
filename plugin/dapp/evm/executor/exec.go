@@ -48,12 +48,13 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		snapshot     int
 		execName     string
 		methodName   string
+		inData       []byte
 	)
 
 	// 为了方便计费，即使合约为新生成，也将地址的初始化放到外面操作
 	if isCreate {
 		// 使用随机生成的地址作为合约地址（这个可以保证每次创建的合约地址不会重复，不存在冲突的情况）
-		contractAddr = evm.createContractAddress(msg.From())
+		contractAddr = evm.createContractAddress(msg.From(), txHash)
 		if !env.StateDB.Empty(contractAddr.String()) {
 			return receipt, model.ErrContractAddressCollision
 		}
@@ -76,19 +77,17 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		}
 		ret, snapshot, leftOverGas, vmerr = env.Create(runtime.AccountRef(msg.From()), contractAddr, msg.Data(), context.GasLimit, execName, msg.Alias(), msg.ABI())
 	} else {
-		inData := msg.Data()
+		callPara := msg.ABI()
 		// 在这里进行ABI和十六进制的调用参数转换
 		if len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
-			funcName, packData, err := abi.Pack(msg.ABI(), evm.mStateDB.GetAbi(msg.To().String()), readOnly)
+			methodName, inData, err = abi.Pack(callPara, evm.mStateDB.GetAbi(msg.To().String()), readOnly)
 			if err != nil {
 				return receipt, err
 			}
-			inData = packData
-			methodName = funcName
-			log.Debug("call contract ", "abi funcName", funcName, "packData", common.Bytes2Hex(inData))
+			log.Debug("call contract ", "abi funcName", methodName, "callPara", callPara,
+				"packData", common.Bytes2Hex(inData))
 		}
 		ret, snapshot, leftOverGas, vmerr = env.Call(runtime.AccountRef(msg.From()), *msg.To(), inData, context.GasLimit, msg.Value())
-		log.Debug("call(create) contract ", "input", common.Bytes2Hex(inData))
 	}
 	usedGas := msg.GasLimit() - leftOverGas
 	logMsg := "call contract details:"

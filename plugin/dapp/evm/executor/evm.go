@@ -152,8 +152,8 @@ func (evm *EVMExecutor) getNewAddr(txHash []byte) common.Address {
 }
 
 // createContractAddress creates an ethereum address given the bytes and the nonce
-func (evm *EVMExecutor) createContractAddress(b common.Address) common.Address {
-	return common.NewContractAddress(b, evm.mStateDB.GetNonce(b.String()))
+func (evm *EVMExecutor) createContractAddress(b common.Address, txHash []byte) common.Address {
+	return common.NewContractAddress(b, txHash)
 }
 
 // CheckTx 校验交易

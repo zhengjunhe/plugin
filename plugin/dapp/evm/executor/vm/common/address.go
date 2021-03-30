@@ -5,8 +5,9 @@
 package common
 
 import (
-	"fmt"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"encoding/hex"
 
@@ -98,8 +99,8 @@ func NewAddress(cfg *types.Chain33Config, txHash []byte) Address {
 	return Address{Addr: execAddr}
 }
 
-func NewContractAddress(b Address, nonce uint64) Address {
-	execAddr := address.GetExecAddress(b.String() + fmt.Sprintf("%u", nonce))
+func NewContractAddress(b Address, txHash []byte) Address {
+	execAddr := address.GetExecAddress(b.String() + common.Bytes2Hex(txHash))
 	return Address{Addr: execAddr}
 }
 
