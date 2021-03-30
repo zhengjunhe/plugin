@@ -21,13 +21,6 @@ import (
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 )
 
-//var PancakeFactoryBinFile = "$GOPATH/src/github.com/33cn/plugin/plugin/dapp/evm/commands/pancake/PancakeFactory.bin"
-//var PancakeFactoryAbiFile = "$GOPATH/src/github.com/33cn/plugin/plugin/dapp/evm/commands/pancake/PancakeFactory.abi"
-//var WETH9BinFile = "$GOPATH/src/github.com/33cn/plugin/plugin/dapp/evm/commands/pancake/WETH9.bin"
-//var WETH9AbiFile = "$GOPATH/src/github.com/33cn/plugin/plugin/dapp/evm/commands/pancake/WETH9.abi"
-//var PancakeRouterBinFile = "$GOPATH/src/github.com/33cn/plugin/plugin/dapp/evm/commands/pancake/PancakeRouter.bin"
-//var PancakeRouterAbiFile = "$GOPATH/src/github.com/33cn/plugin/plugin/dapp/evm/commands/pancake/PancakeRouter.abi"
-
 var PancakeFactoryBinFile = "./ci/evm/PancakeFactory.bin"
 var PancakeFactoryAbiFile = "./ci/evm/PancakeFactory.abi"
 var WETH9BinFile = "./ci/evm/WETH9.bin"
@@ -35,57 +28,14 @@ var WETH9AbiFile = "./ci/evm/WETH9.abi"
 var PancakeRouterBinFile = "./ci/evm/PancakeRouter.bin"
 var PancakeRouterAbiFile = "./ci/evm/PancakeRouter.abi"
 
-//WETH9 PancakeFactory
 func DeployPancake(cmd *cobra.Command) error {
-	//title, _ := cmd.Flags().GetString("title")
-	//cfg := types.GetCliSysParam(title)
-	//
-	//caller, _ := cmd.Flags().GetString("caller")
-	//expire, _ := cmd.Flags().GetString("expire")
-	//note, _ := cmd.Flags().GetString("note")
-	//fee, _ := cmd.Flags().GetFloat64("fee")
 	parameter, _ := cmd.Flags().GetString("parameter")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	//paraName, _ := cmd.Flags().GetString("paraName")
-	//feeInt64 := uint64(fee*1e4) * 1e4
-
 	{
 		txhex, err := deployContract(cmd, PancakeFactoryBinFile, PancakeFactoryAbiFile, parameter, "PancakeFactory")
 		if err != nil {
 			return errors.New(err.Error())
 		}
-		//code, err := readContractFile(PancakeFactoryBinFile)
-		//if err != nil {
-		//	return errors.New("read file error " + PancakeFactoryBinFile + err.Error())
-		//}
-		//abi, err := readContractFile(PancakeFactoryAbiFile)
-		//if err != nil {
-		//	return errors.New("read file error " + PancakeFactoryAbiFile + err.Error())
-		//}
-		//
-		//var action evmtypes.EVMContractAction
-		//bCode, err := common.FromHex(code)
-		//if err != nil {
-		//	return errors.New("parse evm code error " + err.Error())
-		//}
-		//action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: "PancakeFactory", Abi: abi}
-		//constructorPara := "constructor(" + parameter + ")"
-		//packData, err := evmAbi.PackContructorPara(constructorPara, abi)
-		//if err != nil {
-		//	return errors.New("PancakeFactory Pack Contructor Para error:" + err.Error())
-		//}
-		//action.Code = append(action.Code, packData...)
-		//data, err := createEvmTx(cfg, &action, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, feeInt64)
-		//if err != nil {
-		//	return errors.New("PancakeFactory create contract error:" + err.Error())
-		//}
-
-		//txhex, err := sendTransactionRpc(data, rpcLaddr)
-		//if err != nil {
-		//	return errors.New(err.Error())
-		//}
-
-		//fmt.Println("\nDeployPancakeFactory tx hash:", txhex)
 
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(1 * time.Second)
@@ -96,12 +46,12 @@ func DeployPancake(cmd *cobra.Command) error {
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(txhex, rpcLaddr)
 				if data == "" {
-					fmt.Println("\n No receipt received yet for DeployPancakeFactory tx and continue to wait")
+					fmt.Println("No receipt received yet for DeployPancakeFactory tx and continue to wait")
 					continue
 				} else if data != "2" {
 					return errors.New("DeployPancakeFactory failed due to" + ", ty = " + data)
 				}
-				fmt.Println("\n Succeed to deploy pancakeFactory with address =", txhex)
+				fmt.Println("Succeed to deploy pancakeFactory with address =", txhex, "\\n")
 				goto deployWeth9
 			}
 		}
@@ -123,12 +73,12 @@ deployWeth9:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(txhex, rpcLaddr)
 				if data == "" {
-					fmt.Println("\n No receipt received yet for Deploy Weth9 tx and continue to wait")
+					fmt.Println("No receipt received yet for Deploy Weth9 tx and continue to wait")
 					continue
 				} else if data != "2" {
 					return errors.New("Deploy Weth9 failed due to" + ", ty = " + data)
 				}
-				fmt.Println("\n Succeed to deploy Weth9 with address =", txhex)
+				fmt.Println("Succeed to deploy Weth9 with address =", txhex, "\\n")
 				goto deployPancakeRouter
 			}
 		}
@@ -150,12 +100,12 @@ deployPancakeRouter:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(txhex, rpcLaddr)
 				if data == "" {
-					fmt.Println("\n No receipt received yet for Deploy PancakeRouter tx and continue to wait")
+					fmt.Println("No receipt received yet for Deploy PancakeRouter tx and continue to wait")
 					continue
 				} else if data != "2" {
 					return errors.New("Deploy PancakeRouter failed due to" + ", ty = " + data)
 				}
-				fmt.Println("\n Succeed to deploy PancakeRouter with address =", txhex)
+				fmt.Println("Succeed to deploy PancakeRouter with address =", txhex, "\\n")
 				return nil
 			}
 		}
