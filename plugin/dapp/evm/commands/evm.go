@@ -44,7 +44,7 @@ func EvmCmd() *cobra.Command {
 	cmd.AddCommand(
 		deployPancakeCmd(),
 		createContractCmd(),
-		createExContractCmd(),
+		deployPancakeContractCmd(),
 		callContractCmd(),
 		abiCmd(),
 		estimateContractCmd(),
@@ -391,17 +391,17 @@ func createEvmTransferTx(cfg *types.Chain33Config, cmd *cobra.Command, caller, e
 }
 
 // 创建EVM合约
-func createExContractCmd() *cobra.Command {
+func deployPancakeContractCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "createEx",
-		Short: "Create a new EVM contract",
-		Run:   createExContract,
+		Use:   "deployPancake",
+		Short: "deploy Pancake contract",
+		Run:   deployPancakeContract,
 	}
-	addCreateExContractFlags(cmd)
+	addDeployPancakeContractFlags(cmd)
 	return cmd
 }
 
-func addCreateExContractFlags(cmd *cobra.Command) {
+func addDeployPancakeContractFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("caller", "c", "", "the caller address")
 	cmd.MarkFlagRequired("caller")
 
@@ -411,7 +411,7 @@ func addCreateExContractFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("parameter", "p", "", "construction contract parameter")
 }
 
-func createExContract(cmd *cobra.Command, args []string) {
+func deployPancakeContract(cmd *cobra.Command, args []string) {
 	err := DeployPancake(cmd)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
