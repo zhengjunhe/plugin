@@ -475,6 +475,10 @@ func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool
 		return false
 	}
 
+	if 0 == value {
+		return true
+	}
+
 	ret, err = mdb.CoinsAccount.ExecTransfer(sender, recipient, mdb.evmPlatformAddr, int64(amount))
 	// 这种情况下转账失败并不进行处理，也不会从sender账户扣款，打印日志即可
 	if err != nil {
@@ -608,6 +612,7 @@ func (mdb *MemoryStateDB) AddPreimage(hash common.Hash, data []byte) {
 // 这里不保证当前区块可以打包成功，只是在执行区块中的交易时，如果交易执行成功，就会打印合约日志
 func (mdb *MemoryStateDB) PrintLogs() {
 	items := mdb.logs[mdb.txHash]
+	log15.Debug("PrintLogs", "item number:", len(items), "txhash", mdb.txHash.Hex())
 	for _, item := range items {
 		item.PrintLog()
 	}

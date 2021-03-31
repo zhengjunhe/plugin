@@ -6,13 +6,14 @@ package runtime
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/params"
 	"github.com/holiman/uint256"
-	"math/big"
 )
 
 // 加法操作
@@ -632,7 +633,8 @@ func opCreate(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	stackvalue := size
 	// 调用合约创建逻辑
 	addr := crypto.RandomContractAddress()
-	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "")
+
+	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "", value.Uint64())
 
 	// 出错时压栈0，否则压栈创建出来的合约对象的地址
 	if suberr != nil && suberr != model.ErrCodeStoreOutOfGas {
@@ -651,8 +653,11 @@ func opCreate(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	}
 	return nil, nil
 }
+
 //CREATE2
 func opCreate2(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
+
+	log15.Info("opCreate2", "\n\ncreate2 is called\n\n")
 	var (
 		endowment    = callContext.stack.pop()
 		offset, size = callContext.stack.pop(), callContext.stack.pop()
@@ -671,35 +676,38 @@ func opCreate2(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	if !endowment.IsZero() {
 		bigEndowment = endowment.ToBig()
 	}
-	addr := crypto.RandomContractAddress()
+
 	//res, addr, returnGas, suberr := evm.Create2(callContext.contract, input, gas,
 	//	bigEndowment, &salt)
 
-	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "")
+	newContractAddr := crypto.CreateAddress2(callContext.contract.Address(), salt.Bytes32(), crypto.Keccak256Hash(input).Bytes())
+	panic("opCreate2 ")
+	saltSlice := salt.Bytes32()
+	saltStr := common.Bytes2Hex(saltSlice[:])
+	res, _, returnGas, suberr := evm.Create(callContext.contract, newContractAddr, input, gas, saltStr, "", "", endowment.Uint64())
 	// push item on the stack based on the returned error.
 
 	// 出错时压栈0，否则压栈创建出来的合约对象的地址
 	if suberr != nil && suberr != model.ErrCodeStoreOutOfGas {
-		log15.Error("evm contract opCreate instruction error,endowment,salt", suberr, bigEndowment,salt)
+		log15.Error("evm contract opCreate instruction error,endowment,salt", suberr, bigEndowment, salt)
 		stackvalue.Clear()
 	} else {
-		stackvalue.SetBytes(addr.Bytes())
+		stackvalue.SetBytes(newContractAddr.Bytes())
 	}
 	if suberr != nil {
 		stackvalue.Clear()
 	} else {
-		stackvalue.SetBytes(addr.Bytes())
+		stackvalue.SetBytes(newContractAddr.Bytes())
 	}
 	callContext.stack.push(&stackvalue)
 	callContext.contract.Gas += returnGas
 
 	if suberr == ErrExecutionReverted {
+		log15.Error("opCreate2", "\n\n suberr == ErrExecutionReverted \n\n")
 		return res, nil
 	}
 	return nil, nil
 }
-
-
 
 // 合约调用操作
 func opCall(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
@@ -946,8 +954,7 @@ func opSelfBalance(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 
 // opChainID implements CHAINID opcode
 func opChainID(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
-	chainId, _ := uint256.FromBig(big.NewInt(int64(evm.cfg.GetChainID())));
+	chainId, _ := uint256.FromBig(big.NewInt(int64(evm.cfg.GetChainID())))
 	callContext.stack.push(chainId)
 	return nil, nil
 }
-

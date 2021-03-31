@@ -75,7 +75,8 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 				return receipt, err
 			}
 		}
-		ret, snapshot, leftOverGas, vmerr = env.Create(runtime.AccountRef(msg.From()), contractAddr, msg.Data(), context.GasLimit, execName, msg.Alias(), msg.ABI())
+
+		ret, snapshot, leftOverGas, vmerr = env.Create(runtime.AccountRef(msg.From()), contractAddr, msg.Data(), context.GasLimit, execName, msg.Alias(), msg.ABI(), msg.Value())
 	} else {
 		callPara := msg.ABI()
 		// 在这里进行ABI和十六进制的调用参数转换
@@ -89,6 +90,9 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		}
 		ret, snapshot, leftOverGas, vmerr = env.Call(runtime.AccountRef(msg.From()), *msg.To(), inData, context.GasLimit, msg.Value())
 	}
+	// 打印合约中生成的日志
+	evm.mStateDB.PrintLogs()
+
 	usedGas := msg.GasLimit() - leftOverGas
 	logMsg := "call contract details:"
 	if isCreate {
@@ -111,9 +115,6 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		}
 		return receipt, model.ErrOutOfGas
 	}
-
-	// 打印合约中生成的日志
-	evm.mStateDB.PrintLogs()
 
 	// 没有任何数据变更
 	if curVer == nil {
