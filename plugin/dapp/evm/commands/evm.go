@@ -44,6 +44,8 @@ func EvmCmd() *cobra.Command {
 	cmd.AddCommand(
 		deployPancakeCmd(),
 		createContractCmd(),
+		deployPancakeContractCmd(),
+		deployFarmContractCmd(),
 		callContractCmd(),
 		abiCmd(),
 		estimateContractCmd(),
@@ -387,6 +389,60 @@ func createEvmTransferTx(cfg *types.Chain33Config, cmd *cobra.Command, caller, e
 	}
 
 	return res, nil
+}
+
+// 创建EVM合约
+func deployPancakeContractCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deployPancake",
+		Short: "deploy Pancake contract",
+		Run:   deployPancakeContract,
+	}
+	addDeployPancakeContractFlags(cmd)
+	return cmd
+}
+
+func addDeployPancakeContractFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("caller", "c", "", "the caller address")
+	cmd.MarkFlagRequired("caller")
+
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
+	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
+	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
+	cmd.Flags().StringP("parameter", "p", "", "construction contract parameter")
+}
+
+func deployPancakeContract(cmd *cobra.Command, args []string) {
+	err := DeployPancake(cmd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
+
+func deployFarmContractCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deployFarm",
+		Short: "deploy Farm contract",
+		Run:   deployFarmContract,
+	}
+	addDeployFarmContractFlags(cmd)
+	return cmd
+}
+
+func addDeployFarmContractFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("caller", "c", "", "the caller address")
+	cmd.MarkFlagRequired("caller")
+
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
+	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
+	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
+}
+
+func deployFarmContract(cmd *cobra.Command, args []string) {
+	err := DeployFarm(cmd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
 
 // 调用EVM合约
