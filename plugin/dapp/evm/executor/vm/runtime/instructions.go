@@ -6,13 +6,14 @@ package runtime
 
 import (
 	"fmt"
+	"math/big"
+
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/params"
 	"github.com/holiman/uint256"
-	"math/big"
 )
 
 // 加法操作
@@ -632,7 +633,8 @@ func opCreate(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	stackvalue := size
 	// 调用合约创建逻辑
 	addr := crypto.RandomContractAddress()
-	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "")
+
+	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "", value.Uint64())
 
 	// 出错时压栈0，否则压栈创建出来的合约对象的地址
 	if suberr != nil && suberr != model.ErrCodeStoreOutOfGas {
@@ -651,6 +653,7 @@ func opCreate(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	}
 	return nil, nil
 }
+
 //CREATE2
 func opCreate2(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	var (
@@ -662,7 +665,7 @@ func opCreate2(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	)
 
 	// Apply EIP150
-	gas -= gas / 64
+	gas = gas / 2
 	callContext.contract.UseGas(gas)
 	// reuse size int for stackvalue
 	stackvalue := size
@@ -671,35 +674,44 @@ func opCreate2(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	if !endowment.IsZero() {
 		bigEndowment = endowment.ToBig()
 	}
-	addr := crypto.RandomContractAddress()
+
 	//res, addr, returnGas, suberr := evm.Create2(callContext.contract, input, gas,
 	//	bigEndowment, &salt)
 
-	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "")
+	log15.Info("opCreate2", "initHash", common.Bytes2Hex(crypto.Keccak256Hash(input).Bytes()))
+
+	newContractAddr := crypto.CreateAddress2(callContext.contract.Address(), salt.Bytes32(), crypto.Keccak256Hash(input).Bytes())
+	log15.Info("opCreate2", "newContractAddr", newContractAddr.String(), "newContractAddr byte", common.Bytes2Hex(newContractAddr.Bytes()))
+	saltSlice := salt.Bytes32()
+	saltStr := common.Bytes2Hex(saltSlice[:])
+	res, _, returnGas, suberr := evm.Create(callContext.contract, newContractAddr, input, gas, saltStr, "", "", endowment.Uint64())
 	// push item on the stack based on the returned error.
 
+	log15.Info("opCreate2", "callContext.contract.Address()", callContext.contract.Address(),
+		"salt", saltStr, "suberr", suberr)
 	// 出错时压栈0，否则压栈创建出来的合约对象的地址
 	if suberr != nil && suberr != model.ErrCodeStoreOutOfGas {
-		log15.Error("evm contract opCreate instruction error,endowment,salt", suberr, bigEndowment,salt)
+		log15.Error("evm contract opCreate instruction error,endowment,salt", suberr, bigEndowment, salt)
 		stackvalue.Clear()
 	} else {
-		stackvalue.SetBytes(addr.Bytes())
+		stackvalue.SetBytes(newContractAddr.Bytes())
 	}
 	if suberr != nil {
 		stackvalue.Clear()
 	} else {
-		stackvalue.SetBytes(addr.Bytes())
+		stackvalue.SetBytes(newContractAddr.Bytes())
 	}
 	callContext.stack.push(&stackvalue)
 	callContext.contract.Gas += returnGas
 
+	log15.Error("opCreate2", "returnGas", returnGas, "callContext.contract.Gas", callContext.contract.Gas)
+
 	if suberr == ErrExecutionReverted {
+		log15.Error("opCreate2", "\n\n suberr == ErrExecutionReverted \n\n")
 		return res, nil
 	}
 	return nil, nil
 }
-
-
 
 // 合约调用操作
 func opCall(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
@@ -809,10 +821,12 @@ func opStaticCall(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	// Get arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
+	log15.Info("opStaticCall", "caller", callContext.contract.self.Address(),
+		"toaddr", toAddr, "gas", gas, "args", string(args))
 	ret, returnGas, err := evm.StaticCall(callContext.contract, toAddr, args, gas)
 	if err != nil {
 		temp.Clear()
-		log15.Error("evm contract opDelegateCall instruction error", err)
+		log15.Error("evm contract opStaticCall instruction error", err)
 	} else {
 		temp.SetOne()
 	}
@@ -866,6 +880,8 @@ func makeLog(size int) executionFunc {
 			topics[i] = common.Uint256ToHash(&addr)
 		}
 
+		log15.Info("makeLog is called", "Address", callContext.contract.Address().String())
+
 		d := callContext.memory.GetCopy(int64(mStart.Uint64()), int64(mSize.Uint64()))
 		evm.StateDB.AddLog(&model.ContractLog{
 			Address: callContext.contract.Address(),
@@ -875,6 +891,7 @@ func makeLog(size int) executionFunc {
 			// core/state doesn't know the current block number.
 			//BlockNumber: evm.BlockNumber.Uint64(),
 		})
+		log15.Info("makeLog DATA", "data", string(d), "data in hex", common.Bytes2Hex(d))
 		return nil, nil
 	}
 }
@@ -946,8 +963,7 @@ func opSelfBalance(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 
 // opChainID implements CHAINID opcode
 func opChainID(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
-	chainId, _ := uint256.FromBig(big.NewInt(int64(evm.cfg.GetChainID())));
+	chainId, _ := uint256.FromBig(big.NewInt(int64(evm.cfg.GetChainID())))
 	callContext.stack.push(chainId)
 	return nil, nil
 }
-

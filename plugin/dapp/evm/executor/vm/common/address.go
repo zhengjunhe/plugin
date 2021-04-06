@@ -167,8 +167,10 @@ func Uint256ToAddress(b *uint256.Int) Address {
 	a := new(address.Address)
 	a.Version = 0
 	out := make([]byte, 20)
+
 	copy(out[:], b.Bytes())
 	a.SetBytes(out)
+	log15.Info("Uint256ToAddress", "b.Bytes", common.Bytes2Hex(b.Bytes()), "addr", a.String())
 	return Address{Addr: a}
 }
 

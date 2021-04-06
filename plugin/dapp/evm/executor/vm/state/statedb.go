@@ -166,6 +166,10 @@ func (mdb *MemoryStateDB) GetCodeHash(addr string) common.Hash {
 
 // GetCode 获取代码内容
 func (mdb *MemoryStateDB) GetCode(addr string) []byte {
+	//if "15wDXJKYxTq3FvfL5uK4MCZXdQfcSTGUtt" == addr {
+	//	panic("MemoryStateDB::debugCall::GetCode")
+	//}
+	log15.Debug("MemoryStateDB::debugCall::GetCode", "addr", addr)
 	acc := mdb.GetAccount(addr)
 	if acc != nil {
 		return acc.Data.GetCode()
@@ -175,6 +179,7 @@ func (mdb *MemoryStateDB) GetCode(addr string) []byte {
 
 // SetCode 设置代码内容
 func (mdb *MemoryStateDB) SetCode(addr string, code []byte) {
+	log15.Debug("MemoryStateDB::debugCall::SetCode", "addr", addr)
 	acc := mdb.GetAccount(addr)
 	if acc != nil {
 		mdb.dataDirty[addr] = true
@@ -410,7 +415,10 @@ func (mdb *MemoryStateDB) GetChangedData(version int) (kvSet []*types.KeyValue, 
 // CanTransfer 借助coins执行器进行转账相关操作
 func (mdb *MemoryStateDB) CanTransfer(sender string, amount uint64) bool {
 	senderAcc := mdb.CoinsAccount.LoadExecAccount(sender, mdb.evmPlatformAddr)
-	return senderAcc.Balance > int64(amount)
+	log15.Info("CanTransfer", "balance", senderAcc.Balance, "sender", sender, "evmPlatformAddr", mdb.evmPlatformAddr,
+		"mdb.CoinsAccount", mdb.CoinsAccount)
+
+	return senderAcc.Balance >= int64(amount)
 }
 
 // TransferType 定义转账类型
@@ -428,40 +436,6 @@ const (
 	Error
 )
 
-func (mdb *MemoryStateDB) checkTransfer(sender, recipient string, amount uint64) (tType TransferType, err error) {
-	if amount == 0 {
-		return NoNeed, nil
-	}
-	if mdb.CoinsAccount == nil {
-		log15.Error("no coinsaccount exists", "sender", sender, "recipient", recipient, "amount", amount)
-		return Error, model.ErrNoCoinsAccount
-	}
-
-	// 首先需要检查转账双方的信息，是属于合约账户还是外部账户
-	execSender := mdb.Exist(sender)
-	execRecipient := mdb.Exist(recipient)
-
-	if execRecipient && execSender {
-		// 双方均为合约账户，不支持
-		err = model.ErrTransferBetweenContracts
-		tType = Error
-	} else if execSender {
-		// 从合约账户到外部账户转账 （这里调用外部账户从合约账户取钱接口）
-		tType = FromExec
-		err = nil
-	} else if execRecipient {
-		// 从外部账户到合约账户转账
-		tType = ToExec
-		err = nil
-	} else {
-		// 双方都是外部账户，不支持
-		err = model.ErrTransferBetweenEOA
-		tType = Error
-	}
-
-	return tType, err
-}
-
 // Transfer 借助coins执行器进行转账相关操作
 func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool {
 	log15.Debug("transfer from contract to external(contract)", "sender", sender, "recipient", recipient, "amount", amount)
@@ -473,6 +447,10 @@ func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool
 	value := int64(amount)
 	if value < 0 {
 		return false
+	}
+
+	if 0 == value {
+		return true
 	}
 
 	ret, err = mdb.CoinsAccount.ExecTransfer(sender, recipient, mdb.evmPlatformAddr, int64(amount))
@@ -489,6 +467,9 @@ func (mdb *MemoryStateDB) Transfer(sender, recipient string, amount uint64) bool
 			logs:       ret.Logs,
 		})
 	}
+	log15.Info("transfer successful", "balance", mdb.CoinsAccount.LoadExecAccount(recipient, mdb.evmPlatformAddr).Balance,
+		"mdb.CoinsAccount", mdb.CoinsAccount)
+
 	return true
 }
 
@@ -608,6 +589,7 @@ func (mdb *MemoryStateDB) AddPreimage(hash common.Hash, data []byte) {
 // 这里不保证当前区块可以打包成功，只是在执行区块中的交易时，如果交易执行成功，就会打印合约日志
 func (mdb *MemoryStateDB) PrintLogs() {
 	items := mdb.logs[mdb.txHash]
+	log15.Debug("PrintLogs", "item number:", len(items), "txhash", mdb.txHash.Hex())
 	for _, item := range items {
 		item.PrintLog()
 	}

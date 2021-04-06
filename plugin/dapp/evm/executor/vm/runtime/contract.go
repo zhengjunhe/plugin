@@ -5,6 +5,7 @@
 package runtime
 
 import (
+	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/holiman/uint256"
 )
@@ -174,6 +175,7 @@ func (c *Contract) Caller() common.Address {
 
 // UseGas 从合约的可用gas中进行gas消费
 func (c *Contract) UseGas(gas uint64) (ok bool) {
+	log15.Info("Contract::UseGas", "c.Gas", c.Gas, "gas to cost", gas)
 	if c.Gas < gas {
 		return false
 	}
