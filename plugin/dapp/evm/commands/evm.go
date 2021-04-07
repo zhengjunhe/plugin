@@ -593,11 +593,20 @@ func callAbi(cmd *cobra.Command, args []string) {
 	query := sendQuery(rpcLaddr, "Query", &req, &resp)
 
 	if query {
-		data, err := json.MarshalIndent(&resp, "", "  ")
+		_, err := json.MarshalIndent(&resp, "", "  ")
 		if err != nil {
 			fmt.Println(resp.String())
 		} else {
-			fmt.Println(string(data))
+			var outputs []evmAbi.Param
+			err = json.Unmarshal([]byte(resp.JsonData), &outputs)
+			if err != nil {
+				fmt.Println("Unmarshal error", err.Error())
+				return
+			}
+
+			for _, v := range outputs {
+				fmt.Println(v.Value)
+			}
 		}
 	}
 }

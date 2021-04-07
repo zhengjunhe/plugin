@@ -2,14 +2,13 @@ package abi
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
-
-	"errors"
 
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/golang-collections/collections/stack"
@@ -23,6 +22,7 @@ import (
 func Pack(param, abiData string, readOnly bool) (methodName string, packData []byte, err error) {
 	// 首先解析参数字符串，分析出方法名以及个参数取值
 	methodName, params, err := procFuncCall(param)
+
 	if err != nil {
 		return methodName, packData, err
 	}
@@ -141,6 +141,10 @@ func Unpack(data []byte, methodName, abiData string) (output string, err error) 
 	for i, v := range values {
 		arg := method.Outputs[i]
 		pval := &Param{Name: arg.Name, Type: arg.Type.String(), Value: v}
+		if arg.Type.String() == "address" {
+			pval.Value = v.(common.Hash160Address).ToAddress().String()
+		}
+
 		outputs = append(outputs, pval)
 	}
 
