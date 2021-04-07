@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/33cn/chain33/common/address"
-	"github.com/33cn/chain33/rpc/jsonclient"
-	"github.com/33cn/chain33/types"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/chain33/rpc/jsonclient"
+	"github.com/33cn/chain33/types"
+	"github.com/spf13/cobra"
+
 	"github.com/33cn/chain33/common"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	commandtypes "github.com/33cn/chain33/system/dapp/commands/types"
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
+
 	//evmcommon "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
@@ -57,7 +59,7 @@ func DeployPancake(cmd *cobra.Command) error {
 				} else if data != "2" {
 					return errors.New("Deploy ERC20 failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\\n")
+				fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\n")
 				goto deployPancakeFactory
 
 			}
@@ -85,7 +87,7 @@ deployPancakeFactory:
 				} else if data != "2" {
 					return errors.New("Deploy PancakeFactory failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy pancakeFactory with address =", getContractAddr(caller, txhexPancakeFactory), "\\n")
+				fmt.Println("Succeed to deploy pancakeFactory with address =", getContractAddr(caller, txhexPancakeFactory), "\n")
 				goto deployWeth9
 			}
 		}
@@ -112,7 +114,7 @@ deployWeth9:
 				} else if data != "2" {
 					return errors.New("Deploy Weth9 failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy Weth9 with address =", getContractAddr(caller, txhexWeth9), "\\n")
+				fmt.Println("Succeed to deploy Weth9 with address =", getContractAddr(caller, txhexWeth9), "\n")
 				goto deployPancakeRouter
 			}
 		}
@@ -140,7 +142,7 @@ deployPancakeRouter:
 				} else if data != "2" {
 					return errors.New("Deploy PancakeRouter failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy PancakeRouter with address =", getContractAddr(caller, txhexPancakeRouter), "\\n")
+				fmt.Println("Succeed to deploy PancakeRouter with address =", getContractAddr(caller, txhexPancakeRouter), "\n")
 				return nil
 			}
 		}
@@ -212,7 +214,7 @@ func getTxByHashesRpc(txhex, rpcLaddr string) (string, error) {
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.GetTxByHashes", params2, &res)
 	ctx.SetResultCb(queryTxsByHashesRes)
 	result, err := ctx.RunResult()
-	if err != nil {
+	if err != nil || result == nil {
 		return "", err
 	}
 	data, err := json.MarshalIndent(result, "", "    ")
@@ -244,9 +246,12 @@ func queryTxsByHashesRes(arg interface{}) (interface{}, error) {
 			Assets:     v.Assets,
 		}
 		receipt = v.Receipt
+		if nil != receipt {
+			return receipt.Ty, nil
+		}
 		result.Txs = append(result.Txs, &td)
 	}
-	return receipt.Ty, nil
+	return nil, nil
 }
 
 func sendTransactionRpc(data, rpcLaddr string) (string, error) {
