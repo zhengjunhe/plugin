@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +16,6 @@ import (
 
 	"github.com/33cn/chain33/common"
 	rpctypes "github.com/33cn/chain33/rpc/types"
-	commandtypes "github.com/33cn/chain33/system/dapp/commands/types"
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 
 	//evmcommon "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
@@ -68,6 +66,38 @@ func DeployMulticall(cmd *cobra.Command) error {
 	}
 }
 
+func DeployERC20(cmd *cobra.Command) error {
+	caller, _ := cmd.Flags().GetString("caller")
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	name, _ := cmd.Flags().GetString("name")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	supply, _ := cmd.Flags().GetString("supply")
+
+	txhexERC20, err := deployContract(cmd, ERC20BinFile, ERC20AbiFile, name+","+symbol+","+supply+","+caller, "ERC20")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	timeout := time.NewTimer(300 * time.Second)
+	oneSecondtimeout := time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			panic("Deploy ERC20 timeout")
+		case <-oneSecondtimeout.C:
+			data, _ := getTxByHashesRpc(txhexERC20, rpcLaddr)
+			if data == "" {
+				fmt.Println("No receipt received yet for Deploy ERC20 tx and continue to wait")
+				continue
+			} else if data != "2" {
+				return errors.New("Deploy ERC20 failed due to" + ", ty = " + data)
+			}
+			fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\n")
+			return nil
+		}
+	}
+}
+
 func DeployPancake(cmd *cobra.Command) error {
 	caller, _ := cmd.Flags().GetString("caller")
 	parameter, _ := cmd.Flags().GetString("parameter")
@@ -95,7 +125,6 @@ func DeployPancake(cmd *cobra.Command) error {
 				}
 				fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\n")
 				goto deployPancakeFactory
-
 			}
 		}
 	}
@@ -220,7 +249,7 @@ func deployContract(cmd *cobra.Command, binFile, abiFile, parameter, contractNam
 		constructorPara := "constructor(" + parameter + ")"
 		packData, err := evmAbi.PackContructorPara(constructorPara, abi)
 		if err != nil {
-			return "", errors.New(contractName + " Pack Contructor Para error:" + err.Error())
+			return "", errors.New(contractName + " " + constructorPara + " Pack Contructor Para error:" + err.Error())
 		}
 		action.Code = append(action.Code, packData...)
 	}
@@ -259,31 +288,15 @@ func getTxByHashesRpc(txhex, rpcLaddr string) (string, error) {
 }
 
 func queryTxsByHashesRes(arg interface{}) (interface{}, error) {
-	var result commandtypes.TxDetailsResult
 	var receipt *rpctypes.ReceiptDataResult
 	for _, v := range arg.(*rpctypes.TransactionDetails).Txs {
 		if v == nil {
-			result.Txs = append(result.Txs, nil)
 			continue
-		}
-		amountResult := strconv.FormatFloat(float64(v.Amount)/float64(types.Coin), 'f', 4, 64)
-		td := commandtypes.TxDetailResult{
-			Tx:         commandtypes.DecodeTransaction(v.Tx),
-			Receipt:    v.Receipt,
-			Proofs:     v.Proofs,
-			Height:     v.Height,
-			Index:      v.Index,
-			Blocktime:  v.Blocktime,
-			Amount:     amountResult,
-			Fromaddr:   v.Fromaddr,
-			ActionName: v.ActionName,
-			Assets:     v.Assets,
 		}
 		receipt = v.Receipt
 		if nil != receipt {
 			return receipt.Ty, nil
 		}
-		result.Txs = append(result.Txs, &td)
 	}
 	return nil, nil
 }

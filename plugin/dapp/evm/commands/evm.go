@@ -44,6 +44,7 @@ func EvmCmd() *cobra.Command {
 	cmd.AddCommand(
 		deployMulticallCmd(),
 		createContractCmd(),
+		deployERC20ContractCmd(),
 		deployPancakeContractCmd(),
 		deployFarmContractCmd(),
 		callContractCmd(),
@@ -416,6 +417,39 @@ func addDeployPancakeContractFlags(cmd *cobra.Command) {
 
 func deployPancakeContract(cmd *cobra.Command, args []string) {
 	err := DeployPancake(cmd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
+
+// 创建ERC20合约
+func deployERC20ContractCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deployERC20",
+		Short: "deploy ERC20 contract",
+		Run:   deployERC20Contract,
+	}
+	addDeployERC20ContractFlags(cmd)
+	return cmd
+}
+
+func addDeployERC20ContractFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("caller", "c", "", "the caller address")
+	cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("name", "a", "", "REC20 name")
+	cmd.MarkFlagRequired("name")
+	cmd.Flags().StringP("symbol", "s", "", "REC20 symbol")
+	cmd.MarkFlagRequired("symbol")
+	cmd.Flags().StringP("supply", "m", "", "REC20 supply")
+	cmd.MarkFlagRequired("supply")
+
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
+	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
+	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
+}
+
+func deployERC20Contract(cmd *cobra.Command, args []string) {
+	err := DeployERC20(cmd)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
