@@ -42,7 +42,7 @@ func EvmCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		deployPancakeCmd(),
+		deployMulticallCmd(),
 		createContractCmd(),
 		deployPancakeContractCmd(),
 		deployFarmContractCmd(),
@@ -56,6 +56,7 @@ func EvmCmd() *cobra.Command {
 		getEvmBalanceCmd(),
 		evmToolsCmd(),
 		getNonceCmd(),
+		showTimeNowCmd(),
 	)
 
 	return cmd
@@ -68,6 +69,7 @@ func evmToolsCmd() *cobra.Command {
 		Short: "Some tools for evm op",
 	}
 	cmd.AddCommand(evmToolsAddressCmd())
+
 	return cmd
 }
 
@@ -949,12 +951,41 @@ func getNonce(cmd *cobra.Command, args []string) {
 	}
 }
 
-func deployPancakeCmd() *cobra.Command {
+func deployMulticallCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deploy",
-		Short: "deploy pancake",
-		Run:   getNonce,
+		Use:   "deployMulticall",
+		Short: "deploy Multicall",
+		Run:   deployMulticallContract,
 	}
-	getNonceFlags(cmd)
+	addDeployMulticallContractFlags(cmd)
 	return cmd
+}
+
+func addDeployMulticallContractFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("caller", "c", "", "the caller address")
+	cmd.MarkFlagRequired("caller")
+
+	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
+	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
+	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
+}
+
+func deployMulticallContract(cmd *cobra.Command, args []string) {
+	err := DeployMulticall(cmd)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
+
+func showTimeNowCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "now",
+		Short: "show seconds from epoch",
+		Run:   showNow,
+	}
+	return cmd
+}
+
+func showNow(cmd *cobra.Command, args []string) {
+	fmt.Println(time.Now().Unix())
 }

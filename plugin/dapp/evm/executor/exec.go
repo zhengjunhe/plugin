@@ -6,6 +6,7 @@ package executor
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -101,7 +102,8 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	log.Debug(logMsg, "caller address", msg.From().String(), "contract address", contractAddr.String(), "exec name", execName, "alias name", msg.Alias(), "usedGas", usedGas, "return data", common.Bytes2Hex(ret))
 	curVer := evm.mStateDB.GetLastSnapshot()
 	if vmerr != nil {
-		log.Error("evm contract exec error", "error info", vmerr)
+		log.Error("evm contract exec error", "error info", vmerr, "ret", string(ret))
+		vmerr = errors.New(fmt.Sprintf("%s,detail: %s", vmerr.Error(), string(ret)))
 		return receipt, vmerr
 	}
 

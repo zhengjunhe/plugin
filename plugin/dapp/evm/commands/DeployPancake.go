@@ -33,6 +33,40 @@ var WETH9BinFile = "./ci/evm/WETH9.bin"
 var WETH9AbiFile = "./ci/evm/WETH9.abi"
 var PancakeRouterBinFile = "./ci/evm/PancakeRouter.bin"
 var PancakeRouterAbiFile = "./ci/evm/PancakeRouter.abi"
+var MulticallBinFile = "./ci/evm/Multicall.bin"
+var MulticallAbiFile = "./ci/evm/Multicall.abi"
+
+func DeployMulticall(cmd *cobra.Command) error {
+	caller, _ := cmd.Flags().GetString("caller")
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+
+	txMulticall, err := deployContract(cmd, MulticallBinFile, MulticallAbiFile, "", "Multicall")
+	if err != nil {
+		return errors.New(err.Error())
+	}
+
+	{
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(1 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("Deploy ERC20 timeout")
+			case <-oneSecondtimeout.C:
+				data, _ := getTxByHashesRpc(txMulticall, rpcLaddr)
+				if data == "" {
+					fmt.Println("No receipt received yet for Deploy Multicall tx and continue to wait")
+					continue
+				} else if data != "2" {
+					return errors.New("Deploy Multicall failed due to" + ", ty = " + data)
+				}
+				fmt.Println("Succeed to deploy Multicall with address =", getContractAddr(caller, txMulticall), "\n")
+				return nil
+
+			}
+		}
+	}
+}
 
 func DeployPancake(cmd *cobra.Command) error {
 	caller, _ := cmd.Flags().GetString("caller")

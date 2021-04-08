@@ -889,7 +889,7 @@ func makeLog(size int) executionFunc {
 			Data:    d,
 			// This is a non-consensus field, but assigned here because
 			// core/state doesn't know the current block number.
-			//BlockNumber: evm.BlockNumber.Uint64(),
+			BlockNumber: evm.BlockNumber.Uint64(),
 		})
 		log15.Info("makeLog DATA", "data", string(d), "data in hex", common.Bytes2Hex(d))
 		return nil, nil
