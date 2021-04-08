@@ -17,8 +17,9 @@ gID=""
 lottExecAddr=""
 luckyNumber=""
 
-purNum=200
-drawNum=220
+#设置较小可能导致投注交易执行失败
+purNum=300
+drawNum=320
 opRatio=5
 devRatio=5
 

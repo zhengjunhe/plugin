@@ -38,11 +38,13 @@ type Wasm struct {
 	execAddr     string
 	contractName string
 	VMCache      map[string]*exec.VirtualMachine
+	ENV          map[int]string
 }
 
 func newWasm() drivers.Driver {
 	d := &Wasm{
 		VMCache: make(map[string]*exec.VirtualMachine),
+		ENV:     make(map[int]string),
 	}
 	d.SetChild(d)
 	d.SetExecutorType(types.LoadExecutorType(driverName))
@@ -56,4 +58,8 @@ func GetName() string {
 
 func (w *Wasm) GetDriverName() string {
 	return driverName
+}
+
+func (w *Wasm) ExecutorOrder() int64 {
+	return drivers.ExecLocalSameTime
 }
