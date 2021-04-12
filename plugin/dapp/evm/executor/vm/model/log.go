@@ -5,8 +5,12 @@
 package model
 
 import (
+	"math/big"
+	"strings"
+
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
+	ethAbi "github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 // ContractLog 合约在日志，对应EVM中的Log指令，可以生成指定的日志信息
@@ -35,6 +39,49 @@ type ContractLog struct {
 }
 
 // PrintLog 合约日志打印格式
-func (log *ContractLog) PrintLog() {
+func (log *ContractLog) PrintLog(routerAbiStr string) {
+
+	//routerAbiStr := mdb.GetAbi("1GMsmmzUPuQUkCJinuEyfkJoBoyJbiQKg")
+
+	routerAbi, err := ethAbi.JSON(strings.NewReader(routerAbiStr))
+	if err != nil {
+		panic("Failed to read json")
+	}
+
+	eventDebug := routerAbi.Events["debug"].ID().Hex()
+	eventLogRunData := routerAbi.Events["logRunData"].ID().Hex()
+
+	if log.Topics[0].Hex() == eventDebug {
+		type EventDebug struct {
+			Des string
+			Pos *big.Int
+		}
+		event := &EventDebug{}
+		eventName := "debug"
+		err = routerAbi.Unpack(event, eventName, log.Data)
+		if err != nil {
+			panic("Failed to unpack debug event")
+		}
+		log15.Debug("!Contract Log debug", "EventDebug", event)
+
+	} else if log.Topics[0].Hex() == eventLogRunData {
+		//logRunData(string func, address pair, address to, uint amountToken, uint amountETH, uint liquidity);
+		type EventRunData struct {
+			FuncName    string
+			Pair        *common.Address
+			To          *common.Address
+			AmountToken *big.Int
+			AmountEth   *big.Int
+			Liquidity   *big.Int
+		}
+		event := &EventRunData{}
+		eventName := "logRunData"
+		err = routerAbi.Unpack(event, eventName, log.Data)
+		if err != nil {
+			panic("Failed to unpack debug event")
+		}
+		log15.Debug("!Contract Log debug", "logRunData", event)
+	}
+
 	log15.Debug("!Contract Log!", "Contract address", log.Address.String(), "TxHash", log.TxHash.Hex(), "Log Index", log.Index, "Log Topics", log.Topics, "Log Data", common.Bytes2Hex(log.Data))
 }
