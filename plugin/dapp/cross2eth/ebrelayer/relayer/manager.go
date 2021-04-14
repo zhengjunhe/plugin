@@ -355,6 +355,23 @@ func (manager *Manager) DeployContrcts(param interface{}, result *interface{}) e
 	return nil
 }
 
+func (manager *Manager) Deploy2Chain33(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	bridgeRegistry, err := manager.chain33Relayer.DeployContracts()
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  fmt.Sprintf("Contract BridgeRegistry's address is:%s", bridgeRegistry),
+	}
+	return nil
+}
+
 //CreateBridgeToken ...
 func (manager *Manager) CreateBridgeToken(symbol string, result *interface{}) error {
 	manager.mtx.Lock()
@@ -453,6 +470,40 @@ func (manager *Manager) BurnAsync(burn relayerTypes.Burn, result *interface{}) e
 		return err
 	}
 	txhash, err := manager.ethRelayer.BurnAsync(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
+func (manager *Manager) BurnAsyncFromChain33(burn relayerTypes.Burn, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.chain33Relayer.BurnAsyncFromChain33(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
+func (manager *Manager) LockBTYAssetAsync(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.chain33Relayer.LockBTYAssetAsync(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
 	if nil != err {
 		return err
 	}

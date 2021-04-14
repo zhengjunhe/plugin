@@ -19,9 +19,11 @@ import (
 	logf "github.com/33cn/chain33/common/log"
 	"github.com/33cn/chain33/common/log/log15"
 	chain33Types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/events"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer"
 	chain33Relayer "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/chain33"
 	ethRelayer "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum"
+	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	tml "github.com/BurntSushi/toml"
 	"github.com/btcsuite/btcd/limits"
@@ -70,8 +72,30 @@ func main() {
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
 
-	chain33RelayerService := chain33Relayer.StartChain33Relayer(ctx, cfg.SyncTxConfig, cfg.BridgeRegistry, cfg.EthProvider, db)
-	ethRelayerService := ethRelayer.StartEthereumRelayer(cfg.SyncTxConfig.Chain33Host, db, cfg.EthProvider, cfg.BridgeRegistry, cfg.Deploy, cfg.EthMaturityDegree, cfg.EthBlockFetchPeriod)
+	ethBridgeClaimChan := make(chan *ebrelayerTypes.EthBridgeClaim)
+	chain33MsgChan := make(chan *events.Chain33Msg)
+
+	chain33StartPara := &chain33Relayer.Chain33StartPara{
+		Ctx:                ctx,
+		SyncTxConfig:       cfg.SyncTxConfig,
+		BridgeRegistryAddr: cfg.BridgeRegistry,
+		DBHandle:           db,
+		EthBridgeClaimChan: ethBridgeClaimChan,
+		Chain33MsgChan:     chain33MsgChan,
+	}
+	chain33RelayerService := chain33Relayer.StartChain33Relayer(chain33StartPara)
+
+	ethStartPara := &ethRelayer.EthereumStartPara{
+		DbHandle:           db,
+		EthProvider:        cfg.EthProvider,
+		BridgeRegistryAddr: cfg.BridgeRegistry,
+		DeployInfo:         cfg.Deploy,
+		Degree:             cfg.EthMaturityDegree,
+		BlockInterval:      cfg.EthBlockFetchPeriod,
+		EthBridgeClaimChan: ethBridgeClaimChan,
+		Chain33MsgChan:     chain33MsgChan,
+	}
+	ethRelayerService := ethRelayer.StartEthereumRelayer(ethStartPara)
 
 	relayerManager := relayer.NewRelayerManager(chain33RelayerService, ethRelayerService, db)
 

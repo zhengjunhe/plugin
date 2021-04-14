@@ -3,7 +3,7 @@ package ethtxs
 import (
 	"math/big"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/events"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -29,4 +29,5 @@ type ProphecyClaim struct {
 	TokenContractAddress common.Address
 	Symbol               string
 	Amount               *big.Int
+	chain33TxHash        []byte
 }

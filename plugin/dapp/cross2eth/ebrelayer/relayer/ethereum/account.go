@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	crand "crypto/rand"
 	"crypto/sha256"
-	"errors"
 	"fmt"
 	"io"
 
@@ -85,33 +84,29 @@ func (ethRelayer *Relayer4Ethereum) GetValidatorAddr() (validators x2ethTypes.Va
 }
 
 //RestorePrivateKeys ...
-func (ethRelayer *Relayer4Ethereum) RestorePrivateKeys(passPhase string) (err error) {
+func (ethRelayer *Relayer4Ethereum) RestorePrivateKeys(passphrase string) error {
 	accountInfo, err := ethRelayer.db.Get(chain33AccountKey)
-	if nil == err {
-		Chain33Account := &x2ethTypes.Account4Relayer{}
-		if err := chain33Types.Decode(accountInfo, Chain33Account); nil == err {
-			decryptered := wcom.CBCDecrypterPrivkey([]byte(passPhase), Chain33Account.Privkey)
-			var driver secp256k1.Driver
-			priKey, err := driver.PrivKeyFromBytes(decryptered)
-			if nil != err {
-				errInfo := fmt.Sprintf("Failed to PrivKeyFromBytes due to:%s", err.Error())
-				relayerLog.Info("RestorePrivateKeys", "Failed to PrivKeyFromBytes:", err.Error())
-				return errors.New(errInfo)
-			}
-			ethRelayer.rwLock.Lock()
-			ethRelayer.privateKey4Chain33 = priKey
-			temp, _ := btcec_secp256k1.PrivKeyFromBytes(btcec_secp256k1.S256(), priKey.Bytes())
-			ethRelayer.privateKey4Chain33_ecdsa = temp.ToECDSA()
-			ethRelayer.rwLock.Unlock()
-		}
+	if nil != err {
+		relayerLog.Info("No private key saved for Relayer4Chain33")
+		return nil
+	}
+	ethAccount := &x2ethTypes.Account4Relayer{}
+	if err := chain33Types.Decode(accountInfo, ethAccount); nil != err {
+		relayerLog.Info("RestorePrivateKeys", "Failed to decode due to:", err.Error())
+		return err
+	}
+	decryptered := wcom.CBCDecrypterPrivkey([]byte(passphrase), ethAccount.Privkey)
+	privateKey, err := crypto.ToECDSA(decryptered)
+	if nil != err {
+		relayerLog.Info("RestorePrivateKeys", "Failed to ToECDSA:", err.Error())
+		return err
 	}
 
-	ethRelayer.rwLock.RLock()
-	if nil != ethRelayer.privateKey4Chain33 {
-		ethRelayer.unlockchan <- start
-	}
-	ethRelayer.rwLock.RUnlock()
-
+	ethRelayer.rwLock.Lock()
+	ethRelayer.privateKey4Ethereum = privateKey
+	ethRelayer.ethSender = crypto.PubkeyToAddress(privateKey.PublicKey)
+	ethRelayer.rwLock.Unlock()
+	ethRelayer.unlockchan <- start
 	return nil
 }
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/ethinterface"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/33cn/chain33/common/log/log15"
@@ -26,8 +26,10 @@ const (
 )
 
 // RelayOracleClaimToEthereum : relays the provided burn or lock to Chain33Bridge contract on the Ethereum network
-func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinterface.EthClientSpec, sender common.Address, claim ProphecyClaim, privateKey *ecdsa.PrivateKey, chain33TxHash []byte) (txhash string, err error) {
-	txslog.Info("RelayProphecyClaimToEthereum", "sender", sender.String(), "chain33Sender", hexutil.Encode(claim.Chain33Sender), "ethereumReceiver", claim.EthereumReceiver.String(), "TokenAddress", claim.TokenContractAddress.String(), "symbol", claim.Symbol, "Amount", claim.Amount.String(), "claimType", claim.ClaimType.String())
+func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinterface.EthClientSpec, sender common.Address, claim ProphecyClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
+	txslog.Info("RelayProphecyClaimToEthereum", "sender", sender.String(), "chain33Sender", hexutil.Encode(claim.Chain33Sender), "ethereumReceiver", claim.EthereumReceiver.String(),
+		"TokenAddress", claim.TokenContractAddress.String(), "symbol", claim.Symbol, "Amount",
+		claim.Amount.String(), "claimType", claim.ClaimType)
 
 	auth, err := PrepareAuth(client, privateKey, sender)
 	if nil != err {
@@ -36,7 +38,7 @@ func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinte
 	}
 	auth.GasLimit = GasLimit
 
-	claimID := crypto.Keccak256Hash(chain33TxHash, claim.Chain33Sender, claim.EthereumReceiver.Bytes(), []byte(claim.Symbol), claim.Amount.Bytes())
+	claimID := crypto.Keccak256Hash(claim.chain33TxHash, claim.Chain33Sender, claim.EthereumReceiver.Bytes(), []byte(claim.Symbol), claim.Amount.Bytes())
 
 	// Sign the hash using the active validator's private key
 	signature, err := utils.SignClaim4Evm(claimID, privateKey)

@@ -12,7 +12,7 @@ package ethtxs
 import (
 	"strings"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/events"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -70,13 +70,13 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 }
 
 // Chain33MsgToProphecyClaim : parses event data from a Chain33Msg, packaging it as a ProphecyClaim
-func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
-	claimType := event.ClaimType
-	chain33Sender := event.Chain33Sender
-	ethereumReceiver := event.EthereumReceiver
-	tokenContractAddress := event.TokenContractAddress
-	symbol := strings.ToLower(event.Symbol)
-	amount := event.Amount
+func Chain33MsgToProphecyClaim(msg events.Chain33Msg) ProphecyClaim {
+	claimType := msg.ClaimType
+	chain33Sender := msg.Chain33Sender
+	ethereumReceiver := msg.EthereumReceiver
+	tokenContractAddress := msg.TokenContractAddress
+	symbol := strings.ToLower(msg.Symbol)
+	amount := msg.Amount
 
 	prophecyClaim := ProphecyClaim{
 		ClaimType:            claimType,
@@ -85,6 +85,7 @@ func Chain33MsgToProphecyClaim(event events.Chain33Msg) ProphecyClaim {
 		TokenContractAddress: tokenContractAddress,
 		Symbol:               symbol,
 		Amount:               amount,
+		chain33TxHash:        msg.TxHash,
 	}
 
 	return prophecyClaim

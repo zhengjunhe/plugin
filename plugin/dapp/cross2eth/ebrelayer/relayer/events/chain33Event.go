@@ -33,6 +33,7 @@ type Chain33Msg struct {
 	TokenContractAddress chain33Common.Address
 	Symbol               string
 	Amount               *big.Int
+	TxHash               []byte
 }
 
 // 发生在chain33evm上的lock事件，当bty跨链转移到eth时会发生该种事件
@@ -89,7 +90,7 @@ func UnpackChain33LogBurn(contractAbi abi.ABI, eventName string, eventData []byt
 }
 
 // ParseBurnLockTxReceipt : parses data from a Burn/Lock event witnessed on chain33 into a Chain33Msg struct
-func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBankAbi abi.ABI) (*Chain33Msg, error) {
+func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBankAbi abi.ABI, chain33TxHash []byte) (*Chain33Msg, error) {
 	if Chain33EventLogLock == evmEventType {
 		lockEvent, err := UnpackChain33LogLock(bridgeBankAbi, evmEventType.String(), data)
 		if nil != err {
@@ -104,6 +105,7 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 			TokenContractAddress: lockEvent.Token,
 			Symbol:               lockEvent.Symbol,
 			Amount:               lockEvent.Value,
+			TxHash:               chain33TxHash,
 		}
 		return chain33Msg, nil
 
@@ -121,6 +123,7 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 			TokenContractAddress: burnEvent.Token,
 			Symbol:               burnEvent.Symbol,
 			Amount:               burnEvent.Amount,
+			TxHash:               chain33TxHash,
 		}
 		return chain33Msg, nil
 

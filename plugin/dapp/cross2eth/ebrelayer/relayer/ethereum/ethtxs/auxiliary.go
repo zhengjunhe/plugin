@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/generated"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/events"
 	"github.com/ethereum/go-ethereum"

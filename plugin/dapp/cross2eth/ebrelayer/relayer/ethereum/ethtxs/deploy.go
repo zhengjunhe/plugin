@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/33cn/chain33/common/log/log15"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/generated"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/ethinterface"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
