@@ -15,7 +15,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/types"
+	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -238,7 +238,7 @@ func (manager *Manager) ImportChain33RelayerPrivateKey(importKeyReq relayerTypes
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	_, err := manager.chain33Relayer.ImportPrivateKey(manager.passphase, privateKey)
+	err := manager.chain33Relayer.ImportPrivateKey(manager.passphase, privateKey)
 	if err != nil {
 		mlog.Error("ImportChain33ValidatorPrivateKey", "Failed due to cause:", err.Error())
 		return err
@@ -275,12 +275,10 @@ func (manager *Manager) ImportChain33PrivateKey4EthRelayer(privateKey string, re
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	if err := manager.ethRelayer.ImportChain33PrivateKey(manager.passphase, privateKey); nil != err {
-		return err
-	}
+
 	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  "Succeed to import chain33 private key for ethereum relayer",
+		IsOk: false,
+		Msg:  "Not need now",
 	}
 	return nil
 }
@@ -480,13 +478,13 @@ func (manager *Manager) BurnAsync(burn relayerTypes.Burn, result *interface{}) e
 	return nil
 }
 
-func (manager *Manager) BurnAsyncFromChain33(burn relayerTypes.Burn, result *interface{}) error {
+func (manager *Manager) BurnAsyncFromChain33(burn relayerTypes.BurnFromChain33, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	txhash, err := manager.chain33Relayer.BurnAsyncFromChain33(burn.OwnerKey, burn.TokenAddr, burn.Chain33Receiver, burn.Amount)
+	txhash, err := manager.chain33Relayer.BurnAsyncFromChain33(burn.OwnerKey, burn.TokenAddr, burn.EthereumReceiver, burn.Amount)
 	if nil != err {
 		return err
 	}
@@ -497,13 +495,13 @@ func (manager *Manager) BurnAsyncFromChain33(burn relayerTypes.Burn, result *int
 	return nil
 }
 
-func (manager *Manager) LockBTYAssetAsync(lockEthErc20Asset relayerTypes.LockEthErc20, result *interface{}) error {
+func (manager *Manager) LockBTYAssetAsync(lockEthErc20Asset relayerTypes.LockBTY, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
-	txhash, err := manager.chain33Relayer.LockBTYAssetAsync(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.TokenAddr, lockEthErc20Asset.Amount, lockEthErc20Asset.Chain33Receiver)
+	txhash, err := manager.chain33Relayer.LockBTYAssetAsync(lockEthErc20Asset.OwnerKey, lockEthErc20Asset.Amount, lockEthErc20Asset.EtherumReceiver)
 	if nil != err {
 		return err
 	}
@@ -585,7 +583,7 @@ func (manager *Manager) GetBalance(balanceAddr relayerTypes.BalanceAddr, result 
 
 	*result = relayerTypes.ReplyBalance{
 		IsOK:    true,
-		Balance: types.TrimZeroAndDot(strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64)),
+		Balance: utils.TrimZeroAndDot(strconv.FormatFloat(utils.Toeth(balance, d), 'f', 4, 64)),
 	}
 	return nil
 }
@@ -661,7 +659,7 @@ func (manager *Manager) ShowDepositStatics(token relayerTypes.TokenStatics, resu
 		}
 	}
 	*result = relayerTypes.StaticsDeposit{
-		Supply: strconv.FormatFloat(types.Toeth(supply, d), 'f', 4, 64),
+		Supply: strconv.FormatFloat(utils.Toeth(supply, d), 'f', 4, 64),
 	}
 	return nil
 }

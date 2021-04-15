@@ -66,14 +66,14 @@ func NewSyncTxReceipts(db dbm.DB) *EVMTxLogs {
 
 //此处添加一个高度为0的空块，只是为了查找下一个比较方便，并不需要使用其信息
 func (syncTx *EVMTxLogs) initSyncReceiptDataBase() {
-	txblock0, _ := syncTx.GetTxReceipts(0)
-	if nil != txblock0 {
+	txLogs0, _ := syncTx.GetTxLogs(0)
+	if nil != txLogs0 {
 		return
 	}
-	txsPerBlock := &types.TxReceipts4SubscribePerBlk{
+	logsPerBlock := &types.EVMTxLogPerBlk{
 		Height: 0,
 	}
-	syncTx.setTxLogsPerBlock(txsPerBlock)
+	syncTx.setTxLogsPerBlock(logsPerBlock)
 }
 
 //Stop ...
@@ -177,7 +177,7 @@ func (syncTx *EVMTxLogs) setTxLogsPerBlock(txLogs *types.EVMTxLogPerBlk) {
 }
 
 //GetTxReceipts ...
-func (syncTx *EVMTxLogs) GetTxReceipts(height int64) (*types.TxReceipts4SubscribePerBlk, error) {
+func (syncTx *EVMTxLogs) GetTxLogs(height int64) (*types.TxReceipts4SubscribePerBlk, error) {
 	key := evmTxLogKey4Height(height)
 	value, err := syncTx.db.Get(key)
 	if err != nil {

@@ -60,7 +60,7 @@ type BurnEventOnChain33 struct {
 func UnpackChain33LogLock(contractAbi abi.ABI, eventName string, eventData []byte) (lockEvent *LockEventOnChain33, err error) {
 	lockEvent = &LockEventOnChain33{}
 	// Parse the event's attributes as Ethereum network variables
-	err = contractAbi.Unpack(lockEvent, eventName, eventData)
+	err = contractAbi.UnpackIntoInterface(lockEvent, eventName, eventData)
 	if err != nil {
 		eventsLog.Error("UnpackLogLock", "Failed to unpack abi due to:", err.Error())
 		return nil, ebrelayerTypes.ErrUnpack
@@ -77,7 +77,7 @@ func UnpackChain33LogLock(contractAbi abi.ABI, eventName string, eventData []byt
 func UnpackChain33LogBurn(contractAbi abi.ABI, eventName string, eventData []byte) (burnEvent *BurnEventOnChain33, err error) {
 	burnEvent = &BurnEventOnChain33{}
 	// Parse the event's attributes as Ethereum network variables
-	err = contractAbi.Unpack(burnEvent, eventName, eventData)
+	err = contractAbi.UnpackIntoInterface(burnEvent, eventName, eventData)
 	if err != nil {
 		eventsLog.Error("UnpackLogBurn", "Failed to unpack abi due to:", err.Error())
 		return nil, ebrelayerTypes.ErrUnpack

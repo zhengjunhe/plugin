@@ -3,7 +3,6 @@ package ethereum
 import (
 	"encoding/json"
 	"fmt"
-	"sync/atomic"
 
 	dbm "github.com/33cn/chain33/common/db"
 	chain33Types "github.com/33cn/chain33/types"
@@ -44,7 +43,7 @@ func (ethRelayer *Relayer4Ethereum) getBridgeRegistryAddr() (string, error) {
 
 func (ethRelayer *Relayer4Ethereum) updateTotalTxAmount2chain33(total int64) error {
 	totalTx := &chain33Types.Int64{
-		Data: atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
+		//Data: atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
 	}
 	//更新成功见证的交易数
 	return ethRelayer.db.Set(eth2chain33TxTotalAmount, chain33Types.Encode(totalTx))

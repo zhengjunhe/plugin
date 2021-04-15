@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	chain33Common "github.com/33cn/chain33/common"
+	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/system/crypto/secp256k1"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	//dbm "github.com/33cn/chain33/common/db"
 	chain33Types "github.com/33cn/chain33/types"
 	wcom "github.com/33cn/chain33/wallet/common"
 	x2ethTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
+	btcec_secp256k1 "github.com/btcsuite/btcd/btcec"
 )
 
 var (
@@ -51,32 +52,32 @@ func (chain33Relayer *Relayer4Chain33) GetAccountAddr() (addr string, err error)
 	return
 }
 
-//ImportPrivateKey ...
-func (chain33Relayer *Relayer4Chain33) ImportPrivateKey(passphrase, privateKeyStr string) (addr string, err error) {
-	privateKeySlice, err := chain33Common.FromHex(privateKeyStr)
+func (chain33Relayer *Relayer4Chain33) ImportPrivateKey(passphrase, privateKeyStr string) error {
+	var driver secp256k1.Driver
+	privateKeySli, err := chain33Common.FromHex(privateKeyStr)
 	if nil != err {
-		return "", err
+		return err
 	}
-	privateKey, err := crypto.ToECDSA(privateKeySlice)
+	priKey, err := driver.PrivKeyFromBytes(privateKeySli)
 	if nil != err {
-		return "", err
+		return err
 	}
 
-	ethSender := crypto.PubkeyToAddress(privateKey.PublicKey)
-	chain33Relayer.privateKey4Ethereum = privateKey
-	chain33Relayer.ethSender = ethSender
+	chain33Relayer.rwLock.Lock()
+	chain33Relayer.privateKey4Chain33 = priKey
+	temp, _ := btcec_secp256k1.PrivKeyFromBytes(btcec_secp256k1.S256(), priKey.Bytes())
+	chain33Relayer.privateKey4Chain33_ecdsa = temp.ToECDSA()
+	chain33Relayer.rwLock.Unlock()
 	chain33Relayer.unlock <- start
+	addr := address.PubKeyToAddr(priKey.PubKey().Bytes())
 
-	addr = chain33Common.ToHex(ethSender.Bytes())
-	encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySlice)
-	ethAccount := &x2ethTypes.Account4Relayer{
+	encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySli)
+	account := &x2ethTypes.Account4Relayer{
 		Privkey: encryptered,
 		Addr:    addr,
 	}
-	encodedInfo := chain33Types.Encode(ethAccount)
-	err = chain33Relayer.db.SetSync(chain33AccountKey, encodedInfo)
-
-	return
+	encodedInfo := chain33Types.Encode(account)
+	return chain33Relayer.db.SetSync(chain33AccountKey, encodedInfo)
 }
 
 //StoreAccountWithNewPassphase ...

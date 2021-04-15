@@ -3,7 +3,7 @@ package chain33
 import (
 	"strings"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/events"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 
 	chain33Evm "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4chain33/generated"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -17,8 +17,8 @@ func (relayer *Relayer4Chain33) prePareSubscribeEvent() {
 	}
 
 	eventName = events.Chain33EventLogLock.String()
-	relayer.bridgeBankEventLockSig = contractABI.Events[eventName].ID().Hex()
+	relayer.bridgeBankEventLockSig = contractABI.Events[eventName].ID.Hex()
 	eventName = events.Chain33EventLogBurn.String()
-	relayer.bridgeBankEventBurnSig = contractABI.Events[eventName].ID().Hex()
+	relayer.bridgeBankEventBurnSig = contractABI.Events[eventName].ID.Hex()
 	relayer.bridgeBankAbi = contractABI
 }

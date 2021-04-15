@@ -9,13 +9,10 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	chain33Crypto "github.com/33cn/chain33/common/crypto"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
-
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/ebrelayer/ethtxs"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 
@@ -47,23 +44,20 @@ type Relayer4Chain33 struct {
 
 	privateKey4Chain33       chain33Crypto.PrivKey
 	privateKey4Chain33_ecdsa *ecdsa.PrivateKey
-
-	bridgeRegistryAddr     string
-	totalTx4Chain33ToEth   int64
-	statusCheckedIndex     int64
-	ctx                    context.Context
-	rwLock                 sync.RWMutex
-	unlock                 chan int
-	chain33EVMAddr         string
-	bridgeBankEventLockSig string
-	bridgeBankEventBurnSig string
-	bridgeBankAbi          abi.ABI
-	deployInfo             *ebTypes.Deploy
+	ctx                      context.Context
+	rwLock                   sync.RWMutex
+	unlock                   chan int
+	bridgeBankEventLockSig   string
+	bridgeBankEventBurnSig   string
+	bridgeBankAbi            abi.ABI
+	deployInfo               *ebTypes.Deploy
 	//新增//
 	ethBridgeClaimChan <-chan *ebrelayerTypes.EthBridgeClaim
 	chain33MsgChan     chan<- *events.Chain33Msg
+	bridgeRegistryAddr string
 	oracleAddr         string
 	bridgeBankAddr     string
+	deployResult       *X2EthDeployResult
 }
 
 type Chain33StartPara struct {
@@ -98,9 +92,6 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 		StartSyncHash:     startPara.SyncTxConfig.StartSyncHash,
 	}
 
-	chian33Relayer.totalTx4Chain33ToEth = chian33Relayer.getTotalTxAmount2Eth()
-	chian33Relayer.statusCheckedIndex = chian33Relayer.getStatusCheckedIndex()
-
 	go chian33Relayer.syncProc(syncCfg)
 	return chian33Relayer
 }
@@ -115,17 +106,22 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 	_, _ = fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Chain33 relayer")
 	<-chain33Relayer.unlock
 	_, _ = fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
-
+	//如果该中继器的bridgeRegistryAddr为空，就说明合约未部署，需要等待部署成功之后再继续
+	if "" == chain33Relayer.bridgeRegistryAddr {
+		<-chain33Relayer.unlock
+	}
+	//如果oracleAddr为空，则通过bridgeRegistry合约进行查询
+	if "" != chain33Relayer.bridgeRegistryAddr && "" == chain33Relayer.oracleAddr {
+		oracleAddr, bridgeBankAddr := recoverContractAddrFromRegistry(chain33Relayer.bridgeRegistryAddr, chain33Relayer.rpcLaddr)
+		if "" == oracleAddr || "" == bridgeBankAddr {
+			panic("Failed to recoverContractAddrFromRegistry")
+		}
+		chain33Relayer.oracleAddr = oracleAddr
+		chain33Relayer.bridgeBankAddr = bridgeBankAddr
+	}
 	chain33Relayer.syncEvmTxLogs = syncTx.StartSyncEvmTxLogs(syncCfg, chain33Relayer.db)
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
-
-	oracleInstance, err := ethTx.RecoverOracleInstance(chain33Relayer.ethClient, chain33Relayer.bridgeRegistryAddr, chain33Relayer.bridgeRegistryAddr)
-	if err != nil {
-		panic(err.Error())
-	}
-	chain33Relayer.oracleInstanceOnEth = oracleInstance
 	chain33Relayer.prePareSubscribeEvent()
-
 	timer := time.NewTicker(time.Duration(chain33Relayer.fetchHeightPeriodMs) * time.Millisecond)
 	for {
 		select {
@@ -156,25 +152,7 @@ func (chain33Relayer *Relayer4Chain33) getCurrentHeight() int64 {
 
 func (chain33Relayer *Relayer4Chain33) onNewHeightProc(currentHeight int64) {
 	//检查已经提交的交易结果
-	chain33Relayer.rwLock.Lock()
-	for chain33Relayer.statusCheckedIndex < chain33Relayer.totalTx4Chain33ToEth {
-		index := chain33Relayer.statusCheckedIndex + 1
-		txhash, err := chain33Relayer.getEthTxhash(index)
-		if nil != err {
-			relayerLog.Error("onNewHeightProc", "getEthTxhash for index ", index, "error", err.Error())
-			break
-		}
-		status := ethTx.GetEthTxStatus(chain33Relayer.ethClient, txhash)
-		//按照提交交易的先后顺序检查交易，只要出现当前交易还在pending状态，就不再检查后续交易，等到下个区块再从该交易进行检查
-		//TODO:可能会由于网络和打包挖矿的原因，使得交易执行顺序和提交顺序有差别，后续完善该检查逻辑
-		if status == ethTx.EthTxPending.String() {
-			break
-		}
-		_ = chain33Relayer.setLastestRelay2EthTxhash(status, txhash.Hex(), index)
-		atomic.AddInt64(&chain33Relayer.statusCheckedIndex, 1)
-		_ = chain33Relayer.setStatusCheckedIndex(chain33Relayer.statusCheckedIndex)
-	}
-	chain33Relayer.rwLock.Unlock()
+
 	//未达到足够的成熟度，不进行处理
 	//  +++++++++||++++++++++++||++++++++++||
 	//           ^             ^           ^
@@ -197,7 +175,7 @@ func (chain33Relayer *Relayer4Chain33) onNewHeightProc(currentHeight int64) {
 			tx := txAndLog.Tx
 
 			//确认订阅的evm交易类型和合约地址
-			if !strings.Contains(string(tx.Execer), "evm") || tx.To != chain33Relayer.chain33EVMAddr {
+			if !strings.Contains(string(tx.Execer), "evm") || tx.To != chain33Relayer.bridgeBankAddr {
 				relayerLog.Error("onNewHeightProc received logs not expected", "tx.Execer", string(tx.Execer), "tx.To", tx.To)
 				continue
 			}
@@ -236,26 +214,6 @@ func (chain33Relayer *Relayer4Chain33) handleBurnLockEvent(evmEventType events.C
 
 	chain33Relayer.chain33MsgChan <- chain33Msg
 
-	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
-	prophecyClaim := ethTx.Chain33MsgToProphecyClaim(*chain33Msg)
-
-	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := ethTx.RelayOracleClaimToEthereum(chain33Relayer.oracleInstanceOnEth, chain33Relayer.ethClient, chain33Relayer.ethSender, prophecyClaim, chain33Relayer.privateKey4Ethereum, chain33TxHash)
-	if nil != err {
-		return err
-	}
-
-	//保存交易hash，方便查询
-	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)
-	txIndex := atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth)
-	if err = chain33Relayer.updateTotalTxAmount2Eth(txIndex); nil != err {
-		relayerLog.Error("handleLogNewProphecyClaimEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
-	if err = chain33Relayer.setLastestRelay2EthTxhash(ethTx.EthTxPending.String(), txhash, txIndex); nil != err {
-		relayerLog.Error("handleLogNewProphecyClaimEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
 	return nil
 }
 
@@ -273,7 +231,7 @@ func (chain33Relayer *Relayer4Chain33) DeployContracts() (bridgeRegistry string,
 	}
 
 	//已经设置了注册合约地址，说明已经部署了相关的合约，不再重复部署
-	if chain33Relayer.bridgeRegistryAddr != nil {
+	if chain33Relayer.bridgeRegistryAddr != "" {
 		return bridgeRegistry, errors.New("contract deployed already")
 	}
 
@@ -292,7 +250,7 @@ func (chain33Relayer *Relayer4Chain33) DeployContracts() (bridgeRegistry string,
 	if nil != err {
 		panic(fmt.Sprintf("Failed to NewAddrFromString for:%s", chain33Relayer.deployInfo.OperatorAddr))
 	}
-	para4deploy := &chain33txs.DeployPara4Chain33{
+	para4deploy := &DeployPara4Chain33{
 		Deployer:       *deployerAddr,
 		Operator:       *deployerAddr,
 		InitValidators: validators,
@@ -304,22 +262,19 @@ func (chain33Relayer *Relayer4Chain33) DeployContracts() (bridgeRegistry string,
 			"power", power.String())
 	}
 
-	x2EthDeployInfo, err := chain33txs.DeployAndInit2Chain33(chain33Relayer.rpcLaddr, chain33Relayer.chainName, para4deploy)
+	x2EthDeployInfo, err := deployAndInit2Chain33(chain33Relayer.rpcLaddr, chain33Relayer.chainName, para4deploy)
 	if err != nil {
 		return bridgeRegistry, err
 	}
 	chain33Relayer.rwLock.Lock()
-	chain33Relayer.operatorInfo = &ethtxs.OperatorInfo{
-		PrivateKey: deployPrivateKey,
-		Address:    deployerAddr,
-	}
-	chain33Relayer.deployPara = para
-	chain33Relayer.x2EthDeployInfo = x2EthDeployInfo
-	chain33Relayer.x2EthContracts = x2EthContracts
+
+	chain33Relayer.deployResult = x2EthDeployInfo
 	bridgeRegistry = x2EthDeployInfo.BridgeRegistry.Address.String()
 	_ = chain33Relayer.setBridgeRegistryAddr(bridgeRegistry)
 	//设置注册合约地址，同时设置启动中继服务的信号
-	chain33Relayer.bridgeRegistryAddr = x2EthDeployInfo.BridgeRegistry.Address
+	chain33Relayer.bridgeRegistryAddr = bridgeRegistry
+	chain33Relayer.oracleAddr = x2EthDeployInfo.Oracle.Address.String()
+	chain33Relayer.bridgeBankAddr = x2EthDeployInfo.BridgeBank.Address.String()
 	chain33Relayer.rwLock.Unlock()
 	chain33Relayer.unlock <- start
 	relayerLog.Info("deploy", "the BridgeRegistry address is", bridgeRegistry)
@@ -369,8 +324,14 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	//}
 }
 
-func (chain33Relayer *Relayer4Chain33) BurnAsyncFromChain33(ownerPrivateKey, tokenAddr, chain33Receiver, amount string) (string, error) {
+func (chain33Relayer *Relayer4Chain33) BurnAsyncFromChain33(ownerPrivateKey, tokenAddr, ethereumReceiver, amount string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
-	return BurnAsync(ownerPrivateKey, tokenAddr, chain33Receiver, bn.Int64(), chain33Relayer.bridgeBankAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr)
+	return burnAsync(ownerPrivateKey, tokenAddr, ethereumReceiver, bn.Int64(), chain33Relayer.bridgeBankAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr)
+}
+
+func (chain33Relayer *Relayer4Chain33) LockBTYAssetAsync(ownerPrivateKey, ethereumReceiver, amount string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
+	return lockAsync(ownerPrivateKey, ethereumReceiver, bn.Int64(), chain33Relayer.bridgeBankAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr)
 }

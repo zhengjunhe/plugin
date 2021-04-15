@@ -17,7 +17,6 @@ import (
 	"math/big"
 	"regexp"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
@@ -50,7 +49,6 @@ type Relayer4Ethereum struct {
 	ethSender           common.Address
 
 	ethValidator           common.Address
-	totalTx4Eth2Chain33    int64
 	unlockchan             chan int
 	maturityDegree         int32
 	fetchHeightPeriodMs    int32
@@ -122,7 +120,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 	ethRelayer.initBridgeBankTx()
 
 	// Start clientSpec with infura ropsten provider
-	relayerLog.Info("Relayer4Ethereum proc", "Started Ethereum websocket with provider:", ethRelayer.provider, "rpcURL2Chain33:", ethRelayer.rpcURL2Chain33)
+	relayerLog.Info("Relayer4Ethereum proc", "Started Ethereum websocket with provider:", ethRelayer.provider)
 	client, err := ethtxs.SetupWebsocketEthClient(ethRelayer.provider)
 	if err != nil {
 		panic(err)
@@ -289,7 +287,7 @@ func (ethRelayer *Relayer4Ethereum) CreateERC20Token(symbol string) (string, err
 //MintERC20Token ...
 func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount string) (string, error) {
 	bn := big.NewInt(1)
-	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	ethRelayer.rwLock.RLock()
 	defer ethRelayer.rwLock.RUnlock()
 	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
@@ -298,14 +296,14 @@ func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount 
 //ApproveAllowance ...
 func (ethRelayer *Relayer4Ethereum) ApproveAllowance(ownerPrivateKey, tokenAddr, amount string) (string, error) {
 	bn := big.NewInt(1)
-	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	return ethtxs.ApproveAllowance(ownerPrivateKey, tokenAddr, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.clientSpec)
 }
 
 //Burn ...
 func (ethRelayer *Relayer4Ethereum) Burn(ownerPrivateKey, tokenAddr, chain33Receiver, amount string) (string, error) {
 	bn := big.NewInt(1)
-	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	return ethtxs.Burn(ownerPrivateKey, tokenAddr, chain33Receiver, ethRelayer.x2EthDeployInfo.BridgeBank.Address, bn, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.clientSpec)
 }
 
@@ -319,7 +317,7 @@ func (ethRelayer *Relayer4Ethereum) BurnAsync(ownerPrivateKey, tokenAddr, chain3
 //TransferToken ...
 func (ethRelayer *Relayer4Ethereum) TransferToken(tokenAddr, fromKey, toAddr, amount string) (string, error) {
 	bn := big.NewInt(1)
-	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	return ethtxs.TransferToken(tokenAddr, fromKey, toAddr, bn, ethRelayer.clientSpec)
 }
 
@@ -337,14 +335,14 @@ func (ethRelayer *Relayer4Ethereum) GetDecimals(tokenAddr string) (uint8, error)
 //LockEthErc20Asset ...
 func (ethRelayer *Relayer4Ethereum) LockEthErc20Asset(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
 	bn := big.NewInt(1)
-	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	return ethtxs.LockEthErc20Asset(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.clientSpec, ethRelayer.x2EthContracts.BridgeBank, ethRelayer.x2EthDeployInfo.BridgeBank.Address)
 }
 
 //LockEthErc20AssetAsync ...
 func (ethRelayer *Relayer4Ethereum) LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, amount string, chain33Receiver string) (string, error) {
 	bn := big.NewInt(1)
-	bn, _ = bn.SetString(x2ethTypes.TrimZeroAndDot(amount), 10)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	return ethtxs.LockEthErc20AssetAsync(ownerPrivateKey, tokenAddr, chain33Receiver, bn, ethRelayer.clientSpec, ethRelayer.x2EthContracts.BridgeBank)
 }
 
@@ -380,9 +378,9 @@ func (ethRelayer *Relayer4Ethereum) proc() {
 	for range ethRelayer.unlockchan {
 		relayerLog.Info("Received ethRelayer.unlockchan")
 		ethRelayer.rwLock.RLock()
-		privateKey4Chain33 := ethRelayer.privateKey4Chain33
+		privateKey4Ethereum := ethRelayer.privateKey4Ethereum
 		ethRelayer.rwLock.RUnlock()
-		if nil != privateKey4Chain33 && nilAddr != ethRelayer.bridgeRegistryAddr {
+		if nil != privateKey4Ethereum && nilAddr != ethRelayer.bridgeRegistryAddr {
 			relayerLog.Info("Ethereum relayer starts to run...")
 			ethRelayer.prePareSubscribeEvent()
 			//向bridgeBank订阅事件
@@ -653,9 +651,9 @@ func (ethRelayer *Relayer4Ethereum) prePareSubscribeEvent() {
 	contactAbi := ethtxs.LoadABI(ethtxs.BridgeBankABI)
 	ethRelayer.bridgeBankAbi = contactAbi
 	eventName = events.LogLock.String()
-	ethRelayer.bridgeBankEventLockSig = contactAbi.Events[eventName].ID().Hex()
+	ethRelayer.bridgeBankEventLockSig = contactAbi.Events[eventName].ID.Hex()
 	eventName = events.LogChain33TokenBurn.String()
-	ethRelayer.bridgeBankEventBurnSig = contactAbi.Events[eventName].ID().Hex()
+	ethRelayer.bridgeBankEventBurnSig = contactAbi.Events[eventName].ID.Hex()
 	ethRelayer.bridgeBankAddr = ethRelayer.x2EthDeployInfo.BridgeBank.Address
 }
 
@@ -744,40 +742,13 @@ func (ethRelayer *Relayer4Ethereum) handleLogLockEvent(clientChainID *big.Int, c
 		return err
 	}
 
-	// Initiate the relay
-	ethRelayer.rwLock.RLock()
-	privateKey4Chain33 := ethRelayer.privateKey4Chain33
-	privateKey4Chain33_ecdsa := ethRelayer.privateKey4Chain33_ecdsa
-	ethRelayer.rwLock.RUnlock()
-
 	ethRelayer.ethBridgeClaimChan <- prophecyClaim
-
-	txhash, err := chain33txs.RelayLockBurnToChain33(privateKey4Chain33, privateKey4Chain33_ecdsa, prophecyClaim, rpcURL)
-	if err != nil {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
-	relayerLog.Info("handleLogLockEvent", "RelayLockToChain33 with hash", txhash)
-
-	//保存交易hash，方便查询
-	atomic.AddInt64(&ethRelayer.totalTx4Eth2Chain33, 1)
-	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33)
-	if err = ethRelayer.updateTotalTxAmount2chain33(txIndex); nil != err {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
-	if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
 
 	return nil
 }
 
 // handleLogBurnEvent : unpacks a burn event, converts it to a ProphecyClaim, and relays a tx to chain33
 func (ethRelayer *Relayer4Ethereum) handleLogBurnEvent(clientChainID *big.Int, contractABI abi.ABI, eventName string, log types.Log) error {
-	rpcURL := ethRelayer.rpcURL2Chain33
-
 	event, err := events.UnpackLogBurn(contractABI, eventName, log.Data)
 	if nil != err {
 		return err
@@ -806,30 +777,7 @@ func (ethRelayer *Relayer4Ethereum) handleLogBurnEvent(clientChainID *big.Int, c
 		return err
 	}
 
-	// Initiate the relay
-	ethRelayer.rwLock.RLock()
-	privateKey4Chain33 := ethRelayer.privateKey4Chain33
-	privateKey4Chain33_ecdsa := ethRelayer.privateKey4Chain33_ecdsa
-	ethRelayer.rwLock.RUnlock()
-	//txhash, err := chain33txs.RelayBurnToChain33(privateKey4Chain33, prophecyClaim, rpcURL)
-	txhash, err := chain33txs.RelayLockBurnToChain33(privateKey4Chain33, privateKey4Chain33_ecdsa, prophecyClaim, rpcURL)
-	if err != nil {
-		relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
-	relayerLog.Info("handleLogLockEvent", "RelayBurnToChain33 with hash", txhash)
-
-	//保存交易hash，方便查询
-	atomic.AddInt64(&ethRelayer.totalTx4Eth2Chain33, 1)
-	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33)
-	if err = ethRelayer.updateTotalTxAmount2chain33(txIndex); nil != err {
-		relayerLog.Error("handleLogBurnEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
-	if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
-		relayerLog.Error("handleLogBurnEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-		return err
-	}
+	ethRelayer.ethBridgeClaimChan <- prophecyClaim
 
 	return nil
 }

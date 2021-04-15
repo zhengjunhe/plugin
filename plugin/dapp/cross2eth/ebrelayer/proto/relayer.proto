@@ -96,6 +96,13 @@ message LockEthErc20 {
     string chain33Receiver = 4;
 }
 
+message LockBTY {
+    string ownerKey        = 1;
+    string amount          = 2;
+    //将lock住的资产跨链转移到ethereum的该账户名下
+    string etherumReceiver = 3;
+}
+
 message ReplyAddr {
     bool isOK       =1;
     string addr     =2;
@@ -111,6 +118,13 @@ message Burn {
     string tokenAddr  = 2;
     string amount      = 3;
     string chain33Receiver = 4;
+}
+
+message BurnFromChain33 {
+    string ownerKey   = 1;
+    string tokenAddr  = 2;
+    string amount      = 3;
+    string ethereumReceiver = 4;
 }
 
 message StaticsRequest {

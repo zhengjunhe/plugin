@@ -9,9 +9,9 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
-func DeployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPara4Chain33) (*X2EthDeployInfo, error) {
+func deployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPara4Chain33) (*X2EthDeployResult, error) {
 	deployer := para4deploy.Deployer.String()
-	deployInfo := &X2EthDeployInfo{}
+
 	var err error
 	constructorPara := ""
 	paraLen := len(para4deploy.InitValidators)
@@ -21,7 +21,20 @@ func DeployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPa
 	var oracleAddr string
 	var bridgeBankAddr string
 
-	//x2EthContracts.Valset, deployInfo.Valset, err = DeployValset(client, para.DeployPrivateKey, para.Deployer, para.Operator, para.InitValidators, para.InitPowers)
+	deployBridgeRegistry := &DeployResult{}
+	deployBridgeBank := &DeployResult{}
+	deployEthereumBridge := &DeployResult{}
+	deployValset := &DeployResult{}
+	deployOracle := &DeployResult{}
+
+	deployInfo := &X2EthDeployResult{
+		BridgeRegistry: deployBridgeRegistry,
+		BridgeBank:     deployBridgeBank,
+		EthereumBridge: deployEthereumBridge,
+		Valset:         deployValset,
+		Oracle:         deployOracle,
+	}
+
 	//constructor(
 	//	address _operator,
 	//	address[] memory _initValidators,
@@ -60,7 +73,10 @@ func DeployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPa
 				} else if data != "2" {
 					return nil, errors.New("Deploy valset failed due to" + ", ty = " + data)
 				}
-				valsetAddr = getContractAddr(deployer, deployValsetHash)
+
+				deployValset.Address = getContractAddr(deployer, deployValsetHash)
+				deployValset.TxHash = deployValsetHash
+				valsetAddr = deployValset.Address.String()
 				fmt.Println("Succeed to deploy valset with address =", valsetAddr, "\n")
 				goto deployEthereumBridge
 			}
@@ -95,7 +111,9 @@ deployEthereumBridge:
 				} else if data != "2" {
 					return nil, errors.New("Deploy EthereumBridge failed due to" + ", ty = " + data)
 				}
-				ethereumBridgeAddr = getContractAddr(deployer, deployEthereumBridgeHash)
+				deployEthereumBridge.Address = getContractAddr(deployer, deployEthereumBridgeHash)
+				deployValset.TxHash = deployEthereumBridgeHash
+				ethereumBridgeAddr = deployEthereumBridge.Address.String()
 				fmt.Println("Succeed to deploy EthereumBridge with address =", ethereumBridgeAddr, "\n")
 				goto deployOracle
 			}
@@ -132,7 +150,9 @@ deployOracle:
 				} else if data != "2" {
 					return nil, errors.New("Deploy Oracle failed due to" + ", ty = " + data)
 				}
-				oracleAddr = getContractAddr(deployer, deployOracleHash)
+				deployOracle.Address = getContractAddr(deployer, deployOracleHash)
+				deployOracle.TxHash = deployOracleHash
+				oracleAddr = deployOracle.Address.String()
 				fmt.Println("Succeed to deploy EthereumBridge with address =", oracleAddr, "\n")
 				goto deployBridgeBank
 			}
@@ -167,7 +187,9 @@ deployBridgeBank:
 				} else if data != "2" {
 					return nil, errors.New("Deploy BridgeBank failed due to" + ", ty = " + data)
 				}
-				bridgeBankAddr = getContractAddr(deployer, deployBridgeBankHash)
+				deployBridgeBank.Address = getContractAddr(deployer, deployBridgeBankHash)
+				deployBridgeBank.TxHash = deployOracleHash
+				bridgeBankAddr = deployBridgeBank.Address.String()
 				fmt.Println("Succeed to deploy BridgeBank with address =", bridgeBankAddr, "\n")
 				goto settingBridgeBank
 			}
@@ -194,7 +216,7 @@ settingBridgeBank:
 			case <-timeout.C:
 				panic("setBridgeBank timeout")
 			case <-oneSecondtimeout.C:
-				data, _ := getTxByHashesRpc(deployBridgeBankHash, rpcLaddr)
+				data, _ := getTxByHashesRpc(settingBridgeBankHash, rpcLaddr)
 				if data == "" {
 					fmt.Println("No receipt received yet for setBridgeBank tx and continue to wait")
 					continue
@@ -226,7 +248,7 @@ setOracle:
 			case <-timeout.C:
 				panic("setOracle timeout")
 			case <-oneSecondtimeout.C:
-				data, _ := getTxByHashesRpc(deployBridgeBankHash, rpcLaddr)
+				data, _ := getTxByHashesRpc(setOracleHash, rpcLaddr)
 				if data == "" {
 					fmt.Println("No receipt received yet for setOracle tx and continue to wait")
 					continue
@@ -261,19 +283,22 @@ deployBridgeRegistry:
 			case <-timeout.C:
 				panic("deployBridgeRegistry timeout")
 			case <-oneSecondtimeout.C:
-				data, _ := getTxByHashesRpc(deployBridgeBankHash, rpcLaddr)
+				data, _ := getTxByHashesRpc(deployBridgeRegistryHash, rpcLaddr)
 				if data == "" {
 					fmt.Println("No receipt received yet for deployBridgeRegistry tx and continue to wait")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("deployBridgeRegistry failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deployBridgeRegistry")
+
+				deployBridgeRegistry.Address = getContractAddr(deployer, deployBridgeRegistryHash)
+				deployBridgeRegistry.TxHash = deployBridgeRegistryHash
+
+				fmt.Println("Succeed to deployBridgeRegistry with address", deployBridgeRegistry.Address.String())
 				goto finished
 			}
 		}
 	}
 finished:
-
 	return deployInfo, nil
 }

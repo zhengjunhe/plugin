@@ -2,7 +2,6 @@ package chain33
 
 import (
 	"fmt"
-	"sync/atomic"
 
 	"github.com/33cn/chain33/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
@@ -16,6 +15,7 @@ var (
 	chain33ToEthBurnLockTxHashPrefix  = "chain33ToEthBurnLockTxHash"
 	chain33ToEthBurnLockTxTotalAmount = []byte("chain33ToEthBurnLockTxTotalAmount")
 	EthTxStatusCheckedIndex           = []byte("EthTxStatusCheckedIndex")
+	bridgeRegistryAddrOnChain33       = []byte("x2EthBridgeRegistryAddrOnChain33")
 )
 
 func calcRelay2EthTxhash(txindex int64) []byte {
@@ -24,7 +24,7 @@ func calcRelay2EthTxhash(txindex int64) []byte {
 
 func (chain33Relayer *Relayer4Chain33) updateTotalTxAmount2Eth(total int64) error {
 	totalTx := &types.Int64{
-		Data: atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth),
+		//Data: atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth),
 	}
 	//更新成功见证的交易数
 	return chain33Relayer.db.Set(chain33ToEthBurnLockTxTotalAmount, types.Encode(totalTx))
@@ -85,4 +85,16 @@ func (chain33Relayer *Relayer4Chain33) loadLastSyncHeight() int64 {
 func (chain33Relayer *Relayer4Chain33) setLastSyncHeight(syncHeight int64) {
 	bytes := types.Encode(&types.Int64{Data: syncHeight})
 	_ = chain33Relayer.db.Set(lastSyncHeightPrefix, bytes)
+}
+
+func (chain33Relayer *Relayer4Chain33) setBridgeRegistryAddr(bridgeRegistryAddr string) error {
+	return chain33Relayer.db.Set(bridgeRegistryAddrOnChain33, []byte(bridgeRegistryAddr))
+}
+
+func (chain33Relayer *Relayer4Chain33) getBridgeRegistryAddr() (string, error) {
+	addr, err := chain33Relayer.db.Get(bridgeRegistryAddrOnChain33)
+	if nil != err {
+		return "", err
+	}
+	return string(addr), nil
 }

@@ -7,8 +7,8 @@ import (
 	"math/big"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/ethinterface"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/events"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -34,7 +34,7 @@ func CreateBridgeToken(symbol string, client ethinterface.EthClientSpec, para *O
 	//订阅事件
 	eventName := "LogNewBridgeToken"
 	bridgeBankABI := LoadABI(BridgeBankABI)
-	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID().Hex()
+	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID.Hex()
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{x2EthDeployInfo.BridgeBank.Address},
 	}
@@ -90,7 +90,7 @@ func CreateBridgeToken(symbol string, client ethinterface.EthClientSpec, para *O
 		if vLog.Topics[0].Hex() == logNewBridgeTokenSig {
 			txslog.Debug("CreateBrigeToken", "Witnessed new event", eventName, "Block number", vLog.BlockNumber)
 
-			err = bridgeBankABI.Unpack(logEvent, eventName, vLog.Data)
+			err = bridgeBankABI.UnpackIntoInterface(logEvent, eventName, vLog.Data)
 			if nil != err {
 				return "", err
 			}

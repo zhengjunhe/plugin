@@ -4,22 +4,17 @@ import (
 	"crypto/ecdsa"
 	crand "crypto/rand"
 	"crypto/sha256"
-	"fmt"
 	"io"
 
 	chain33Common "github.com/33cn/chain33/common"
 	dbm "github.com/33cn/chain33/common/db"
-	"github.com/33cn/chain33/system/crypto/secp256k1"
 	chain33Types "github.com/33cn/chain33/types"
 	wcom "github.com/33cn/chain33/wallet/common"
 	x2ethTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
-	btcec_secp256k1 "github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/mr-tron/base58/base58"
 	"github.com/pborman/uuid"
-	"golang.org/x/crypto/ripemd160"
 )
 
 var (
@@ -128,38 +123,6 @@ func (ethRelayer *Relayer4Ethereum) StoreAccountWithNewPassphase(newPassphrase, 
 	return ethRelayer.db.SetSync(chain33AccountKey, encodedInfo)
 }
 
-//ImportChain33PrivateKey ...
-func (ethRelayer *Relayer4Ethereum) ImportChain33PrivateKey(passphrase, privateKeyStr string) error {
-	var driver secp256k1.Driver
-	privateKeySli, err := chain33Common.FromHex(privateKeyStr)
-	if nil != err {
-		return err
-	}
-	priKey, err := driver.PrivKeyFromBytes(privateKeySli)
-	if nil != err {
-		return err
-	}
-
-	ethRelayer.rwLock.Lock()
-	ethRelayer.privateKey4Chain33 = priKey
-	temp, _ := btcec_secp256k1.PrivKeyFromBytes(btcec_secp256k1.S256(), priKey.Bytes())
-	ethRelayer.privateKey4Chain33_ecdsa = temp.ToECDSA()
-	ethRelayer.rwLock.Unlock()
-	ethRelayer.unlockchan <- start
-	addr, err := pubKeyToAddress4Bty(priKey.PubKey().Bytes())
-	if nil != err {
-		return err
-	}
-
-	encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySli)
-	account := &x2ethTypes.Account4Relayer{
-		Privkey: encryptered,
-		Addr:    addr,
-	}
-	encodedInfo := chain33Types.Encode(account)
-	return ethRelayer.db.SetSync(chain33AccountKey, encodedInfo)
-}
-
 //checksum: first four bytes of double-SHA256.
 func checksum(input []byte) (cksum [4]byte) {
 	h := sha256.New()
@@ -175,34 +138,6 @@ func checksum(input []byte) (cksum [4]byte) {
 	}
 	finalHash := h.Sum(nil)
 	copy(cksum[:], finalHash[:])
-	return
-}
-
-func pubKeyToAddress4Bty(pub []byte) (addr string, err error) {
-	if len(pub) != 33 && len(pub) != 65 { //压缩格式 与 非压缩格式
-		return "", fmt.Errorf("invalid public key byte")
-	}
-
-	sha256h := sha256.New()
-	_, err = sha256h.Write(pub)
-	if err != nil {
-		return "", err
-	}
-	//160hash
-	ripemd160h := ripemd160.New()
-	_, err = ripemd160h.Write(sha256h.Sum([]byte("")))
-	if err != nil {
-		return "", err
-	}
-	//添加版本号
-	hash160res := append([]byte{0}, ripemd160h.Sum([]byte(""))...)
-
-	//添加校验码
-	cksum := checksum(hash160res)
-	address := append(hash160res, cksum[:]...)
-
-	//地址进行base58编码
-	addr = base58.Encode(address)
 	return
 }
 

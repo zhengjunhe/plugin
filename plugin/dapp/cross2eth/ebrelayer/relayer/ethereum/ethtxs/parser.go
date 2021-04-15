@@ -74,18 +74,18 @@ func Chain33MsgToProphecyClaim(msg events.Chain33Msg) ProphecyClaim {
 	claimType := msg.ClaimType
 	chain33Sender := msg.Chain33Sender
 	ethereumReceiver := msg.EthereumReceiver
-	tokenContractAddress := msg.TokenContractAddress
+	//tokenContractAddress := msg.TokenContractAddress
 	symbol := strings.ToLower(msg.Symbol)
 	amount := msg.Amount
 
 	prophecyClaim := ProphecyClaim{
-		ClaimType:            claimType,
-		Chain33Sender:        chain33Sender.Bytes(),
-		EthereumReceiver:     ethereumReceiver,
-		TokenContractAddress: tokenContractAddress,
-		Symbol:               symbol,
-		Amount:               amount,
-		chain33TxHash:        msg.TxHash,
+		ClaimType:        claimType,
+		Chain33Sender:    chain33Sender.Bytes(),
+		EthereumReceiver: ethereumReceiver,
+		//TokenContractAddress: tokenContractAddress,
+		Symbol:        symbol,
+		Amount:        amount,
+		chain33TxHash: msg.TxHash,
 	}
 
 	return prophecyClaim
