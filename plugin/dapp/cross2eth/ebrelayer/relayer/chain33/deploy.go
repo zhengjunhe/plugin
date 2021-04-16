@@ -45,7 +45,7 @@ func deployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPa
 			para4deploy.InitValidators[0].String(),
 			para4deploy.InitPowers[0].Int64())
 	} else if 4 == paraLen {
-		constructorPara = fmt.Sprintf("constructor(%s, %s, %s, %s, %s, %d, %d, %d, %d)", para4deploy.Operator.String(),
+		constructorPara = fmt.Sprintf("constructor(%s, [%s, %s, %s, %s], [%d, %d, %d, %d])", para4deploy.Operator.String(),
 			para4deploy.InitValidators[0].String(), para4deploy.InitValidators[1].String(), para4deploy.InitValidators[2].String(), para4deploy.InitValidators[3].String(),
 			para4deploy.InitPowers[0].Int64(), para4deploy.InitPowers[1].Int64(), para4deploy.InitPowers[2].Int64(), para4deploy.InitPowers[3].Int64())
 	} else {
@@ -58,7 +58,6 @@ func deployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPa
 		return nil, err
 	}
 	{
-		fmt.Println("\nDeployValset tx hash:", deployInfo.Valset.TxHash)
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(5 * time.Second)
 		for {
@@ -68,7 +67,7 @@ func deployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPa
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(deployValsetHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for Deploy valset tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for Deploy valset tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("Deploy valset failed due to" + ", ty = " + data)
@@ -77,7 +76,7 @@ func deployAndInit2Chain33(rpcLaddr, paraChainName string, para4deploy *DeployPa
 				deployValset.Address = getContractAddr(deployer, deployValsetHash)
 				deployValset.TxHash = deployValsetHash
 				valsetAddr = deployValset.Address.String()
-				fmt.Println("Succeed to deploy valset with address =", valsetAddr, "\n")
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to deploy valset with address =", valsetAddr)
 				goto deployEthereumBridge
 			}
 		}
@@ -96,7 +95,6 @@ deployEthereumBridge:
 		return nil, err
 	}
 	{
-		fmt.Println("\nDeploy EthereumBridge Hash tx hash:", deployEthereumBridgeHash)
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(5 * time.Second)
 		for {
@@ -106,7 +104,7 @@ deployEthereumBridge:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(deployEthereumBridgeHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for Deploy EthereumBridge tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for Deploy EthereumBridge tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("Deploy EthereumBridge failed due to" + ", ty = " + data)
@@ -114,7 +112,7 @@ deployEthereumBridge:
 				deployEthereumBridge.Address = getContractAddr(deployer, deployEthereumBridgeHash)
 				deployValset.TxHash = deployEthereumBridgeHash
 				ethereumBridgeAddr = deployEthereumBridge.Address.String()
-				fmt.Println("Succeed to deploy EthereumBridge with address =", ethereumBridgeAddr, "\n")
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to deploy EthereumBridge with address =", ethereumBridgeAddr)
 				goto deployOracle
 			}
 		}
@@ -134,8 +132,6 @@ deployOracle:
 		return nil, err
 	}
 	{
-		fmt.Println("DeployOracle tx hash:", deployOracleHash)
-
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(5 * time.Second)
 		for {
@@ -145,7 +141,7 @@ deployOracle:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(deployOracleHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for Deploy Oracle tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for Deploy Oracle tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("Deploy Oracle failed due to" + ", ty = " + data)
@@ -153,7 +149,7 @@ deployOracle:
 				deployOracle.Address = getContractAddr(deployer, deployOracleHash)
 				deployOracle.TxHash = deployOracleHash
 				oracleAddr = deployOracle.Address.String()
-				fmt.Println("Succeed to deploy EthereumBridge with address =", oracleAddr, "\n")
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to deploy Oracle with address =", oracleAddr)
 				goto deployBridgeBank
 			}
 		}
@@ -172,7 +168,6 @@ deployBridgeBank:
 		return nil, err
 	}
 	{
-		fmt.Println("deployBridgeBank tx hash:", deployBridgeBankHash)
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(5 * time.Second)
 		for {
@@ -182,7 +177,7 @@ deployBridgeBank:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(deployBridgeBankHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for Deploy BridgeBank tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for Deploy BridgeBank tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("Deploy BridgeBank failed due to" + ", ty = " + data)
@@ -190,7 +185,7 @@ deployBridgeBank:
 				deployBridgeBank.Address = getContractAddr(deployer, deployBridgeBankHash)
 				deployBridgeBank.TxHash = deployOracleHash
 				bridgeBankAddr = deployBridgeBank.Address.String()
-				fmt.Println("Succeed to deploy BridgeBank with address =", bridgeBankAddr, "\n")
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to deploy BridgeBank with address =", bridgeBankAddr)
 				goto settingBridgeBank
 			}
 		}
@@ -218,12 +213,12 @@ settingBridgeBank:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(settingBridgeBankHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for setBridgeBank tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for for setBridgeBank tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("setBridgeBank failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to setBridgeBank ")
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to setBridgeBank ", "Oh yea!!!")
 				goto setOracle
 			}
 		}
@@ -250,12 +245,12 @@ setOracle:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(setOracleHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for setOracle tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for for setOracle tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("setOracle failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to setOracle ")
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to setOracle ", "Oh yea!!!")
 				goto deployBridgeRegistry
 			}
 		}
@@ -275,7 +270,6 @@ deployBridgeRegistry:
 		return nil, err
 	}
 	{
-		fmt.Println("deployBridgeRegistryHash tx hash:", deployBridgeRegistryHash)
 		timeout := time.NewTimer(300 * time.Second)
 		oneSecondtimeout := time.NewTicker(5 * time.Second)
 		for {
@@ -285,7 +279,7 @@ deployBridgeRegistry:
 			case <-oneSecondtimeout.C:
 				data, _ := getTxByHashesRpc(deployBridgeRegistryHash, rpcLaddr)
 				if data == "" {
-					fmt.Println("No receipt received yet for deployBridgeRegistry tx and continue to wait")
+					chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for for deploy BridgeRegistry tx and continue to wait", "continue")
 					continue
 				} else if data != "2" {
 					return nil, errors.New("deployBridgeRegistry failed due to" + ", ty = " + data)
@@ -294,7 +288,7 @@ deployBridgeRegistry:
 				deployBridgeRegistry.Address = getContractAddr(deployer, deployBridgeRegistryHash)
 				deployBridgeRegistry.TxHash = deployBridgeRegistryHash
 
-				fmt.Println("Succeed to deployBridgeRegistry with address", deployBridgeRegistry.Address.String())
+				chain33txLog.Info("deployAndInit2Chain33", "Succeed to deployBridgeRegistry with address", deployBridgeRegistry.Address.String())
 				goto finished
 			}
 		}

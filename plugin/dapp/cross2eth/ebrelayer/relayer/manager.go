@@ -15,7 +15,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
-	"github.com/33cn/plugin/plugin/dapp/x2ethereum/types"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -636,7 +635,7 @@ func (manager *Manager) ShowLockStatics(token relayerTypes.TokenStatics, result 
 		}
 	}
 	*result = relayerTypes.StaticsLock{
-		Balance: strconv.FormatFloat(types.Toeth(balance, d), 'f', 4, 64),
+		Balance: strconv.FormatFloat(utils.Toeth(balance, d), 'f', 4, 64),
 	}
 	return nil
 }

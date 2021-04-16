@@ -38,9 +38,10 @@ message RelayerConfig {
   string ethProvider  = 5;
   string bridgeRegistry = 6;
   Deploy deploy = 7;
-  int32 ethMaturityDegree = 8;
-  int32 ethBlockFetchPeriod = 9;
-  string ethProviderCli  = 10;
+  Deploy deploy4chain33 = 8;
+  int32 ethMaturityDegree = 9;
+  int32 ethBlockFetchPeriod = 10;
+  string ethProviderCli  = 11;
 }
 
 message SyncTxReceiptConfig {

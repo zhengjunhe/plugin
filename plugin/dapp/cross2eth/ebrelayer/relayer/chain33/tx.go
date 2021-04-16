@@ -162,7 +162,10 @@ func deploySingleContract(code []byte, abi, constructorPara, contractName, paraC
 		}
 		action.Code = append(action.Code, packData...)
 	}
-	data, err := createSignedEvmTx(&action, paraChainName+"evm", deployer, rpcLaddr)
+
+	exector := paraChainName + "evm"
+	to := address.ExecAddress(exector)
+	data, err := createSignedEvmTx(&action, exector, deployer, rpcLaddr, to)
 	if err != nil {
 		return "", errors.New(contractName + " create contract error:" + err.Error())
 	}
@@ -171,13 +174,12 @@ func deploySingleContract(code []byte, abi, constructorPara, contractName, paraC
 	if err != nil {
 		return "", errors.New(contractName + " send transaction error:" + err.Error())
 	}
-	fmt.Println("Deploy", contractName, "tx hash:", txhex)
-
+	chain33txLog.Info("deploySingleContract", "Deploy contract for", contractName, " with tx hash:", txhex)
 	return txhex, nil
 }
 
-func createSignedEvmTx(action proto.Message, execer, caller, rpcLaddr string) (string, error) {
-	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: int64(1e8)}
+func createSignedEvmTx(action proto.Message, execer, caller, rpcLaddr, to string) (string, error) {
+	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: int64(1e8), To: to}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tx.Nonce = random.Int63()
@@ -186,20 +188,21 @@ func createSignedEvmTx(action proto.Message, execer, caller, rpcLaddr string) (s
 	rawTx := hex.EncodeToString(txHex)
 
 	unsignedTx := &types.ReqSignRawTx{
-		Addr:  caller,
-		TxHex: rawTx,
-		Fee:   tx.Fee,
+		Addr:   caller,
+		TxHex:  rawTx,
+		Fee:    tx.Fee,
+		Expire: "120s",
 	}
 
 	var res string
 	client, err := jsonclient.NewJSONClient(rpcLaddr)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		chain33txLog.Error("createSignedEvmTx", "jsonclient.NewJSONClient", err.Error())
 		return "", err
 	}
 	err = client.Call("Chain33.SignRawTx", unsignedTx, &res)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		chain33txLog.Error("createSignedEvmTx", "Chain33.SignRawTx", err.Error())
 		return "", err
 	}
 
@@ -230,7 +233,7 @@ func sendTx2Evm(parameter, rpcURL, toAddr, chainName, caller string) (string, er
 
 	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
 	wholeEvm := chainName + "evm"
-	data, err := createSignedEvmTx(&action, wholeEvm, caller, rpcURL)
+	data, err := createSignedEvmTx(&action, wholeEvm, caller, rpcURL, toAddr)
 	if err != nil {
 		return "", errors.New(toAddr + " createSignedEvmTx error:" + err.Error())
 	}

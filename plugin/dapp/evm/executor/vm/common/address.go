@@ -6,6 +6,7 @@ package common
 
 import (
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -129,6 +130,15 @@ func BytesToHash160Address(b []byte) Hash160Address {
 func StringToAddress(s string) *Address {
 	addr, err := address.NewAddrFromString(s)
 	if err != nil {
+		//检查是否是十六进制地址数据
+		hbytes, err := hex.DecodeString(strings.TrimPrefix(s, "0x"))
+		if err == nil {
+			if len(hbytes) == 20 {
+				var addr address.Address
+				addr.SetBytes(hbytes)
+				return &Address{Addr: &addr}
+			}
+		}
 		log15.Error("create address form string error", "string:", s)
 		return nil
 	}

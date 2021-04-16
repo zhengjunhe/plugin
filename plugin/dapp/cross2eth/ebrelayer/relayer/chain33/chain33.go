@@ -64,6 +64,7 @@ type Chain33StartPara struct {
 	Ctx                context.Context
 	SyncTxConfig       *ebTypes.SyncTxConfig
 	BridgeRegistryAddr string
+	DeployInfo         *ebTypes.Deploy
 	DBHandle           dbm.DB
 	EthBridgeClaimChan <-chan *ebrelayerTypes.EthBridgeClaim
 	Chain33MsgChan     chan<- *events.Chain33Msg
@@ -77,6 +78,7 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 		unlock:              make(chan int),
 		db:                  startPara.DBHandle,
 		ctx:                 startPara.Ctx,
+		deployInfo:          startPara.DeployInfo,
 		bridgeRegistryAddr:  startPara.BridgeRegistryAddr,
 		ethBridgeClaimChan:  startPara.EthBridgeClaimChan,
 		chain33MsgChan:      startPara.Chain33MsgChan,

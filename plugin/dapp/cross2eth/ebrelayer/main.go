@@ -75,10 +75,12 @@ func main() {
 	ethBridgeClaimChan := make(chan *ebrelayerTypes.EthBridgeClaim)
 	chain33MsgChan := make(chan *events.Chain33Msg)
 
+	log.Info("deploy info for chain33:", "cfg.Deploy4Chain33", cfg.Deploy4Chain33)
 	chain33StartPara := &chain33Relayer.Chain33StartPara{
 		Ctx:                ctx,
 		SyncTxConfig:       cfg.SyncTxConfig,
 		BridgeRegistryAddr: cfg.BridgeRegistry,
+		DeployInfo:         cfg.Deploy4Chain33,
 		DBHandle:           db,
 		EthBridgeClaimChan: ethBridgeClaimChan,
 		Chain33MsgChan:     chain33MsgChan,

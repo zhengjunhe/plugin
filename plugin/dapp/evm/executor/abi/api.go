@@ -239,7 +239,37 @@ func str2GoValue(typ Type, val string) (res interface{}, err error) {
 		for idx, sub := range subs {
 			subVal, er := str2GoValue(*typ.Elem, sub)
 			if er != nil {
-				return res, er
+				//return res, er
+				subparams, err := procArrayItem(sub) //解析复合类型中的多个元素
+				if err != nil {
+					return res, er
+				}
+				fmt.Println("subparams len", len(subparams), "subparams", subparams)
+				//获取符合类型对应的参数类型(address,bytes)
+				abityps := strings.Split(typ.Elem.stringKind[1:len(typ.Elem.stringKind)-1], ",") //解析为[address, bytes]
+				fmt.Println("abityps", abityps)
+				//复合类型，继续解析参数
+
+				for i := 0; i < len(subparams); i++ {
+					tp, err := NewType(abityps[i], "", nil)
+					if err != nil {
+						fmt.Println("NewType", err.Error())
+						continue
+					}
+					fmt.Println("tp", tp.stringKind, "types", tp.T)
+					subVal, err = str2GoValue(tp, subparams[i]) //处理对应的元素
+					if err != nil {
+						fmt.Println("str2GoValue err ", err.Error())
+						continue
+					}
+
+					fmt.Println("subVal", subVal)
+					rval.Index(idx).Field(i).Set(reflect.ValueOf(subVal))
+
+				}
+
+				return rval.Interface(), nil
+
 			}
 			rval.Index(idx).Set(reflect.ValueOf(subVal))
 		}

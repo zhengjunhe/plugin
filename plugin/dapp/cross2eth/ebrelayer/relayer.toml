@@ -2,15 +2,15 @@ title="x2Ethereum_relayer"
 #用于cli向该relayer进行配置
 JrpcBindAddr="localhost:9901"
 EthProviderCli="http://127.0.0.1:7545"
-EthProvider="ws://127.0.0.1:7545/"
+#EthProvider="ws://127.0.0.1:7545/"
 #EthProvider="wss://rinkeby.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
-#EthProvider="wss://ropsten.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
+EthProvider="wss://ropsten.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
 EthMaturityDegree=10
 EthBlockFetchPeriod=5000
 #BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
 
 [SyncTxConfig]
-chain33Host="http://172.18.0.7:8801"
+chain33Host="http://localhost:8801"
 pushHost="http://192.168.0.125:20000"
 pushName="x2ethereum"
 pushBind="0.0.0.0:20000"
@@ -26,6 +26,16 @@ fetchHeightPeriodMs=5000
 startSyncHeight=0
 startSyncSequence=0
 startSyncHash=""
+
+[deploy4chain33]
+#合约部署人员私钥，用于部署合约时签名使用
+operatorAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
+#合约部署人员私钥，用于部署合约时签名使用
+deployerPrivateKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
+#验证人地址，至少配置３个以上，即大于等于３个
+validatorsAddr=["14KEKbYtKKQm4wMthSK9J4La4nAiidGozt", "13KTf57aCkVVJYNJBXBBveiA5V811SrLcT", "1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe", "1NHuKqoKe3hyv52PF8XBAyaTmJWAqA2Jbb"]
+#验证人权重
+initPowers=[96, 1, 1, 1]
 
 [deploy]
 #合约部署人员私钥，用于部署合约时签名使用
@@ -55,6 +65,6 @@ localTime = true
 # 历史日志文件是否压缩（压缩格式为gz）
 compress = true
 # 是否打印调用源文件和行号
-callerFile = false
+callerFile = true
 # 是否打印调用方法
-callerFunction = false
+callerFunction = true
