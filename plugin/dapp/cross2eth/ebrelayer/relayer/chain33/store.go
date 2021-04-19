@@ -2,6 +2,7 @@ package chain33
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	"github.com/33cn/chain33/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
@@ -24,7 +25,7 @@ func calcRelay2EthTxhash(txindex int64) []byte {
 
 func (chain33Relayer *Relayer4Chain33) updateTotalTxAmount2Eth(total int64) error {
 	totalTx := &types.Int64{
-		//Data: atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth),
+		Data: atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth),
 	}
 	//更新成功见证的交易数
 	return chain33Relayer.db.Set(chain33ToEthBurnLockTxTotalAmount, types.Encode(totalTx))

@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	chain33Crypto "github.com/33cn/chain33/common/crypto"
@@ -51,6 +52,7 @@ type Relayer4Chain33 struct {
 	bridgeBankEventBurnSig   string
 	bridgeBankAbi            abi.ABI
 	deployInfo               *ebTypes.Deploy
+	totalTx4Chain33ToEth      int64
 	//新增//
 	ethBridgeClaimChan <-chan *ebrelayerTypes.EthBridgeClaim
 	chain33MsgChan     chan<- *events.Chain33Msg
@@ -82,6 +84,7 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 		bridgeRegistryAddr:  startPara.BridgeRegistryAddr,
 		ethBridgeClaimChan:  startPara.EthBridgeClaimChan,
 		chain33MsgChan:      startPara.Chain33MsgChan,
+		totalTx4Chain33ToEth: 0,
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -314,16 +317,16 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	relayerLog.Info("relayLockBurnToChain33", "RelayLockToChain33 with hash", txhash)
 
 	//保存交易hash，方便查询
-	//atomic.AddInt64(&chain33Relayer, 1)
-	//txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33)
-	//if err = ethRelayer.updateTotalTxAmount2chain33(txIndex); nil != err {
-	//	relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-	//	return err
-	//}
-	//if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
-	//	relayerLog.Error("handleLogLockEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-	//	return err
-	//}
+	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)
+	txIndex := atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth)
+	if err = chain33Relayer.updateTotalTxAmount2Eth(txIndex); nil != err {
+		relayerLog.Error("relayLockBurnToChain33", "Failed to RelayEvmTx2Chain33 due to:", err.Error())
+		return
+	}
+	if err = chain33Relayer.setLastestRelay2EthTxhash("", txhash, txIndex); nil != err {
+		relayerLog.Error("relayLockBurnToChain33", "Failed to RelayEvmTx2Chain33 due to:", err.Error())
+		return
+	}
 }
 
 func (chain33Relayer *Relayer4Chain33) BurnAsyncFromChain33(ownerPrivateKey, tokenAddr, ethereumReceiver, amount string) (string, error) {

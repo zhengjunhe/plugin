@@ -25,7 +25,6 @@ func EthereumRelayerCmd() *cobra.Command {
 		GenEthPrivateKeyCmd(),
 		ShowValidatorsAddrCmd(),
 		ShowChain33TxsHashCmd(),
-		ShowEthereumTxsHashCmd(),
 		IsValidatorActiveCmd(),
 		ShowOperatorCmd(),
 		DeployContrctsCmd(),
@@ -123,31 +122,6 @@ func ShowChain33TxsHashCmd() *cobra.Command {
 }
 
 func showChain33Txs(cmd *cobra.Command, args []string) {
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-
-	var res ebTypes.Txhashes
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowEthRelayer2Chain33Txs", nil, &res)
-	if _, err := ctx.RunResult(); nil != err {
-		errInfo := err.Error()
-		fmt.Println("errinfo:" + errInfo)
-		return
-	}
-	for _, hash := range res.Txhash {
-		fmt.Println(hash)
-	}
-}
-
-//ShowEthereumTxsHashCmd ...
-func ShowEthereumTxsHashCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "show_eth_tx",
-		Short: "show me the ethereum tx hashes",
-		Run:   showEthTxs,
-	}
-	return cmd
-}
-
-func showEthTxs(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	var res ebTypes.Txhashes

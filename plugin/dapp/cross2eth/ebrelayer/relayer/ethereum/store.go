@@ -3,6 +3,7 @@ package ethereum
 import (
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
 
 	dbm "github.com/33cn/chain33/common/db"
 	chain33Types "github.com/33cn/chain33/types"
@@ -14,7 +15,7 @@ import (
 var (
 	eth2chain33TxHashPrefix        = "Eth2chain33TxHash"
 	eth2chain33TxTotalAmount       = []byte("Eth2chain33TxTotalAmount")
-	chain33ToEthTxHashPrefix       = "chain33ToEthTxHash"
+	//chain33ToEthTxHashPrefix       = "chain33ToEthTxHash"
 	bridgeRegistryAddrPrefix       = []byte("x2EthBridgeRegistryAddr")
 	bridgeBankLogProcessedAt       = []byte("bridgeBankLogProcessedAt")
 	ethTxEventPrefix               = []byte("ethTxEventPrefix")
@@ -43,7 +44,7 @@ func (ethRelayer *Relayer4Ethereum) getBridgeRegistryAddr() (string, error) {
 
 func (ethRelayer *Relayer4Ethereum) updateTotalTxAmount2chain33(total int64) error {
 	totalTx := &chain33Types.Int64{
-		//Data: atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
+		Data: atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
 	}
 	//更新成功见证的交易数
 	return ethRelayer.db.Set(eth2chain33TxTotalAmount, chain33Types.Encode(totalTx))
