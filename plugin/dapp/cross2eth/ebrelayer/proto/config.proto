@@ -15,6 +15,7 @@ message SyncTxConfig {
   int64 startSyncHeight     = 10;
   int64 startSyncSequence   = 11;
   string startSyncHash      = 12;
+  repeated string contracts = 13;
 }
 
 message Log {
@@ -42,6 +43,8 @@ message RelayerConfig {
   int32 ethMaturityDegree = 9;
   int32 ethBlockFetchPeriod = 10;
   string ethProviderCli  = 11;
+  string bridgeRegistryOnChain33 = 12;
+  string chainName               = 13;
 }
 
 message SyncTxReceiptConfig {

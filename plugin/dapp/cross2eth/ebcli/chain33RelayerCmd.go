@@ -25,9 +25,90 @@ func Chain33RelayerCmd() *cobra.Command {
 		DeployContrcts2Chain33Cmd(),
 		LockAsyncFromChain33Cmd(),
 		BurnfromChain33Cmd(),
+		simBurnFromEthCmd(),
+		simLockFromEthCmd(),
+		ShowBridgeRegistryAddr4chain33Cmd(),
 	)
 
 	return cmd
+}
+
+//ShowBridgeRegistryAddrCmd ...
+func ShowBridgeRegistryAddr4chain33Cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bridgeRegistry",
+		Short: "show the address of Contract BridgeRegistry for chain33",
+		Run:   ShowBridgeRegistryAddr4chain33,
+	}
+	return cmd
+}
+
+//ShowBridgeRegistryAddr ...
+func ShowBridgeRegistryAddr4chain33(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	var res ebTypes.ReplyAddr
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowBridgeRegistryAddr4chain33", nil, &res)
+	ctx.Run()
+}
+
+func simBurnFromEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sim-burn",
+		Short: "simulate burn bty assets from ethereum",
+		Run:   simBurnFromEth,
+	}
+	BurnFlags(cmd)
+	return cmd
+}
+
+func simBurnFromEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	receiver, _ := cmd.Flags().GetString("receiver")
+
+	realAmount := utils.ToWei(amount, 8)
+
+	para := ebTypes.Burn{
+		OwnerKey:        key,
+		TokenAddr:       tokenAddr,
+		Amount:          realAmount.String(),
+		Chain33Receiver: receiver,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SimBurnFromEth", para, &res)
+	ctx.Run()
+}
+
+func simLockFromEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sim-lock",
+		Short: "simulate lock eth/erc20 assets from ethereum",
+		Run:   simLockFromEth,
+	}
+	LockEthErc20AssetFlags(cmd)
+	return cmd
+}
+
+func simLockFromEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	receiver, _ := cmd.Flags().GetString("receiver")
+
+	realAmount := utils.ToWei(amount, 18)
+
+	para := ebTypes.LockEthErc20{
+		OwnerKey:        key,
+		TokenAddr:       tokenAddr,
+		Amount:          realAmount.String(),
+		Chain33Receiver: receiver,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SimLockFromEth", para, &res)
+	ctx.Run()
 }
 
 //LockAsyncCmd ...
@@ -133,7 +214,7 @@ func DeployContrcts2Chain33(cmd *cobra.Command, args []string) {
 func ImportPrivateKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import_privatekey",
-		Short: "import ethereum private key to sign txs to be submitted to ethereum",
+		Short: "import chain33 private key to sign txs to be submitted to chain33 evm",
 		Run:   importPrivatekey,
 	}
 	addImportPrivateKeyFlags(cmd)
@@ -141,7 +222,7 @@ func ImportPrivateKeyCmd() *cobra.Command {
 }
 
 func addImportPrivateKeyFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("key", "k", "", "ethereum private key")
+	cmd.Flags().StringP("key", "k", "", "chain33 private key")
 	cmd.MarkFlagRequired("key")
 }
 

@@ -77,9 +77,10 @@ func main() {
 
 	log.Info("deploy info for chain33:", "cfg.Deploy4Chain33", cfg.Deploy4Chain33)
 	chain33StartPara := &chain33Relayer.Chain33StartPara{
+		ChainName:          cfg.ChainName,
 		Ctx:                ctx,
 		SyncTxConfig:       cfg.SyncTxConfig,
-		BridgeRegistryAddr: cfg.BridgeRegistry,
+		BridgeRegistryAddr: cfg.BridgeRegistryOnChain33,
 		DeployInfo:         cfg.Deploy4Chain33,
 		DBHandle:           db,
 		EthBridgeClaimChan: ethBridgeClaimChan,

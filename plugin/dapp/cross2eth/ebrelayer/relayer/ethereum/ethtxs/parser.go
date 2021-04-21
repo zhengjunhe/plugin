@@ -12,6 +12,7 @@ package ethtxs
 import (
 	"strings"
 
+	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -53,6 +54,9 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 		return nil, ebrelayerTypes.ErrEmptyAddress
 	}
 
+	chain33Receiver := new(address.Address)
+	chain33Receiver.SetBytes(recipient)
+
 	witnessClaim := &ebrelayerTypes.EthBridgeClaim{}
 	witnessClaim.EthereumChainID = ethereumChainID
 	witnessClaim.BridgeBrankAddr = bridgeBrankAddr
@@ -60,7 +64,7 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	witnessClaim.TokenAddr = event.Token.String()
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.OwnerFrom.String()
-	witnessClaim.Chain33Receiver = string(recipient)
+	witnessClaim.Chain33Receiver = chain33Receiver.String()
 	witnessClaim.Amount = event.Amount.Int64()
 	witnessClaim.ClaimType = int32(events.ClaimTypeBurn)
 	witnessClaim.ChainName = ""

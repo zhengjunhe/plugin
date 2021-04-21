@@ -124,7 +124,10 @@ func checkClient(addr string, expectClient string) bool {
 //如果已经注册，则继续推送
 func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 	contract := make(map[string]bool)
-	contract["x2ethereum"] = true
+	for _, name := range cfg.Contracts {
+		contract[name] = true
+	}
+
 	params := types.PushSubscribeReq{
 		Name:          cfg.PushName,
 		URL:           cfg.PushHost,
@@ -132,7 +135,7 @@ func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 		LastSequence:  cfg.StartSyncSequence,
 		LastHeight:    cfg.StartSyncHeight,
 		LastBlockHash: cfg.StartSyncHash,
-		Type:          blockchain.PushTxReceipt,
+		Type:          blockchain.PushEVMEvent,
 		Contract:      contract,
 	}
 	var res types.ReplySubscribePush

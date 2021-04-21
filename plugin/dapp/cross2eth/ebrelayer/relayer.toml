@@ -1,5 +1,6 @@
 title="x2Ethereum_relayer"
 #用于cli向该relayer进行配置
+ChainName=""  #链的名称，用来区分主链和平行链,如user.p.xxx.,必须包含最后一个点
 JrpcBindAddr="localhost:9901"
 EthProviderCli="http://127.0.0.1:7545"
 #EthProvider="ws://127.0.0.1:7545/"
@@ -7,7 +8,10 @@ EthProviderCli="http://127.0.0.1:7545"
 EthProvider="wss://ropsten.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
 EthMaturityDegree=10
 EthBlockFetchPeriod=5000
+BridgeRegistryOnChain33="1Kf5PZaTeguA6jDtdBYQkpLyjWVkXztoDp"
+BridgeRegistry="0x7B75364F9C47b26916C40d5295998d71ec07DAB4"
 #BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
+
 
 [SyncTxConfig]
 chain33Host="http://localhost:8801"
@@ -19,6 +23,7 @@ dbdriver="leveldb"
 dbPath="datadir"
 dbCache=64
 fetchHeightPeriodMs=5000
+contracts=["165UZpSHske8hryahjM91kAWMJRW47Hn7E"]
 #如果需要配置起始的块的信息，则为了保持一致性，三项缺一不可，或者都不配置
 #startSyncHeight=24531
 #startSyncSequence=24531

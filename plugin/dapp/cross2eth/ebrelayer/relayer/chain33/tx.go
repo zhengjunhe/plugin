@@ -81,7 +81,7 @@ func createEvmTx(privateKey chain33Crypto.PrivKey, action proto.Message, execer,
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tx.Nonce = random.Int63()
-	tx.ChainID = 33
+	tx.ChainID = 0
 
 	tx.Sign(types.SECP256K1, privateKey)
 	txData := types.Encode(tx)
@@ -98,7 +98,7 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 
 	feeInt64 := int64(1e7)
 	toAddr := oracleAddr
-	wholeEvm := claim.ChainName + ".evm"
+	wholeEvm := claim.ChainName + "evm"
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
@@ -367,7 +367,7 @@ func query(contractAddr, input, caller, rpcLaddr string) interface{} {
 	var resp evmtypes.EvmQueryResp
 	query := sendQuery(rpcLaddr, "Query", &req, &resp)
 
-	if query {
+	if !query {
 		return nil
 	}
 	_, err := json.MarshalIndent(&resp, "", "  ")
@@ -381,6 +381,7 @@ func query(contractAddr, input, caller, rpcLaddr string) interface{} {
 		fmt.Println("Unmarshal error", err.Error())
 		return nil
 	}
+	chain33txLog.Debug("query", "outputs", outputs)
 
 	return outputs[0].Value
 }

@@ -41,7 +41,7 @@ func run(evm *EVM, contract *Contract, input []byte, readOnly bool) (ret []byte,
 			//precompiles = PrecompiledContractsYoloV1
 		}
 		precompiles = PrecompiledContractsBerlin
-		if p := precompiles[*contract.CodeAddr]; p != nil {
+		if p := precompiles[contract.CodeAddr.ToHash160()]; p != nil {
 			return RunPrecompiledContract(p, input, contract)
 		}
 	}
@@ -192,7 +192,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			precompiles = PrecompiledContractsIstanbul
 		}
 		// 合约地址在自定义合约和预编译合约中都不存在时，可能为外部账户
-		if precompiles[addr] == nil {
+		if precompiles[addr.ToHash160()] == nil {
 			// 只有一种情况会走到这里来，就是合约账户向外部账户转账的情况
 			if len(input) > 0 || value == 0 {
 				// 其它情况要求地址必须存在，所以需要报错
@@ -203,6 +203,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 				return nil, -1, gas, model.ErrAddrNotExists
 			}
 		} else {
+			panic("meet precompiles")
 			// 否则，为预编译合约，创建一个新的账号
 			// 此分支先屏蔽，不需要为预编译合约创建账号也可以调用合约逻辑，因为预编译合约只有逻辑没有存储状态，可以不对应具体的账号存储
 			// evm.EVMStateDB.CreateAccount(addr, caller.Address())
@@ -327,10 +328,48 @@ func (evm *EVM) DelegateCall(caller ContractRef, addr common.Address, input []by
 // 不支持向合约转账
 // 在合约逻辑中，可以指定其它的合约地址以及输入参数进行合约调用，但是，这种情况下禁止修改MemoryStateDB中的任何数据，否则执行会出错
 func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte, gas uint64) (ret []byte, leftOverGas uint64, err error) {
+	addrecrecover := common.BytesToAddress(common.RightPadBytes([]byte{1}, 20))
+	log.Info("StaticCall", "input", common.Bytes2Hex(input),
+		"addr slice", common.Bytes2Hex(addr.Bytes()),
+		"addrecrecover", addrecrecover.String(),
+		"addrecrecoverslice", common.Bytes2Hex(addrecrecover.Bytes()))
+
 	pass, err := evm.preCheck(caller, 0)
 	if !pass {
 		return nil, gas, err
 	}
+
+	isPrecompile := false
+	precompiles := PrecompiledContractsByzantium
+	if !evm.StateDB.Exist(addr.String()) {
+
+		//预编译分叉处理： chain33中目前只存在拜占庭和最新的黄皮书v1版本（兼容伊斯坦布尔版本）
+
+		// 是否是黄皮书v1分叉
+		if evm.cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMYoloV1) {
+			precompiles = PrecompiledContractsIstanbul
+		}
+		////////debug code////
+		for hash160Address, _ := range precompiles {
+			log.Info("StaticCall precompiles", "addr.Bytes()", common.Bytes2Hex(hash160Address[:]),
+				"addr.String()", addr.String())
+		}
+
+		// 合约地址在自定义合约和预编译合约中都不存在时，可能为外部账户
+		if precompiles[addr.ToHash160()] == nil {
+			// 只有一种情况会走到这里来，就是合约账户向外部账户转账的情况
+			if len(input) > 0 {
+
+				return nil, gas, model.ErrAddrNotExists
+			}
+		} else {
+			isPrecompile = true
+			log.Info("StaticCall", "addr.Bytes()", common.Bytes2Hex(addr.Bytes()),
+				"isPrecompile", isPrecompile)
+		}
+	}
+
+	log.Info("StaticCall debug", "hhhh", 1)
 
 	// 如果是已经销毁状态的合约是不允许调用的
 	if evm.StateDB.HasSuicided(addr.String()) {
@@ -349,12 +388,16 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 		snapshot = evm.StateDB.Snapshot()
 	)
 
-	// 同外部合约的创建和修改逻辑，在每次调用时，需要创建并初始化一个新的合约内存对象
 	contract := NewContract(caller, to, 0, gas)
-	contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr.String()), evm.StateDB.GetCode(addr.String()))
+	if isPrecompile {
+		ret, err = RunPrecompiledContract(precompiles[addr.ToHash160()], input, contract)
+	} else {
+		contract.SetCallCode(&addr, evm.StateDB.GetCodeHash(addr.String()), evm.StateDB.GetCode(addr.String()))
+		// 执行合约指令时如果出错，需要进行回滚，并且扣除剩余的Gas
+		ret, err = run(evm, contract, input, false)
+	}
 
-	// 执行合约指令时如果出错，需要进行回滚，并且扣除剩余的Gas
-	ret, err = run(evm, contract, input, false)
+	// 同外部合约的创建和修改逻辑，在每次调用时，需要创建并初始化一个新的合约内存对象
 	if err != nil {
 		// 合约执行出错时进行回滚
 		// 注意，虽然内部调用合约不允许变更数据，但是可以进行生成日志等其它操作，这种情况下也是需要回滚的

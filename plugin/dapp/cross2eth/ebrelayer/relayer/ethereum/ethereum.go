@@ -28,7 +28,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethtxs"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
-	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -65,7 +64,7 @@ type Relayer4Ethereum struct {
 	deployPara             *ethtxs.DeployPara
 	operatorInfo           *ethtxs.OperatorInfo
 	x2EthContracts         *ethtxs.X2EthContracts
-	ethBridgeClaimChan     chan<- *ebrelayerTypes.EthBridgeClaim
+	ethBridgeClaimChan     chan<- *ebTypes.EthBridgeClaim
 	chain33MsgChan         <-chan *events.Chain33Msg
 }
 
@@ -85,7 +84,7 @@ type EthereumStartPara struct {
 	DeployInfo         *ebTypes.Deploy
 	Degree             int32
 	BlockInterval      int32
-	EthBridgeClaimChan chan<- *ebrelayerTypes.EthBridgeClaim
+	EthBridgeClaimChan chan<- *ebTypes.EthBridgeClaim
 	Chain33MsgChan     <-chan *events.Chain33Msg
 }
 

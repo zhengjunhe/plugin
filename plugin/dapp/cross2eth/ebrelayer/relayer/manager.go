@@ -267,17 +267,22 @@ func (manager *Manager) GenerateEthereumPrivateKey(param interface{}, result *in
 	return nil
 }
 
-//ImportChain33PrivateKey4EthRelayer 为ethrelayer导入chain33私钥，为向chain33发送交易时进行签名使用
-func (manager *Manager) ImportChain33PrivateKey4EthRelayer(privateKey string, result *interface{}) error {
+//ImportEthereumPrivateKey4EthRelayer 为ethrelayer导入chain33私钥，为向chain33发送交易时进行签名使用
+func (manager *Manager) ImportEthereumPrivateKey4EthRelayer(privateKey string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	if err := manager.checkPermission(); nil != err {
 		return err
 	}
+	addr, err := manager.ethRelayer.ImportPrivateKey(manager.passphase, privateKey)
+	if err != nil {
+		mlog.Error("ImportEthereumPrivateKey4EthRelayer", "Failed due to cause:", err.Error())
+		return err
+	}
 
 	*result = rpctypes.Reply{
-		IsOk: false,
-		Msg:  "Not need now",
+		IsOk: true,
+		Msg:  fmt.Sprintf("Succeed to import for address:%s", addr),
 	}
 	return nil
 }
@@ -477,6 +482,40 @@ func (manager *Manager) BurnAsync(burn relayerTypes.Burn, result *interface{}) e
 	return nil
 }
 
+//SimBurnFromEth: 模拟从eth销毁资产，提币回到chain33,使用LockBTY仅为测试使用
+func (manager *Manager) SimBurnFromEth(burn relayerTypes.Burn, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	err := manager.ethRelayer.SimBurnFromEth(burn)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+	}
+	return nil
+}
+
+//SimBurnFromEth: 模拟从eth锁住eth/erc20，转移到chain33
+func (manager *Manager) SimLockFromEth(lock relayerTypes.LockEthErc20, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	err := manager.ethRelayer.SimLockFromEth(lock)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+	}
+	return nil
+}
+
 func (manager *Manager) BurnAsyncFromChain33(burn relayerTypes.BurnFromChain33, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -607,6 +646,21 @@ func (manager *Manager) ShowBridgeRegistryAddr(para interface{}, result *interfa
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	addr, err := manager.ethRelayer.ShowBridgeRegistryAddr()
+	if nil != err {
+		return err
+	}
+	*result = relayerTypes.ReplyAddr{
+		IsOK: true,
+		Addr: addr,
+	}
+	return nil
+}
+
+//ShowBridgeRegistryAddr4chain33 ...
+func (manager *Manager) ShowBridgeRegistryAddr4chain33(para interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	addr, err := manager.chain33Relayer.ShowBridgeRegistryAddr()
 	if nil != err {
 		return err
 	}
