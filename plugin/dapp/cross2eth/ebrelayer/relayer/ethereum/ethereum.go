@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"regexp"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
@@ -66,6 +67,7 @@ type Relayer4Ethereum struct {
 	x2EthContracts         *ethtxs.X2EthContracts
 	ethBridgeClaimChan     chan<- *ebTypes.EthBridgeClaim
 	chain33MsgChan         <-chan *events.Chain33Msg
+	totalTx4Eth2Chain33 int64
 }
 
 var (
@@ -103,6 +105,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 		fetchHeightPeriodMs: startPara.BlockInterval,
 		ethBridgeClaimChan:  startPara.EthBridgeClaimChan,
 		chain33MsgChan:      startPara.Chain33MsgChan,
+		totalTx4Eth2Chain33: 0,
 	}
 
 	registrAddrInDB, err := ethRelayer.getBridgeRegistryAddr()
@@ -420,17 +423,16 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 	relayerLog.Error("handleChain33Msg", "RelayOracleClaimToEthereum with tx hash", txhash)
 
 	//保存交易hash，方便查询
-	//atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)
-	//txIndex := atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth)
-	//if err = chain33Relayer.updateTotalTxAmount2Eth(txIndex); nil != err {
-	//	relayerLog.Error("handleLogNewProphecyClaimEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-	//	return err
-	//}
-	//if err = chain33Relayer.setLastestRelay2EthTxhash(ethTx.EthTxPending.String(), txhash, txIndex); nil != err {
-	//	relayerLog.Error("handleLogNewProphecyClaimEvent", "Failed to RelayLockToChain33 due to:", err.Error())
-	//	return err
-	//}
-	//return nil
+	atomic.AddInt64(&ethRelayer.totalTx4Eth2Chain33, 1)
+	txIndex := atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33)
+	if err = ethRelayer.updateTotalTxAmount2chain33(txIndex); nil != err {
+		relayerLog.Error("handleChain33Msg", "Failed to RelayLockToChain33 due to:", err.Error())
+		return
+	}
+	if err = ethRelayer.setLastestRelay2Chain33Txhash( txhash, txIndex); nil != err {
+		relayerLog.Error("handleChain33Msg", "Failed to RelayLockToChain33 due to:", err.Error())
+		return
+	}
 }
 
 func (ethRelayer *Relayer4Ethereum) procNewHeight(ctx context.Context, continueFailCount *int32) {
@@ -696,12 +698,6 @@ func (ethRelayer *Relayer4Ethereum) ShowOperator() (string, error) {
 		return "", err
 	}
 	return operator.String(), nil
-}
-
-//QueryTxhashRelay2Eth ...
-func (ethRelayer *Relayer4Ethereum) QueryTxhashRelay2Eth() ebTypes.Txhashes {
-	txhashs := ethRelayer.queryTxhashes([]byte(chain33ToEthTxHashPrefix))
-	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
 //QueryTxhashRelay2Chain33 ...

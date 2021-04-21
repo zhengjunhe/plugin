@@ -755,12 +755,6 @@ func (manager *Manager) checkPermission() error {
 	return nil
 }
 
-//ShowEthRelayer2EthTxs ...
-func (manager *Manager) ShowEthRelayer2EthTxs(param interface{}, result *interface{}) error {
-	*result = manager.ethRelayer.QueryTxhashRelay2Eth()
-	return nil
-}
-
 //ShowEthRelayer2Chain33Txs ...
 func (manager *Manager) ShowEthRelayer2Chain33Txs(param interface{}, result *interface{}) error {
 	*result = manager.ethRelayer.QueryTxhashRelay2Chain33()
