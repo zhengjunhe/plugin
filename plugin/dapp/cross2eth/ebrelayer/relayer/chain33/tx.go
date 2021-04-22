@@ -99,7 +99,8 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 	//TODO: 交易费超大问题需要调查，hezhengjun on 20210420
 	feeInt64 := int64(5 * 1e8)
 	toAddr := oracleAddr
-	wholeEvm := claim.ChainName + "evm"
+
+	wholeEvm := getExecerName(claim.ChainName)
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
@@ -111,6 +112,18 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 	ctx := jsonclient.NewRPCCtx(rpcURL, "Chain33.SendTransaction", params, &txhash)
 	_, err := ctx.RunResult()
 	return txhash, err
+}
+
+func getExecerName(name string) string {
+	var ret string
+	names := strings.Split(name, ".")
+	for _, v := range names {
+		if v != "" {
+			ret = ret + v + "."
+		}
+	}
+	ret += "evm"
+	return ret
 }
 
 func queryTxsByHashesRes(arg interface{}) (interface{}, error) {
@@ -250,7 +263,7 @@ func approve(privateKey chain33Crypto.PrivKey, contractAddr, spender, chainName,
 	note := fmt.Sprintf("approve for spender:%s ", spender)
 
 	//approve(address spender, uint256 amount)
-	parameter := fmt.Sprint("approve(%s, %d)", spender, amount)
+	parameter := fmt.Sprintf("approve(%s, %d)", spender, amount)
 	return sendEvmTx(privateKey, contractAddr, parameter, chainName, rpcURL, note)
 }
 
@@ -260,7 +273,7 @@ func burn(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, ethe
 	//        address _ethereumTokenAddress,
 	//        uint256 _amount
 	//    )
-	parameter := fmt.Sprint("burnBridgeTokens(%s, %s, %d)", ethereumReceiver, ethereumTokenAddress, amount)
+	parameter := fmt.Sprintf("burnBridgeTokens(%s, %s, %d)", ethereumReceiver, ethereumTokenAddress, amount)
 	note := parameter
 	return sendEvmTx(privateKey, contractAddr, parameter, chainName, rpcURL, note)
 }
@@ -271,7 +284,7 @@ func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, c
 	//	address _token,
 	//	uint256 _amount
 	//)
-	parameter := fmt.Sprint("lock(%s, %s, %d)", ethereumReceiver, "1111111111111111111114oLvT2", amount)
+	parameter := fmt.Sprintf("lock(%s, %s, %d)", ethereumReceiver, "1111111111111111111114oLvT2", amount)
 	note := parameter
 	return sendEvmTx(privateKey, contractAddr, parameter, chainName, rpcURL, note)
 }
@@ -281,7 +294,7 @@ func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, parameter, chainN
 
 	feeInt64 := int64(1e7)
 	toAddr := contractAddr
-	wholeEvm := chainName + "evm"
+	wholeEvm := getExecerName(chainName)
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
