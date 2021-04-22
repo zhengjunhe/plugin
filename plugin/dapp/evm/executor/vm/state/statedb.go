@@ -6,20 +6,17 @@ package state
 
 import (
 	"fmt"
-	//"math/big"
 	"strings"
-
-	"github.com/33cn/chain33/common/address"
 
 	"github.com/33cn/chain33/account"
 	"github.com/33cn/chain33/client"
+	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/common/db"
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
-	//ethAbi "github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 // MemoryStateDB 内存状态数据库，保存在区块操作时内部的数据变更操作
@@ -575,46 +572,6 @@ func (mdb *MemoryStateDB) AddLog(log *model.ContractLog) {
 	mdb.logs[mdb.txHash] = append(mdb.logs[mdb.txHash], log)
 	mdb.logSize++
 	log15.Info("MemoryStateDB::AddLog", "txhash", mdb.txHash.Hex(), "mdb.logSize", mdb.logSize)
-
-	//routerAbiStr := mdb.GetAbi("1GMsmmzUPuQUkCJinuEyfkJoBoyJbiQKg")
-	//routerAbi, err := ethAbi.JSON(strings.NewReader(routerAbiStr))
-	//if err != nil {
-	//	panic("Failed to read json")
-	//}
-
-	//eventDebug := routerAbi.Events["debug"].ID().Hex()
-	//eventLogRunData := routerAbi.Events["logRunData"].ID().Hex()
-	//if log.Topics[0].Hex() == eventDebug {
-	//	type EventDebug struct {
-	//		Des string
-	//		Pos *big.Int
-	//	}
-	//	event := &EventDebug{}
-	//	eventName := "debug"
-	//	err = routerAbi.Unpack(event, eventName, log.Data)
-	//	if err != nil {
-	//		panic("Failed to unpack debug event")
-	//	}
-	//	log15.Debug("MemoryStateDB::AddLog", "EventDebug", event)
-	//
-	//} else if log.Topics[0].Hex() == eventLogRunData {
-	//	//logRunData(string func, address pair, address to, uint amountToken, uint amountETH, uint liquidity);
-	//	type EventRunData struct {
-	//		FuncName    string
-	//		Pair        *common.Address
-	//		To          *common.Address
-	//		AmountToken *big.Int
-	//		AmountEth   *big.Int
-	//		Liquidity   *big.Int
-	//	}
-	//	event := &EventRunData{}
-	//	eventName := "logRunData"
-	//	err = routerAbi.Unpack(event, eventName, log.Data)
-	//	if err != nil {
-	//		panic("Failed to unpack debug event")
-	//	}
-	//	log15.Debug("MemoryStateDB::AddLog", "logRunData", event)
-	//}
 }
 
 // AddPreimage 存储sha3指令对应的数据

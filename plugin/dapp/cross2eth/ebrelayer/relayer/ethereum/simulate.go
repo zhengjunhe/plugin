@@ -48,7 +48,7 @@ func (ethRelayer *Relayer4Ethereum) SimBurnFromEth(burn ebTypes.Burn) error {
 
 	burnEvent := &events.BurnEvent{
 		Token:           ethcommon.HexToAddress(burn.TokenAddr), //ethcommon.Address
-		Symbol:          "bty",
+		Symbol:          "BTY",
 		Amount:          amount,
 		OwnerFrom:       ethcommon.HexToAddress(burn.OwnerKey), //将owner 作为地址来用，只是为了测试使用
 		Chain33Receiver: addr.Hash160[:],                       //[]byte

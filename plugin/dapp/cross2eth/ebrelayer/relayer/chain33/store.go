@@ -1,10 +1,13 @@
 package chain33
 
 import (
+	"errors"
 	"fmt"
 	"sync/atomic"
 
-	"github.com/33cn/chain33/types"
+	dbm "github.com/33cn/chain33/common/db"
+	chain33Types "github.com/33cn/chain33/types"
+	types "github.com/33cn/chain33/types"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -17,14 +20,19 @@ var (
 	chain33ToEthBurnLockTxTotalAmount = []byte("chain33ToEthBurnLockTxTotalAmount")
 	EthTxStatusCheckedIndex           = []byte("EthTxStatusCheckedIndex")
 	bridgeRegistryAddrOnChain33       = []byte("x2EthBridgeRegistryAddrOnChain33")
+	tokenSymbol2AddrPrefix            = []byte("chain33TokenSymbol2AddrPrefix")
 )
+
+func tokenSymbol2AddrKey(symbol string) []byte {
+	return append(tokenSymbol2AddrPrefix, []byte(fmt.Sprintf("-symbol-%s", symbol))...)
+}
 
 func calcRelay2EthTxhash(txindex int64) []byte {
 	return []byte(fmt.Sprintf("%s-%012d", chain33ToEthBurnLockTxHashPrefix, txindex))
 }
 
 func (chain33Relayer *Relayer4Chain33) updateTotalTxAmount2Eth(total int64) error {
-	totalTx := &types.Int64{
+	totalTx := &chain33Types.Int64{
 		Data: atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth),
 	}
 	//更新成功见证的交易数
@@ -98,4 +106,69 @@ func (chain33Relayer *Relayer4Chain33) getBridgeRegistryAddr() (string, error) {
 		return "", err
 	}
 	return string(addr), nil
+}
+
+func (chain33Relayer *Relayer4Chain33) SetTokenAddress(token2set ebTypes.TokenAddress) error {
+	bytes := chain33Types.Encode(&token2set)
+	chain33Relayer.rwLock.Lock()
+	chain33Relayer.symbol2Addr[token2set.Symbol] = token2set.Address
+	chain33Relayer.rwLock.Unlock()
+	return chain33Relayer.db.Set(tokenSymbol2AddrKey(token2set.Symbol), bytes)
+}
+
+func (chain33Relayer *Relayer4Chain33) RestoreTokenAddress() error {
+	helper := dbm.NewListHelper(chain33Relayer.db)
+	datas := helper.List(tokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
+	if nil == datas {
+		return nil
+	}
+
+	chain33Relayer.rwLock.Lock()
+	for _, data := range datas {
+
+		var token2set ebTypes.TokenAddress
+		err := chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return err
+		}
+		relayerLog.Info("RestoreTokenAddress", "symbol", token2set.Symbol, "address", token2set.Address)
+		chain33Relayer.symbol2Addr[token2set.Symbol] = token2set.Address
+	}
+	chain33Relayer.rwLock.Unlock()
+	return nil
+}
+
+func (chain33Relayer *Relayer4Chain33) ShowTokenAddress(token2show ebTypes.TokenAddress) (*ebTypes.TokenAddressArray, error) {
+	res := &ebTypes.TokenAddressArray{}
+
+	if len(token2show.Symbol) > 0 {
+		data, err := chain33Relayer.db.Get(tokenSymbol2AddrKey(token2show.Symbol))
+		if err != nil {
+			return nil, err
+		}
+		var token2set ebTypes.TokenAddress
+		err = chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return nil, err
+		}
+		res.TokenAddress = append(res.TokenAddress, &token2set)
+		return res, nil
+	}
+	helper := dbm.NewListHelper(chain33Relayer.db)
+	datas := helper.List(tokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
+	if nil == datas {
+		return nil, errors.New("Not found")
+	}
+
+	for _, data := range datas {
+
+		var token2set ebTypes.TokenAddress
+		err := chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return nil, err
+		}
+		res.TokenAddress = append(res.TokenAddress, &token2set)
+
+	}
+	return res, nil
 }

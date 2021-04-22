@@ -12,11 +12,10 @@ BridgeRegistryOnChain33="1Kf5PZaTeguA6jDtdBYQkpLyjWVkXztoDp"
 BridgeRegistry="0x7B75364F9C47b26916C40d5295998d71ec07DAB4"
 #BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
 
-
 [SyncTxConfig]
 chain33Host="http://localhost:8801"
-pushHost="http://192.168.0.125:20000"
-pushName="x2ethereum"
+pushHost="http://localhost:20000"
+pushName="x2eth"
 pushBind="0.0.0.0:20000"
 maturityDegree=10
 dbdriver="leveldb"

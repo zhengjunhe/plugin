@@ -9,3 +9,9 @@ const (
 	// Oracle : oracle contract
 	StatusRunning
 )
+
+const (
+	Chain33BlockChainName  = "Chain33-mainchain"
+	EthereumBlockChainName = "Ethereum-mainchain"
+	BTYAddrChain33         = "1111111111111111111114oLvT2"
+)

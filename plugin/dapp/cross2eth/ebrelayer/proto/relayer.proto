@@ -183,3 +183,13 @@ message EthTxStatus {
     string status = 1;
     string txhash = 2;
 }
+
+message TokenAddress {
+    string address = 1;
+    string symbol  = 2;
+    string chainName = 3;
+}
+
+message TokenAddressArray {
+    repeated TokenAddress tokenAddress = 1;
+}

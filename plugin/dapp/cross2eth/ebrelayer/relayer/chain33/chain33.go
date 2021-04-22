@@ -47,7 +47,7 @@ type Relayer4Chain33 struct {
 	privateKey4Chain33_ecdsa *ecdsa.PrivateKey
 	ctx                      context.Context
 	rwLock                   sync.RWMutex
-	unlock                   chan int
+	unlockChan               chan int
 	bridgeBankEventLockSig   string
 	bridgeBankEventBurnSig   string
 	bridgeBankAbi            abi.ABI
@@ -60,6 +60,7 @@ type Relayer4Chain33 struct {
 	oracleAddr         string
 	bridgeBankAddr     string
 	deployResult       *X2EthDeployResult
+	symbol2Addr        map[string]string
 }
 
 type Chain33StartPara struct {
@@ -79,7 +80,7 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 		rpcLaddr:             startPara.SyncTxConfig.Chain33Host,
 		chainName:            startPara.ChainName,
 		fetchHeightPeriodMs:  startPara.SyncTxConfig.FetchHeightPeriodMs,
-		unlock:               make(chan int),
+		unlockChan:           make(chan int),
 		db:                   startPara.DBHandle,
 		ctx:                  startPara.Ctx,
 		deployInfo:           startPara.DeployInfo,
@@ -123,11 +124,11 @@ func (chain33Relayer *Relayer4Chain33) QueryTxhashRelay2Eth() ebTypes.Txhashes {
 
 func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptConfig) {
 	_, _ = fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Chain33 relayer")
-	<-chain33Relayer.unlock
+	<-chain33Relayer.unlockChan
 	_, _ = fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
 	//如果该中继器的bridgeRegistryAddr为空，就说明合约未部署，需要等待部署成功之后再继续
 	if "" == chain33Relayer.bridgeRegistryAddr {
-		<-chain33Relayer.unlock
+		<-chain33Relayer.unlockChan
 	}
 	//如果oracleAddr为空，则通过bridgeRegistry合约进行查询
 	if "" != chain33Relayer.bridgeRegistryAddr && "" == chain33Relayer.oracleAddr {
@@ -302,7 +303,7 @@ func (chain33Relayer *Relayer4Chain33) DeployContracts() (bridgeRegistry string,
 	chain33Relayer.oracleAddr = x2EthDeployInfo.Oracle.Address.String()
 	chain33Relayer.bridgeBankAddr = x2EthDeployInfo.BridgeBank.Address.String()
 	chain33Relayer.rwLock.Unlock()
-	chain33Relayer.unlock <- start
+	chain33Relayer.unlockChan <- start
 	relayerLog.Info("deploy", "the BridgeRegistry address is", bridgeRegistry)
 
 	return bridgeRegistry, nil
@@ -330,17 +331,18 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	//	bytes32 _claimID,
 	//	bytes memory _signature
 	//)
-	//addr := chain33EvmCommon.BytesToAddress([]byte{1})
-	//precompiledContract := runtime.PrecompiledContractsByzantium[addr]
-	//result, err := precompiledContract.Run(signature)
-	relayerLog.Debug("relayLockBurnToChain33", "chain33Relayer.privateKey4Chain33.PubKey().Bytes()",
-		common.ToHex(chain33Relayer.privateKey4Chain33.PubKey().Bytes()))
-	//chain33Relayer.privateKey4Chain33.PubKey().Bytes()=0x02504fa1c28caaf1d5a20fefb87c50a49724ff401043420cb3ba271997eb5a4387
+
+	tokenAddr, exist := chain33Relayer.symbol2Addr[claim.Symbol]
+	if !exist {
+		relayerLog.Error("relayLockBurnToChain33", "No token address configured for symbol", claim.Symbol)
+		return
+	}
+
 	parameter := fmt.Sprintf("newOracleClaim(%d, %s, %s, %s, %s, %d, %s, %s)",
 		claim.ClaimType,
 		claim.EthereumSender,
 		claim.Chain33Receiver,
-		claim.TokenAddr,
+		tokenAddr,
 		claim.Symbol,
 		claim.Amount,
 		claimID.String(),

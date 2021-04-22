@@ -28,9 +28,86 @@ func Chain33RelayerCmd() *cobra.Command {
 		simBurnFromEthCmd(),
 		simLockFromEthCmd(),
 		ShowBridgeRegistryAddr4chain33Cmd(),
+		TokenAddressCmd(),
 	)
 
 	return cmd
+}
+
+//TokenAddressCmd...
+func TokenAddressCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "token",
+		Short: "show or set token address and it's corresponding symbol",
+		Args:  cobra.MinimumNArgs(1),
+	}
+	cmd.AddCommand(
+		SetTokenAddressCmd(),
+		ShowTokenAddressCmd(),
+	)
+	return cmd
+}
+
+func SetTokenAddressCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set",
+		Short: "set token address and it's corresponding symbol",
+		Run:   SetTokenAddress,
+	}
+	SetTokenFlags(cmd)
+	return cmd
+}
+
+//SetTokenFlags ...
+func SetTokenFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+}
+
+func SetTokenAddress(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	token, _ := cmd.Flags().GetString("token")
+
+	var res rpctypes.Reply
+	para := ebTypes.TokenAddress{
+		Symbol:    symbol,
+		Address:   token,
+		ChainName: ebTypes.Chain33BlockChainName,
+	}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SetTokenAddress", para, &res)
+	ctx.Run()
+}
+
+func ShowTokenAddressCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show",
+		Short: "show token address",
+		Run:   ShowTokenAddress,
+	}
+	ShowTokenFlags(cmd)
+	return cmd
+}
+
+//SetTokenFlags ...
+func ShowTokenFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("symbol", "s", "", "token symbol(optional), if not set,show all the token")
+}
+
+func ShowTokenAddress(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+
+	var res ebTypes.TokenAddressArray
+	para := ebTypes.TokenAddress{
+		Symbol:    symbol,
+		ChainName: ebTypes.Chain33BlockChainName,
+	}
+
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowTokenAddress", para, &res)
+	ctx.Run()
 }
 
 //ShowBridgeRegistryAddrCmd ...
@@ -57,8 +134,20 @@ func simBurnFromEthCmd() *cobra.Command {
 		Short: "simulate burn bty assets from ethereum",
 		Run:   simBurnFromEth,
 	}
-	BurnFlags(cmd)
+	SimBurnFlags(cmd)
 	return cmd
+}
+
+//SimBurnFlags ...
+func SimBurnFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "Ethereum sender address")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("receiver", "r", "", "receiver address on chain33")
+	_ = cmd.MarkFlagRequired("receiver")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
 }
 
 func simBurnFromEth(cmd *cobra.Command, args []string) {
@@ -87,8 +176,19 @@ func simLockFromEthCmd() *cobra.Command {
 		Short: "simulate lock eth/erc20 assets from ethereum",
 		Run:   simLockFromEth,
 	}
-	LockEthErc20AssetFlags(cmd)
+	simLockEthErc20AssetFlags(cmd)
 	return cmd
+}
+
+//LockEthErc20AssetFlags ...
+func simLockEthErc20AssetFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "Ethereum sender address")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("token", "t", "", "token address, optional, nil for ETH")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
+	cmd.Flags().StringP("receiver", "r", "", "chain33 receiver address")
+	_ = cmd.MarkFlagRequired("receiver")
 }
 
 func simLockFromEth(cmd *cobra.Command, args []string) {

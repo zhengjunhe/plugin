@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
-	chain33Common "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
+	chain33EvmCommon "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -28,9 +28,9 @@ func (d Chain33EvmEvent) String() string {
 // Chain33Msg : contains data from MsgBurn and MsgLock events
 type Chain33Msg struct {
 	ClaimType            ClaimType
-	Chain33Sender        chain33Common.Address
+	Chain33Sender        chain33EvmCommon.Address
 	EthereumReceiver     common.Address
-	TokenContractAddress chain33Common.Address
+	TokenContractAddress chain33EvmCommon.Address
 	Symbol               string
 	Amount               *big.Int
 	TxHash               []byte
@@ -38,9 +38,9 @@ type Chain33Msg struct {
 
 // 发生在chain33evm上的lock事件，当bty跨链转移到eth时会发生该种事件
 type LockEventOnChain33 struct {
-	From   chain33Common.Address
+	From   chain33EvmCommon.Hash160Address
 	To     []byte
-	Token  chain33Common.Address
+	Token  chain33EvmCommon.Hash160Address
 	Symbol string
 	Value  *big.Int
 	Nonce  *big.Int
@@ -48,10 +48,10 @@ type LockEventOnChain33 struct {
 
 // 发生在chain33evm上的burn事件，当eth/erc20资产需要提币回到以太坊链上时，会发生该种事件
 type BurnEventOnChain33 struct {
-	Token            chain33Common.Address
+	Token            chain33EvmCommon.Hash160Address
 	Symbol           string
 	Amount           *big.Int
-	OwnerFrom        chain33Common.Address
+	OwnerFrom        chain33EvmCommon.Hash160Address
 	EthereumReceiver []byte
 	Nonce            *big.Int
 }
@@ -66,9 +66,12 @@ func UnpackChain33LogLock(contractAbi abi.ABI, eventName string, eventData []byt
 		return nil, ebrelayerTypes.ErrUnpack
 	}
 
-	eventsLog.Info("UnpackLogLock", "value", lockEvent.Value.String(), "symbol", lockEvent.Symbol,
-		"token addr", lockEvent.Token.String(), "sender", lockEvent.From.String(),
-		"recipient", string(lockEvent.To), "nonce", lockEvent.Nonce.String())
+	eventsLog.Info("UnpackLogLock", "value", lockEvent.Value.String(),
+		"symbol", lockEvent.Symbol,
+		"token addr on chain33 evm", lockEvent.Token.ToAddress().String(),
+		"chain33 sender", lockEvent.From.ToAddress().String(),
+		"ethereum recipient", common.BytesToAddress(lockEvent.To).String(),
+		"nonce", lockEvent.Nonce.String())
 
 	return lockEvent, nil
 }
@@ -83,9 +86,12 @@ func UnpackChain33LogBurn(contractAbi abi.ABI, eventName string, eventData []byt
 		return nil, ebrelayerTypes.ErrUnpack
 	}
 
-	eventsLog.Info("UnpackLogBurn", "token addr", burnEvent.Token.String(), "symbol", burnEvent.Symbol,
-		"Amount", burnEvent.Amount.String(), "OwnerFrom", burnEvent.OwnerFrom.String(),
-		"EthereumReceiver", string(burnEvent.EthereumReceiver), "nonce", burnEvent.Nonce.String())
+	eventsLog.Info("UnpackLogBurn", "token addr on chain33 evm", burnEvent.Token.ToAddress().String(),
+		"symbol", burnEvent.Symbol,
+		"Amount", burnEvent.Amount.String(),
+		"Owner address from chain33", burnEvent.OwnerFrom.ToAddress().String(),
+		"EthereumReceiver", common.BytesToAddress(burnEvent.EthereumReceiver).String(),
+		"nonce", burnEvent.Nonce.String())
 	return burnEvent, nil
 }
 
@@ -100,9 +106,9 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 
 		chain33Msg := &Chain33Msg{
 			ClaimType:            ClaimTypeLock,
-			Chain33Sender:        lockEvent.From,
+			Chain33Sender:        lockEvent.From.ToAddress(),
 			EthereumReceiver:     common.BytesToAddress(lockEvent.To),
-			TokenContractAddress: lockEvent.Token,
+			TokenContractAddress: lockEvent.Token.ToAddress(),
 			Symbol:               lockEvent.Symbol,
 			Amount:               lockEvent.Value,
 			TxHash:               chain33TxHash,
@@ -118,9 +124,9 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 
 		chain33Msg := &Chain33Msg{
 			ClaimType:            ClaimTypeLock,
-			Chain33Sender:        burnEvent.OwnerFrom,
+			Chain33Sender:        burnEvent.OwnerFrom.ToAddress(),
 			EthereumReceiver:     common.BytesToAddress(burnEvent.EthereumReceiver),
-			TokenContractAddress: burnEvent.Token,
+			TokenContractAddress: burnEvent.Token.ToAddress(),
 			Symbol:               burnEvent.Symbol,
 			Amount:               burnEvent.Amount,
 			TxHash:               chain33TxHash,

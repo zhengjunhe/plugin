@@ -733,6 +733,58 @@ func (manager *Manager) ShowTokenAddrBySymbol(token relayerTypes.TokenStatics, r
 	return nil
 }
 
+//SetTokenAddress ...
+func (manager *Manager) SetTokenAddress(token2set relayerTypes.TokenAddress, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+
+	if relayerTypes.EthereumBlockChainName == token2set.ChainName {
+		err := manager.ethRelayer.SetTokenAddress(token2set)
+		if nil != err {
+			return err
+		}
+	}
+	err := manager.chain33Relayer.SetTokenAddress(token2set)
+	if nil != err {
+		return err
+	}
+
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  "",
+	}
+	return nil
+}
+
+//ShowTokenAddress ...
+func (manager *Manager) ShowTokenAddress(token2show relayerTypes.TokenAddress, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+
+	var res *relayerTypes.TokenAddressArray
+	var err error
+	if relayerTypes.EthereumBlockChainName == token2show.ChainName {
+		res, err = manager.ethRelayer.ShowTokenAddress(token2show)
+		if nil != err {
+			return err
+		}
+
+	}
+	res, err = manager.chain33Relayer.ShowTokenAddress(token2show)
+	if nil != err {
+		return err
+	}
+	*result = *res
+
+	return nil
+}
+
 //ShowTxReceipt ...
 func (manager *Manager) ShowTxReceipt(txhash string, result *interface{}) error {
 	manager.mtx.Lock()

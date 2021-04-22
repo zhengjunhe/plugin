@@ -334,6 +334,8 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 		"addrecrecover", addrecrecover.String(),
 		"addrecrecoverslice", common.Bytes2Hex(addrecrecover.Bytes()))
 
+	log.Info("StaticCall contract info", "caller", caller.Address(), "gas", gas)
+
 	pass, err := evm.preCheck(caller, 0)
 	if !pass {
 		return nil, gas, err

@@ -67,7 +67,8 @@ type Relayer4Ethereum struct {
 	x2EthContracts         *ethtxs.X2EthContracts
 	ethBridgeClaimChan     chan<- *ebTypes.EthBridgeClaim
 	chain33MsgChan         <-chan *events.Chain33Msg
-	totalTx4Eth2Chain33 int64
+	totalTx4Eth2Chain33    int64
+	symbol2Addr            map[string]common.Address
 }
 
 var (
@@ -106,6 +107,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 		ethBridgeClaimChan:  startPara.EthBridgeClaimChan,
 		chain33MsgChan:      startPara.Chain33MsgChan,
 		totalTx4Eth2Chain33: 0,
+		symbol2Addr:         make(map[string]common.Address),
 	}
 
 	registrAddrInDB, err := ethRelayer.getBridgeRegistryAddr()
@@ -357,6 +359,11 @@ func (ethRelayer *Relayer4Ethereum) ShowTxReceipt(hash string) (*types.Receipt, 
 func (ethRelayer *Relayer4Ethereum) proc() {
 	//等待用户导入
 	relayerLog.Info("Please unlock or import private key for Ethereum relayer")
+	if err := ethRelayer.RestoreTokenAddress(); nil != err {
+		relayerLog.Info("Failed to RestoreTokenAddress")
+		return
+	}
+
 	nilAddr := common.Address{}
 	if nilAddr != ethRelayer.bridgeRegistryAddr {
 		relayerLog.Info("proc", "Going to recover corresponding solidity contract handler with bridgeRegistryAddr", ethRelayer.bridgeRegistryAddr.String())
@@ -429,7 +436,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 		relayerLog.Error("handleChain33Msg", "Failed to RelayLockToChain33 due to:", err.Error())
 		return
 	}
-	if err = ethRelayer.setLastestRelay2Chain33Txhash( txhash, txIndex); nil != err {
+	if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
 		relayerLog.Error("handleChain33Msg", "Failed to RelayLockToChain33 due to:", err.Error())
 		return
 	}

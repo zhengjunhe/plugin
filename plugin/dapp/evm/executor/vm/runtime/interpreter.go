@@ -173,7 +173,6 @@ func (in *Interpreter) Run(contract *Contract, input []byte, readOnly bool) (ret
 			log15.Error("Run:outOfGas", "op=", op.String(), "contract addr=", contract.self.Address().String(),
 				"CallerAddress=", contract.CallerAddress.String(),
 				"caller=", contract.caller.Address().String())
-			panic("Run:outOfGas:__line__:176")
 			return nil, ErrOutOfGas
 		}
 

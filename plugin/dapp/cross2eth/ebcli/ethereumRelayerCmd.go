@@ -45,9 +45,73 @@ func EthereumRelayerCmd() *cobra.Command {
 		StaticsCmd(),
 		TransferTokenCmd(),
 		GetToken2addressCmd(),
+		TokenAddress4EthCmd(),
 	)
 
 	return cmd
+}
+
+//TokenAddressCmd...
+func TokenAddress4EthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "token",
+		Short: "show or set token address and it's corresponding symbol",
+		Args:  cobra.MinimumNArgs(1),
+	}
+	cmd.AddCommand(
+		SetTokenAddress4EthCmd(),
+		ShowTokenAddress4EthCmd(),
+	)
+	return cmd
+}
+
+func SetTokenAddress4EthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set",
+		Short: "set token address and it's corresponding symbol",
+		Run:   SetTokenAddress4Eth,
+	}
+	SetTokenFlags(cmd)
+	return cmd
+}
+
+func SetTokenAddress4Eth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	token, _ := cmd.Flags().GetString("token")
+
+	var res rpctypes.Reply
+	para := ebTypes.TokenAddress{
+		Symbol:    symbol,
+		Address:   token,
+		ChainName: ebTypes.EthereumBlockChainName,
+	}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SetTokenAddress", para, &res)
+	ctx.Run()
+}
+
+func ShowTokenAddress4EthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show",
+		Short: "show token address",
+		Run:   ShowTokenAddress4Eth,
+	}
+	ShowTokenFlags(cmd)
+	return cmd
+}
+
+func ShowTokenAddress4Eth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+
+	var res ebTypes.TokenAddressArray
+	para := ebTypes.TokenAddress{
+		Symbol:    symbol,
+		ChainName: ebTypes.EthereumBlockChainName,
+	}
+
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowTokenAddress", para, &res)
+	ctx.Run()
 }
 
 //ImportChain33PrivateKeyCmd ...

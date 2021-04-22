@@ -68,7 +68,7 @@ func (chain33Relayer *Relayer4Chain33) ImportPrivateKey(passphrase, privateKeySt
 	temp, _ := btcec_secp256k1.PrivKeyFromBytes(btcec_secp256k1.S256(), priKey.Bytes())
 	chain33Relayer.privateKey4Chain33_ecdsa = temp.ToECDSA()
 	chain33Relayer.rwLock.Unlock()
-	chain33Relayer.unlock <- start
+	chain33Relayer.unlockChan <- start
 	addr := address.PubKeyToAddr(priKey.PubKey().Bytes())
 
 	encryptered := wcom.CBCEncrypterPrivkey([]byte(passphrase), privateKeySli)
@@ -124,7 +124,7 @@ func (chain33Relayer *Relayer4Chain33) RestorePrivateKeys(passPhase string) (err
 
 	chain33Relayer.rwLock.RLock()
 	if nil != chain33Relayer.privateKey4Chain33 {
-		chain33Relayer.unlock <- start
+		chain33Relayer.unlockChan <- start
 	}
 	chain33Relayer.rwLock.RUnlock()
 

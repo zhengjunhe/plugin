@@ -822,11 +822,11 @@ func opStaticCall(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
 	log15.Info("opStaticCall", "caller", callContext.contract.self.Address(),
-		"toaddr", toAddr, "gas", gas, "args", string(args))
+		"toaddr", toAddr, "gas", gas)
 	ret, returnGas, err := evm.StaticCall(callContext.contract, toAddr, args, gas)
 	if err != nil {
 		temp.Clear()
-		log15.Error("evm contract opStaticCall instruction error", err)
+		log15.Error("evm contract opStaticCall instruction error", "err", err)
 	} else {
 		temp.SetOne()
 	}

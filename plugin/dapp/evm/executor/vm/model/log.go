@@ -5,12 +5,8 @@
 package model
 
 import (
-	//"math/big"
-	//"strings"
-
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
-	//ethAbi "github.com/ethereum/go-ethereum/accounts/abi"
 )
 
 // ContractLog 合约在日志，对应EVM中的Log指令，可以生成指定的日志信息

@@ -2,8 +2,11 @@ package ethereum
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync/atomic"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	dbm "github.com/33cn/chain33/common/db"
 	chain33Types "github.com/33cn/chain33/types"
@@ -13,14 +16,19 @@ import (
 )
 
 var (
-	eth2chain33TxHashPrefix        = "Eth2chain33TxHash"
-	eth2chain33TxTotalAmount       = []byte("Eth2chain33TxTotalAmount")
+	eth2chain33TxHashPrefix  = "Eth2chain33TxHash"
+	eth2chain33TxTotalAmount = []byte("Eth2chain33TxTotalAmount")
 	//chain33ToEthTxHashPrefix       = "chain33ToEthTxHash"
 	bridgeRegistryAddrPrefix       = []byte("x2EthBridgeRegistryAddr")
 	bridgeBankLogProcessedAt       = []byte("bridgeBankLogProcessedAt")
 	ethTxEventPrefix               = []byte("ethTxEventPrefix")
 	lastBridgeBankHeightProcPrefix = []byte("lastBridgeBankHeight")
+	ethTokenSymbol2AddrPrefix      = []byte("ethTokenSymbol2AddrPrefix")
 )
+
+func ethTokenSymbol2AddrKey(symbol string) []byte {
+	return append(ethTokenSymbol2AddrPrefix, []byte(fmt.Sprintf("-symbol-%s", symbol))...)
+}
 
 func ethTxEventKey4Height(height uint64, index uint32) []byte {
 	return append(ethTxEventPrefix, []byte(fmt.Sprintf("%020d-%d", height, index))...)
@@ -165,4 +173,66 @@ func (ethRelayer *Relayer4Ethereum) initBridgeBankTx() {
 		return
 	}
 	_ = ethRelayer.setEthTxEvent(types.Log{})
+}
+
+func (ethRelayer *Relayer4Ethereum) SetTokenAddress(token2set ebTypes.TokenAddress) error {
+	addr := common.HexToAddress(token2set.Address)
+	bytes := chain33Types.Encode(&token2set)
+	ethRelayer.symbol2Addr[token2set.Symbol] = addr
+	return ethRelayer.db.Set(ethTokenSymbol2AddrKey(token2set.Symbol), bytes)
+}
+
+func (ethRelayer *Relayer4Ethereum) RestoreTokenAddress() error {
+	helper := dbm.NewListHelper(ethRelayer.db)
+	datas := helper.List(ethTokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
+	if nil == datas {
+		return nil
+	}
+
+	for _, data := range datas {
+
+		var token2set ebTypes.TokenAddress
+		err := chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return err
+		}
+		relayerLog.Info("RestoreTokenAddress", "symbol", token2set.Symbol, "address", token2set.Address)
+		ethRelayer.symbol2Addr[token2set.Symbol] = common.HexToAddress(token2set.Address)
+	}
+	return nil
+}
+
+func (ethRelayer *Relayer4Ethereum) ShowTokenAddress(token2show ebTypes.TokenAddress) (*ebTypes.TokenAddressArray, error) {
+	res := &ebTypes.TokenAddressArray{}
+
+	if len(token2show.Symbol) > 0 {
+		data, err := ethRelayer.db.Get(ethTokenSymbol2AddrKey(token2show.Symbol))
+		if err != nil {
+			return nil, err
+		}
+		var token2set ebTypes.TokenAddress
+		err = chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return nil, err
+		}
+		res.TokenAddress = append(res.TokenAddress, &token2set)
+		return res, nil
+	}
+	helper := dbm.NewListHelper(ethRelayer.db)
+	datas := helper.List(ethTxEventPrefix, nil, 100, dbm.ListASC)
+	if nil == datas {
+		return nil, errors.New("Not found")
+	}
+
+	for _, data := range datas {
+
+		var token2set ebTypes.TokenAddress
+		err := chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return nil, err
+		}
+		res.TokenAddress = append(res.TokenAddress, &token2set)
+
+	}
+	return res, nil
 }

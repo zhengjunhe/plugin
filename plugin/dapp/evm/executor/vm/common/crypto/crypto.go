@@ -24,13 +24,13 @@ func ValidateSignatureValues(r, s *big.Int) bool {
 	return true
 }
 
-// Ecrecover 根据压缩消息和签名，返回未压缩的公钥信息
+// Ecrecover 根据压缩消息和签名，返回压缩的公钥信息
 func Ecrecover(hash, sig []byte) ([]byte, error) {
 	pub, err := SigToPub(hash, sig)
 	if err != nil {
 		return nil, err
 	}
-	bytes := (*btcec.PublicKey)(pub).SerializeUncompressed()
+	bytes := (*btcec.PublicKey)(pub).SerializeCompressed()
 	return bytes, err
 }
 

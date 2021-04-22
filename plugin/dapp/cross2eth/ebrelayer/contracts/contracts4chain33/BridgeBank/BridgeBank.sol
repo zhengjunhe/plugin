@@ -166,15 +166,15 @@ contract BridgeBank is EthereumBank, Chain33Bank {
         if (msg.value > 0) {
           require(
               _token == address(0),
-              "Chain33 deposits require the 'token' address to be the null address"
+              "BTY deposits require the 'token' address to be the null address"
             );
           require(
               msg.value == _amount,
-              "The transactions value must be equal the specified amount (in wei)"
+              "The transactions value must be equal the specified amount(BTY decimal is 8)"
             );
 
-          // Set the the symbol to ETH
-          symbol = "ETH";
+          // Set the the symbol to BTY
+          symbol = "BTY";
           // ERC20 deposit
         } else {
           require(
