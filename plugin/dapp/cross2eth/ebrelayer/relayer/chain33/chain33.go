@@ -88,6 +88,7 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 		ethBridgeClaimChan:   startPara.EthBridgeClaimChan,
 		chain33MsgChan:       startPara.Chain33MsgChan,
 		totalTx4Chain33ToEth: 0,
+		symbol2Addr:          make(map[string]string),
 	}
 
 	syncCfg := &ebTypes.SyncTxReceiptConfig{
@@ -126,6 +127,10 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 	_, _ = fmt.Fprintln(os.Stdout, "Pls unlock or import private key for Chain33 relayer")
 	<-chain33Relayer.unlockChan
 	_, _ = fmt.Fprintln(os.Stdout, "Chain33 relayer starts to run...")
+	if err := chain33Relayer.RestoreTokenAddress(); nil != err {
+		relayerLog.Info("Failed to RestoreTokenAddress")
+		return
+	}
 	//如果该中继器的bridgeRegistryAddr为空，就说明合约未部署，需要等待部署成功之后再继续
 	if "" == chain33Relayer.bridgeRegistryAddr {
 		<-chain33Relayer.unlockChan

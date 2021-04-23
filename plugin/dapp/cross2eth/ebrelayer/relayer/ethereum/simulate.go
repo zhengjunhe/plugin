@@ -18,9 +18,14 @@ func (ethRelayer *Relayer4Ethereum) SimLockFromEth(lock ebTypes.LockEthErc20) er
 	amount := big.NewInt(1)
 	amount, _ = amount.SetString(utils.TrimZeroAndDot(lock.Amount), 10)
 
+	addr, err := address.NewAddrFromString(lock.Chain33Receiver)
+	if nil != err {
+		return err
+	}
+
 	lockEvent := &events.LockEvent{
 		From:   ethcommon.HexToAddress(lock.OwnerKey),
-		To:     ethcommon.FromHex(lock.Chain33Receiver),
+		To:     addr.Hash160[:],
 		Token:  ethcommon.HexToAddress(lock.TokenAddr),
 		Symbol: "ETH",
 		Value:  amount,

@@ -448,6 +448,18 @@ func BurnCmd() *cobra.Command {
 	return cmd
 }
 
+//BurnFlags ...
+func BurnFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "owner private key")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("token", "t", "", "token address")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("receiver", "r", "", "receiver address on chain33")
+	_ = cmd.MarkFlagRequired("receiver")
+	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
 //BurnAsyncCmd ...
 func BurnAsyncCmd() *cobra.Command {
 	cmd := &cobra.Command{

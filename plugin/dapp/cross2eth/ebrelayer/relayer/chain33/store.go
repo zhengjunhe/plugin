@@ -125,7 +125,6 @@ func (chain33Relayer *Relayer4Chain33) RestoreTokenAddress() error {
 
 	chain33Relayer.rwLock.Lock()
 	for _, data := range datas {
-
 		var token2set ebTypes.TokenAddress
 		err := chain33Types.Decode(data, &token2set)
 		if nil != err {

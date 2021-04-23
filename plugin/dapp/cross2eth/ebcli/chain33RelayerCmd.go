@@ -255,17 +255,17 @@ func BurnfromChain33Cmd() *cobra.Command {
 		Short: "async burn the asset from chain33 to make it unlocked on ethereum",
 		Run:   BurnAsyncFromChain33,
 	}
-	BurnFlags(cmd)
+	BurnAsyncFromChain33Flags(cmd)
 	return cmd
 }
 
-//BurnFlags ...
-func BurnFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("key", "k", "", "owner private key")
+//BurnAsyncFromChain33Flags ...
+func BurnAsyncFromChain33Flags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "owner private key for chain33")
 	_ = cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("token", "t", "", "token address")
 	_ = cmd.MarkFlagRequired("token")
-	cmd.Flags().StringP("receiver", "r", "", "receiver address on chain33")
+	cmd.Flags().StringP("receiver", "r", "", "receiver address on Ethereum")
 	_ = cmd.MarkFlagRequired("receiver")
 	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
 	_ = cmd.MarkFlagRequired("amount")

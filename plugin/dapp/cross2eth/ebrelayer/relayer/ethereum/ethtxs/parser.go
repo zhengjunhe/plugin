@@ -30,6 +30,9 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 		return nil, ebrelayerTypes.ErrAddress4Eth
 	}
 
+	chain33Receiver := new(address.Address)
+	chain33Receiver.SetBytes(recipient)
+
 	witnessClaim := &ebrelayerTypes.EthBridgeClaim{}
 	witnessClaim.EthereumChainID = ethereumChainID
 	witnessClaim.BridgeBrankAddr = bridgeBrankAddr
@@ -37,7 +40,7 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 	witnessClaim.TokenAddr = event.Token.String()
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.From.String()
-	witnessClaim.Chain33Receiver = string(recipient)
+	witnessClaim.Chain33Receiver = chain33Receiver.String()
 	witnessClaim.Amount = event.Value.Int64()
 
 	witnessClaim.ClaimType = int32(events.ClaimTypeLock)

@@ -505,9 +505,17 @@ func callContract(cmd *cobra.Command, args []string) {
 	toAddr, _ := cmd.Flags().GetString("exec")
 	parameter, _ := cmd.Flags().GetString("parameter")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	path, _ := cmd.Flags().GetString("path")
 
 	amountInt64 := uint64(amount*1e4) * 1e4
 	feeInt64 := uint64(fee*1e4) * 1e4
+
+	abiFileName := path + toAddr + ".abi"
+	abiStr, err := readFile(abiFileName)
+	if nil != err {
+		_, _ = fmt.Fprintln(os.Stderr, "Can't read abi info, Pls set correct abi path and provide abi file as", abiFileName)
+		return
+	}
 
 	action := evmtypes.EVMContractAction{Amount: amountInt64, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
 
@@ -540,6 +548,8 @@ func addCallContractFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("exec", "e", "", "evm contract address")
 	cmd.MarkFlagRequired("exec")
+
+	cmd.Flags().StringP("path", "t", "./", "abi path(optional), default to .(current directory)")
 
 	cmd.Flags().Float64P("amount", "a", 0, "the amount transfer to the contract (optional)")
 

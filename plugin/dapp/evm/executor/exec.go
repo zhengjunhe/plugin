@@ -52,17 +52,25 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		inData       []byte
 	)
 
+	var contractAddrStr string
 	// 为了方便计费，即使合约为新生成，也将地址的初始化放到外面操作
 	if isCreate {
 		// 使用随机生成的地址作为合约地址（这个可以保证每次创建的合约地址不会重复，不存在冲突的情况）
 		contractAddr = evm.createContractAddress(msg.From(), txHash)
-		if !env.StateDB.Empty(contractAddr.String()) {
+		contractAddrStr = contractAddr.String()
+		if !env.StateDB.Empty(contractAddrStr) {
 			return receipt, model.ErrContractAddressCollision
 		}
 		// 只有新创建的合约才能生成合约名称
 		execName = fmt.Sprintf("%s%s", cfg.ExecName(evmtypes.EvmPrefix), common.BytesToHash(txHash).Hex())
 	} else {
 		contractAddr = *msg.To()
+		contractAddrStr = contractAddr.String()
+		if !env.StateDB.Exist(contractAddrStr) {
+			log.Error("innerExec", "Contract not exist for address", contractAddrStr)
+			return receipt, model.ErrContractNotExist
+		}
+		log.Info("innerExec", "Contract exist for address", contractAddrStr)
 	}
 
 	// 状态机中设置当前交易状态
@@ -76,13 +84,17 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 				return receipt, err
 			}
 		}
-
 		ret, snapshot, leftOverGas, vmerr = env.Create(runtime.AccountRef(msg.From()), contractAddr, msg.Data(), context.GasLimit, execName, msg.Alias(), msg.ABI(), msg.Value())
 	} else {
 		callPara := msg.ABI()
 		// 在这里进行ABI和十六进制的调用参数转换
 		if len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
-			methodName, inData, err = abi.Pack(callPara, evm.mStateDB.GetAbi(msg.To().String()), readOnly)
+			abiStr := evm.mStateDB.GetAbi(contractAddrStr)
+			if "" == abiStr {
+				log.Error("innerExec", "Nil abi info for address", contractAddrStr)
+				return receipt, model.ErrABINotExist
+			}
+			methodName, inData, err = abi.Pack(callPara, abiStr, readOnly)
 			if err != nil {
 				return receipt, err
 			}
@@ -99,7 +111,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	if isCreate {
 		logMsg = "create contract details:"
 	}
-	log.Debug(logMsg, "caller address", msg.From().String(), "contract address", contractAddr.String(), "exec name", execName, "alias name", msg.Alias(), "usedGas", usedGas, "return data", common.Bytes2Hex(ret))
+	log.Debug(logMsg, "caller address", msg.From().String(), "contract address", contractAddrStr, "exec name", execName, "alias name", msg.Alias(), "usedGas", usedGas, "return data", common.Bytes2Hex(ret))
 	curVer := evm.mStateDB.GetLastSnapshot()
 	if vmerr != nil {
 		log.Error("evm contract exec error", "error info", vmerr, "ret", string(ret))
@@ -125,7 +137,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 
 	// 从状态机中获取数据变更和变更日志
 	kvSet, logs := evm.mStateDB.GetChangedData(curVer.GetID())
-	contractReceipt := &evmtypes.ReceiptEVMContract{Caller: msg.From().String(), ContractName: execName, ContractAddr: contractAddr.String(), UsedGas: usedGas, Ret: ret}
+	contractReceipt := &evmtypes.ReceiptEVMContract{Caller: msg.From().String(), ContractName: execName, ContractAddr: contractAddrStr, UsedGas: usedGas, Ret: ret}
 	// 这里进行ABI调用结果格式化
 	if len(methodName) > 0 && len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
 		jsonRet, err := abi.Unpack(ret, methodName, evm.mStateDB.GetAbi(msg.To().String()))
@@ -136,7 +148,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		contractReceipt.JsonRet = jsonRet
 	}
 	logs = append(logs, &types.ReceiptLog{Ty: evmtypes.TyLogCallContract, Log: types.Encode(contractReceipt)})
-	logs = append(logs, evm.mStateDB.GetReceiptLogs(contractAddr.String())...)
+	logs = append(logs, evm.mStateDB.GetReceiptLogs(contractAddrStr)...)
 
 	if cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMKVHash) {
 		// 将执行时生成的合约状态数据变更信息也计算哈希并保存
@@ -160,7 +172,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 
 	if isCreate {
 		log.Info("innerExec", "Succeed to created new contract with name", msg.Alias(),
-			"created contract address", contractAddr.String())
+			"created contract address", contractAddrStr)
 	}
 
 	return receipt, nil
