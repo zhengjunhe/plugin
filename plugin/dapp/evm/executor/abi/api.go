@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/golang-collections/collections/stack"
 )
@@ -113,6 +114,7 @@ func PackContructorPara(param, abiStr string) (packData []byte, err error) {
 // abiData 完整的ABI定义
 func Unpack(data []byte, methodName, abiData string) (output string, err error) {
 	if len(data) == 0 {
+		log.Info("Unpack", "Data len", 0, "methodName", methodName)
 		return output, err
 	}
 	// 解析ABI数据结构，获取本次调用的方法对象
@@ -143,6 +145,7 @@ func Unpack(data []byte, methodName, abiData string) (output string, err error) 
 		pval := &Param{Name: arg.Name, Type: arg.Type.String(), Value: v}
 		if arg.Type.String() == "address" {
 			pval.Value = v.(common.Hash160Address).ToAddress().String()
+			log.Info("Unpack address", "address", pval.Value)
 		}
 
 		outputs = append(outputs, pval)

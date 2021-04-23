@@ -351,12 +351,6 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 		if evm.cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMYoloV1) {
 			precompiles = PrecompiledContractsIstanbul
 		}
-		////////debug code////
-		for hash160Address, _ := range precompiles {
-			log.Info("StaticCall precompiles", "addr.Bytes()", common.Bytes2Hex(hash160Address[:]),
-				"addr.String()", addr.String())
-		}
-
 		// 合约地址在自定义合约和预编译合约中都不存在时，可能为外部账户
 		if precompiles[addr.ToHash160()] == nil {
 			// 只有一种情况会走到这里来，就是合约账户向外部账户转账的情况

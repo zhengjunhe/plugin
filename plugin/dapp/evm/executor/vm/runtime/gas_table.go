@@ -234,13 +234,16 @@ func gasCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize
 	if gas, overflow = math.SafeAdd(gas, memoryGas); overflow {
 		return 0, ErrGasUintOverflow
 	}
+
 	evm.callGasTemp, err = callGas(true, contract.Gas, gas, stack.Back(0))
 	if err != nil {
 		return 0, err
 	}
+	log15.Info("evm opCall gasCall", "gas", gas, "callGasTemp", evm.callGasTemp)
 	if gas, overflow = math.SafeAdd(gas, evm.callGasTemp); overflow {
 		return 0, ErrGasUintOverflow
 	}
+	log15.Info("evm opCall gasCall", "gas after", gas)
 	return gas, nil
 }
 
@@ -297,7 +300,7 @@ func gasStaticCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memo
 	if gas, overflow = math.SafeAdd(gas, evm.callGasTemp); overflow {
 		return 0, ErrGasUintOverflow
 	}
-	log15.Info("gasStaticCall", "gas", gas)
+	log15.Info("gasStaticCall", "gas after", gas)
 	return gas, nil
 }
 

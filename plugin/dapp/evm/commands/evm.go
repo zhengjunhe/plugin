@@ -631,12 +631,13 @@ func callAbi(cmd *cobra.Command, args []string) {
 	if query {
 		_, err := json.MarshalIndent(&resp, "", "  ")
 		if err != nil {
-			fmt.Println(resp.String())
+			fmt.Println("MarshalIndent failed due to:", err.Error())
 		} else {
 			var outputs []evmAbi.Param
 			err = json.Unmarshal([]byte(resp.JsonData), &outputs)
 			if err != nil {
-				fmt.Println("Unmarshal error", err.Error())
+				fmt.Println("Unmarshal error:", err.Error())
+				fmt.Println("RawData:", resp.RawData)
 				return
 			}
 
