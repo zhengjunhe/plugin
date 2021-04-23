@@ -84,7 +84,12 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		if len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
 			methodName, inData, err = abi.Pack(callPara, evm.mStateDB.GetAbi(msg.To().String()), readOnly)
 			if err != nil {
-				return receipt, err
+				// 尝试当透传数据处理
+				abidata, err := common.HexToBytes(callPara)
+				if err != nil {
+					return receipt, err
+				}
+				inData = abidata
 			}
 			log.Debug("call contract ", "abi funcName", methodName, "callPara", callPara,
 				"packData", common.Bytes2Hex(inData))
