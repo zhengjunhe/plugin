@@ -198,7 +198,7 @@ func simLockFromEth(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetFloat64("amount")
 	receiver, _ := cmd.Flags().GetString("receiver")
 
-	realAmount := utils.ToWei(amount, 18)
+	realAmount := utils.ToWei(amount, 8)
 
 	para := ebTypes.LockEthErc20{
 		OwnerKey:        key,

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4chain33/generated"
+	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
+	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 )
 
@@ -197,7 +199,12 @@ settingBridgeBank:
 	//	address payable _bridgeBank
 	//)
 	callPara := fmt.Sprintf("setBridgeBank(%s)", bridgeBankAddr)
-	settingBridgeBankHash, err := sendTx2Evm(callPara, rpcLaddr, ethereumBridgeAddr, paraChainName, deployer)
+	_, packData, err := evmAbi.Pack(callPara, generated.EthereumBridgeABI, false)
+	if nil != err {
+		chain33txLog.Info("setBridgeBank", "Failed to do abi.Pack due to:", err.Error())
+		return nil, ebrelayerTypes.ErrPack
+	}
+	settingBridgeBankHash, err := sendTx2Evm(packData, rpcLaddr, ethereumBridgeAddr, paraChainName, deployer)
 	if nil != err {
 		chain33txLog.Error("DeployAndInit", "failed to settingBridgeBank due to:", err.Error())
 		return nil, err
@@ -229,7 +236,12 @@ setOracle:
 	//	address _oracle
 	//)
 	callPara = fmt.Sprintf("setOracle(%s)", oracleAddr)
-	setOracleHash, err := sendTx2Evm(callPara, rpcLaddr, ethereumBridgeAddr, paraChainName, deployer)
+	_, packData, err = evmAbi.Pack(callPara, generated.EthereumBridgeABI, false)
+	if nil != err {
+		chain33txLog.Info("setOracle", "Failed to do abi.Pack due to:", err.Error())
+		return nil, ebrelayerTypes.ErrPack
+	}
+	setOracleHash, err := sendTx2Evm(packData, rpcLaddr, ethereumBridgeAddr, paraChainName, deployer)
 	if nil != err {
 		chain33txLog.Error("DeployAndInit", "failed to setOracle due to:", err.Error())
 		return nil, err

@@ -39,12 +39,12 @@ message EVMContractAction {
     uint32 gasPrice = 3;
     // 合约数据
     bytes code = 4;
+    //交易参数
+    bytes para = 5;
     // 合约别名，方便识别
-    string alias = 5;
+    string alias = 6;
     // 交易备注
-    string note = 6;
-    // 创建或调用合约时携带的ABI数据 ForkEVMABI
-    string abi = 7;
+    string note = 7;
 }
 
 // 合约创建/调用日志
@@ -107,10 +107,9 @@ message CheckEVMAddrResp {
 
 message EstimateEVMGasReq {
     string to     = 1;
-    bytes  code   = 2;
+    bytes para   = 2;
     string caller = 3;
     uint64 amount = 4;
-    string abi    = 5;
 }
 message EstimateEVMGasResp {
     uint64 gas = 1;
@@ -154,7 +153,7 @@ message EvmContractCreateReq {
     string note     = 3;
     string alias    = 4;
     string caller   = 5;
-    string abi      = 6;
+    string parameter= 6;
     string expire   = 7;
     string paraName = 8;
 }
@@ -165,7 +164,7 @@ message EvmContractCallReq {
     int64  fee      = 3;
     string note     = 4;
     string caller   = 5;
-    string abi      = 6;
+    string parameter= 6;
     string exec     = 7;
     string expire   = 8;
     string paraName = 9;

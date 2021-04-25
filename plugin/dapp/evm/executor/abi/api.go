@@ -1,7 +1,6 @@
 package abi
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -112,7 +111,7 @@ func PackContructorPara(param, abiStr string) (packData []byte, err error) {
 // Unpack 将调用返回结果按照ABI的格式序列化为json
 // data 合约方法返回值
 // abiData 完整的ABI定义
-func Unpack(data []byte, methodName, abiData string) (output string, err error) {
+func Unpack(data []byte, methodName, abiData string) (output []*Param, err error) {
 	if len(data) == 0 {
 		log.Info("Unpack", "Data len", 0, "methodName", methodName)
 		return output, err
@@ -138,7 +137,7 @@ func Unpack(data []byte, methodName, abiData string) (output string, err error) 
 		return output, err
 	}
 
-	outputs := []*Param{}
+	output = []*Param{}
 
 	for i, v := range values {
 		arg := method.Outputs[i]
@@ -148,14 +147,10 @@ func Unpack(data []byte, methodName, abiData string) (output string, err error) 
 			log.Info("Unpack address", "address", pval.Value)
 		}
 
-		outputs = append(outputs, pval)
+		output = append(output, pval)
 	}
 
-	jsondata, err := json.Marshal(outputs)
-	if err != nil {
-		return output, err
-	}
-	return string(jsondata), err
+	return
 }
 
 // Param 返回值参数结构定义

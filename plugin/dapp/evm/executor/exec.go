@@ -12,7 +12,6 @@ import (
 
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
-	"github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/runtime"
@@ -48,8 +47,6 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		contractAddr common.Address
 		snapshot     int
 		execName     string
-		methodName   string
-		inData       []byte
 	)
 
 	var contractAddrStr string
@@ -77,31 +74,11 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	evm.mStateDB.Prepare(common.BytesToHash(txHash), index)
 
 	if isCreate {
-		// 如果携带ABI数据，则对数据合法性进行检查
-		if len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
-			_, err = abi.JSON(strings.NewReader(msg.ABI()))
-			if err != nil {
-				return receipt, err
-			}
-		}
-		ret, snapshot, leftOverGas, vmerr = env.Create(runtime.AccountRef(msg.From()), contractAddr, msg.Data(), context.GasLimit, execName, msg.Alias(), msg.ABI(), msg.Value())
+		ret, snapshot, leftOverGas, vmerr = env.Create(runtime.AccountRef(msg.From()), contractAddr, msg.Data(), context.GasLimit, execName, msg.Alias(), msg.Value())
 	} else {
-		callPara := msg.ABI()
-		// 在这里进行ABI和十六进制的调用参数转换
-		if len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
-			abiStr := evm.mStateDB.GetAbi(contractAddrStr)
-			if "" == abiStr {
-				log.Error("innerExec", "Nil abi info for address", contractAddrStr)
-				return receipt, model.ErrABINotExist
-			}
-			methodName, inData, err = abi.Pack(callPara, abiStr, readOnly)
-			if err != nil {
-				return receipt, err
-			}
-			log.Debug("call contract ", "abi funcName", methodName, "callPara", callPara,
-				"packData", common.Bytes2Hex(inData))
-		}
-		ret, snapshot, leftOverGas, vmerr = env.Call(runtime.AccountRef(msg.From()), *msg.To(), inData, context.GasLimit, msg.Value())
+		callPara := msg.Para()
+		log.Debug("call contract ", "callPara", common.Bytes2Hex(callPara))
+		ret, snapshot, leftOverGas, vmerr = env.Call(runtime.AccountRef(msg.From()), *msg.To(), callPara, context.GasLimit, msg.Value())
 	}
 	// 打印合约中生成的日志
 	evm.mStateDB.PrintLogs()
@@ -138,15 +115,15 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	// 从状态机中获取数据变更和变更日志
 	kvSet, logs := evm.mStateDB.GetChangedData(curVer.GetID())
 	contractReceipt := &evmtypes.ReceiptEVMContract{Caller: msg.From().String(), ContractName: execName, ContractAddr: contractAddrStr, UsedGas: usedGas, Ret: ret}
-	// 这里进行ABI调用结果格式化
-	if len(methodName) > 0 && len(msg.ABI()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
-		jsonRet, err := abi.Unpack(ret, methodName, evm.mStateDB.GetAbi(msg.To().String()))
-		if err != nil {
-			// 这里出错不影响整体执行，只打印错误信息
-			log.Error("unpack evm return error", "error", err)
-		}
-		contractReceipt.JsonRet = jsonRet
-	}
+	//// 这里进行ABI调用结果格式化
+	//if len(methodName) > 0 && len(msg.Para()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
+	//	jsonRet, err := abi.Unpack(ret, methodName, evm.mStateDB.GetAbi(msg.To().String()))
+	//	if err != nil {
+	//		// 这里出错不影响整体执行，只打印错误信息
+	//		log.Error("unpack evm return error", "error", err)
+	//	}
+	//	contractReceipt.JsonRet = jsonRet
+	//}
 	logs = append(logs, &types.ReceiptLog{Ty: evmtypes.TyLogCallContract, Log: types.Encode(contractReceipt)})
 	logs = append(logs, evm.mStateDB.GetReceiptLogs(contractAddrStr)...)
 
@@ -209,7 +186,7 @@ func (evm *EVMExecutor) GetMessage(tx *types.Transaction, index int) (msg *commo
 	}
 
 	// 合约的GasLimit即为调用者为本次合约调用准备支付的手续费
-	msg = common.NewMessage(from, to, tx.Nonce, action.Amount, gasLimit, gasPrice, action.Code, action.GetAlias(), action.Abi)
+	msg = common.NewMessage(from, to, tx.Nonce, action.Amount, gasLimit, gasPrice, action.Code, action.Para, action.GetAlias())
 	return msg, err
 }
 

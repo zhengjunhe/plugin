@@ -22,6 +22,7 @@ import (
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/system/crypto/secp256k1"
 	types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4chain33/generated"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
@@ -93,8 +94,13 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 	note := fmt.Sprintf("relayEvmTx2Chain33 by validator:%s with nonce:%d",
 		address.PubKeyToAddr(privateKey.PubKey().Bytes()),
 		claim.Nonce)
+	_, packData, err := evmAbi.Pack(parameter, generated.OracleABI, false)
+	if nil != err {
+		chain33txLog.Info("relayEvmTx2Chain33", "Failed to do abi.Pack due to:", err.Error())
+		return "", ebrelayerTypes.ErrPack
+	}
 
-	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
+	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: packData}
 
 	//TODO: 交易费超大问题需要调查，hezhengjun on 20210420
 	feeInt64 := int64(5 * 1e7)
@@ -110,7 +116,7 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 	var txhash string
 
 	ctx := jsonclient.NewRPCCtx(rpcURL, "Chain33.SendTransaction", params, &txhash)
-	_, err := ctx.RunResult()
+	_, err = ctx.RunResult()
 	return txhash, err
 }
 
@@ -168,7 +174,7 @@ func deploySingleContract(code []byte, abi, constructorPara, contractName, paraC
 	note := "deploy " + contractName
 
 	var action evmtypes.EVMContractAction
-	action = evmtypes.EVMContractAction{Amount: 0, Code: code, GasLimit: 0, GasPrice: 0, Note: note, Alias: contractName, Abi: string(abi)}
+	action = evmtypes.EVMContractAction{Amount: 0, Code: code, GasLimit: 0, GasPrice: 0, Note: note, Alias: contractName}
 	if constructorPara != "" {
 		packData, err := evmAbi.PackContructorPara(constructorPara, abi)
 		if err != nil {
@@ -242,10 +248,10 @@ func sendTransactionRpc(data, rpcLaddr string) (string, error) {
 	return txhex, nil
 }
 
-func sendTx2Evm(parameter, rpcURL, toAddr, chainName, caller string) (string, error) {
+func sendTx2Evm(parameter []byte, rpcURL, toAddr, chainName, caller string) (string, error) {
 	note := fmt.Sprintf("sendTx2Evm by caller:%s", caller)
 
-	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
+	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: parameter}
 	wholeEvm := chainName + "evm"
 	data, err := createSignedEvmTx(&action, wholeEvm, caller, rpcURL, toAddr)
 	if err != nil {
@@ -264,7 +270,12 @@ func approve(privateKey chain33Crypto.PrivKey, contractAddr, spender, chainName,
 
 	//approve(address spender, uint256 amount)
 	parameter := fmt.Sprintf("approve(%s, %d)", spender, amount)
-	return sendEvmTx(privateKey, contractAddr, parameter, chainName, rpcURL, note)
+	_, packData, err := evmAbi.Pack(parameter, generated.BridgeTokenABI, false)
+	if nil != err {
+		chain33txLog.Info("approve", "Failed to do abi.Pack due to:", err.Error())
+		return "", err
+	}
+	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData)
 }
 
 func burn(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, ethereumTokenAddress, chainName, rpcURL string, amount int64) (string, error) {
@@ -275,7 +286,13 @@ func burn(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, ethe
 	//    )
 	parameter := fmt.Sprintf("burnBridgeTokens(%s, %s, %d)", ethereumReceiver, ethereumTokenAddress, amount)
 	note := parameter
-	return sendEvmTx(privateKey, contractAddr, parameter, chainName, rpcURL, note)
+	_, packData, err := evmAbi.Pack(parameter, generated.BridgeBankABI, false)
+	if nil != err {
+		chain33txLog.Info("burn", "Failed to do abi.Pack due to:", err.Error())
+		return "", err
+	}
+
+	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData)
 }
 
 func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, chainName, rpcURL string, amount int64) (string, error) {
@@ -286,11 +303,16 @@ func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, c
 	//)
 	parameter := fmt.Sprintf("lock(%s, %s, %d)", ethereumReceiver, "1111111111111111111114oLvT2", amount)
 	note := parameter
-	return sendEvmTx(privateKey, contractAddr, parameter, chainName, rpcURL, note)
+	_, packData, err := evmAbi.Pack(parameter, generated.BridgeBankABI, false)
+	if nil != err {
+		chain33txLog.Info("setOracle", "Failed to do abi.Pack due to:", err.Error())
+		return "", ebrelayerTypes.ErrPack
+	}
+	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData)
 }
 
-func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, parameter, chainName, rpcURL, note string) (string, error) {
-	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
+func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, chainName, rpcURL, note string, parameter []byte) (string, error) {
+	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: parameter}
 
 	feeInt64 := int64(1e7)
 	toAddr := contractAddr
@@ -361,14 +383,15 @@ func lockAsync(ownerPrivateKeyStr, ethereumReceiver string, amount int64, bridge
 
 func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, bridgeBank string) {
 	parameter := fmt.Sprint("oracle()")
-	result := query(bridgeRegistry, parameter, bridgeRegistry, rpcLaddr)
+
+	result := query(bridgeRegistry, parameter, bridgeRegistry, rpcLaddr, generated.BridgeRegistryABI)
 	if nil == result {
 		return "", ""
 	}
 	oracle = result.(string)
 
 	parameter = fmt.Sprint("bridgeBank()")
-	result = query(bridgeRegistry, parameter, bridgeRegistry, rpcLaddr)
+	result = query(bridgeRegistry, parameter, bridgeRegistry, rpcLaddr, generated.BridgeRegistryABI)
 	if nil == result {
 		return "", ""
 	}
@@ -376,24 +399,34 @@ func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, b
 	return
 }
 
-func query(contractAddr, input, caller, rpcLaddr string) interface{} {
-	var req = evmtypes.EvmQueryReq{Address: contractAddr, Input: input, Caller: caller}
+func query(contractAddr, input, caller, rpcLaddr, abiData string) interface{} {
+	methodName, packedinput, err := evmAbi.Pack(input, abiData, true)
+	if err != nil {
+		chain33txLog.Debug("query", "Failed to do para pack due to", err.Error())
+		return nil
+	}
+
+	var req = evmtypes.EvmQueryReq{Address: contractAddr, Input: common.ToHex(packedinput), Caller: caller}
 	var resp evmtypes.EvmQueryResp
 	query := sendQuery(rpcLaddr, "Query", &req, &resp)
 
 	if !query {
 		return nil
 	}
-	_, err := json.MarshalIndent(&resp, "", "  ")
+	_, err = json.MarshalIndent(&resp, "", "  ")
 	if err != nil {
 		fmt.Println(resp.String())
 		return nil
 	}
-	var outputs []evmAbi.Param
-	err = json.Unmarshal([]byte(resp.JsonData), &outputs)
+
+	data, err := common.FromHex(resp.RawData)
+	if nil != err {
+		fmt.Println("common.FromHex failed due to:", err.Error())
+	}
+
+	outputs, err := evmAbi.Unpack(data, methodName, abiData)
 	if err != nil {
-		fmt.Println("Unmarshal error", err.Error())
-		return nil
+		_, _ = fmt.Fprintln(os.Stderr, "unpack evm return error", err)
 	}
 	chain33txLog.Debug("query", "outputs", outputs)
 

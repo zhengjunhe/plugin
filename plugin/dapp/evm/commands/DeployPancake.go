@@ -244,7 +244,7 @@ func deployContract(cmd *cobra.Command, binFile, abiFile, parameter, contractNam
 	if err != nil {
 		return "", errors.New(contractName + " parse evm code error " + err.Error())
 	}
-	action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: "PancakeFactory", Abi: abi}
+	action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: "PancakeFactory"}
 	if parameter != "" {
 		constructorPara := "constructor(" + parameter + ")"
 		packData, err := evmAbi.PackContructorPara(constructorPara, abi)

@@ -411,7 +411,7 @@ func (evm *EVM) StaticCall(caller ContractRef, addr common.Address, input []byte
 // 使用传入的部署代码创建新的合约；
 // 目前chain33为了保证账户安全，不允许合约中涉及到外部账户的转账操作，
 // 所以，本步骤不接收转账金额参数
-func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []byte, gas uint64, execName, alias, abi string, value uint64) (ret []byte, snapshot int, leftOverGas uint64, err error) {
+func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []byte, gas uint64, execName, alias string, value uint64) (ret []byte, snapshot int, leftOverGas uint64, err error) {
 	pass, err := evm.preCheck(caller, value)
 	if !pass {
 		return nil, -1, gas, err
@@ -437,17 +437,11 @@ func (evm *EVM) Create(caller ContractRef, contractAddr common.Address, code []b
 
 	// 检查部署后的合约代码大小是否超限
 	maxCodeSizeExceeded := len(ret) > evm.maxCodeSize
-
-	cfg := evm.StateDB.GetConfig()
 	// 如果执行成功，计算存储合约代码需要花费的Gas
 	if err == nil && !maxCodeSizeExceeded {
 		createDataGas := uint64(len(ret)) * params.CreateDataGas
 		if contract.UseGas(createDataGas) {
 			evm.StateDB.SetCode(contractAddr.String(), ret)
-			// 设置 ABI (如果有的话)，这个动作不单独计费
-			if len(abi) > 0 && cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMABI) {
-				evm.StateDB.SetAbi(contractAddr.String(), abi)
-			}
 		} else {
 			// 如果Gas不足，返回这个错误，让外部程序处理
 			err = model.ErrCodeStoreOutOfGas

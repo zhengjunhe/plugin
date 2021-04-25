@@ -634,7 +634,7 @@ func opCreate(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	// 调用合约创建逻辑
 	addr := crypto.RandomContractAddress()
 
-	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", "", value.Uint64())
+	res, _, returnGas, suberr := evm.Create(callContext.contract, *addr, input, gas, "innerContract", "", value.Uint64())
 
 	// 出错时压栈0，否则压栈创建出来的合约对象的地址
 	if suberr != nil && suberr != model.ErrCodeStoreOutOfGas {
@@ -684,7 +684,7 @@ func opCreate2(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	log15.Info("opCreate2", "newContractAddr", newContractAddr.String(), "newContractAddr byte", common.Bytes2Hex(newContractAddr.Bytes()))
 	saltSlice := salt.Bytes32()
 	saltStr := common.Bytes2Hex(saltSlice[:])
-	res, _, returnGas, suberr := evm.Create(callContext.contract, newContractAddr, input, gas, saltStr, "", "", endowment.Uint64())
+	res, _, returnGas, suberr := evm.Create(callContext.contract, newContractAddr, input, gas, saltStr, "", endowment.Uint64())
 	// push item on the stack based on the returned error.
 
 	log15.Info("opCreate2", "callContext.contract.Address()", callContext.contract.Address(),

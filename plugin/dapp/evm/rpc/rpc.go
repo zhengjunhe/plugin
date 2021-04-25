@@ -26,7 +26,7 @@ func (c *channelClient) Create(ctx context.Context, in evmtypes.EvmContractCreat
 		return nil, err
 	}
 
-	action := evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: in.Note, Abi: in.Abi}
+	action := evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: in.Note}
 
 	cfg := c.GetConfig()
 	execer := cfg.ExecName(in.ParaName + "evm")
@@ -57,7 +57,13 @@ func (c *channelClient) Call(ctx context.Context, in evmtypes.EvmContractCallReq
 		return nil, err
 	}
 
-	action := evmtypes.EVMContractAction{Amount: amountInt64, Code: bCode, GasLimit: 0, GasPrice: 0, Note: in.Note, Abi: in.Abi}
+	bParameter, err := common.FromHex(in.Parameter)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "parse evm Parameter error", err)
+		return nil, err
+	}
+
+	action := evmtypes.EVMContractAction{Amount: amountInt64, Code: bCode, GasLimit: 0, GasPrice: 0, Note: in.Note, Para: bParameter}
 
 	tx := &types.Transaction{Execer: []byte(in.Exec), Payload: types.Encode(&action), Fee: 0, To: toAddr}
 

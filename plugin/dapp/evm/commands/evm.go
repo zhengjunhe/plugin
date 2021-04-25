@@ -11,13 +11,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/33cn/plugin/plugin/dapp/evm/commands/compiler"
-
-	"strings"
-
-	"strconv"
-
 	"encoding/json"
+	"strconv"
+	"strings"
 
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
@@ -26,6 +22,8 @@ import (
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	cty "github.com/33cn/chain33/system/dapp/coins/types"
 	"github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/evm/commands/compiler"
+	"github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	common2 "github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
@@ -264,13 +262,12 @@ func createContract(cmd *cobra.Command, args []string) {
 		}
 
 		for _, contract := range contracts {
-			abi, _ := json.Marshal(contract.Info.AbiDefinition) // Flatten the compiler parse
 			bCode, err := common.FromHex(contract.Code)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "parse evm code error", err)
 				return
 			}
-			action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: alias, Abi: string(abi)}
+			action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: alias}
 		}
 	} else {
 		bCode, err := common.FromHex(code)
@@ -278,7 +275,7 @@ func createContract(cmd *cobra.Command, args []string) {
 			fmt.Fprintln(os.Stderr, "parse evm code error", err)
 			return
 		}
-		action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: alias, Abi: abi}
+		action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: alias}
 	}
 
 	if "" != constructorPara {
@@ -517,13 +514,19 @@ func callContract(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	action := evmtypes.EVMContractAction{Amount: amountInt64, GasLimit: 0, GasPrice: 0, Note: note, Abi: parameter}
+	_, packedParameter, err := abi.Pack(parameter, abiStr, false)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to do para pack")
+		return
+	}
+
+	action := evmtypes.EVMContractAction{Amount: amountInt64, GasLimit: 0, GasPrice: 0, Note: note, Para: packedParameter}
 
 	//name表示发给哪个执行器
 	data, err := createEvmTx(cfg, &action, "evm", caller, toAddr, expire, rpcLaddr, feeInt64)
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "call contract error", err)
+		_, _ = fmt.Fprintln(os.Stderr, "call contract error", err)
 		return
 	}
 
@@ -625,6 +628,8 @@ func callAbiCmd() *cobra.Command {
 
 	cmd.Flags().StringP("caller", "c", "", "the caller address")
 
+	cmd.Flags().StringP("path", "t", "./", "abi path(optional), default to .(current directory)")
+
 	return cmd
 }
 
@@ -632,37 +637,57 @@ func callAbi(cmd *cobra.Command, args []string) {
 	addr, _ := cmd.Flags().GetString("address")
 	input, _ := cmd.Flags().GetString("input")
 	caller, _ := cmd.Flags().GetString("caller")
+	path, _ := cmd.Flags().GetString("path")
 
-	var req = evmtypes.EvmQueryReq{Address: addr, Input: input, Caller: caller}
+	abiFileName := path + addr + ".abi"
+	abiStr, err := readFile(abiFileName)
+	if nil != err {
+		_, _ = fmt.Fprintln(os.Stderr, "Can't read abi info, Pls set correct abi path and provide abi file as", abiFileName)
+		return
+	}
+
+	methodName, packData, err := abi.Pack(input, abiStr, true)
+	if nil != err {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to do abi.Pack")
+		return
+	}
+	packStr := common.ToHex(packData)
+	var req = evmtypes.EvmQueryReq{Address: addr, Input: packStr, Caller: caller}
 	var resp evmtypes.EvmQueryResp
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+
 	query := sendQuery(rpcLaddr, "Query", &req, &resp)
+	if !query {
+		fmt.Println("Failed to send query")
+		return
 
-	if query {
-		_, err := json.MarshalIndent(&resp, "", "  ")
-		if err != nil {
-			fmt.Println("MarshalIndent failed due to:", err.Error())
-		} else {
-			var outputs []evmAbi.Param
-			err = json.Unmarshal([]byte(resp.JsonData), &outputs)
-			if err != nil {
-				fmt.Println("Unmarshal error:", err.Error())
-				fmt.Println("RawData:", resp.RawData)
-				return
-			}
+	}
+	_, err = json.MarshalIndent(&resp, "", "  ")
+	if err != nil {
+		fmt.Println("MarshalIndent failed due to:", err.Error())
+	}
 
-			for _, v := range outputs {
-				fmt.Println(v.Value)
-			}
-		}
+	data, err := common.FromHex(resp.RawData)
+	if nil != err {
+		fmt.Println("common.FromHex failed due to:", err.Error())
+	}
+
+	outputs, err := abi.Unpack(data, methodName, abiStr)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "unpack evm return error", err)
+	}
+
+	for _, v := range outputs {
+		fmt.Println(v.Value)
 	}
 }
 
 func estimateContract(cmd *cobra.Command, args []string) {
-	code, _ := cmd.Flags().GetString("input")
+	input, _ := cmd.Flags().GetString("input")
 	name, _ := cmd.Flags().GetString("exec")
 	caller, _ := cmd.Flags().GetString("caller")
 	amount, _ := cmd.Flags().GetFloat64("amount")
+	path, _ := cmd.Flags().GetString("path")
 
 	toAddr := address.ExecAddress("evm")
 	if len(name) > 0 {
@@ -670,13 +695,21 @@ func estimateContract(cmd *cobra.Command, args []string) {
 	}
 
 	amountInt64 := uint64(amount*1e4) * 1e4
-	bCode, err := common.FromHex(code)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "parse evm code error", err)
+
+	abiFileName := path + name + ".abi"
+	abiStr, err := readFile(abiFileName)
+	if nil != err {
+		_, _ = fmt.Fprintln(os.Stderr, "Can't read abi info, Pls set correct abi path and provide abi file as", abiFileName)
 		return
 	}
 
-	var estGasReq = evmtypes.EstimateEVMGasReq{To: toAddr, Code: bCode, Caller: caller, Amount: amountInt64}
+	_, packedParameter, err := abi.Pack(input, abiStr, false)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to do para pack")
+		return
+	}
+
+	var estGasReq = evmtypes.EstimateEVMGasReq{To: toAddr, Para: packedParameter, Caller: caller, Amount: amountInt64}
 	var estGasResp evmtypes.EstimateEVMGasResp
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	query := sendQuery(rpcLaddr, "EstimateGas", &estGasReq, &estGasResp)
@@ -695,6 +728,8 @@ func addEstimateFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("exec", "e", "", "evm contract name (like user.evm.xxxxx)")
 
 	cmd.Flags().StringP("caller", "c", "", "the caller address")
+
+	cmd.Flags().StringP("path", "t", "./", "abi path(optional), default to .(current directory)")
 
 	cmd.Flags().Float64P("amount", "a", 0, "the amount transfer to the contract (optional)")
 }
