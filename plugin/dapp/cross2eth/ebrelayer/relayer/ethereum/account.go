@@ -73,7 +73,7 @@ func (ethRelayer *Relayer4Ethereum) GetValidatorAddr() (validators x2ethTypes.Va
 	}
 
 	validators = x2ethTypes.ValidatorAddr4EthRelayer{
-		Chain33Validator: chain33AccountAddr,
+		EthereumValidator: chain33AccountAddr,
 	}
 	return
 }

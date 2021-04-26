@@ -123,7 +123,7 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 		}
 
 		chain33Msg := &Chain33Msg{
-			ClaimType:            ClaimTypeLock,
+			ClaimType:            ClaimTypeBurn,
 			Chain33Sender:        burnEvent.OwnerFrom.ToAddress(),
 			EthereumReceiver:     common.BytesToAddress(burnEvent.EthereumReceiver),
 			TokenContractAddress: burnEvent.Token.ToAddress(),
@@ -131,8 +131,10 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 			Amount:               burnEvent.Amount,
 			TxHash:               chain33TxHash,
 		}
+		if ebrelayerTypes.SYMBOL_ETH == burnEvent.Symbol {
+			chain33Msg.Amount = chain33Msg.Amount.Mul(chain33Msg.Amount, big.NewInt(int64(1e10)))
+		}
 		return chain33Msg, nil
-
 	}
 
 	return nil, errors.New("unknown-event")

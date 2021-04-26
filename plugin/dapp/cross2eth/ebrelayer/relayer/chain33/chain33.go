@@ -342,6 +342,11 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		relayerLog.Error("relayLockBurnToChain33", "No token address configured for symbol", claim.Symbol)
 		return
 	}
+	if ebrelayerTypes.SYMBOL_ETH == claim.Symbol {
+		amount := big.NewInt(claim.Amount)
+		amount.Div(amount, big.NewInt(int64(1e10)))
+		claim.Amount = amount.Int64()
+	}
 
 	parameter := fmt.Sprintf("newOracleClaim(%d, %s, %s, %s, %s, %d, %s, %s)",
 		claim.ClaimType,

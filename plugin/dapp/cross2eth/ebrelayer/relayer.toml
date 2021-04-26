@@ -8,8 +8,8 @@ EthProviderCli="http://127.0.0.1:7545"
 EthProvider="wss://ropsten.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
 EthMaturityDegree=10
 EthBlockFetchPeriod=5000
-BridgeRegistryOnChain33="1Kf5PZaTeguA6jDtdBYQkpLyjWVkXztoDp"
-BridgeRegistry="0x7B75364F9C47b26916C40d5295998d71ec07DAB4"
+#BridgeRegistryOnChain33="1Kf5PZaTeguA6jDtdBYQkpLyjWVkXztoDp"
+#BridgeRegistry="0x7B75364F9C47b26916C40d5295998d71ec07DAB4"
 #BridgeRegistry="0x5331F912027057fBE8139D91B225246e8159232f"
 
 [SyncTxConfig]
@@ -49,7 +49,7 @@ deployerPrivateKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465e
 #验证人地址，至少配置３个以上，即大于等于３个
 validatorsAddr=["0x92c8b16afd6d423652559c6e266cbe1c29bfd84f", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
 #验证人权重
-initPowers=[25, 25, 25, 25]
+initPowers=[96, 1, 1, 1]
 
 [crypto]
 [log]

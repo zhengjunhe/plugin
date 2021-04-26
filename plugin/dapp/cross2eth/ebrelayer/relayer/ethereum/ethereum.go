@@ -179,12 +179,12 @@ func (ethRelayer *Relayer4Ethereum) DeployContrcts() (bridgeRegistry string, err
 		return bridgeRegistry, errors.New("the number of validator must be not less than 3")
 	}
 
-	nilAddr := common.Address{}
-
-	//已经设置了注册合约地址，说明已经部署了相关的合约，不再重复部署
-	if ethRelayer.bridgeRegistryAddr != nilAddr {
-		return bridgeRegistry, errors.New("contract deployed already")
-	}
+	//nilAddr := common.Address{}
+	//
+	////已经设置了注册合约地址，说明已经部署了相关的合约，不再重复部署
+	////if ethRelayer.bridgeRegistryAddr != nilAddr {
+	////	return bridgeRegistry, errors.New("contract deployed already")
+	////}
 
 	var validators []common.Address
 	var initPowers []*big.Int
@@ -427,7 +427,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 	if nil != err {
 		panic("RelayOracleClaimToEthereum failed due to" + err.Error())
 	}
-	relayerLog.Error("handleChain33Msg", "RelayOracleClaimToEthereum with tx hash", txhash)
+	relayerLog.Info("handleChain33Msg", "RelayOracleClaimToEthereum with tx hash", txhash)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&ethRelayer.totalTx4Eth2Chain33, 1)
@@ -590,6 +590,8 @@ func (ethRelayer *Relayer4Ethereum) filterLogEvents() {
 	bridgeBankSig[ethRelayer.bridgeBankEventBurnSig] = true
 	bridgeBankLog := make(chan types.Log)
 	done := make(chan int)
+
+	height4BridgeBankLogAt = curHeight - 10 //todo:该行只是为了调试方便，后续需要删除，否则会忽略关闭期间的log 处理
 	go ethRelayer.filterLogEventsProc(bridgeBankLog, done, "bridgeBank", curHeight, height4BridgeBankLogAt, ethRelayer.bridgeBankAddr, bridgeBankSig)
 
 	for {
