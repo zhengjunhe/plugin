@@ -72,8 +72,8 @@ func main() {
 	mainlog.Info("db info:", " Dbdriver = ", cfg.SyncTxConfig.Dbdriver, ", DbPath = ", cfg.SyncTxConfig.DbPath, ", DbCache = ", cfg.SyncTxConfig.DbCache)
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
 
-	ethBridgeClaimChan := make(chan *ebrelayerTypes.EthBridgeClaim)
-	chain33MsgChan := make(chan *events.Chain33Msg)
+	ethBridgeClaimChan := make(chan *ebrelayerTypes.EthBridgeClaim, 100)
+	chain33MsgChan := make(chan *events.Chain33Msg, 100)
 
 	log.Info("deploy info for chain33:", "cfg.Deploy4Chain33", cfg.Deploy4Chain33)
 	chain33StartPara := &chain33Relayer.Chain33StartPara{

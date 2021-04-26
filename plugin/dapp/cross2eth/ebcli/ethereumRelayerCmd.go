@@ -30,8 +30,8 @@ func EthereumRelayerCmd() *cobra.Command {
 		DeployContrctsCmd(),
 		ShowTxReceiptCmd(),
 		//////auxiliary///////
-		CreateBridgeTokenCmd(),
-		CreateEthereumTokenCmd(),
+		//CreateBridgeTokenCmd(),
+		//CreateEthereumTokenCmd(),
 		GetBalanceCmd(),
 		IsProphecyPendingCmd(),
 		MintErc20Cmd(),
@@ -45,20 +45,22 @@ func EthereumRelayerCmd() *cobra.Command {
 		StaticsCmd(),
 		TransferTokenCmd(),
 		GetToken2addressCmd(),
-		TokenAddress4EthCmd(),
+		TokenCmd(),
 	)
 
 	return cmd
 }
 
 //TokenAddressCmd...
-func TokenAddress4EthCmd() *cobra.Command {
+func TokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "token",
-		Short: "show or set token address and it's corresponding symbol",
+		Short: "create bridgeToken, ERC20 Token, show or set token address and it's corresponding symbol",
 		Args:  cobra.MinimumNArgs(1),
 	}
 	cmd.AddCommand(
+		CreateBridgeTokenCmd(),
+		CreateEthereumTokenCmd(),
 		SetTokenAddress4EthCmd(),
 		ShowTokenAddress4EthCmd(),
 	)
@@ -294,8 +296,8 @@ func ShowTxReceipt(cmd *cobra.Command, args []string) {
 //CreateBridgeTokenCmd ...
 func CreateBridgeTokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "token4chain33",
-		Short: "create new token as chain33 asset on Ethereum",
+		Use:   "create-bridge-token",
+		Short: "create new token as chain33 asset on Ethereum, and it's should be done by operator",
 		Run:   CreateBridgeToken,
 	}
 	CreateBridgeTokenFlags(cmd)
@@ -321,8 +323,8 @@ func CreateBridgeToken(cmd *cobra.Command, args []string) {
 //CreateEthereumTokenCmd ...
 func CreateEthereumTokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "token4erc20",
-		Short: "create new erc20 asset on Ethereum",
+		Use:   "create-ERC20-token",
+		Short: "create new ERC20 token on Ethereum",
 		Run:   CreateEthereumTokenToken,
 	}
 	CreateEthereumTokenFlags(cmd)

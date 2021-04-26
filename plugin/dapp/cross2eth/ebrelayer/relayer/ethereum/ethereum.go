@@ -645,6 +645,10 @@ func (ethRelayer *Relayer4Ethereum) filterLogEventsProc(logchan chan<- types.Log
 			relayerLog.Info(title, "get unprocessed log with topic:", logv.Topics[0].String(),
 				"BlockNumber", logv.BlockNumber)
 		}
+		//更新
+		if err := ethRelayer.setHeight4BridgeBankLogAt(query.ToBlock.Uint64()); nil != err {
+			panic(err.Error())
+		}
 
 		if query.ToBlock.Int64() == curHeight {
 			relayerLog.Info(title, "Finished FilterLogs to height", curHeight)
