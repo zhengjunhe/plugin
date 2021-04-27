@@ -99,7 +99,6 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 		StartSyncHeight:   startPara.SyncTxConfig.StartSyncHeight,
 		StartSyncSequence: startPara.SyncTxConfig.StartSyncSequence,
 		StartSyncHash:     startPara.SyncTxConfig.StartSyncHash,
-		Contracts:         startPara.SyncTxConfig.Contracts,
 	}
 
 	registrAddrInDB, err := chain33Relayer.getBridgeRegistryAddr()
@@ -147,10 +146,7 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 			"oracleAddr", chain33Relayer.oracleAddr, "bridgeBankAddr", chain33Relayer.bridgeBankAddr)
 	}
 
-	if 0 == len(syncCfg.Contracts) {
-		syncCfg.Contracts = append(syncCfg.Contracts, chain33Relayer.bridgeBankAddr)
-	}
-
+	syncCfg.Contracts = append(syncCfg.Contracts, chain33Relayer.bridgeBankAddr)
 	chain33Relayer.syncEvmTxLogs = syncTx.StartSyncEvmTxLogs(syncCfg, chain33Relayer.db)
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
 	chain33Relayer.prePareSubscribeEvent()
@@ -357,6 +353,7 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		claim.Amount,
 		claimID.String(),
 		common.ToHex(signature))
+	relayerLog.Info("relayLockBurnToChain33", "parameter", parameter)
 
 	claim.ChainName = chain33Relayer.chainName
 	txhash, err := relayEvmTx2Chain33(chain33Relayer.privateKey4Chain33, claim, parameter, chain33Relayer.rpcLaddr, chain33Relayer.oracleAddr)
@@ -364,7 +361,7 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		relayerLog.Error("relayLockBurnToChain33", "Failed to RelayEvmTx2Chain33 due to:", err.Error())
 		return
 	}
-	relayerLog.Info("relayLockBurnToChain33", "RelayLockToChain33 with hash", txhash)
+	relayerLog.Info("relayLockBurnToChain33", "tx is sent to relay lock or burn with hash", txhash)
 
 	//保存交易hash，方便查询
 	atomic.AddInt64(&chain33Relayer.totalTx4Chain33ToEth, 1)
