@@ -219,7 +219,7 @@ func (ethRelayer *Relayer4Ethereum) ShowTokenAddress(token2show ebTypes.TokenAdd
 		return res, nil
 	}
 	helper := dbm.NewListHelper(ethRelayer.db)
-	datas := helper.List(ethTxEventPrefix, nil, 100, dbm.ListASC)
+	datas := helper.List(ethTokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
 	if nil == datas {
 		return nil, errors.New("Not found")
 	}

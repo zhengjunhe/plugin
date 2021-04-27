@@ -179,12 +179,12 @@ func (ethRelayer *Relayer4Ethereum) DeployContrcts() (bridgeRegistry string, err
 		return bridgeRegistry, errors.New("the number of validator must be not less than 3")
 	}
 
-	//nilAddr := common.Address{}
-	//
-	////已经设置了注册合约地址，说明已经部署了相关的合约，不再重复部署
-	////if ethRelayer.bridgeRegistryAddr != nilAddr {
-	////	return bridgeRegistry, errors.New("contract deployed already")
-	////}
+	nilAddr := common.Address{}
+
+	//已经设置了注册合约地址，说明已经部署了相关的合约，不再重复部署
+	if ethRelayer.bridgeRegistryAddr != nilAddr {
+		return bridgeRegistry, errors.New("contract deployed already")
+	}
 
 	var validators []common.Address
 	var initPowers []*big.Int
