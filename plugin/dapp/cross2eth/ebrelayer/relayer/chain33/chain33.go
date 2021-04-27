@@ -332,12 +332,18 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	//	bytes32 _claimID,
 	//	bytes memory _signature
 	//)
-
-	tokenAddr, exist := chain33Relayer.symbol2Addr[claim.Symbol]
-	if !exist {
-		relayerLog.Error("relayLockBurnToChain33", "No token address configured for symbol", claim.Symbol)
-		return
+	var tokenAddr string
+	if int32(events.ClaimTypeBurn) == claim.ClaimType && ebrelayerTypes.SYMBOL_BTY == claim.Symbol {
+		tokenAddr = ebrelayerTypes.BTYAddrChain33
+	} else {
+		var exist bool
+		tokenAddr, exist = chain33Relayer.symbol2Addr[claim.Symbol]
+		if !exist {
+			relayerLog.Error("relayLockBurnToChain33", "No token address configured for symbol", claim.Symbol)
+			return
+		}
 	}
+
 	if ebrelayerTypes.SYMBOL_ETH == claim.Symbol {
 		amount := big.NewInt(claim.Amount)
 		amount.Div(amount, big.NewInt(int64(1e10)))

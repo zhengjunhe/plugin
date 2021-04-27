@@ -499,7 +499,7 @@ func (manager *Manager) SimBurnFromEth(burn relayerTypes.Burn, result *interface
 	return nil
 }
 
-//SimBurnFromEth: 模拟从eth锁住eth/erc20，转移到chain33
+//SimLockFromEth: 模拟从eth锁住eth/erc20，转移到chain33
 func (manager *Manager) SimLockFromEth(lock relayerTypes.LockEthErc20, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()

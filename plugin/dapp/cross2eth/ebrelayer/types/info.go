@@ -15,4 +15,5 @@ const (
 	EthereumBlockChainName = "Ethereum-mainchain"
 	BTYAddrChain33         = "1111111111111111111114oLvT2"
 	SYMBOL_ETH             = "ETH"
+	SYMBOL_BTY             = "BTY"
 )
