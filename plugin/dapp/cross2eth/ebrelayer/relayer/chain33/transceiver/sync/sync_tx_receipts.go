@@ -149,6 +149,6 @@ func bindOrResumePush(cfg *relayerTypes.SyncTxReceiptConfig) {
 		fmt.Println("Failed to AddSubscribeTxReceipt to  rpc addr:", cfg.Chain33Host, "ReplySubTxReceipt", res)
 		panic("bindOrResumePush client failed due to:" + res.Msg)
 	}
-	log.Info("bindOrResumePush", "Succeed to AddSubscribeTxReceipt for rpc address:", cfg.Chain33Host)
+	log.Info("bindOrResumePush", "Succeed to AddSubscribeTxReceipt for rpc address:", cfg.Chain33Host, "contract", params.Contract)
 	fmt.Println("Succeed to AddPushSubscribe")
 }
