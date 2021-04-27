@@ -26,7 +26,7 @@ const (
 )
 
 // RelayOracleClaimToEthereum : relays the provided burn or lock to Chain33Bridge contract on the Ethereum network
-func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinterface.EthClientSpec, sender common.Address, claim ProphecyClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
+func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinterface.EthClientSpec, sender, tokenOnEth common.Address, claim ProphecyClaim, privateKey *ecdsa.PrivateKey) (txhash string, err error) {
 	txslog.Info("RelayProphecyClaimToEthereum", "sender", sender.String(), "chain33Sender", hexutil.Encode(claim.Chain33Sender), "ethereumReceiver", claim.EthereumReceiver.String(),
 		"TokenAddress", claim.TokenContractAddress.String(), "symbol", claim.Symbol, "Amount",
 		claim.Amount.String(), "claimType", claim.ClaimType)
@@ -46,7 +46,7 @@ func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinte
 		return "", err
 	}
 
-	tx, err := oracleInstance.NewOracleClaim(auth, uint8(claim.ClaimType), claim.Chain33Sender, claim.EthereumReceiver, claim.TokenContractAddress, claim.Symbol, claim.Amount, claimID, signature)
+	tx, err := oracleInstance.NewOracleClaim(auth, uint8(claim.ClaimType), claim.Chain33Sender, claim.EthereumReceiver, tokenOnEth, claim.Symbol, claim.Amount, claimID, signature)
 	if nil != err {
 		txslog.Error("RelayProphecyClaimToEthereum", "NewOracleClaim failed due to:", err.Error())
 		return "", err

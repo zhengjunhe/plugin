@@ -421,9 +421,12 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
 	prophecyClaim := ethtxs.Chain33MsgToProphecyClaim(*chain33Msg)
-
+	tokenAddr, exist := ethRelayer.symbol2Addr[prophecyClaim.Symbol]
+	if !exist {
+		panic(fmt.Sprintf("Token address was not set for Token:%s", prophecyClaim.Symbol))
+	}
 	// Relay the Chain33Msg to the Ethereum network
-	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.x2EthContracts.Oracle, ethRelayer.clientSpec, ethRelayer.ethSender, prophecyClaim, ethRelayer.privateKey4Ethereum)
+	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.x2EthContracts.Oracle, ethRelayer.clientSpec, ethRelayer.ethSender, tokenAddr, prophecyClaim, ethRelayer.privateKey4Ethereum)
 	if nil != err {
 		panic("RelayOracleClaimToEthereum failed due to" + err.Error())
 	}
