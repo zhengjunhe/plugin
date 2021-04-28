@@ -399,6 +399,16 @@ func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, b
 	return
 }
 
+func getToken2address(bridgeBank, symbol, rpcLaddr string) string {
+	parameter := fmt.Sprintf("getToken2address(%s)", symbol)
+
+	result := query(bridgeBank, parameter, bridgeBank, rpcLaddr, generated.BridgeBankABI)
+	if nil == result {
+		return ""
+	}
+	return result.(string)
+}
+
 func query(contractAddr, input, caller, rpcLaddr, abiData string) interface{} {
 	methodName, packedinput, err := evmAbi.Pack(input, abiData, true)
 	if err != nil {

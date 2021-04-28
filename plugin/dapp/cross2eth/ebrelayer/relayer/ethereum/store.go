@@ -178,7 +178,9 @@ func (ethRelayer *Relayer4Ethereum) initBridgeBankTx() {
 func (ethRelayer *Relayer4Ethereum) SetTokenAddress(token2set ebTypes.TokenAddress) error {
 	addr := common.HexToAddress(token2set.Address)
 	bytes := chain33Types.Encode(&token2set)
+	ethRelayer.rwLock.Lock()
 	ethRelayer.symbol2Addr[token2set.Symbol] = addr
+	ethRelayer.rwLock.Unlock()
 	return ethRelayer.db.Set(ethTokenSymbol2AddrKey(token2set.Symbol), bytes)
 }
 

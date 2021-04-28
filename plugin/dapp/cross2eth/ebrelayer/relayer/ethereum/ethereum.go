@@ -423,7 +423,21 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 	prophecyClaim := ethtxs.Chain33MsgToProphecyClaim(*chain33Msg)
 	tokenAddr, exist := ethRelayer.symbol2Addr[prophecyClaim.Symbol]
 	if !exist {
-		panic(fmt.Sprintf("Token address was not set for Token:%s", prophecyClaim.Symbol))
+		//Try to query token's address from ethereum node
+		addr, err := ethRelayer.ShowTokenAddrBySymbol(prophecyClaim.Symbol)
+		if err != nil {
+			panic(fmt.Sprintf("Pls create bridge token in advance for token:%s", prophecyClaim.Symbol))
+		}
+		token2set := ebTypes.TokenAddress{
+			Address:   addr,
+			Symbol:    prophecyClaim.Symbol,
+			ChainName: ebTypes.EthereumBlockChainName,
+		}
+		err = ethRelayer.SetTokenAddress(token2set)
+		if nil != err {
+			// 尽管设置数据失败，但是不影响运行，只是relayer启动时，每次从节点远程获取bridge token地址而已
+			relayerLog.Error("handleChain33Msg", "Failed to SetTokenAddress due to", err.Error())
+		}
 	}
 	// Relay the Chain33Msg to the Ethereum network
 	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.x2EthContracts.Oracle, ethRelayer.clientSpec, ethRelayer.ethSender, tokenAddr, prophecyClaim, ethRelayer.privateKey4Ethereum)

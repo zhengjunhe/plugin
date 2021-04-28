@@ -322,16 +322,7 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	if nil != err {
 		panic("SignClaim4Evm due to" + err.Error())
 	}
-	//function newOracleClaim(
-	//	ClaimType _claimType,
-	//	bytes memory _ethereumSender,
-	//	address payable _chain33Receiver,
-	//	address _tokenAddress,
-	//	string memory _symbol,
-	//	uint256 _amount,
-	//	bytes32 _claimID,
-	//	bytes memory _signature
-	//)
+
 	var tokenAddr string
 	if int32(events.ClaimTypeBurn) == claim.ClaimType && ebrelayerTypes.SYMBOL_BTY == claim.Symbol {
 		tokenAddr = ebrelayerTypes.BTYAddrChain33
@@ -339,8 +330,22 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		var exist bool
 		tokenAddr, exist = chain33Relayer.symbol2Addr[claim.Symbol]
 		if !exist {
-			relayerLog.Error("relayLockBurnToChain33", "No token address configured for symbol", claim.Symbol)
-			return
+			tokenAddr = getToken2address(chain33Relayer.bridgeBankAddr, claim.Symbol, chain33Relayer.rpcLaddr)
+			if "" == tokenAddr {
+				relayerLog.Error("relayLockBurnToChain33", "No bridge token address created for symbol", claim.Symbol)
+				return
+			}
+			relayerLog.Info("relayLockBurnToChain33", "Succeed to get bridge token address for symbol", claim.Symbol,
+				"address", tokenAddr)
+
+			token2set := ebTypes.TokenAddress{
+				Address:   tokenAddr,
+				Symbol:    claim.Symbol,
+				ChainName: ebTypes.Chain33BlockChainName,
+			}
+			if err := chain33Relayer.SetTokenAddress(token2set); nil != err {
+				relayerLog.Info("relayLockBurnToChain33", "Failed to SetTokenAddress due to", err.Error())
+			}
 		}
 	}
 
