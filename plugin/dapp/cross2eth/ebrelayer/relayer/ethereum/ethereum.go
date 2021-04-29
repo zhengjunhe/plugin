@@ -24,6 +24,7 @@ import (
 
 	dbm "github.com/33cn/chain33/common/db"
 	log "github.com/33cn/chain33/common/log/log15"
+	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethtxs"
@@ -277,8 +278,17 @@ func (ethRelayer *Relayer4Ethereum) IsProphecyPending(claimID [32]byte) (bool, e
 //CreateBridgeToken ...
 func (ethRelayer *Relayer4Ethereum) CreateBridgeToken(symbol string) (string, error) {
 	ethRelayer.rwLock.RLock()
-	defer ethRelayer.rwLock.RUnlock()
-	return ethtxs.CreateBridgeToken(symbol, ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
+	tokenAddr, err := ethtxs.CreateBridgeToken(symbol, ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthDeployInfo, ethRelayer.x2EthContracts)
+	ethRelayer.rwLock.RUnlock()
+	if nil == err {
+		token2set := ebTypes.TokenAddress{
+			Address:   tokenAddr,
+			Symbol:    symbol,
+			ChainName: ebTypes.EthereumBlockChainName,
+		}
+		_ = ethRelayer.SetTokenAddress(token2set)
+	}
+	return tokenAddr, err
 }
 
 //CreateERC20Token ...
@@ -453,7 +463,20 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 		relayerLog.Error("handleChain33Msg", "Failed to RelayLockToChain33 due to:", err.Error())
 		return
 	}
-	if err = ethRelayer.setLastestRelay2Chain33Txhash(txhash, txIndex); nil != err {
+	statics := &ebTypes.Chain33ToEthereumStatics{
+		EthTxstatus:      ebTypes.Tx_Status_Pending,
+		Chain33Txhash:    common.Bytes2Hex(chain33Msg.TxHash),
+		EthereumTxhash:   txhash,
+		BurnLock:         int32(chain33Msg.ClaimType),
+		Chain33Sender:    chain33Msg.Chain33Sender.String(),
+		EthereumReceiver: chain33Msg.EthereumReceiver.String(),
+		Symbol:           chain33Msg.Symbol,
+		Amount:           chain33Msg.Amount.String(),
+		Nonce:            chain33Msg.Nonce,
+		TxIndex:          txIndex,
+	}
+	data := chain33Types.Encode(statics)
+	if err = ethRelayer.setLastestStatics(int32(chain33Msg.ClaimType), txIndex, data); nil != err {
 		relayerLog.Error("handleChain33Msg", "Failed to RelayLockToChain33 due to:", err.Error())
 		return
 	}
@@ -470,10 +493,11 @@ func (ethRelayer *Relayer4Ethereum) procNewHeight(ctx context.Context, continueF
 			"continueFailCount", continueFailCount)
 		return
 	}
+	ethRelayer.updateTxStatus()
 	*continueFailCount = 0
-
 	currentHeight := head.Number.Uint64()
 	relayerLog.Info("procNewHeight", "currentHeight", currentHeight)
+
 	//一次最大只获取10个logEvent进行处理
 	fetchCnt := int32(10)
 	for ethRelayer.eventLogIndex.Height+uint64(ethRelayer.maturityDegree)+1 <= currentHeight {
@@ -732,7 +756,7 @@ func (ethRelayer *Relayer4Ethereum) ShowOperator() (string, error) {
 
 //QueryTxhashRelay2Chain33 ...
 func (ethRelayer *Relayer4Ethereum) QueryTxhashRelay2Chain33() ebTypes.Txhashes {
-	txhashs := ethRelayer.queryTxhashes([]byte(eth2chain33TxHashPrefix))
+	txhashs := ethRelayer.queryTxhashes([]byte(chain33ToEthStaticsPrefix))
 	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
@@ -762,7 +786,7 @@ func (ethRelayer *Relayer4Ethereum) handleLogLockEvent(clientChainID *big.Int, c
 	}
 
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String(), int64(decimal))
+	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String(), log.TxHash.String(), int64(decimal))
 	if err != nil {
 		return err
 	}
@@ -797,7 +821,7 @@ func (ethRelayer *Relayer4Ethereum) handleLogBurnEvent(clientChainID *big.Int, c
 	}
 
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String(), int64(decimal))
+	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(event, clientChainID.Int64(), ethRelayer.bridgeBankAddr.String(), log.TxHash.String(), int64(decimal))
 	if err != nil {
 		return err
 	}
@@ -805,4 +829,59 @@ func (ethRelayer *Relayer4Ethereum) handleLogBurnEvent(clientChainID *big.Int, c
 	ethRelayer.ethBridgeClaimChan <- prophecyClaim
 
 	return nil
+}
+
+func (ethRelayer *Relayer4Ethereum) ShowStatics(request ebTypes.TokenStaticsRequest) (*ebTypes.TokenStaticsResponse, error) {
+	res := &ebTypes.TokenStaticsResponse{}
+
+	datas, err := ethRelayer.getStatics(request.Operation, request.TxIndex)
+	if nil != err {
+		return nil, err
+	}
+
+	for _, data := range datas {
+		var statics ebTypes.Chain33ToEthereumStatics
+		_ = chain33Types.Decode(data, &statics)
+		if request.Status != 0 {
+			if ebTypes.Tx_Status_Map[request.Status] != statics.EthTxstatus {
+				continue
+			}
+		}
+		res.C2Estatics = append(res.C2Estatics, &statics)
+	}
+	return res, nil
+}
+
+func (ethRelayer *Relayer4Ethereum) updateTxStatus() {
+	ethRelayer.updateSingleTxStatus(events.ClaimTypeBurn)
+	ethRelayer.updateSingleTxStatus(events.ClaimTypeLock)
+}
+
+func (ethRelayer *Relayer4Ethereum) updateSingleTxStatus(claimType events.ClaimType) {
+	txIndex := ethRelayer.getEthLockTxUpdateTxIndex(claimType)
+	if ebTypes.Invalid_Tx_Index == txIndex {
+		return
+	}
+	datas, _ := ethRelayer.getStatics(int32(claimType), txIndex)
+	if nil == datas {
+		return
+	}
+	for _, data := range datas {
+		var statics ebTypes.Chain33ToEthereumStatics
+		_ = chain33Types.Decode(data, &statics)
+		receipt, _ := ethRelayer.clientSpec.TransactionReceipt(context.Background(), common.HexToHash(statics.EthereumTxhash))
+		//当前处理机制比较简单，如果发现该笔交易未执行，就不再产寻后续交易的回执
+		if nil == receipt {
+			break
+		}
+		status := ebTypes.Tx_Status_Success
+		if receipt.Status != types.ReceiptStatusSuccessful {
+			status = ebTypes.Tx_Status_Failed
+		}
+		statics.EthTxstatus = status
+		dataNew := chain33Types.Encode(&statics)
+		_ = ethRelayer.setLastestStatics(int32(claimType), statics.TxIndex, dataNew)
+		_ = ethRelayer.setEthLockTxUpdateTxIndex(statics.TxIndex, claimType)
+		relayerLog.Info("updateSingleTxStatus", "txHash", statics.EthereumTxhash, "updated status", status)
+	}
 }

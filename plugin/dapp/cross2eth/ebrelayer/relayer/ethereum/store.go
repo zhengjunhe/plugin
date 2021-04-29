@@ -10,20 +10,22 @@ import (
 
 	dbm "github.com/33cn/chain33/common/db"
 	chain33Types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
 var (
-	eth2chain33TxHashPrefix  = "Eth2chain33TxHash"
-	eth2chain33TxTotalAmount = []byte("Eth2chain33TxTotalAmount")
-	//chain33ToEthTxHashPrefix       = "chain33ToEthTxHash"
-	bridgeRegistryAddrPrefix       = []byte("x2EthBridgeRegistryAddr")
-	bridgeBankLogProcessedAt       = []byte("bridgeBankLogProcessedAt")
-	ethTxEventPrefix               = []byte("ethTxEventPrefix")
-	lastBridgeBankHeightProcPrefix = []byte("lastBridgeBankHeight")
-	ethTokenSymbol2AddrPrefix      = []byte("ethTokenSymbol2AddrPrefix")
+	chain33ToEthStaticsPrefix      = "eth-chain33ToEthStatics"
+	chain33ToEthTxTotalAmount      = []byte("eth-chain33ToEthTxTotalAmount")
+	bridgeRegistryAddrPrefix       = []byte("eth-x2EthBridgeRegistryAddr")
+	bridgeBankLogProcessedAt       = []byte("eth-bridgeBankLogProcessedAt")
+	ethTxEventPrefix               = []byte("eth-ethTxEventPrefix")
+	lastBridgeBankHeightProcPrefix = []byte("eth-lastBridgeBankHeight")
+	ethTokenSymbol2AddrPrefix      = []byte("eth-ethTokenSymbol2AddrPrefix")
+	ethLockTxUpdateTxIndex         = []byte("eth-ethLockTxUpdateTxIndex")
+	ethBurnTxUpdateTxIndex         = []byte("eth-ethBurnTxUpdateTxIndex")
 )
 
 func ethTokenSymbol2AddrKey(symbol string) []byte {
@@ -34,8 +36,56 @@ func ethTxEventKey4Height(height uint64, index uint32) []byte {
 	return append(ethTxEventPrefix, []byte(fmt.Sprintf("%020d-%d", height, index))...)
 }
 
-func calcRelay2Chain33Txhash(txindex int64) []byte {
-	return []byte(fmt.Sprintf("%s-%012d", eth2chain33TxHashPrefix, txindex))
+func calcRelayFromChain33Key(claimType int32, txindex int64) []byte {
+	return []byte(fmt.Sprintf("%s-%d-%012d", chain33ToEthStaticsPrefix, claimType, txindex))
+}
+
+func calcRelayFromChain33ListPrefix(claimType int32) []byte {
+	return []byte(fmt.Sprintf("%s-%d-", chain33ToEthStaticsPrefix, claimType))
+}
+
+func (ethRelayer *Relayer4Ethereum) getStatics(claimType int32, txIndex int64) ([][]byte, error) {
+	keyPrefix := calcRelayFromChain33ListPrefix(claimType)
+
+	keyFrom := calcRelayFromChain33Key(claimType, txIndex)
+	helper := dbm.NewListHelper(ethRelayer.db)
+	datas := helper.List(keyPrefix, keyFrom, 20, dbm.ListASC)
+	if nil == datas {
+		return nil, errors.New("Not found")
+	}
+
+	return datas, nil
+}
+
+func (ethRelayer *Relayer4Ethereum) setEthLockTxUpdateTxIndex(txindex int64, claimType events.ClaimType) error {
+	txIndexWrapper := &chain33Types.Int64{
+		Data: txindex,
+	}
+
+	if events.ClaimTypeBurn == claimType {
+		return ethRelayer.db.Set(ethBurnTxUpdateTxIndex, chain33Types.Encode(txIndexWrapper))
+	}
+	return ethRelayer.db.Set(ethLockTxUpdateTxIndex, chain33Types.Encode(txIndexWrapper))
+}
+
+func (ethRelayer *Relayer4Ethereum) getEthLockTxUpdateTxIndex(claimType events.ClaimType) int64 {
+	var key []byte
+	if events.ClaimTypeBurn == claimType {
+		key = ethBurnTxUpdateTxIndex
+	} else {
+		key = ethLockTxUpdateTxIndex
+	}
+	data, err := ethRelayer.db.Get(key)
+	if nil != err {
+		return ebTypes.Invalid_Tx_Index
+	}
+
+	var txIndexWrapper chain33Types.Int64
+	err = chain33Types.Decode(data, &txIndexWrapper)
+	if nil != err {
+		return ebTypes.Invalid_Tx_Index
+	}
+	return txIndexWrapper.Data
 }
 
 func (ethRelayer *Relayer4Ethereum) setBridgeRegistryAddr(bridgeRegistryAddr string) error {
@@ -55,12 +105,12 @@ func (ethRelayer *Relayer4Ethereum) updateTotalTxAmount2chain33(total int64) err
 		Data: atomic.LoadInt64(&ethRelayer.totalTx4Eth2Chain33),
 	}
 	//更新成功见证的交易数
-	return ethRelayer.db.Set(eth2chain33TxTotalAmount, chain33Types.Encode(totalTx))
+	return ethRelayer.db.Set(chain33ToEthTxTotalAmount, chain33Types.Encode(totalTx))
 }
 
-func (ethRelayer *Relayer4Ethereum) setLastestRelay2Chain33Txhash(txhash string, txIndex int64) error {
-	key := calcRelay2Chain33Txhash(txIndex)
-	return ethRelayer.db.Set(key, []byte(txhash))
+func (ethRelayer *Relayer4Ethereum) setLastestStatics(claimType int32, txIndex int64, data []byte) error {
+	key := calcRelayFromChain33Key(claimType, txIndex)
+	return ethRelayer.db.Set(key, data)
 }
 
 func (ethRelayer *Relayer4Ethereum) queryTxhashes(prefix []byte) []string {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	chain33Crypto "github.com/33cn/chain33/common/crypto"
+	chain33Types "github.com/33cn/chain33/types"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
@@ -118,7 +119,7 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 
 //QueryTxhashRelay2Eth ...
 func (chain33Relayer *Relayer4Chain33) QueryTxhashRelay2Eth() ebTypes.Txhashes {
-	txhashs := utils.QueryTxhashes([]byte(chain33ToEthBurnLockTxHashPrefix), chain33Relayer.db)
+	txhashs := utils.QueryTxhashes([]byte(eth2Chain33BurnLockTxStaticsPrefix), chain33Relayer.db)
 	return ebTypes.Txhashes{Txhash: txhashs}
 }
 
@@ -314,7 +315,9 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	relayerLog.Debug("relayLockBurnToChain33", "new EthBridgeClaim received", claim)
 
 	nonceBytes := big.NewInt(claim.Nonce).Bytes()
-	amountBytes := big.NewInt(claim.Amount).Bytes()
+	bigAmount := big.NewInt(0)
+	bigAmount.SetString(claim.Amount, 10)
+	amountBytes := bigAmount.Bytes()
 	claimID := crypto.Keccak256Hash(nonceBytes, []byte(claim.EthereumSender), []byte(claim.Chain33Receiver), []byte(claim.Symbol), amountBytes)
 
 	// Sign the hash using the active validator's private key
@@ -350,12 +353,11 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	}
 
 	if ebrelayerTypes.SYMBOL_ETH == claim.Symbol {
-		amount := big.NewInt(claim.Amount)
-		amount.Div(amount, big.NewInt(int64(1e10)))
-		claim.Amount = amount.Int64()
+		bigAmount.Div(bigAmount, big.NewInt(int64(1e10)))
+		claim.Amount = bigAmount.String()
 	}
 
-	parameter := fmt.Sprintf("newOracleClaim(%d, %s, %s, %s, %s, %d, %s, %s)",
+	parameter := fmt.Sprintf("newOracleClaim(%d, %s, %s, %s, %s, %s, %s, %s)",
 		claim.ClaimType,
 		claim.EthereumSender,
 		claim.Chain33Receiver,
@@ -381,7 +383,20 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		relayerLog.Error("relayLockBurnToChain33", "Failed to RelayEvmTx2Chain33 due to:", err.Error())
 		return
 	}
-	if err = chain33Relayer.setLastestRelay2EthTxhash("", txhash, txIndex); nil != err {
+	statics := &ebTypes.Ethereum2Chain33Statics{
+		Chain33Txstatus: ebrelayerTypes.Tx_Status_Pending,
+		Chain33Txhash:   txhash,
+		EthereumTxhash:  claim.EthTxHash,
+		BurnLock:        claim.ClaimType,
+		EthereumSender:  claim.EthereumSender,
+		Chain33Receiver: claim.Chain33Receiver,
+		Symbol:          claim.Symbol,
+		Amount:          claim.Amount,
+		Nonce:           claim.Nonce,
+		TxIndex:         txIndex,
+	}
+	data := chain33Types.Encode(statics)
+	if err = chain33Relayer.setLastestRelay2Chain33TxStatics(txIndex, claim.ClaimType, data); nil != err {
 		relayerLog.Error("relayLockBurnToChain33", "Failed to RelayEvmTx2Chain33 due to:", err.Error())
 		return
 	}
@@ -406,4 +421,59 @@ func (chain33Relayer *Relayer4Chain33) ShowBridgeRegistryAddr() (string, error) 
 	}
 
 	return chain33Relayer.bridgeRegistryAddr, nil
+}
+
+func (chain33Relayer *Relayer4Chain33) ShowStatics(request ebrelayerTypes.TokenStaticsRequest) (*ebrelayerTypes.TokenStaticsResponse, error) {
+	res := &ebrelayerTypes.TokenStaticsResponse{}
+
+	datas, err := chain33Relayer.getStatics(request.Operation, request.TxIndex)
+	if nil != err {
+		return nil, err
+	}
+	//todo:完善分页显示功能
+	for _, data := range datas {
+		var statics ebTypes.Ethereum2Chain33Statics
+		_ = chain33Types.Decode(data, &statics)
+		if request.Status != 0 {
+			if ebTypes.Tx_Status_Map[request.Status] != statics.Chain33Txstatus {
+				continue
+			}
+		}
+		res.E2Cstatics = append(res.E2Cstatics, &statics)
+	}
+	return res, nil
+}
+
+func (chain33Relayer *Relayer4Chain33) updateTxStatus() {
+	chain33Relayer.updateSingleTxStatus(events.ClaimTypeBurn)
+	chain33Relayer.updateSingleTxStatus(events.ClaimTypeLock)
+}
+
+func (chain33Relayer *Relayer4Chain33) updateSingleTxStatus(claimType events.ClaimType) {
+	txIndex := chain33Relayer.getChain33UpdateTxIndex(claimType)
+	if ebTypes.Invalid_Tx_Index == txIndex {
+		return
+	}
+	datas, _ := chain33Relayer.getStatics(int32(claimType), txIndex)
+	if nil == datas {
+		return
+	}
+	for _, data := range datas {
+		var statics ebTypes.Chain33ToEthereumStatics
+		_ = chain33Types.Decode(data, &statics)
+		result := getTxStatusByHashesRpc(statics.Chain33Txhash, chain33Relayer.rpcLaddr)
+		//当前处理机制比较简单，如果发现该笔交易未执行，就不再产寻后续交易的回执
+		if ebTypes.Invalid_Chain33Tx_Status == result {
+			break
+		}
+		status := ebTypes.Tx_Status_Success
+		if result != chain33Types.ExecOk {
+			status = ebTypes.Tx_Status_Failed
+		}
+		statics.EthTxstatus = status
+		dataNew := chain33Types.Encode(&statics)
+		_ = chain33Relayer.setLastestRelay2Chain33TxStatics(statics.TxIndex, int32(claimType), dataNew)
+		_ = chain33Relayer.setChain33UpdateTxIndex(statics.TxIndex, claimType)
+		relayerLog.Info("updateSingleTxStatus", "txHash", statics.Chain33Txhash, "updated status", status)
+	}
 }

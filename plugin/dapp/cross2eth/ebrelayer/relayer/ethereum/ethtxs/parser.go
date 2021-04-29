@@ -19,7 +19,7 @@ import (
 )
 
 // LogLockToEthBridgeClaim : parses and packages a LockEvent struct with a validator address in an EthBridgeClaim msg
-func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bridgeBrankAddr string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
+func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bridgeBrankAddr, ethTxHash string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
 	recipient := event.To
 	if 0 == len(recipient) {
 		return nil, ebrelayerTypes.ErrEmptyAddress
@@ -41,17 +41,18 @@ func LogLockToEthBridgeClaim(event *events.LockEvent, ethereumChainID int64, bri
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.From.String()
 	witnessClaim.Chain33Receiver = chain33Receiver.String()
-	witnessClaim.Amount = event.Value.Int64()
+	witnessClaim.Amount = event.Value.String()
 
 	witnessClaim.ClaimType = int32(events.ClaimTypeLock)
 	witnessClaim.ChainName = ""
 	witnessClaim.Decimal = decimal
+	witnessClaim.EthTxHash = ethTxHash
 
 	return witnessClaim, nil
 }
 
 //LogBurnToEthBridgeClaim ...
-func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bridgeBrankAddr string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
+func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bridgeBrankAddr, ethTxHash string, decimal int64) (*ebrelayerTypes.EthBridgeClaim, error) {
 	recipient := event.Chain33Receiver
 	if 0 == len(recipient) {
 		return nil, ebrelayerTypes.ErrEmptyAddress
@@ -68,10 +69,11 @@ func LogBurnToEthBridgeClaim(event *events.BurnEvent, ethereumChainID int64, bri
 	witnessClaim.Symbol = event.Symbol
 	witnessClaim.EthereumSender = event.OwnerFrom.String()
 	witnessClaim.Chain33Receiver = chain33Receiver.String()
-	witnessClaim.Amount = event.Amount.Int64()
+	witnessClaim.Amount = event.Amount.String()
 	witnessClaim.ClaimType = int32(events.ClaimTypeBurn)
 	witnessClaim.ChainName = ""
 	witnessClaim.Decimal = decimal
+	witnessClaim.EthTxHash = ethTxHash
 
 	return witnessClaim, nil
 }

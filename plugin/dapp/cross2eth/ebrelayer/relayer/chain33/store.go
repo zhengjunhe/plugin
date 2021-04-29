@@ -7,28 +7,32 @@ import (
 
 	dbm "github.com/33cn/chain33/common/db"
 	chain33Types "github.com/33cn/chain33/types"
-	types "github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 //key ...
 var (
-	lastSyncHeightPrefix              = []byte("lastSyncHeight:")
-	chain33ToEthBurnLockTxHashPrefix  = "chain33ToEthBurnLockTxHash"
-	chain33ToEthBurnLockTxTotalAmount = []byte("chain33ToEthBurnLockTxTotalAmount")
-	EthTxStatusCheckedIndex           = []byte("EthTxStatusCheckedIndex")
-	bridgeRegistryAddrOnChain33       = []byte("x2EthBridgeRegistryAddrOnChain33")
-	tokenSymbol2AddrPrefix            = []byte("chain33TokenSymbol2AddrPrefix")
+	lastSyncHeightPrefix               = []byte("chain33-lastSyncHeight:")
+	eth2Chain33BurnLockTxStaticsPrefix = "chain33-eth2chain33BurnLockStatics"
+	chain33ToEthBurnLockTxTotalAmount  = []byte("chain33-chain33ToEthBurnLockTxTotalAmount")
+	chain33BurnTxUpdateTxIndex         = []byte("chain33-chain33BurnTxUpdateTxIndx")
+	chain33LockTxUpdateTxIndex         = []byte("chain33-chain33LockTxUpdateTxIndex")
+	bridgeRegistryAddrOnChain33        = []byte("chain33-x2EthBridgeRegistryAddrOnChain33")
+	tokenSymbol2AddrPrefix             = []byte("chain33-chain33TokenSymbol2AddrPrefix")
 )
 
 func tokenSymbol2AddrKey(symbol string) []byte {
 	return append(tokenSymbol2AddrPrefix, []byte(fmt.Sprintf("-symbol-%s", symbol))...)
 }
 
-func calcRelay2EthTxhash(txindex int64) []byte {
-	return []byte(fmt.Sprintf("%s-%012d", chain33ToEthBurnLockTxHashPrefix, txindex))
+func calcRelayFromEthStaticsKey(txindex int64, claimType int32) []byte {
+	return []byte(fmt.Sprintf("%s-%d-%012d", eth2Chain33BurnLockTxStaticsPrefix, claimType, txindex))
+}
+
+func calcRelayFromEthStaticsList(claimType int32) []byte {
+	return []byte(fmt.Sprintf("%s-%d-", eth2Chain33BurnLockTxStaticsPrefix, claimType))
 }
 
 func (chain33Relayer *Relayer4Chain33) updateTotalTxAmount2Eth(total int64) error {
@@ -36,7 +40,7 @@ func (chain33Relayer *Relayer4Chain33) updateTotalTxAmount2Eth(total int64) erro
 		Data: atomic.LoadInt64(&chain33Relayer.totalTx4Chain33ToEth),
 	}
 	//更新成功见证的交易数
-	return chain33Relayer.db.Set(chain33ToEthBurnLockTxTotalAmount, types.Encode(totalTx))
+	return chain33Relayer.db.Set(chain33ToEthBurnLockTxTotalAmount, chain33Types.Encode(totalTx))
 }
 
 func (chain33Relayer *Relayer4Chain33) getTotalTxAmount2Eth() int64 {
@@ -44,47 +48,58 @@ func (chain33Relayer *Relayer4Chain33) getTotalTxAmount2Eth() int64 {
 	return totalTx
 }
 
-func (chain33Relayer *Relayer4Chain33) setLastestRelay2EthTxhash(status, txhash string, txIndex int64) error {
-	key := calcRelay2EthTxhash(txIndex)
-	ethTxStatus := &ebTypes.EthTxStatus{
-		Status: status,
-		Txhash: txhash,
-	}
-	data := types.Encode(ethTxStatus)
+func (chain33Relayer *Relayer4Chain33) setLastestRelay2Chain33TxStatics(txIndex int64, claimType int32, data []byte) error {
+	key := calcRelayFromEthStaticsKey(txIndex, claimType)
 	return chain33Relayer.db.Set(key, data)
 }
 
-func (chain33Relayer *Relayer4Chain33) getEthTxhash(txIndex int64) (common.Hash, error) {
-	key := calcRelay2EthTxhash(txIndex)
-	ethTxStatus := &ebTypes.EthTxStatus{}
+func (chain33Relayer *Relayer4Chain33) getStatics(claimType int32, txIndex int64) ([][]byte, error) {
+	keyPrefix := calcRelayFromEthStaticsList(claimType)
+
+	keyFrom := calcRelayFromEthStaticsKey(txIndex, claimType)
+	helper := dbm.NewListHelper(chain33Relayer.db)
+	datas := helper.List(keyPrefix, keyFrom, 20, dbm.ListASC)
+	if nil == datas {
+		return nil, errors.New("Not found")
+	}
+
+	return datas, nil
+}
+func (chain33Relayer *Relayer4Chain33) setChain33UpdateTxIndex(txindex int64, claimType events.ClaimType) error {
+	txIndexWrapper := &chain33Types.Int64{
+		Data: txindex,
+	}
+
+	if events.ClaimTypeBurn == claimType {
+		return chain33Relayer.db.Set(chain33BurnTxUpdateTxIndex, chain33Types.Encode(txIndexWrapper))
+	}
+	return chain33Relayer.db.Set(chain33LockTxUpdateTxIndex, chain33Types.Encode(txIndexWrapper))
+}
+
+func (chain33Relayer *Relayer4Chain33) getChain33UpdateTxIndex(claimType events.ClaimType) int64 {
+	var key []byte
+	if events.ClaimTypeBurn == claimType {
+		key = chain33BurnTxUpdateTxIndex
+	} else {
+		key = chain33LockTxUpdateTxIndex
+	}
 	data, err := chain33Relayer.db.Get(key)
 	if nil != err {
-		return common.Hash{}, err
+		return ebTypes.Invalid_Tx_Index
 	}
-	err = types.Decode(data, ethTxStatus)
+
+	var txIndexWrapper chain33Types.Int64
+	err = chain33Types.Decode(data, &txIndexWrapper)
 	if nil != err {
-		return common.Hash{}, err
+		return ebTypes.Invalid_Tx_Index
 	}
-	return common.HexToHash(ethTxStatus.Txhash), nil
-}
-
-func (chain33Relayer *Relayer4Chain33) setStatusCheckedIndex(txIndex int64) error {
-	index := &types.Int64{
-		Data: txIndex,
-	}
-	data := types.Encode(index)
-	return chain33Relayer.db.Set(EthTxStatusCheckedIndex, data)
-}
-
-func (chain33Relayer *Relayer4Chain33) getStatusCheckedIndex() int64 {
-	index, _ := utils.LoadInt64FromDB(EthTxStatusCheckedIndex, chain33Relayer.db)
-	return index
+	return txIndexWrapper.Data
 }
 
 //获取上次同步到app的高度
 func (chain33Relayer *Relayer4Chain33) loadLastSyncHeight() int64 {
 	height, err := utils.LoadInt64FromDB(lastSyncHeightPrefix, chain33Relayer.db)
-	if nil != err && err != types.ErrHeightNotExist {
+	if nil != err && err != chain33Types.ErrHeightNotExist {
 		relayerLog.Error("loadLastSyncHeight", "err:", err.Error())
 		return 0
 	}
@@ -92,7 +107,7 @@ func (chain33Relayer *Relayer4Chain33) loadLastSyncHeight() int64 {
 }
 
 func (chain33Relayer *Relayer4Chain33) setLastSyncHeight(syncHeight int64) {
-	bytes := types.Encode(&types.Int64{Data: syncHeight})
+	bytes := chain33Types.Encode(&chain33Types.Int64{Data: syncHeight})
 	_ = chain33Relayer.db.Set(lastSyncHeightPrefix, bytes)
 }
 

@@ -671,68 +671,6 @@ func (manager *Manager) ShowBridgeRegistryAddr4chain33(para interface{}, result 
 	return nil
 }
 
-//ShowLockStatics ...
-func (manager *Manager) ShowLockStatics(token relayerTypes.TokenStatics, result *interface{}) error {
-	manager.mtx.Lock()
-	defer manager.mtx.Unlock()
-	balance, err := manager.ethRelayer.ShowLockStatics(token.TokenAddr)
-	if nil != err {
-		return err
-	}
-	var d int64
-	if token.TokenAddr == "" || token.TokenAddr == "0x0000000000000000000000000000000000000000" {
-		d = 18
-	} else {
-		d, err = manager.GetDecimals(token.TokenAddr)
-		if err != nil {
-			return errors.New("get decimals error")
-		}
-	}
-	*result = relayerTypes.StaticsLock{
-		Balance: strconv.FormatFloat(utils.Toeth(balance, d), 'f', 4, 64),
-	}
-	return nil
-}
-
-//ShowDepositStatics ...
-func (manager *Manager) ShowDepositStatics(token relayerTypes.TokenStatics, result *interface{}) error {
-	manager.mtx.Lock()
-	defer manager.mtx.Unlock()
-	supply, err := manager.ethRelayer.ShowDepositStatics(token.TokenAddr)
-	if nil != err {
-		return err
-	}
-	var d int64
-	if token.TokenAddr == "" || token.TokenAddr == "0x0000000000000000000000000000000000000000" {
-		d = 18
-	} else {
-		d, err = manager.GetDecimals(token.TokenAddr)
-		if err != nil {
-			return errors.New("get decimals error")
-		}
-	}
-	*result = relayerTypes.StaticsDeposit{
-		Supply: strconv.FormatFloat(utils.Toeth(supply, d), 'f', 4, 64),
-	}
-	return nil
-}
-
-//ShowTokenAddrBySymbol ...
-func (manager *Manager) ShowTokenAddrBySymbol(token relayerTypes.TokenStatics, result *interface{}) error {
-	manager.mtx.Lock()
-	defer manager.mtx.Unlock()
-	addr, err := manager.ethRelayer.ShowTokenAddrBySymbol(token.TokenAddr)
-	if nil != err {
-		return err
-	}
-
-	*result = relayerTypes.ReplyAddr{
-		IsOK: true,
-		Addr: addr,
-	}
-	return nil
-}
-
 //SetTokenAddress ...
 func (manager *Manager) SetTokenAddress(token2set relayerTypes.TokenAddress, result *interface{}) error {
 	manager.mtx.Lock()
@@ -808,36 +746,38 @@ func (manager *Manager) checkPermission() error {
 }
 
 //ShowEthRelayer2Chain33Txs ...
-func (manager *Manager) ShowEthRelayer2Chain33Txs(param interface{}, result *interface{}) error {
-	*result = manager.ethRelayer.QueryTxhashRelay2Chain33()
-	return nil
-}
+func (manager *Manager) ShowTokenStatics(request relayerTypes.TokenStaticsRequest, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
 
-//ShowChain33Relayer2EthTxs ...
-func (manager *Manager) ShowChain33Relayer2EthTxs(param interface{}, result *interface{}) error {
-	*result = manager.chain33Relayer.QueryTxhashRelay2Eth()
-	return nil
-}
+	if request.From != 0 && 1 != request.From {
+		return errors.New("wrong source chain flag")
+	}
 
-//ShowTxsEth2chain33TxLock ...
-func (manager *Manager) ShowTxsEth2chain33TxLock(param interface{}, result *interface{}) error {
-	return nil
-}
+	if request.Operation != 2 && 1 != request.Operation {
+		return errors.New("wrong Operation flag")
+	}
 
-//ShowTxsEth2chain33TxBurn ...
-func (manager *Manager) ShowTxsEth2chain33TxBurn(param interface{}, result *interface{}) error {
-	return nil
-}
+	if request.Status < 0 || request.Status > 3 {
+		return errors.New("wrong Status flag")
+	}
 
-//ShowTxsChain33ToEthTxLock ...
-func (manager *Manager) ShowTxsChain33ToEthTxLock(param interface{}, result *interface{}) error {
-
-	return nil
-}
-
-//ShowTxsChain33ToEthTxBurn ...
-func (manager *Manager) ShowTxsChain33ToEthTxBurn(param interface{}, result *interface{}) error {
-
+	if relayerTypes.Source_Chain_Chain33 == request.From {
+		res, err := manager.ethRelayer.ShowStatics(request)
+		if nil != err {
+			return err
+		}
+		*result = *res
+	} else {
+		res, err := manager.chain33Relayer.ShowStatics(request)
+		if nil != err {
+			return err
+		}
+		*result = *res
+	}
 	return nil
 }
 

@@ -31,7 +31,7 @@ func (ethRelayer *Relayer4Ethereum) SimLockFromEth(lock ebTypes.LockEthErc20) er
 		Value:  amount,
 		Nonce:  big.NewInt(1),
 	}
-	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(lockEvent, clientChainID, bridgeBankAddr, 18)
+	prophecyClaim, err := ethtxs.LogLockToEthBridgeClaim(lockEvent, clientChainID, bridgeBankAddr, "", 18)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (ethRelayer *Relayer4Ethereum) SimBurnFromEth(burn ebTypes.Burn) error {
 		Nonce:           big.NewInt(1),                         //*big.Int
 	}
 	// Parse the LogLock event's payload into a struct
-	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(burnEvent, clientChainID, bridgeBankAddr, 8)
+	prophecyClaim, err := ethtxs.LogBurnToEthBridgeClaim(burnEvent, clientChainID, bridgeBankAddr, "", 8)
 	if err != nil {
 		return err
 	}

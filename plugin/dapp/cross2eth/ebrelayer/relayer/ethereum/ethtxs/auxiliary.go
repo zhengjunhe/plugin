@@ -102,6 +102,7 @@ func CreateBridgeToken(symbol string, client ethinterface.EthClientSpec, para *O
 			break
 		}
 	}
+
 	return logEvent.Token.String(), nil
 }
 

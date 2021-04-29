@@ -4,10 +4,15 @@ import (
 	log "github.com/33cn/chain33/common/log/log15"
 )
 
-// Event : enum containing supported contract events
+type ClaimType int32
 type Event int
 
 var eventsLog = log.New("module", "ethereum_relayer")
+
+const (
+	ClaimTypeBurn = ClaimType(1)
+	ClaimTypeLock = ClaimType(2)
+)
 
 const (
 	// Unsupported : unsupported Chain33 or Ethereum event
@@ -23,12 +28,6 @@ const (
 	// LogNewProphecyClaim : Ethereum event 'NewProphecyClaimEvent'
 	LogNewProphecyClaim
 )
-
-////const
-//const (
-//	ClaimTypeBurn = uint8(1)
-//	ClaimTypeLock = uint8(2)
-//)
 
 // String : returns the event type as a string
 func (d Event) String() string {

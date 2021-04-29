@@ -146,6 +146,22 @@ func queryTxsByHashesRes(arg interface{}) (interface{}, error) {
 	return nil, nil
 }
 
+func getTxStatusByHashesRpc(txhex, rpcLaddr string) int32 {
+	hashesArr := strings.Split(txhex, " ")
+	params2 := rpctypes.ReqHashes{
+		Hashes: hashesArr,
+	}
+
+	var res rpctypes.TransactionDetails
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.GetTxByHashes", params2, &res)
+	ctx.SetResultCb(queryTxsByHashesRes)
+	result, err := ctx.RunResult()
+	if err != nil || result == nil {
+		return ebrelayerTypes.Invalid_Chain33Tx_Status
+	}
+	return result.(int32)
+}
+
 func getTxByHashesRpc(txhex, rpcLaddr string) (string, error) {
 	hashesArr := strings.Split(txhex, " ")
 	params2 := rpctypes.ReqHashes{

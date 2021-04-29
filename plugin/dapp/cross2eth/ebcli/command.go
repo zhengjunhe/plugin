@@ -25,6 +25,7 @@ func RelayerCmd() *cobra.Command {
 		UnlockCmd(),
 		Chain33RelayerCmd(),
 		EthereumRelayerCmd(),
+		StaticsCmd(),
 	)
 
 	return cmd

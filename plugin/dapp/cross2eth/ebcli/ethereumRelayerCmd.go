@@ -42,9 +42,7 @@ func EthereumRelayerCmd() *cobra.Command {
 		LockAsyncCmd(),
 		ShowBridgeBankAddrCmd(),
 		ShowBridgeRegistryAddrCmd(),
-		StaticsCmd(),
 		TransferTokenCmd(),
-		GetToken2addressCmd(),
 		TokenCmd(),
 	)
 
@@ -757,36 +755,5 @@ func TransferToken(cmd *cobra.Command, args []string) {
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.TransferToken", para, &res)
-	ctx.Run()
-}
-
-//GetToken2addressCmd ...
-func GetToken2addressCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tokenaddr",
-		Short: "get token address by symbol",
-		Run:   GetToken2address,
-	}
-	GetToken2addressFlags(cmd)
-	return cmd
-}
-
-//GetToken2addressFlags ...
-func GetToken2addressFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("token", "t", "", "token symbol")
-	_ = cmd.MarkFlagRequired("token")
-
-}
-
-//GetToken2address ...
-func GetToken2address(cmd *cobra.Command, args []string) {
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	tokenSymbol, _ := cmd.Flags().GetString("token")
-
-	para := ebTypes.TokenStatics{
-		TokenAddr: tokenSymbol,
-	}
-	var res ebTypes.ReplyAddr
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowTokenAddrBySymbol", para, &res)
 	ctx.Run()
 }

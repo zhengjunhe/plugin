@@ -34,6 +34,7 @@ type Chain33Msg struct {
 	Symbol               string
 	Amount               *big.Int
 	TxHash               []byte
+	Nonce                int64
 }
 
 // 发生在chain33evm上的lock事件，当bty跨链转移到eth时会发生该种事件
@@ -112,6 +113,7 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 			Symbol:               lockEvent.Symbol,
 			Amount:               lockEvent.Value,
 			TxHash:               chain33TxHash,
+			Nonce:                lockEvent.Nonce.Int64(),
 		}
 		return chain33Msg, nil
 
@@ -130,6 +132,7 @@ func ParseBurnLock4chain33(evmEventType Chain33EvmEvent, data []byte, bridgeBank
 			Symbol:               burnEvent.Symbol,
 			Amount:               burnEvent.Amount,
 			TxHash:               chain33TxHash,
+			Nonce:                burnEvent.Nonce.Int64(),
 		}
 		if ebrelayerTypes.SYMBOL_ETH == burnEvent.Symbol {
 			chain33Msg.Amount = chain33Msg.Amount.Mul(chain33Msg.Amount, big.NewInt(int64(1e10)))
