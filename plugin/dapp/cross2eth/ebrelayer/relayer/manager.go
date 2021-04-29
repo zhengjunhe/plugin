@@ -352,7 +352,7 @@ func (manager *Manager) DeployContrcts(param interface{}, result *interface{}) e
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:  fmt.Sprintf("Contract BridgeRegistry's address is:%s", bridgeRegistry),
+		Msg:  bridgeRegistry,
 	}
 	return nil
 }
@@ -369,7 +369,7 @@ func (manager *Manager) Deploy2Chain33(param interface{}, result *interface{}) e
 	}
 	*result = rpctypes.Reply{
 		IsOk: true,
-		Msg:  fmt.Sprintf("Contract BridgeRegistry's address is:%s", bridgeRegistry),
+		Msg:  bridgeRegistry,
 	}
 	return nil
 }

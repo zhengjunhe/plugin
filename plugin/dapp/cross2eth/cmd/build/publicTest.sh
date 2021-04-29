@@ -392,7 +392,7 @@ function get_docker_addr() {
     echo "${dockerAddr}"
 }
 
-# $1 dockerAddr; $2 docker ebrelayer name; $2 relayer.toml 地址
+# $1 dockerAddr; $2 docker ebrelayer name; $3 relayer.toml 地址
 function updata_relayer_a_toml() {
     local dockerAddr=${1}
     local ebrelayer=${2}
@@ -535,4 +535,40 @@ function eth_block_wait() {
     sleep 1
     set -x
     echo -e "${GRE}eth wait new block $count s, cur height=$expect,old=$((cur_height))${NOC}"
+}
+
+# $1 fileName 例如:./relayer.toml
+function pushNameChange() {
+    local file=${1}
+
+    # 修改 relayer.toml 配置文件 pushName 字段
+    line=$(delete_line_show "${file}" "pushName")
+    time=$(date "+%m-%d%H:%M:%S")
+    sed -i ''"${line}"' a pushName="cross2eth_'${time}'"' "${file}"
+}
+
+# $1 keyName $2 newData $3 file
+function updata_relayer() {
+    local keyName=${1}
+    local newData=${2}
+    local file=${3}
+
+    line=$(delete_line_show "${file}" "${keyName}")
+    sed -i ''"${line}"' a '"${keyName}"'="'"${newData}"'"' "${file}"
+}
+
+# 判断结果 $1 和 $2 是否相等
+function is_equal() {
+    set +x
+    if [[ $# -lt 2 ]]; then
+        echo -e "${RED}wrong parameter${NOC}"
+        exit_cp_file
+    fi
+
+    if [[ "$1" != "$2" ]]; then
+        echo -e "${RED}$1 != ${2}${NOC}"
+        exit_cp_file
+    fi
+
+    set -x
 }
