@@ -372,7 +372,7 @@ func burnAsync(ownerPrivateKeyStr, tokenAddrstr, ethereumReceiver string, amount
 	}
 	chain33txLog.Debug("BurnAsync", "burn with tx hash", burnTxHash)
 
-	return "", err
+	return burnTxHash, err
 }
 
 func lockAsync(ownerPrivateKeyStr, ethereumReceiver string, amount int64, bridgeBankAddr string, chainName, rpcURL string) (string, error) {
