@@ -684,10 +684,11 @@ func (manager *Manager) SetTokenAddress(token2set relayerTypes.TokenAddress, res
 		if nil != err {
 			return err
 		}
-	}
-	err := manager.chain33Relayer.SetTokenAddress(token2set)
-	if nil != err {
-		return err
+	} else {
+		err := manager.chain33Relayer.SetTokenAddress(token2set)
+		if nil != err {
+			return err
+		}
 	}
 
 	*result = rpctypes.Reply{
@@ -712,12 +713,13 @@ func (manager *Manager) ShowTokenAddress(token2show relayerTypes.TokenAddress, r
 		if nil != err {
 			return err
 		}
+	} else {
+		res, err = manager.chain33Relayer.ShowTokenAddress(token2show)
+		if nil != err {
+			return err
+		}
+	}
 
-	}
-	res, err = manager.chain33Relayer.ShowTokenAddress(token2show)
-	if nil != err {
-		return err
-	}
 	*result = *res
 
 	return nil
