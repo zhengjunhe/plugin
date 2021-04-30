@@ -132,13 +132,16 @@ func (chain33Relayer *Relayer4Chain33) SetTokenAddress(token2set ebTypes.TokenAd
 }
 
 func (chain33Relayer *Relayer4Chain33) RestoreTokenAddress() error {
+	chain33Relayer.rwLock.Lock()
+	defer chain33Relayer.rwLock.Unlock()
+	chain33Relayer.symbol2Addr[ebTypes.SYMBOL_BTY] = ebTypes.BTYAddrChain33
+
 	helper := dbm.NewListHelper(chain33Relayer.db)
 	datas := helper.List(tokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
 	if nil == datas {
 		return nil
 	}
 
-	chain33Relayer.rwLock.Lock()
 	for _, data := range datas {
 		var token2set ebTypes.TokenAddress
 		err := chain33Types.Decode(data, &token2set)
@@ -148,7 +151,6 @@ func (chain33Relayer *Relayer4Chain33) RestoreTokenAddress() error {
 		relayerLog.Info("RestoreTokenAddress", "symbol", token2set.Symbol, "address", token2set.Address)
 		chain33Relayer.symbol2Addr[token2set.Symbol] = token2set.Address
 	}
-	chain33Relayer.rwLock.Unlock()
 	return nil
 }
 

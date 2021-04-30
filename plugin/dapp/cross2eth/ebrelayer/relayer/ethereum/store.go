@@ -235,6 +235,9 @@ func (ethRelayer *Relayer4Ethereum) SetTokenAddress(token2set ebTypes.TokenAddre
 }
 
 func (ethRelayer *Relayer4Ethereum) RestoreTokenAddress() error {
+	ethRelayer.rwLock.Lock()
+	defer ethRelayer.rwLock.Unlock()
+
 	ethRelayer.symbol2Addr[ebTypes.SYMBOL_ETH] = common.HexToAddress(ebTypes.EthNilAddr)
 	helper := dbm.NewListHelper(ethRelayer.db)
 	datas := helper.List(ethTokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
