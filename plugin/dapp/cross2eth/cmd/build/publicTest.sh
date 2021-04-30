@@ -486,11 +486,11 @@ function get_inet_addr() {
 function start_trufflesuite() {
     # 如果原来存在先删除
     local ganacheName=ganachetest
-    #local isExit=$(docker inspect ${ganacheName} | jq ".[]" | jq ".Id")
-    #if [[ ${isExit} != "" ]]; then
-    docker stop ${ganacheName}
-    docker rm ${ganacheName}
-    #fi
+    local isExit=$(docker inspect ${ganacheName} | jq ".[]" | jq ".Id")
+    if [[ ${isExit} != "" ]]; then
+        docker stop ${ganacheName}
+        docker rm ${ganacheName}
+    fi
 
     # 启动 eth
     docker run -d --name ${ganacheName} -p 7545:8545 -l eth_test trufflesuite/ganache-cli:latest -a 10 --debug -b 1 -m "coast bar giraffe art venue decide symbol law visual crater vital fold"

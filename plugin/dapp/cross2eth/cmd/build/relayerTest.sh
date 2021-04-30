@@ -19,6 +19,7 @@ ethValidatorAddrA="0x92c8b16afd6d423652559c6e266cbe1c29bfd84f"
 ethValidatorAddrKeyA="3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e"
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
+ethValidatorAddrB="0x0df9a824699bc5878232c9e612fe1a5346a5a368"
 #ethValidatorAddrKeyB="a5f3063552f4483cfc20ac4f40f45b798791379862219de9e915c64722c1d400"
 #ethValidatorAddrKeyC="bbf5e65539e9af0eb0cfac30bad475111054b09c11d668fc0731d54ea777471e"
 #ethValidatorAddrKeyD="c9fa31d7984edf81b8ef3b40c761f1847f6fcd5711ab2462da97dc458f1f896b"
@@ -38,7 +39,7 @@ chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c
 
 #ethUrl=""
 
-maturityDegree=5
+maturityDegree=10
 Chain33Cli="../../chain33-cli"
 
 CLIA="./ebcli_A"
@@ -49,6 +50,8 @@ ethBridgeBank=""
 chain33BtyTokenAddr="1111111111111111111114oLvT2"
 chain33EthTokenAddr=""
 ethereumBtyTokenAddr=""
+chain33YccTokenAddr=""
+ethereumYccTokenAddr=""
 
 function InitAndDeploy() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
@@ -105,8 +108,8 @@ function InitTokenAddr() {
     # 在 Ethereum 上创建 bridgeToken BTY
     result=$(${CLIA} relayer ethereum token create-bridge-token -s BTY)
     cli_ret "${result}" "ethereum token create-bridge-token -s BTY"
-
     ethereumBtyTokenAddr=$(echo "${result}" | jq -r .addr)
+
     result=$(${CLIA} relayer ethereum token set -s BTY -t "${ethereumBtyTokenAddr}")
     cli_ret "${result}" "ethereum token set -s BTY"
     result=$(${CLIA} relayer ethereum token show | jq -r .tokenAddress[0].address)
@@ -114,21 +117,49 @@ function InitTokenAddr() {
 
     # 在 chain33 上创建 bridgeToken ETH
     ${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(ETH)"
+    sleep 1
     chain33EthTokenAddr=$(${Chain33Cli} evm abi call -a "${chain33BridgeBank}" -c "${chain33DeployAddr}" -b "getToken2address(ETH)")
     echo "ETH Token Addr= ${chain33EthTokenAddr}"
     cp BridgeToken.abi "${chain33EthTokenAddr}.abi"
 
-    result=$(${Chain33Cli} evm abi call -a ${chain33EthTokenAddr} -c ${chain33EthTokenAddr} -b "symbol()")
+    result=$(${Chain33Cli} evm abi call -a "${chain33EthTokenAddr}" -c "${chain33EthTokenAddr}" -b "symbol()")
     is_equal "${result}" "ETH"
 
     # 设置 token 地址
-    result=$(${CLIA} relayer chain33 token set -s ETH -t ${chain33EthTokenAddr})
+    result=$(${CLIA} relayer chain33 token set -s ETH -t "${chain33EthTokenAddr}")
     cli_ret "${result}" "chain33 token set -s ETH"
-
     result=$(${CLIA} relayer chain33 token show | jq -r .tokenAddress[1].address)
     is_equal "${result}" "${chain33EthTokenAddr}"
 
 # YCC
+    echo "在chain33上创建bridgeToken YCC"
+    ${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(YCC)"
+    sleep 1
+    chain33YccTokenAddr=$(${Chain33Cli} evm abi call -a "${chain33BridgeBank}" -c "${chain33DeployAddr}" -b "getToken2address(YCC)")
+    echo "YCC Token Addr= ${chain33YccTokenAddr}"
+    cp BridgeToken.abi "${chain33YccTokenAddr}.abi"
+
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccTokenAddr}" -c "${chain33YccTokenAddr}" -b "symbol()")
+    is_equal "${result}" "YCC"
+
+    # 设置 token 地址
+    result=$(${CLIA} relayer chain33 token set -s YCC -t "${chain33YccTokenAddr}")
+    cli_ret "${result}" "chain33 token set -s YCC"
+    result=$(${CLIA} relayer chain33 token show | jq -r .tokenAddress[2].address)
+    is_equal "${result}" "${chain33YccTokenAddr}"
+
+    # 在 Ethereum 上创建 bridgeToken YCC
+    result=$(${CLIA} relayer ethereum token create-bridge-token -s YCC)
+    cli_ret "${result}" "ethereum token create-bridge-token -s YCC"
+    ethereumYccTokenAddr=$(echo "${result}" | jq -r .addr)
+
+    result=$(${CLIA} relayer ethereum token set -s YCC -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "ethereum token set -s YCC"
+    result=$(${CLIA} relayer ethereum token show | jq -r .tokenAddress[1].address)
+    is_equal "${result}" "${ethereumYccTokenAddr}"
+
+    ${CLIA} relayer chain33 token show
+    ${CLIA} relayer chain33 token show
 }
 
 function start_ebrelayerA() {
@@ -184,7 +215,7 @@ function TestChain33ToEthAssets() {
 
     # 原来的地址金额
     result=$(${Chain33Cli} account balance -a "${chain33DeployAddr}" -e evm)
-    balance=$(cli_ret "${result}" "balance" ".balance")
+#    balance=$(cli_ret "${result}" "balance" ".balance")
 
     # chain33 lock bty
     hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)")
@@ -192,7 +223,7 @@ function TestChain33ToEthAssets() {
 
     # 原来的地址金额 减少了 5
     result=$(${Chain33Cli} account balance -a "${chain33DeployAddr}" -e evm)
-    cli_ret "${result}" "balance" ".balance" "$(echo "${balance}-5" | bc)"
+#    cli_ret "${result}" "balance" ".balance" "$(echo "${balance}-5" | bc)"
     #balance_ret "${result}" "195.0000"
 
     # chain33BridgeBank 是否增加了 5
@@ -228,40 +259,42 @@ function TestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+ethBridgeBank=0xC65B02a22B714b55D708518E2426a22ffB79113d
+chain33EthTokenAddr=193e7k4S1PY85AKTXrW3A9YvyUMezrQUgE
+
 # eth to chain33 在以太坊上锁定 ETH 资产,然后在 chain33 上 burn
 function TestETH2Chain33Assets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
-
-    ./ebcli_A relayer ethereum balance -o "${ethDeployAddr}"
-    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}"
-
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} relayer ethereum balance -o "${ethBridgeBank}" )
     #cli_ret "${result}" "balance" ".balance" "0"
 
-    # ETH 这端 lock 0.0001个
-    result=$(${CLIA} relayer ethereum lock -m 0.0001 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}")
+    # ETH 这端 lock 11个
+    result=$(${CLIA} relayer ethereum lock -m 11 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}")
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
     eth_block_wait 2
 
-    # 查询 ETH 这端 bridgeBank 地址 0.0001
+    # 查询 ETH 这端 bridgeBank 地址 11
     result=$(${CLIA} relayer ethereum balance -o "${ethBridgeBank}" )
-    #cli_ret "${result}" "balance" ".balance" "0.0001"
+    #cli_ret "${result}" "balance" ".balance" "11"
 
     sleep ${maturityDegree}
 
     # chain33 chain33EthTokenAddr（ETH合约中）查询 lock 金额
     result=$(${Chain33Cli} evm abi call -a "${chain33EthTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
-    # 结果是 0.0001 * le8
+    # 结果是 11 * le8
     #is_equal "${result}" "10000"
 
+    # 原来的数额
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrB}"
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}"
+
     echo '#5.burn ETH from Chain33 ETH(Chain33)-----> Ethereum'
-    #0x"${chain33ReceiverAddrKey}" 是 地址 "${chain33ReceiverAddr}" 的私钥
-#                                                                                                           0x"${ethDeployAddr}"
-    #${CLIA} relayer chain33 burn -m 2 -k 0x"${chain33ReceiverAddrKey}" -r "${ethDeployAddr}" -t "${chain33EthTokenAddr}"
-    ${CLIA} relayer chain33 burn -m 0.0001 -k "${chain33ReceiverAddrKey}" -r "${ethDeployAddr}" -t "${chain33EthTokenAddr}"
+    ${CLIA} relayer chain33 burn -m 11 -k "${chain33ReceiverAddrKey}" -r "${ethValidatorAddrB}" -t "${chain33EthTokenAddr}"
+
+    sleep ${maturityDegree}
 
     echo "check the balance on chain33"
     result=$(${Chain33Cli} evm abi call -a "${chain33EthTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
@@ -270,21 +303,59 @@ function TestETH2Chain33Assets() {
 
     # 查询 ETH 这端 bridgeBank 地址 0
     result=$(${CLIA} relayer ethereum balance -o "${ethBridgeBank}" )
-#    cli_ret "${result}" "balance" ".balance" "0.0001"
+    #    cli_ret "${result}" "balance" ".balance" "11"
 
-# 比之前多 0.0001
-./ebcli_A relayer ethereum balance -o "${ethDeployAddr}"
-
-
+    # 比之前多 11
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrB}"
     ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}"
-
-
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 function TestETH2Chain33Erc20() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    # 查询 ETH 这端 bridgeBank 地址原来是 0
+    result=$(${CLIA} relayer ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
+    #cli_ret "${result}" "balance" ".balance" "0"
+
+    # ETH 这端 lock 7个
+    result=$(${CLIA} relayer ethereum lock -m 7 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "lock"
+
+     # eth 等待 10 个区块
+    eth_block_wait 2
+
+    # 查询 ETH 这端 bridgeBank 地址 7
+    result=$(${CLIA} relayer ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
+    #cli_ret "${result}" "balance" ".balance" "7"
+
+    sleep ${maturityDegree}
+
+    # chain33 chain33EthTokenAddr（ETH合约中）查询 lock 金额
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
+    # 结果是 7 * le8
+    #is_equal "${result}" "10000"
+
+    # 原来的数额
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrB}" -t "${ethereumYccTokenAddr}"
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}"
+
+    echo '#5.burn ETH from Chain33 ETH(Chain33)-----> Ethereum'
+    ${CLIA} relayer chain33 burn -m 7 -k "${chain33ReceiverAddrKey}" -r "${ethValidatorAddrB}" -t "${chain33YccTokenAddr}"
+
+    sleep ${maturityDegree}
+
+    echo "check the balance on chain33"
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
+        #balance_ret "${result}" "10000"
+    echo "check the balance on Ethereum"
+
+    # 原来的数额
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrB}" -t "${ethereumYccTokenAddr}"
+    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}"
+
+
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
@@ -295,7 +366,7 @@ function StartChain33() {
     # delete chain33 datadir
     rm ../../datadir ../../logs -rf
 
-    nohup ../../chain33 -f ./test.toml &
+    nohup ../../chain33 -f ./ci/cross2eth/test.toml &
 
     ps -ef | grep chain33
 
@@ -324,8 +395,9 @@ function mainTest() {
     InitTokenAddr
     InitChain33
 
-    TestChain33ToEthAssets
-    TestETH2Chain33Assets
+#    TestChain33ToEthAssets
+#    TestETH2Chain33Assets
+    TestETH2Chain33Erc20
 }
 
 mainTest
