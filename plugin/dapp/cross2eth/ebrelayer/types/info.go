@@ -7,6 +7,7 @@ const (
 	Chain33BlockChainName    = "Chain33-mainchain"
 	EthereumBlockChainName   = "Ethereum-mainchain"
 	BTYAddrChain33           = "1111111111111111111114oLvT2"
+	EthNilAddr               = "0x0000000000000000000000000000000000000000"
 	SYMBOL_ETH               = "ETH"
 	SYMBOL_BTY               = "BTY"
 	Tx_Status_Pending        = "pending"
