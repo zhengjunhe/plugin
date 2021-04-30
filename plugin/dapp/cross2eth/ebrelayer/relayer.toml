@@ -3,13 +3,13 @@ title="x2Ethereum_relayer"
 ChainName=""  #链的名称，用来区分主链和平行链,如user.p.xxx.,必须包含最后一个点
 JrpcBindAddr="localhost:9901"
 EthProviderCli="http://127.0.0.1:7545"
-#EthProvider="ws://127.0.0.1:7545/"
+EthProvider="ws://127.0.0.1:7545/"
 #EthProvider="wss://rinkeby.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
-EthProvider="wss://ropsten.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
+#EthProvider="wss://ropsten.infura.io/ws/v3/404eb4acc421426ebeb6e92c7ce9a270"
 EthMaturityDegree=10
 EthBlockFetchPeriod=5000
-BridgeRegistryOnChain33="1Kf5PZaTeguA6jDtdBYQkpLyjWVkXztoDp"
-BridgeRegistry="0xc4A8E15F711fCe8F8b7b2e9b092543A25e250Bb5"
+BridgeRegistryOnChain33=""
+BridgeRegistry=""
 
 [SyncTxConfig]
 chain33Host="http://localhost:8801"
