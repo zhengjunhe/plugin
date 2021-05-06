@@ -198,3 +198,11 @@ message TokenStaticsResponse {
     repeated Ethereum2Chain33Statics e2Cstatics = 1;
     repeated Chain33ToEthereumStatics c2Estatics = 2;
 }
+
+message ERC20Token {
+    string key    = 1;
+    string owner  = 2;
+    string name   = 3;
+    string symbol = 4;
+    string amount = 5;
+}

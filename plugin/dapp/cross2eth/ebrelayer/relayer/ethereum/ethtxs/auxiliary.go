@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"time"
 
 	chain33Address "github.com/33cn/chain33/common/address"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated/erc20"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	"github.com/ethereum/go-ethereum"
@@ -178,6 +180,50 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount *big.Int, client ethinte
 	}
 
 	return tx.Hash().String(), nil
+}
+
+func DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol string, amount *big.Int, client ethinterface.EthClientSpec) (string, error) {
+	privateKey, err := crypto.ToECDSA(common.FromHex(deployPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	deployerAddr := crypto.PubkeyToAddress(privateKey.PublicKey)
+	fmt.Println("The address is:", deployerAddr.String())
+
+	auth, err := PrepareAuth(client, privateKey, deployerAddr)
+	if nil != err {
+		return "", err
+	}
+
+	txslog.Info("DeployERC20", "ownerAddr", ownerAddr, "name", name, "symbol", symbol, "amount", amount, "client", client)
+
+	Erc20OwnerAddr := common.HexToAddress(ownerAddr)
+	Erc20Addr, deployTx, _, err := erc20.DeployERC20(auth, client, name, symbol, amount, Erc20OwnerAddr)
+	if nil != err {
+		txslog.Error("DeployERC20", "Failed to DeployErc20 with err:", err.Error())
+		return "", err
+	}
+
+	txslog.Info("DeployERC20", "DeployErc20 tx hash:", deployTx.Hash().String())
+
+	timeout := time.NewTimer(300 * time.Second)
+	oneSecondtimeout := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			return "", errors.New("DeployErc20 timeout")
+		case <-oneSecondtimeout.C:
+			_, err := client.TransactionReceipt(context.Background(), deployTx.Hash())
+			if err == ethereum.NotFound {
+				fmt.Println("\n No receipt received yet for DeployErc20 tx and continue to wait")
+				continue
+			} else if err != nil {
+				panic("DeployErc20 failed due to" + err.Error())
+			}
+			fmt.Println("\n Succeed to deploy DeployErc20 with address =", Erc20Addr.String())
+			return Erc20Addr.String(), nil
+		}
+	}
 }
 
 //ApproveAllowance ...

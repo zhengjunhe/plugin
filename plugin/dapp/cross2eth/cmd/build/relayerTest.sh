@@ -148,18 +148,15 @@ function InitTokenAddr() {
     result=$(${CLIA} relayer chain33 token show | jq -r .tokenAddress[2].address)
     is_equal "${result}" "${chain33YccTokenAddr}"
 
-    # 在 Ethereum 上创建 bridgeToken YCC
-    result=$(${CLIA} relayer ethereum token create-bridge-token -s YCC)
-    cli_ret "${result}" "ethereum token create-bridge-token -s YCC"
-    ethereumYccTokenAddr=$(echo "${result}" | jq -r .addr)
-
-    result=$(${CLIA} relayer ethereum token set -s YCC -t "${ethereumYccTokenAddr}")
-    cli_ret "${result}" "ethereum token set -s YCC"
-    result=$(${CLIA} relayer ethereum token show | jq -r .tokenAddress[1].address)
-    is_equal "${result}" "${ethereumYccTokenAddr}"
-
-    ${CLIA} relayer chain33 token show
-    ${CLIA} relayer chain33 token show
+#    # 在 Ethereum 上创建 bridgeToken YCC
+#    result=$(${CLIA} relayer ethereum token create-bridge-token -s YCC)
+#    cli_ret "${result}" "ethereum token create-bridge-token -s YCC"
+#    ethereumYccTokenAddr=$(echo "${result}" | jq -r .addr)
+#
+#    result=$(${CLIA} relayer ethereum token set -s YCC -t "${ethereumYccTokenAddr}")
+#    cli_ret "${result}" "ethereum token set -s YCC"
+#    result=$(${CLIA} relayer ethereum token show | jq -r .tokenAddress[1].address)
+#    is_equal "${result}" "${ethereumYccTokenAddr}"
 }
 
 function start_ebrelayerA() {
@@ -259,9 +256,6 @@ function TestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-ethBridgeBank=0xC65B02a22B714b55D708518E2426a22ffB79113d
-chain33EthTokenAddr=193e7k4S1PY85AKTXrW3A9YvyUMezrQUgE
-
 # eth to chain33 在以太坊上锁定 ETH 资产,然后在 chain33 上 burn
 function TestETH2Chain33Assets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
@@ -314,13 +308,17 @@ function TestETH2Chain33Assets() {
 
 function TestETH2Chain33Erc20() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    # eth 铸币
+    result=$(${CLIA} relayer ethereum deploy_erc20 -k "${ethDeployKey}" -c "${ethDeployAddr}" -n YCC -s YCC -m 33000000000000000000)
+    cli_ret "${result}" "ethereum deploy_erc20 -s YCC"
+    ethereumYccTokenAddr=$(echo "${result}" | jq -r .msg)
 
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} relayer ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
     #cli_ret "${result}" "balance" ".balance" "0"
 
     # ETH 这端 lock 7个
-    result=$(${CLIA} relayer ethereum lock -m 7 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
+    result=$(${CLIA} relayer ethereum lock -m 7 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
@@ -351,10 +349,9 @@ function TestETH2Chain33Erc20() {
         #balance_ret "${result}" "10000"
     echo "check the balance on Ethereum"
 
-    # 原来的数额
-    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrB}" -t "${ethereumYccTokenAddr}"
-    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}"
-
+#    # 原来的数额
+#    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrB}" -t "${ethereumYccTokenAddr}"
+#    ./ebcli_A relayer ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

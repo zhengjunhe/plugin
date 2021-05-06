@@ -428,6 +428,25 @@ func (manager *Manager) MintErc20(mintToken relayerTypes.MintToken, result *inte
 	return nil
 }
 
+//DeployERC20 ...
+func (manager *Manager) DeployERC20(Erc20Token relayerTypes.ERC20Token, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+
+	Erc20Addr, err := manager.ethRelayer.DeployERC20(Erc20Token.Key, Erc20Token.Owner, Erc20Token.Name, Erc20Token.Symbol, Erc20Token.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  Erc20Addr,
+	}
+	return nil
+}
+
 //ApproveAllowance ...
 func (manager *Manager) ApproveAllowance(approveAllowance relayerTypes.ApproveAllowance, result *interface{}) error {
 	manager.mtx.Lock()

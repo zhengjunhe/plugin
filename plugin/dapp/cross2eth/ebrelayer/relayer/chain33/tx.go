@@ -336,7 +336,7 @@ func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, chainName, rpcURL
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
-		Token: "BTY",
+		Token: "",
 		Data:  data,
 	}
 	var txhash string
