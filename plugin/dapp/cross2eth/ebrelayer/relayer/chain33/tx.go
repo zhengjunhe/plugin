@@ -317,7 +317,7 @@ func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, c
 	//	address _token,
 	//	uint256 _amount
 	//)
-	parameter := fmt.Sprintf("lock(%s, %s, %d)", ethereumReceiver, "1111111111111111111114oLvT2", amount)
+	parameter := fmt.Sprintf("lock(%s, %s, %d)", ethereumReceiver, ebrelayerTypes.BTYAddrChain33, amount)
 	note := parameter
 	_, packData, err := evmAbi.Pack(parameter, generated.BridgeBankABI, false)
 	if nil != err {
@@ -336,7 +336,7 @@ func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, chainName, rpcURL
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
-		Token: "BTY",
+		Token: "",
 		Data:  data,
 	}
 	var txhash string

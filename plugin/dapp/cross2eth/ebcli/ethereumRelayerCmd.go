@@ -44,6 +44,7 @@ func EthereumRelayerCmd() *cobra.Command {
 		ShowBridgeRegistryAddrCmd(),
 		TransferTokenCmd(),
 		TokenCmd(),
+		DeployERC20Cmd(),
 	)
 
 	return cmd
@@ -261,6 +262,50 @@ func DeployContrcts(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.DeployContrcts", nil, &res)
+	ctx.Run()
+}
+
+// DeployERC20Cmd ...
+func DeployERC20Cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deploy_erc20",
+		Short: "deploy ERC20 contracts",
+		Run:   DeployERC20,
+	}
+	DeployERC20Flags(cmd)
+	return cmd
+}
+
+func DeployERC20Flags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "deploy private key")
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("owner", "c", "", "owner address")
+	_ = cmd.MarkFlagRequired("owner")
+	cmd.Flags().StringP("name", "n", "", "erc20 name")
+	_ = cmd.MarkFlagRequired("name")
+	cmd.Flags().StringP("symbol", "s", "", "erc20 symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().StringP("amount", "m", "0", "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
+func DeployERC20(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	key, _ := cmd.Flags().GetString("key")
+	owner, _ := cmd.Flags().GetString("owner")
+	name, _ := cmd.Flags().GetString("name")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	amount, _ := cmd.Flags().GetString("amount")
+
+	para := ebTypes.ERC20Token{
+		Key:    key,
+		Owner:  owner,
+		Name:   name,
+		Symbol: symbol,
+		Amount: amount,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.DeployERC20", para, &res)
 	ctx.Run()
 }
 

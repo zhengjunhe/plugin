@@ -307,6 +307,15 @@ func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount 
 	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
 }
 
+//DeployERC20 ...
+func (ethRelayer *Relayer4Ethereum) DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol, amount string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
+	ethRelayer.rwLock.RLock()
+	defer ethRelayer.rwLock.RUnlock()
+	return ethtxs.DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol, bn, ethRelayer.clientSpec)
+}
+
 //ApproveAllowance ...
 func (ethRelayer *Relayer4Ethereum) ApproveAllowance(ownerPrivateKey, tokenAddr, amount string) (string, error) {
 	bn := big.NewInt(1)

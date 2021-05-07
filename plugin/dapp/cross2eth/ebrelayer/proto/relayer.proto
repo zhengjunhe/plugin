@@ -209,3 +209,11 @@ message safeTransfer {
     string token = 2;
     double amount = 3;
 }
+
+message ERC20Token {
+    string key    = 1;
+    string owner  = 2;
+    string name   = 3;
+    string symbol = 4;
+    string amount = 5;
+}
