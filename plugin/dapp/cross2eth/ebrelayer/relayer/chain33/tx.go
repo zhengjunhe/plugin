@@ -397,6 +397,76 @@ func lockAsync(ownerPrivateKeyStr, ethereumReceiver string, amount int64, bridge
 	return "", err
 }
 
+func setupMultiSign(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string, owners []string) (string, error) {
+	var driver secp256k1.Driver
+	privateKeySli, err := chain33Common.FromHex(ownerPrivateKeyStr)
+	if nil != err {
+		return "", err
+	}
+	ownerPrivateKey, err := driver.PrivKeyFromBytes(privateKeySli)
+	if nil != err {
+		return "", err
+	}
+	//function setup(
+	//	address[] calldata _owners,
+	//	uint256 _threshold,
+	//	address to,
+	//	bytes calldata data,
+	//	address fallbackHandler,
+	//	address paymentToken,
+	//	uint256 payment,
+	//	address payable paymentReceiver
+	//)
+	parameter := "setup(["
+	for _, owner := range owners {
+		parameter += fmt.Sprintf(",%s", owner)
+	}
+	parameter += "], "
+	parameter += fmt.Sprintf("%d, %s, [0], %s, %s, 0, %s)", len(owners), ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33)
+	note := parameter
+	_, packData, err := evmAbi.Pack(parameter, generated.GnosisSafeABI, false)
+	if nil != err {
+		chain33txLog.Info("burn", "Failed to do abi.Pack due to:", err.Error())
+		return "", err
+	}
+
+	return sendEvmTx(ownerPrivateKey, contractAddr, chainName, rpcURL, note, packData)
+}
+
+func safeTransfer(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string) (string, error) {
+	var driver secp256k1.Driver
+	privateKeySli, err := chain33Common.FromHex(ownerPrivateKeyStr)
+	if nil != err {
+		return "", err
+	}
+	ownerPrivateKey, err := driver.PrivKeyFromBytes(privateKeySli)
+	if nil != err {
+		return "", err
+	}
+	//function execTransaction(
+	//	address to,
+	//	uint256 value,
+	//	bytes memory data,
+	//	Enum.Operation operation,
+	//	uint256 safeTxGas,
+	//	uint256 baseGas,
+	//	uint256 gasPrice,
+	//	address gasToken,
+	//	address payable refundReceiver,
+	//	bytes memory signatures
+	//)
+
+	parameter := fmt.Sprintf("()")
+	note := parameter
+	_, packData, err := evmAbi.Pack(parameter, generated.GnosisSafeABI, false)
+	if nil != err {
+		chain33txLog.Info("burn", "Failed to do abi.Pack due to:", err.Error())
+		return "", err
+	}
+
+	return sendEvmTx(ownerPrivateKey, contractAddr, chainName, rpcURL, note, packData)
+}
+
 func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, bridgeBank string) {
 	parameter := fmt.Sprint("oracle()")
 

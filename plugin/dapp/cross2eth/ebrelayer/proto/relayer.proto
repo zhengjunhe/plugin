@@ -198,3 +198,14 @@ message TokenStaticsResponse {
     repeated Ethereum2Chain33Statics e2Cstatics = 1;
     repeated Chain33ToEthereumStatics c2Estatics = 2;
 }
+
+message SetupMulSign {
+    string operator = 1;
+    repeated string owners = 2;
+}
+
+message safeTransfer {
+    string to = 1;
+    string token = 2;
+    double amount = 3;
+}

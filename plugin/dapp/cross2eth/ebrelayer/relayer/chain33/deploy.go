@@ -308,3 +308,34 @@ deployBridgeRegistry:
 finished:
 	return deployInfo, nil
 }
+
+func deployMulSign2Chain33(rpcLaddr, paraChainName, deployer string) (string, error) {
+	deployMulSign, err := deploySingleContract(ethcommon.FromHex(generated.GnosisSafeBin), generated.GnosisSafeABI, "", "mul-sign", paraChainName, deployer, rpcLaddr)
+	if nil != err {
+		chain33txLog.Error("deployMulSign2Chain33", "failed to deployMulSign due to:", err.Error())
+		return "", err
+	}
+
+	timeout := time.NewTimer(300 * time.Second)
+	oneSecondtimeout := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			panic("deployMulSign timeout")
+		case <-oneSecondtimeout.C:
+			data, _ := getTxByHashesRpc(deployMulSign, rpcLaddr)
+			if data == "" {
+				chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for Deploy MulSign tx and continue to wait", "continue")
+				continue
+			} else if data != "2" {
+				return "", errors.New("Deploy MulSign failed due to" + ", ty = " + data)
+			}
+
+			address := getContractAddr(deployer, deployMulSign)
+			mulSignAddr := address.String()
+			chain33txLog.Info("deployMulSign2Chain33", "Succeed to deploy MulSign with address =", mulSignAddr)
+			return mulSignAddr, nil
+		}
+	}
+
+}

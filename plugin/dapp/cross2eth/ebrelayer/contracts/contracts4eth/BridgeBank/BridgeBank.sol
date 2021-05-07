@@ -145,6 +145,23 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     }
 
     /*
+     * @dev: addToken2LockList used to add token with the specified address to be
+     *       allowed locked from Ethereum
+     *
+     * @param _token: token contract address
+     * @param _symbol: token symbol
+     */
+     function addToken2LockList(
+        address _token,
+        string memory _symbol
+     )
+        public
+        onlyOperator
+     {
+         addToken2AllowLock(_token, _symbol);
+     }
+
+    /*
     * @dev: Locks received Ethereum funds.
     *
     * @param _recipient: bytes representation of destination address.
@@ -177,12 +194,17 @@ contract BridgeBank is Chain33Bank, EthereumBank {
           symbol = "ETH";
           // ERC20 deposit
         } else {
-          require(
-              BridgeToken(_token).transferFrom(msg.sender, address(this), _amount),
-              "Contract token allowances insufficient to complete this lock request"
-          );
-          // Set symbol to the ERC20 token's symbol
-          symbol = BridgeToken(_token).symbol();
+            require(
+                BridgeToken(_token).transferFrom(msg.sender, address(this), _amount),
+                "Contract token allowances insufficient to complete this lock request"
+            );
+            // Set symbol to the ERC20 token's symbol
+            symbol = BridgeToken(_token).symbol();
+
+            require(
+                tokenAllow2Lock[keccak256(abi.encodePacked(symbol))] == _token,
+                'The token is not allowed to be locked from Ethereum.'
+            );
         }
 
         lockFunds(

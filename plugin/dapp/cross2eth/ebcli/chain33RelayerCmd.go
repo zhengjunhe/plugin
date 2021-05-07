@@ -29,6 +29,7 @@ func Chain33RelayerCmd() *cobra.Command {
 		simLockFromEthCmd(),
 		ShowBridgeRegistryAddr4chain33Cmd(),
 		TokenAddressCmd(),
+		MultiSignCmd(),
 	)
 
 	return cmd

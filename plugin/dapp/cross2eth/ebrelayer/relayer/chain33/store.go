@@ -21,6 +21,7 @@ var (
 	chain33LockTxUpdateTxIndex         = []byte("chain33-chain33LockTxUpdateTxIndex")
 	bridgeRegistryAddrOnChain33        = []byte("chain33-x2EthBridgeRegistryAddrOnChain33")
 	tokenSymbol2AddrPrefix             = []byte("chain33-chain33TokenSymbol2AddrPrefix")
+	multiSignAddressPrefix             = []byte("chain33-multiSignAddress")
 )
 
 func tokenSymbol2AddrKey(symbol string) []byte {
@@ -187,4 +188,17 @@ func (chain33Relayer *Relayer4Chain33) ShowTokenAddress(token2show ebTypes.Token
 
 	}
 	return res, nil
+}
+
+func (chain33Relayer *Relayer4Chain33) setMultiSignAddress(address string) {
+	bytes := []byte(address)
+	_ = chain33Relayer.db.Set(multiSignAddressPrefix, bytes)
+}
+
+func (chain33Relayer *Relayer4Chain33) getMultiSignAddress() string {
+	bytes, _ := chain33Relayer.db.Get(multiSignAddressPrefix)
+	if 0 == len(bytes) {
+		return ""
+	}
+	return string(bytes)
 }

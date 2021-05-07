@@ -12,19 +12,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	chain33Crypto "github.com/33cn/chain33/common/crypto"
-	chain33Types "github.com/33cn/chain33/types"
-	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
-
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
-
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
+	chain33Crypto "github.com/33cn/chain33/common/crypto"
 	dbm "github.com/33cn/chain33/common/db"
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
+	chain33Types "github.com/33cn/chain33/types"
 	syncTx "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/chain33/transceiver/sync"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -55,11 +52,12 @@ type Relayer4Chain33 struct {
 	deployInfo               *ebTypes.Deploy
 	totalTx4Chain33ToEth     int64
 	//新增//
-	ethBridgeClaimChan <-chan *ebrelayerTypes.EthBridgeClaim
+	ethBridgeClaimChan <-chan *ebTypes.EthBridgeClaim
 	chain33MsgChan     chan<- *events.Chain33Msg
 	bridgeRegistryAddr string
 	oracleAddr         string
 	bridgeBankAddr     string
+	mulSignAddr        string
 	deployResult       *X2EthDeployResult
 	symbol2Addr        map[string]string
 }
@@ -71,7 +69,7 @@ type Chain33StartPara struct {
 	BridgeRegistryAddr string
 	DeployInfo         *ebTypes.Deploy
 	DBHandle           dbm.DB
-	EthBridgeClaimChan <-chan *ebrelayerTypes.EthBridgeClaim
+	EthBridgeClaimChan <-chan *ebTypes.EthBridgeClaim
 	Chain33MsgChan     chan<- *events.Chain33Msg
 }
 
@@ -150,6 +148,7 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 	syncCfg.Contracts = append(syncCfg.Contracts, chain33Relayer.bridgeBankAddr)
 	chain33Relayer.syncEvmTxLogs = syncTx.StartSyncEvmTxLogs(syncCfg, chain33Relayer.db)
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
+	chain33Relayer.mulSignAddr = chain33Relayer.getMultiSignAddress()
 	chain33Relayer.prePareSubscribeEvent()
 	timer := time.NewTicker(time.Duration(chain33Relayer.fetchHeightPeriodMs) * time.Millisecond)
 	for {
@@ -311,7 +310,22 @@ func (chain33Relayer *Relayer4Chain33) DeployContracts() (bridgeRegistry string,
 	return bridgeRegistry, nil
 }
 
-func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTypes.EthBridgeClaim) {
+//DeployContrcts 部署以太坊合约
+func (chain33Relayer *Relayer4Chain33) DeployMulsign() (mulsign string, err error) {
+	mulsign, err = deployMulSign2Chain33(chain33Relayer.rpcLaddr, chain33Relayer.chainName, chain33Relayer.deployInfo.OperatorAddr)
+	if err != nil {
+		return "", err
+	}
+	chain33Relayer.rwLock.Lock()
+	chain33Relayer.mulSignAddr = mulsign
+	chain33Relayer.rwLock.Unlock()
+
+	chain33Relayer.setMultiSignAddress(mulsign)
+
+	return mulsign, nil
+}
+
+func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebTypes.EthBridgeClaim) {
 	relayerLog.Debug("relayLockBurnToChain33", "new EthBridgeClaim received", claim)
 
 	nonceBytes := big.NewInt(claim.Nonce).Bytes()
@@ -327,8 +341,8 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 	}
 
 	var tokenAddr string
-	if int32(events.ClaimTypeBurn) == claim.ClaimType && ebrelayerTypes.SYMBOL_BTY == claim.Symbol {
-		tokenAddr = ebrelayerTypes.BTYAddrChain33
+	if int32(events.ClaimTypeBurn) == claim.ClaimType && ebTypes.SYMBOL_BTY == claim.Symbol {
+		tokenAddr = ebTypes.BTYAddrChain33
 	} else {
 		var exist bool
 		tokenAddr, exist = chain33Relayer.symbol2Addr[claim.Symbol]
@@ -352,7 +366,7 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		}
 	}
 
-	if ebrelayerTypes.SYMBOL_ETH == claim.Symbol {
+	if ebTypes.SYMBOL_ETH == claim.Symbol {
 		bigAmount.Div(bigAmount, big.NewInt(int64(1e10)))
 		claim.Amount = bigAmount.String()
 	}
@@ -384,7 +398,7 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebrelayerTy
 		return
 	}
 	statics := &ebTypes.Ethereum2Chain33Statics{
-		Chain33Txstatus: ebrelayerTypes.Tx_Status_Pending,
+		Chain33Txstatus: ebTypes.Tx_Status_Pending,
 		Chain33Txhash:   txhash,
 		EthereumTxhash:  claim.EthTxHash,
 		BurnLock:        claim.ClaimType,
@@ -423,8 +437,8 @@ func (chain33Relayer *Relayer4Chain33) ShowBridgeRegistryAddr() (string, error) 
 	return chain33Relayer.bridgeRegistryAddr, nil
 }
 
-func (chain33Relayer *Relayer4Chain33) ShowStatics(request ebrelayerTypes.TokenStaticsRequest) (*ebrelayerTypes.TokenStaticsResponse, error) {
-	res := &ebrelayerTypes.TokenStaticsResponse{}
+func (chain33Relayer *Relayer4Chain33) ShowStatics(request ebTypes.TokenStaticsRequest) (*ebTypes.TokenStaticsResponse, error) {
+	res := &ebTypes.TokenStaticsResponse{}
 
 	datas, err := chain33Relayer.getStatics(request.Operation, request.TxIndex)
 	if nil != err {
@@ -476,4 +490,22 @@ func (chain33Relayer *Relayer4Chain33) updateSingleTxStatus(claimType events.Cla
 		_ = chain33Relayer.setChain33UpdateTxIndex(statics.TxIndex, claimType)
 		relayerLog.Info("updateSingleTxStatus", "txHash", statics.Chain33Txhash, "updated status", status)
 	}
+}
+
+func (chain33Relayer *Relayer4Chain33) SetupMulSign(setupMulSign ebTypes.SetupMulSign) (string, error) {
+	if "" == chain33Relayer.mulSignAddr {
+		return "", ebTypes.ErrMulSignNotDeployed
+	}
+
+	return setupMultiSign(setupMulSign.Operator, chain33Relayer.mulSignAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr, setupMulSign.Owners)
+}
+
+func (chain33Relayer *Relayer4Chain33) SafeTransfer(safeTransfer ebTypes.SafeTransfer) (string, error) {
+	if "" == chain33Relayer.mulSignAddr {
+		return "", ebTypes.ErrMulSignNotDeployed
+	}
+
+	return "", nil
+
+	//return safeTransfer(safeTransfer.Operator, chain33Relayer.mulSignAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr, setupMulSign.Owners)
 }
