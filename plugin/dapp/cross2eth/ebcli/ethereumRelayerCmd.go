@@ -43,8 +43,8 @@ func EthereumRelayerCmd() *cobra.Command {
 		ShowBridgeBankAddrCmd(),
 		ShowBridgeRegistryAddrCmd(),
 		TransferTokenCmd(),
-		TokenCmd(),
 		DeployERC20Cmd(),
+		TokenCmd(),
 	)
 
 	return cmd
@@ -62,6 +62,7 @@ func TokenCmd() *cobra.Command {
 		CreateEthereumTokenCmd(),
 		SetTokenAddress4EthCmd(),
 		ShowTokenAddress4EthCmd(),
+		AddToken2LockListCmd(),
 	)
 	return cmd
 }
@@ -277,8 +278,6 @@ func DeployERC20Cmd() *cobra.Command {
 }
 
 func DeployERC20Flags(cmd *cobra.Command) {
-	cmd.Flags().StringP("key", "k", "", "deploy private key")
-	_ = cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("owner", "c", "", "owner address")
 	_ = cmd.MarkFlagRequired("owner")
 	cmd.Flags().StringP("name", "n", "", "erc20 name")
@@ -291,14 +290,12 @@ func DeployERC20Flags(cmd *cobra.Command) {
 
 func DeployERC20(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	key, _ := cmd.Flags().GetString("key")
 	owner, _ := cmd.Flags().GetString("owner")
 	name, _ := cmd.Flags().GetString("name")
 	symbol, _ := cmd.Flags().GetString("symbol")
 	amount, _ := cmd.Flags().GetString("amount")
 
 	para := ebTypes.ERC20Token{
-		Key:    key,
 		Owner:  owner,
 		Name:   name,
 		Symbol: symbol,
@@ -360,6 +357,40 @@ func CreateBridgeToken(cmd *cobra.Command, args []string) {
 	para := token
 	var res ebTypes.ReplyAddr
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.CreateBridgeToken", para, &res)
+	ctx.Run()
+}
+
+//AddToken2LockListCmd ...
+func AddToken2LockListCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "add_lock_list",
+		Short: "add token to lock list",
+		Run:   AddToken2LockList,
+	}
+	AddToken2LockListFlags(cmd)
+	return cmd
+}
+
+//CreateBridgeTokenFlags ...
+func AddToken2LockListFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().StringP("token", "t", "", "token addr")
+	_ = cmd.MarkFlagRequired("token")
+}
+
+//CreateBridgeToken ...
+func AddToken2LockList(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	token, _ := cmd.Flags().GetString("token")
+
+	para := ebTypes.ETHTokenLockAddress{
+		Symbol:  symbol,
+		Address: token,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.AddToken2LockList", para, &res)
 	ctx.Run()
 }
 

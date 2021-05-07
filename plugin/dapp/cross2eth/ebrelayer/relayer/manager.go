@@ -443,6 +443,24 @@ func (manager *Manager) CreateBridgeToken(symbol string, result *interface{}) er
 	return nil
 }
 
+// AddToken2LockList
+func (manager *Manager) AddToken2LockList(token relayerTypes.ETHTokenLockAddress, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.AddToken2LockList(token.Symbol, token.Address)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
 //CreateERC20Token ...
 func (manager *Manager) CreateERC20Token(symbol string, result *interface{}) error {
 	manager.mtx.Lock()
@@ -487,7 +505,7 @@ func (manager *Manager) DeployERC20(Erc20Token relayerTypes.ERC20Token, result *
 		return err
 	}
 
-	Erc20Addr, err := manager.ethRelayer.DeployERC20(Erc20Token.Key, Erc20Token.Owner, Erc20Token.Name, Erc20Token.Symbol, Erc20Token.Amount)
+	Erc20Addr, err := manager.ethRelayer.DeployERC20(Erc20Token.Owner, Erc20Token.Name, Erc20Token.Symbol, Erc20Token.Amount)
 	if nil != err {
 		return err
 	}

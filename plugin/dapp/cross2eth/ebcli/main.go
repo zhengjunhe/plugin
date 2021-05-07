@@ -29,7 +29,13 @@ var (
 
 func init() {
 	rootCmd.AddCommand(
-		RelayerCmd(),
+		SetPwdCmd(),
+		ChangePwdCmd(),
+		LockCmd(),
+		UnlockCmd(),
+		Chain33RelayerCmd(),
+		EthereumRelayerCmd(),
+		StaticsCmd(),
 	)
 }
 

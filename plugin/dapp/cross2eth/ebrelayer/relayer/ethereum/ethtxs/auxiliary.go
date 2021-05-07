@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/big"
-	"time"
-
 	chain33Address "github.com/33cn/chain33/common/address"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated/erc20"
@@ -16,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 )
 
 //NewProphecyClaimPara ...
@@ -108,6 +106,48 @@ func CreateBridgeToken(symbol string, client ethinterface.EthClientSpec, para *O
 	return logEvent.Token.String(), nil
 }
 
+// AddToken2LockList
+func AddToken2LockList(symbol, token string, client ethinterface.EthClientSpec, para *OperatorInfo, x2EthContracts *X2EthContracts) (string, error) {
+	if nil == para {
+		return "", errors.New("no operator private key configured")
+	}
+
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	auth, err := PrepareAuth(client, para.PrivateKey, para.Address)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	TokenAddr := common.HexToAddress(token)
+	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.AddToken2LockList(auth, TokenAddr, symbol)
+	if nil != err {
+		return "", err
+	}
+
+	sim, isSim := client.(*ethinterface.SimExtend)
+	if isSim {
+		fmt.Println("Use the simulator")
+		sim.Commit()
+	}
+
+	err = waitEthTxFinished(client, tx.Hash(), "AddToken2LockList")
+	if nil != err {
+		return "", err
+	}
+
+	return tx.Hash().String(), nil
+}
+
 //CreateERC20Token ...
 func CreateERC20Token(symbol string, client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
 	if nil == para {
@@ -182,48 +222,43 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount *big.Int, client ethinte
 	return tx.Hash().String(), nil
 }
 
-func DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol string, amount *big.Int, client ethinterface.EthClientSpec) (string, error) {
-	privateKey, err := crypto.ToECDSA(common.FromHex(deployPrivateKeyStr))
-	if nil != err {
-		return "", err
+func DeployERC20(ownerAddr, name, symbol string, amount *big.Int, client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
+	if nil == para {
+		return "", errors.New("no operator private key configured")
 	}
-	deployerAddr := crypto.PubkeyToAddress(privateKey.PublicKey)
-	fmt.Println("The address is:", deployerAddr.String())
 
-	auth, err := PrepareAuth(client, privateKey, deployerAddr)
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	operatorAuth, err := PrepareAuth(client, para.PrivateKey, para.Address)
 	if nil != err {
 		return "", err
 	}
+
+	prepareDone = true
 
 	txslog.Info("DeployERC20", "ownerAddr", ownerAddr, "name", name, "symbol", symbol, "amount", amount, "client", client)
 
 	Erc20OwnerAddr := common.HexToAddress(ownerAddr)
-	Erc20Addr, deployTx, _, err := erc20.DeployERC20(auth, client, name, symbol, amount, Erc20OwnerAddr)
+	Erc20Addr, deployTx, _, err := erc20.DeployERC20(operatorAuth, client, name, symbol, amount, Erc20OwnerAddr)
 	if nil != err {
 		txslog.Error("DeployERC20", "Failed to DeployErc20 with err:", err.Error())
 		return "", err
 	}
 
 	txslog.Info("DeployERC20", "DeployErc20 tx hash:", deployTx.Hash().String())
-
-	timeout := time.NewTimer(300 * time.Second)
-	oneSecondtimeout := time.NewTicker(5 * time.Second)
-	for {
-		select {
-		case <-timeout.C:
-			return "", errors.New("DeployErc20 timeout")
-		case <-oneSecondtimeout.C:
-			_, err := client.TransactionReceipt(context.Background(), deployTx.Hash())
-			if err == ethereum.NotFound {
-				fmt.Println("\n No receipt received yet for DeployErc20 tx and continue to wait")
-				continue
-			} else if err != nil {
-				panic("DeployErc20 failed due to" + err.Error())
-			}
-			fmt.Println("\n Succeed to deploy DeployErc20 with address =", Erc20Addr.String())
-			return Erc20Addr.String(), nil
-		}
+	err = waitEthTxFinished(client, deployTx.Hash(), "AddToken2LockList")
+	if nil != err {
+		return "", err
 	}
+
+	return Erc20Addr.String(), nil
 }
 
 //ApproveAllowance ...

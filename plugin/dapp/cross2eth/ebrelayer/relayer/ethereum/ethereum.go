@@ -70,6 +70,9 @@ type Relayer4Ethereum struct {
 	chain33MsgChan         <-chan *events.Chain33Msg
 	totalTx4Eth2Chain33    int64
 	symbol2Addr            map[string]common.Address
+	//
+
+	//symbol2Addr map[string]common.Address
 }
 
 var (
@@ -291,6 +294,12 @@ func (ethRelayer *Relayer4Ethereum) CreateBridgeToken(symbol string) (string, er
 	return tokenAddr, err
 }
 
+// AddToken2LockList ...
+func (ethRelayer *Relayer4Ethereum) AddToken2LockList(symbol, token string) (string, error) {
+	txhash, err := ethtxs.AddToken2LockList(symbol, token, ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthContracts)
+	return txhash, err
+}
+
 //CreateERC20Token ...
 func (ethRelayer *Relayer4Ethereum) CreateERC20Token(symbol string) (string, error) {
 	ethRelayer.rwLock.RLock()
@@ -308,12 +317,12 @@ func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount 
 }
 
 //DeployERC20 ...
-func (ethRelayer *Relayer4Ethereum) DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol, amount string) (string, error) {
+func (ethRelayer *Relayer4Ethereum) DeployERC20(ownerAddr, name, symbol, amount string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	ethRelayer.rwLock.RLock()
 	defer ethRelayer.rwLock.RUnlock()
-	return ethtxs.DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol, bn, ethRelayer.clientSpec)
+	return ethtxs.DeployERC20(ownerAddr, name, symbol, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
 }
 
 //ApproveAllowance ...
@@ -458,6 +467,10 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 			relayerLog.Error("handleChain33Msg", "Failed to SetTokenAddress due to", err.Error())
 		}
 	}
+
+	// burn
+	// getLockedTokenAddress
+
 	// Relay the Chain33Msg to the Ethereum network
 	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.x2EthContracts.Oracle, ethRelayer.clientSpec, ethRelayer.ethSender, tokenAddr, prophecyClaim, ethRelayer.privateKey4Ethereum)
 	if nil != err {

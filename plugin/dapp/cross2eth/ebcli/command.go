@@ -10,27 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RelayerCmd command func
-func RelayerCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "relayer",
-		Short: "relayer of Chain33 and Ethereum ",
-		Args:  cobra.MinimumNArgs(1),
-	}
-
-	cmd.AddCommand(
-		SetPwdCmd(),
-		ChangePwdCmd(),
-		LockCmd(),
-		UnlockCmd(),
-		Chain33RelayerCmd(),
-		EthereumRelayerCmd(),
-		StaticsCmd(),
-	)
-
-	return cmd
-}
-
 // SetPwdCmd set password
 func SetPwdCmd() *cobra.Command {
 	cmd := &cobra.Command{
