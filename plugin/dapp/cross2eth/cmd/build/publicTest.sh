@@ -14,6 +14,8 @@ NOC='\033[0m'
 
 # 出错退出前拷贝日志文件
 function exit_cp_file() {
+    exit 1
+
     set -x
     # shellcheck disable=SC2116
     dirNameFa=$(echo ~)
@@ -284,12 +286,12 @@ function kill_ebrelayer() {
         return
     fi
 
-    kill -9 "${pid}"
+    kill -9 ${pid}
     # shellcheck disable=SC2009
     pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" != "" ]; then
         echo "kill ${1} failed"
-        kill -9 "${pid}"
+        kill -9 ${pid}
     fi
     sleep 1
 }

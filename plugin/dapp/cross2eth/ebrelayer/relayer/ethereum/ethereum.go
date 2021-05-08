@@ -473,6 +473,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 				// 尽管设置数据失败，但是不影响运行，只是relayer启动时，每次从节点远程获取bridge token地址而已
 				relayerLog.Error("handleChain33Msg", "Failed to SetTokenAddress due to", err.Error())
 			}
+			tokenAddr = common.HexToAddress(addr)
 		}
 	} else {
 		tokenAddr, exist = ethRelayer.symbol2LockAddr[prophecyClaim.Symbol]
@@ -490,6 +491,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 			if nil != err {
 				relayerLog.Error("handleChain33Msg", "Failed to SetLockedTokenAddress due to", err.Error())
 			}
+			tokenAddr = common.HexToAddress(addr)
 		}
 	}
 
