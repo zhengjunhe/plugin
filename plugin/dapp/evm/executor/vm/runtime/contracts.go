@@ -144,7 +144,7 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	pubKey, err := crypto.Ecrecover(input[:32], sig)
 	// make sure the public key is a valid one
 	if err != nil {
-		log15.Info("ecrecover", "failed due to", "crypto.Ecrecover")
+		log15.Info("ecrecover", "failed due to", err.Error())
 		return nil, nil
 	}
 

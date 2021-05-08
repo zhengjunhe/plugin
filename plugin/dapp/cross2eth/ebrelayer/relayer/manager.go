@@ -374,6 +374,23 @@ func (manager *Manager) Deploy2Chain33(param interface{}, result *interface{}) e
 	return nil
 }
 
+func (manager *Manager) CreateERC20ToChain33(param relayerTypes.ERC20Token, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	bridgeRegistry, err := manager.chain33Relayer.CreateERC20ToChain33(param)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  bridgeRegistry,
+	}
+	return nil
+}
+
 func (manager *Manager) DeployMulsign2Chain33(param interface{}, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()

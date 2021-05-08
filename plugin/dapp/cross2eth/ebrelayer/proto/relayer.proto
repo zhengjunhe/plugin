@@ -200,7 +200,7 @@ message TokenStaticsResponse {
 }
 
 message SetupMulSign {
-    string operator = 1;
+    string operatorPrivateKey = 1;
     repeated string owners = 2;
 }
 
@@ -208,6 +208,7 @@ message safeTransfer {
     string to = 1;
     string token = 2;
     double amount = 3;
+    repeated string ownerPrivateKeys = 4;
 }
 
 message ERC20Token {

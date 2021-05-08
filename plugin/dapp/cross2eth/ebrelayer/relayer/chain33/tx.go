@@ -11,6 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated/erc20"
+
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
+
 	ethcommon "github.com/ethereum/go-ethereum/common"
 
 	"github.com/33cn/chain33/common"
@@ -21,7 +25,7 @@ import (
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
 	"github.com/33cn/chain33/system/crypto/secp256k1"
-	types "github.com/33cn/chain33/types"
+	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4chain33/generated"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
@@ -418,11 +422,12 @@ func setupMultiSign(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string, 
 	//	address payable paymentReceiver
 	//)
 	parameter := "setup(["
-	for _, owner := range owners {
+	parameter += fmt.Sprintf("%s", owners[0])
+	for _, owner := range owners[1:] {
 		parameter += fmt.Sprintf(",%s", owner)
 	}
 	parameter += "], "
-	parameter += fmt.Sprintf("%d, %s, [0], %s, %s, 0, %s)", len(owners), ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33)
+	parameter += fmt.Sprintf("%d, %s, 0102, %s, %s, 0, %s)", len(owners), ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33, ebrelayerTypes.BTYAddrChain33)
 	note := parameter
 	_, packData, err := evmAbi.Pack(parameter, generated.GnosisSafeABI, false)
 	if nil != err {
@@ -433,7 +438,7 @@ func setupMultiSign(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string, 
 	return sendEvmTx(ownerPrivateKey, contractAddr, chainName, rpcURL, note, packData)
 }
 
-func safeTransfer(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string) (string, error) {
+func safeTransfer(ownerPrivateKeyStr, mulSign, chainName, rpcURL, receiver, token string, privateKeys []string, amount float64) (string, error) {
 	var driver secp256k1.Driver
 	privateKeySli, err := chain33Common.FromHex(ownerPrivateKeyStr)
 	if nil != err {
@@ -456,15 +461,84 @@ func safeTransfer(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string) (s
 	//	bytes memory signatures
 	//)
 
-	parameter := fmt.Sprintf("()")
-	note := parameter
-	_, packData, err := evmAbi.Pack(parameter, generated.GnosisSafeABI, false)
+	//对于平台币转账，这个data只是个占位符，没有作用
+	data := []byte{'0', '1'}
+	safeTxGas := int64(10 * 10000)
+	baseGas := 0
+	gasPrice := 0
+	valueStr := utils.ToWei(amount, 8).String()
+	//如果是erc20转账，则需要构建data数据
+	if "" != token {
+		parameter := fmt.Sprintf("transfer(%s, %s)", receiver, utils.ToWei(amount, 8).String())
+		_, data, err = evmAbi.Pack(parameter, erc20.ERC20ABI, false)
+		if err != nil {
+			return "", err
+		}
+		chain33txLog.Info("safeTransfer", "evmAbi.Pack with parameter", parameter,
+			"data", common.ToHex(data))
+		//对于其他erc20资产，直接将其设置为0
+		valueStr = "0"
+	}
+	dataStr := common.ToHex(data)
+
+	//获取nonce
+	nonce := getMulSignNonce(mulSign, rpcURL)
+	//构造getTransactionHash参数
+	//function getTransactionHash(
+	//	address to,
+	//	uint256 value,
+	//	bytes memory data,
+	//	Enum.Operation operation,
+	//	uint256 safeTxGas,
+	//	uint256 baseGas,
+	//	uint256 gasPrice,
+	//	address gasToken,
+	//	address refundReceiver,
+	//	uint256 _nonce
+	//)
+	parameter2getHash := fmt.Sprintf("getTransactionHash(%s, %s, %s, 0, %d, %d, %d, %s, %s, %d)", receiver, valueStr, dataStr,
+		safeTxGas, baseGas, gasPrice,
+		ebrelayerTypes.NilAddrChain33, ebrelayerTypes.NilAddrChain33, nonce)
+
+	chain33txLog.Info("safeTransfer", "parameter2getHash", parameter2getHash)
+	result := query(mulSign, parameter2getHash, mulSign, rpcURL, generated.GnosisSafeABI)
+	if nil == result {
+		return "", ebrelayerTypes.ErrGetTransactionHash
+	}
+	contentHashArray := result.([32]byte)
+	contentHash := contentHashArray[:]
+	chain33txLog.Info("safeTransfer", "contentHash", common.ToHex(contentHash))
+	var sigs []byte
+	for i, privateKey := range privateKeys {
+		chain33txLog.Info("safeTransfer", "index", i, "privateKey", privateKey)
+		var driver secp256k1.Driver
+		privateKeySli, err := chain33Common.FromHex(privateKey)
+		if nil != err {
+			return "", err
+		}
+		ownerPrivateKey, err := driver.PrivKeyFromBytes(privateKeySli)
+		if nil != err {
+			return "", err
+		}
+		sig := ownerPrivateKey.Sign(contentHash).Bytes()
+		sig[64] += 27
+		chain33txLog.Info("safeTransfer", "single signature", common.ToHex(sig))
+		sigs = append(sigs, sig...)
+	}
+
+	//构造execTransaction参数
+	parameter2Exec := fmt.Sprintf("execTransaction(%s, %s, %s, 0, %d, %d, %d, %s, %s, %s)", receiver, valueStr, dataStr,
+		safeTxGas, baseGas, gasPrice,
+		ebrelayerTypes.NilAddrChain33, ebrelayerTypes.NilAddrChain33, common.ToHex(sigs))
+	note := parameter2Exec
+	chain33txLog.Info("safeTransfer", "parameter2Exec", parameter2Exec)
+	_, packData, err := evmAbi.Pack(parameter2Exec, generated.GnosisSafeABI, false)
 	if nil != err {
-		chain33txLog.Info("burn", "Failed to do abi.Pack due to:", err.Error())
+		chain33txLog.Info("safeTransfer", "Failed to do abi.Pack due to:", err.Error())
 		return "", err
 	}
 
-	return sendEvmTx(ownerPrivateKey, contractAddr, chainName, rpcURL, note, packData)
+	return sendEvmTx(ownerPrivateKey, mulSign, chainName, rpcURL, note, packData)
 }
 
 func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, bridgeBank string) {
@@ -493,6 +567,52 @@ func getToken2address(bridgeBank, symbol, rpcLaddr string) string {
 		return ""
 	}
 	return result.(string)
+}
+
+func getMulSignNonce(mulsign, rpcLaddr string) int64 {
+	parameter := fmt.Sprintf("nonce()")
+
+	result := query(mulsign, parameter, mulsign, rpcLaddr, generated.GnosisSafeABI)
+	if nil == result {
+		return 0
+	}
+	nonce := result.(*big.Int)
+	return nonce.Int64()
+}
+
+func getTransactionHash(mulsign, rpcLaddr string) int64 {
+	//function execTransaction(
+	//	address to,
+	//	uint256 value,
+	//	bytes memory data,
+	//	Enum.Operation operation,
+	//	uint256 safeTxGas,
+	//	uint256 baseGas,
+	//	uint256 gasPrice,
+	//	address gasToken,
+	//	address payable refundReceiver,
+	//	bytes memory signatures
+	//)
+
+	//function getTransactionHash(
+	//	address to,
+	//	uint256 value,
+	//	bytes memory data,
+	//	Enum.Operation operation,
+	//	uint256 safeTxGas,
+	//	uint256 baseGas,
+	//	uint256 gasPrice,
+	//	address gasToken,
+	//	address refundReceiver,
+	//	uint256 _nonce
+	//)
+	parameter := fmt.Sprintf("getTransactionHash()")
+
+	result := query(mulsign, parameter, mulsign, rpcLaddr, generated.GnosisSafeABI)
+	if nil == result {
+		return 0
+	}
+	return result.(int64)
 }
 
 func query(contractAddr, input, caller, rpcLaddr, abiData string) interface{} {

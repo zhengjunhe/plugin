@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated/erc20"
+
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4chain33/generated"
+	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	ebrelayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	evmAbi "github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
@@ -325,7 +328,7 @@ func deployMulSign2Chain33(rpcLaddr, paraChainName, deployer string) (string, er
 		case <-oneSecondtimeout.C:
 			data, _ := getTxByHashesRpc(deployMulSign, rpcLaddr)
 			if data == "" {
-				chain33txLog.Info("deployAndInit2Chain33", "No receipt received yet for Deploy MulSign tx and continue to wait", "continue")
+				chain33txLog.Info("deployMulSign2Chain33", "No receipt received yet for Deploy MulSign tx and continue to wait", "continue")
 				continue
 			} else if data != "2" {
 				return "", errors.New("Deploy MulSign failed due to" + ", ty = " + data)
@@ -337,5 +340,35 @@ func deployMulSign2Chain33(rpcLaddr, paraChainName, deployer string) (string, er
 			return mulSignAddr, nil
 		}
 	}
+}
 
+func deployERC20ToChain33(rpcLaddr, paraChainName, deployer string, param ebTypes.ERC20Token) (string, error) {
+	constructorPara := "constructor(" + param.Symbol + "," + param.Symbol + "," + param.Amount + "," + param.Owner + ")"
+	deployErc20, err := deploySingleContract(ethcommon.FromHex(erc20.ERC20Bin), erc20.ERC20ABI, constructorPara, "Erc20:"+param.Symbol, paraChainName, deployer, rpcLaddr)
+	if nil != err {
+		chain33txLog.Error("deployERC20ToChain33", "failed to deployMulSign due to:", err.Error())
+		return "", err
+	}
+
+	timeout := time.NewTimer(300 * time.Second)
+	oneSecondtimeout := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			panic("deployMulSign timeout")
+		case <-oneSecondtimeout.C:
+			data, _ := getTxByHashesRpc(deployErc20, rpcLaddr)
+			if data == "" {
+				chain33txLog.Info("deployERC20ToChain33", "No receipt received yet for Deploy erc20 tx and continue to wait", "continue")
+				continue
+			} else if data != "2" {
+				return "", errors.New("Deploy erc20 failed due to" + ", ty = " + data)
+			}
+
+			address := getContractAddr(deployer, deployErc20)
+			erc20Addr := address.String()
+			chain33txLog.Info("deployERC20ToChain33", "Succeed to deploy erc20 with address =", erc20Addr)
+			return erc20Addr, nil
+		}
+	}
 }

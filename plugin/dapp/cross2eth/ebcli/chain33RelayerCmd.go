@@ -45,8 +45,49 @@ func TokenAddressCmd() *cobra.Command {
 	cmd.AddCommand(
 		SetTokenAddressCmd(),
 		ShowTokenAddressCmd(),
+		CreateERC20Cmd(),
 	)
 	return cmd
+}
+
+func CreateERC20Cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "create erc20 for test,default 3300*1e8 to be minted",
+		Run:   CreateERC20,
+	}
+	CreateERC20Flags(cmd)
+	return cmd
+}
+
+//CreateERC20Flags ...
+func CreateERC20Flags(cmd *cobra.Command) {
+	cmd.Flags().StringP("owner", "o", "", "owner address")
+	_ = cmd.MarkFlagRequired("owner")
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().Float64P("amount", "a", 0, "amount to be minted(optional),default to 3300*1e8")
+}
+
+func CreateERC20(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	owner, _ := cmd.Flags().GetString("owner")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	amountInt64 := int64(3300 * 1e8)
+	if 0 != int64(amount) {
+		amountInt64 = int64(amount)
+	}
+
+	var res rpctypes.Reply
+	para := ebTypes.ERC20Token{
+		Symbol: symbol,
+		Name:   symbol,
+		Owner:  owner,
+		Amount: fmt.Sprintf("%d", amountInt64),
+	}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.CreateERC20ToChain33", para, &res)
+	ctx.Run()
 }
 
 func SetTokenAddressCmd() *cobra.Command {

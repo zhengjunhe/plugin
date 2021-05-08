@@ -325,6 +325,15 @@ func (chain33Relayer *Relayer4Chain33) DeployMulsign() (mulsign string, err erro
 	return mulsign, nil
 }
 
+func (chain33Relayer *Relayer4Chain33) CreateERC20ToChain33(param ebTypes.ERC20Token) (erc20 string, err error) {
+	erc20, err = deployERC20ToChain33(chain33Relayer.rpcLaddr, chain33Relayer.chainName, chain33Relayer.deployInfo.OperatorAddr, param)
+	if err != nil {
+		return "", err
+	}
+
+	return erc20, nil
+}
+
 func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebTypes.EthBridgeClaim) {
 	relayerLog.Debug("relayLockBurnToChain33", "new EthBridgeClaim received", claim)
 
@@ -497,15 +506,14 @@ func (chain33Relayer *Relayer4Chain33) SetupMulSign(setupMulSign ebTypes.SetupMu
 		return "", ebTypes.ErrMulSignNotDeployed
 	}
 
-	return setupMultiSign(setupMulSign.Operator, chain33Relayer.mulSignAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr, setupMulSign.Owners)
+	return setupMultiSign(setupMulSign.OperatorPrivateKey, chain33Relayer.mulSignAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr, setupMulSign.Owners)
 }
 
-func (chain33Relayer *Relayer4Chain33) SafeTransfer(safeTransfer ebTypes.SafeTransfer) (string, error) {
+func (chain33Relayer *Relayer4Chain33) SafeTransfer(para ebTypes.SafeTransfer) (string, error) {
 	if "" == chain33Relayer.mulSignAddr {
 		return "", ebTypes.ErrMulSignNotDeployed
 	}
 
-	return "", nil
-
-	//return safeTransfer(safeTransfer.Operator, chain33Relayer.mulSignAddr, chain33Relayer.chainName, chain33Relayer.rpcLaddr, setupMulSign.Owners)
+	return safeTransfer(para.OwnerPrivateKeys[0], chain33Relayer.mulSignAddr, chain33Relayer.chainName,
+		chain33Relayer.rpcLaddr, para.To, para.Token, para.OwnerPrivateKeys, para.Amount)
 }
