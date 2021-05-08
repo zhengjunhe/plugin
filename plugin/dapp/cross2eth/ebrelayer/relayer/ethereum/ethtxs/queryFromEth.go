@@ -155,3 +155,17 @@ func GetToken2address(bridgeBank *generated.BridgeBank, tokenSymbol string) (str
 	txslog.Info("GetToken2address", "Name", tokenSymbol, "Address", tokenAddr.String())
 	return tokenAddr.String(), nil
 }
+
+//GetLockedTokenAddress ...
+func GetLockedTokenAddress(bridgeBank *generated.BridgeBank, tokenSymbol string) (string, error) {
+	opts := &bind.CallOpts{
+		Pending: true,
+		Context: context.Background(),
+	}
+	tokenAddr, err := bridgeBank.GetLockedTokenAddress(opts, tokenSymbol)
+	if nil != err {
+		return "", err
+	}
+	txslog.Info("GetLockedTokenAddress", "Name", tokenSymbol, "Address", tokenAddr.String())
+	return tokenAddr.String(), nil
+}

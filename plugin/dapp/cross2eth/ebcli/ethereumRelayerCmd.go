@@ -63,6 +63,7 @@ func TokenCmd() *cobra.Command {
 		SetTokenAddress4EthCmd(),
 		ShowTokenAddress4EthCmd(),
 		AddToken2LockListCmd(),
+		ShowTokenAddress4LockEthCmd(),
 	)
 	return cmd
 }
@@ -113,6 +114,30 @@ func ShowTokenAddress4Eth(cmd *cobra.Command, args []string) {
 	}
 
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowTokenAddress", para, &res)
+	ctx.Run()
+}
+
+func ShowTokenAddress4LockEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show_lock",
+		Short: "show lock token address",
+		Run:   ShowTokenAddress4LockEth,
+	}
+	ShowTokenFlags(cmd)
+	return cmd
+}
+
+func ShowTokenAddress4LockEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+
+	var res ebTypes.TokenAddressArray
+	para := ebTypes.TokenAddress{
+		Symbol:    symbol,
+		ChainName: ebTypes.EthereumBlockChainName,
+	}
+
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowETHLockTokenAddress", para, &res)
 	ctx.Run()
 }
 

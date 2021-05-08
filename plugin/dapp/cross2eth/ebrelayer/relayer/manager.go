@@ -813,6 +813,24 @@ func (manager *Manager) ShowTokenAddress(token2show relayerTypes.TokenAddress, r
 	return nil
 }
 
+// ShowETHLockTokenAddress
+func (manager *Manager) ShowETHLockTokenAddress(token2show relayerTypes.TokenAddress, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+
+	res, err := manager.ethRelayer.ShowETHLockTokenAddress(token2show)
+	if nil != err {
+		return err
+	}
+
+	*result = *res
+
+	return nil
+}
+
 //ShowTxReceipt ...
 func (manager *Manager) ShowTxReceipt(txhash string, result *interface{}) error {
 	manager.mtx.Lock()

@@ -263,8 +263,6 @@ function TestETH2Chain33Assets() {
     result=$(${CLIA} ethereum balance -o "${ethValidatorAddrB}")
     cli_ret "${result}" "balance" ".balance" "100"
 
-    ./ebcli_A ethereum balance -o "${ethValidatorAddrA}"
-
     echo '#5.burn ETH from Chain33 ETH(Chain33)-----> Ethereum'
     ${CLIA} chain33 burn -m 5 -k "${chain33ReceiverAddrKey}" -r "${ethValidatorAddrB}" -t "${chain33EthTokenAddr}"
 
@@ -282,8 +280,6 @@ function TestETH2Chain33Assets() {
     # 比之前多 5
     result=$(${CLIA} ethereum balance -o "${ethValidatorAddrB}")
     cli_ret "${result}" "balance" ".balance" "105"
-
-    ./ebcli_A ethereum balance -o "${ethValidatorAddrA}"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -321,7 +317,8 @@ function TestETH2Chain33Ycc() {
     is_equal "${result}" "700000000"
 
     # 原来的数额 0
-    ./ebcli_A ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}"
+    result=$(${CLIA} ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "0"
 
     echo '#5.burn YCC from Chain33 YCC(Chain33)-----> Ethereum'
     ${CLIA} chain33 burn -m 5 -k "${chain33ReceiverAddrKey}" -r "${ethValidatorAddrA}" -t "${chain33YccTokenAddr}"
@@ -333,12 +330,13 @@ function TestETH2Chain33Ycc() {
     # 结果是 7-5 * le8
     is_equal "${result}" "200000000"
 
-    # 查询 ETH 这端 bridgeBank 地址 5
+    # 查询 ETH 这端 bridgeBank 地址 2
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
-    cli_ret "${result}" "balance" ".balance" "5"
+    cli_ret "${result}" "balance" ".balance" "2"
 
     # 更新后的金额 5
-    ./ebcli_A ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}"
+    result=$(${CLIA} ethereum balance -o "${ethValidatorAddrA}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "5"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
