@@ -24,12 +24,17 @@ var (
 	ethTxEventPrefix               = []byte("eth-ethTxEventPrefix")
 	lastBridgeBankHeightProcPrefix = []byte("eth-lastBridgeBankHeight")
 	ethTokenSymbol2AddrPrefix      = []byte("eth-ethTokenSymbol2AddrPrefix")
+	ethTokenSymbol2LockAddrPrefix  = []byte("eth-ethTokenSymbol2LockAddrPrefix")
 	ethLockTxUpdateTxIndex         = []byte("eth-ethLockTxUpdateTxIndex")
 	ethBurnTxUpdateTxIndex         = []byte("eth-ethBurnTxUpdateTxIndex")
 )
 
 func ethTokenSymbol2AddrKey(symbol string) []byte {
 	return append(ethTokenSymbol2AddrPrefix, []byte(fmt.Sprintf("-symbol-%s", symbol))...)
+}
+
+func ethTokenSymbol2LockAddrKey(symbol string) []byte {
+	return append(ethTokenSymbol2LockAddrPrefix, []byte(fmt.Sprintf("-symbol-%s", symbol))...)
 }
 
 func ethTxEventKey4Height(height uint64, index uint32) []byte {
@@ -234,17 +239,23 @@ func (ethRelayer *Relayer4Ethereum) SetTokenAddress(token2set ebTypes.TokenAddre
 	return ethRelayer.db.Set(ethTokenSymbol2AddrKey(token2set.Symbol), bytes)
 }
 
+func (ethRelayer *Relayer4Ethereum) SetLockedTokenAddress(token2set ebTypes.TokenAddress) error {
+	addr := common.HexToAddress(token2set.Address)
+	bytes := chain33Types.Encode(&token2set)
+	ethRelayer.rwLock.Lock()
+	ethRelayer.symbol2LockAddr[token2set.Symbol] = addr
+	ethRelayer.rwLock.Unlock()
+	return ethRelayer.db.Set(ethTokenSymbol2LockAddrKey(token2set.Symbol), bytes)
+}
+
 func (ethRelayer *Relayer4Ethereum) RestoreTokenAddress() error {
 	ethRelayer.rwLock.Lock()
 	defer ethRelayer.rwLock.Unlock()
 
-	ethRelayer.symbol2Addr[ebTypes.SYMBOL_ETH] = common.HexToAddress(ebTypes.EthNilAddr)
+	ethRelayer.symbol2LockAddr[ebTypes.SYMBOL_ETH] = common.HexToAddress(ebTypes.EthNilAddr)
 	helper := dbm.NewListHelper(ethRelayer.db)
-	datas := helper.List(ethTokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
-	if nil == datas {
-		return nil
-	}
 
+	datas := helper.List(ethTokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)
 	for _, data := range datas {
 		var token2set ebTypes.TokenAddress
 		err := chain33Types.Decode(data, &token2set)
@@ -253,6 +264,17 @@ func (ethRelayer *Relayer4Ethereum) RestoreTokenAddress() error {
 		}
 		relayerLog.Info("RestoreTokenAddress", "symbol", token2set.Symbol, "address", token2set.Address)
 		ethRelayer.symbol2Addr[token2set.Symbol] = common.HexToAddress(token2set.Address)
+	}
+
+	datas = helper.List(ethTokenSymbol2LockAddrPrefix, nil, 100, dbm.ListASC)
+	for _, data := range datas {
+		var token2set ebTypes.TokenAddress
+		err := chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return err
+		}
+		relayerLog.Info("RestoreTokenAddress", "symbol", token2set.Symbol, "address", token2set.Address)
+		ethRelayer.symbol2LockAddr[token2set.Symbol] = common.HexToAddress(token2set.Address)
 	}
 	return nil
 }
@@ -280,14 +302,45 @@ func (ethRelayer *Relayer4Ethereum) ShowTokenAddress(token2show ebTypes.TokenAdd
 	}
 
 	for _, data := range datas {
-
 		var token2set ebTypes.TokenAddress
 		err := chain33Types.Decode(data, &token2set)
 		if nil != err {
 			return nil, err
 		}
 		res.TokenAddress = append(res.TokenAddress, &token2set)
+	}
+	return res, nil
+}
 
+func (ethRelayer *Relayer4Ethereum) ShowETHLockTokenAddress(token2show ebTypes.TokenAddress) (*ebTypes.TokenAddressArray, error) {
+	res := &ebTypes.TokenAddressArray{}
+
+	if len(token2show.Symbol) > 0 {
+		data, err := ethRelayer.db.Get(ethTokenSymbol2LockAddrKey(token2show.Symbol))
+		if err != nil {
+			return nil, err
+		}
+		var token2set ebTypes.TokenAddress
+		err = chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return nil, err
+		}
+		res.TokenAddress = append(res.TokenAddress, &token2set)
+		return res, nil
+	}
+	helper := dbm.NewListHelper(ethRelayer.db)
+	datas := helper.List(ethTokenSymbol2LockAddrPrefix, nil, 100, dbm.ListASC)
+	if nil == datas {
+		return nil, errors.New("Not found")
+	}
+
+	for _, data := range datas {
+		var token2set ebTypes.TokenAddress
+		err := chain33Types.Decode(data, &token2set)
+		if nil != err {
+			return nil, err
+		}
+		res.TokenAddress = append(res.TokenAddress, &token2set)
 	}
 	return res, nil
 }

@@ -14,6 +14,8 @@ NOC='\033[0m'
 
 # 出错退出前拷贝日志文件
 function exit_cp_file() {
+    exit 1
+
     set -x
     # shellcheck disable=SC2116
     dirNameFa=$(echo ~)
@@ -139,7 +141,7 @@ function start_docker_ebrelayer() {
     sleep 2
 
     # shellcheck disable=SC2009
-    pid=$(docker exec "$1" ps -ef | grep "$2" | grep -v 'grep' | awk '{print $2}')
+    pid=$(docker exec "$1" ps -ef | grep "$2" | grep -v 'grep' | awk '{print $2}' | xargs)
     local count=0
     while [ "${pid}" == "" ]; do
         docker exec "$1" nohup "${2}" >"${3}" 2>&1 &
@@ -152,7 +154,7 @@ function start_docker_ebrelayer() {
         fi
 
         # shellcheck disable=SC2009
-        pid=$(docker exec "$1" ps -ef | grep "$2" | grep -v 'grep' | awk '{print $2}')
+        pid=$(docker exec "$1" ps -ef | grep "$2" | grep -v 'grep' | awk '{print $2}' | xargs)
     done
 }
 
@@ -175,7 +177,7 @@ function start_ebrelayer() {
     sleep 2
 
     # shellcheck disable=SC2009
-    pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
+    pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     local count=0
     while [ "${pid}" == "" ]; do
         nohup "${1}" >"${2}" 2>&1 &
@@ -188,7 +190,7 @@ function start_ebrelayer() {
         fi
 
         # shellcheck disable=SC2009
-        pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
+        pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     done
 }
 
@@ -257,7 +259,7 @@ function start_ebrelayer_and_setpwd_unlock() {
 # 杀死进程 ebrelayer 进程 docker ebrelayer 名称
 function kill_docker_ebrelayer() {
     # shellcheck disable=SC2009
-    pid=$(docker exec "$1" ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}')
+    pid=$(docker exec "$1" ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" == "" ]; then
         echo "not find ${1} pid"
         return
@@ -265,7 +267,7 @@ function kill_docker_ebrelayer() {
 
     docker exec "$1" kill "${pid}"
     # shellcheck disable=SC2009
-    pid=$(docker exec "$1" ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}')
+    pid=$(docker exec "$1" ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" != "" ]; then
         echo "kill ${1} failed"
         docker exec "$1" kill -9 "${pid}"
@@ -276,18 +278,20 @@ function kill_docker_ebrelayer() {
 # 杀死进程ebrelayer 进程 $1进程名称
 function kill_ebrelayer() {
     # shellcheck disable=SC2009
-    pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
+    ps -ef | grep "${1}"
+    # shellcheck disable=SC2009
+    pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" == "" ]; then
         echo "not find ${1} pid"
         return
     fi
 
-    kill "${pid}"
+    kill -9 ${pid}
     # shellcheck disable=SC2009
-    pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}')
+    pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" != "" ]; then
         echo "kill ${1} failed"
-        kill -9 "${pid}"
+        kill -9 ${pid}
     fi
     sleep 1
 }

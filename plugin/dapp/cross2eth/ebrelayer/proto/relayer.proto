@@ -212,9 +212,13 @@ message safeTransfer {
 }
 
 message ERC20Token {
-    string key    = 1;
-    string owner  = 2;
-    string name   = 3;
-    string symbol = 4;
-    string amount = 5;
+    string owner  = 1;
+    string name   = 2;
+    string symbol = 3;
+    string amount = 4;
+}
+
+message ETHTokenLockAddress {
+    string address = 1;
+    string symbol  = 2;
 }

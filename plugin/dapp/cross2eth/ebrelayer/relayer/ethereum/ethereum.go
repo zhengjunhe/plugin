@@ -70,6 +70,7 @@ type Relayer4Ethereum struct {
 	chain33MsgChan         <-chan *events.Chain33Msg
 	totalTx4Eth2Chain33    int64
 	symbol2Addr            map[string]common.Address
+	symbol2LockAddr        map[string]common.Address
 }
 
 var (
@@ -109,6 +110,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 		chain33MsgChan:      startPara.Chain33MsgChan,
 		totalTx4Eth2Chain33: 0,
 		symbol2Addr:         make(map[string]common.Address),
+		symbol2LockAddr:     make(map[string]common.Address),
 	}
 
 	registrAddrInDB, err := ethRelayer.getBridgeRegistryAddr()
@@ -270,6 +272,11 @@ func (ethRelayer *Relayer4Ethereum) ShowTokenAddrBySymbol(tokenSymbol string) (s
 	return ethtxs.GetToken2address(ethRelayer.x2EthContracts.BridgeBank, tokenSymbol)
 }
 
+//ShowTokenAddrBySymbol ...
+func (ethRelayer *Relayer4Ethereum) ShowLockedTokenAddress(tokenSymbol string) (string, error) {
+	return ethtxs.GetLockedTokenAddress(ethRelayer.x2EthContracts.BridgeBank, tokenSymbol)
+}
+
 //IsProphecyPending ...
 func (ethRelayer *Relayer4Ethereum) IsProphecyPending(claimID [32]byte) (bool, error) {
 	return ethtxs.IsProphecyPending(claimID, ethRelayer.ethValidator, ethRelayer.x2EthContracts.Chain33Bridge)
@@ -291,6 +298,12 @@ func (ethRelayer *Relayer4Ethereum) CreateBridgeToken(symbol string) (string, er
 	return tokenAddr, err
 }
 
+// AddToken2LockList ...
+func (ethRelayer *Relayer4Ethereum) AddToken2LockList(symbol, token string) (string, error) {
+	txhash, err := ethtxs.AddToken2LockList(symbol, token, ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthContracts)
+	return txhash, err
+}
+
 //CreateERC20Token ...
 func (ethRelayer *Relayer4Ethereum) CreateERC20Token(symbol string) (string, error) {
 	ethRelayer.rwLock.RLock()
@@ -308,12 +321,12 @@ func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount 
 }
 
 //DeployERC20 ...
-func (ethRelayer *Relayer4Ethereum) DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol, amount string) (string, error) {
+func (ethRelayer *Relayer4Ethereum) DeployERC20(ownerAddr, name, symbol, amount string) (string, error) {
 	bn := big.NewInt(1)
 	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
 	ethRelayer.rwLock.RLock()
 	defer ethRelayer.rwLock.RUnlock()
-	return ethtxs.DeployERC20(deployPrivateKeyStr, ownerAddr, name, symbol, bn, ethRelayer.clientSpec)
+	return ethtxs.DeployERC20(ownerAddr, name, symbol, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
 }
 
 //ApproveAllowance ...
@@ -440,24 +453,48 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
 	prophecyClaim := ethtxs.Chain33MsgToProphecyClaim(*chain33Msg)
-	tokenAddr, exist := ethRelayer.symbol2Addr[prophecyClaim.Symbol]
-	if !exist {
-		//Try to query token's address from ethereum node
-		addr, err := ethRelayer.ShowTokenAddrBySymbol(prophecyClaim.Symbol)
-		if err != nil {
-			panic(fmt.Sprintf("Pls create bridge token in advance for token:%s", prophecyClaim.Symbol))
+	var tokenAddr common.Address
+	exist := false
+	if chain33Msg.ClaimType == events.ClaimTypeLock {
+		tokenAddr, exist = ethRelayer.symbol2Addr[prophecyClaim.Symbol]
+		if !exist {
+			//Try to query token's address from ethereum node
+			addr, err := ethRelayer.ShowTokenAddrBySymbol(prophecyClaim.Symbol)
+			if err != nil {
+				panic(fmt.Sprintf("Pls create bridge token in advance for token:%s", prophecyClaim.Symbol))
+			}
+			token2set := ebTypes.TokenAddress{
+				Address:   addr,
+				Symbol:    prophecyClaim.Symbol,
+				ChainName: ebTypes.EthereumBlockChainName,
+			}
+			err = ethRelayer.SetTokenAddress(token2set)
+			if nil != err {
+				// 尽管设置数据失败，但是不影响运行，只是relayer启动时，每次从节点远程获取bridge token地址而已
+				relayerLog.Error("handleChain33Msg", "Failed to SetTokenAddress due to", err.Error())
+			}
+			tokenAddr = common.HexToAddress(addr)
 		}
-		token2set := ebTypes.TokenAddress{
-			Address:   addr,
-			Symbol:    prophecyClaim.Symbol,
-			ChainName: ebTypes.EthereumBlockChainName,
-		}
-		err = ethRelayer.SetTokenAddress(token2set)
-		if nil != err {
-			// 尽管设置数据失败，但是不影响运行，只是relayer启动时，每次从节点远程获取bridge token地址而已
-			relayerLog.Error("handleChain33Msg", "Failed to SetTokenAddress due to", err.Error())
+	} else {
+		tokenAddr, exist = ethRelayer.symbol2LockAddr[prophecyClaim.Symbol]
+		if !exist {
+			addr, err := ethRelayer.ShowLockedTokenAddress(prophecyClaim.Symbol)
+			if err != nil {
+				panic(fmt.Sprintf("Pls create lock token in advance for token:%s", prophecyClaim.Symbol))
+			}
+			token2set := ebTypes.TokenAddress{
+				Address:   addr,
+				Symbol:    prophecyClaim.Symbol,
+				ChainName: ebTypes.EthereumBlockChainName,
+			}
+			err = ethRelayer.SetLockedTokenAddress(token2set)
+			if nil != err {
+				relayerLog.Error("handleChain33Msg", "Failed to SetLockedTokenAddress due to", err.Error())
+			}
+			tokenAddr = common.HexToAddress(addr)
 		}
 	}
+
 	// Relay the Chain33Msg to the Ethereum network
 	txhash, err := ethtxs.RelayOracleClaimToEthereum(ethRelayer.x2EthContracts.Oracle, ethRelayer.clientSpec, ethRelayer.ethSender, tokenAddr, prophecyClaim, ethRelayer.privateKey4Ethereum)
 	if nil != err {
