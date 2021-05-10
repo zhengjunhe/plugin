@@ -849,6 +849,7 @@ func opReturn(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 func opRevert(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	offset, size := callContext.stack.pop(), callContext.stack.pop()
 	ret := callContext.memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
+	log15.Info("opRevert", "info", string(ret))
 	return ret, nil
 }
 

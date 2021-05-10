@@ -20,7 +20,6 @@ import (
 	"github.com/33cn/chain33/common/crypto/sha3"
 	"github.com/33cn/chain33/rpc/jsonclient"
 	rpctypes "github.com/33cn/chain33/rpc/types"
-	cty "github.com/33cn/chain33/system/dapp/coins/types"
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/commands/compiler"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/abi"
@@ -51,7 +50,6 @@ func EvmCmd() *cobra.Command {
 		checkContractAddrCmd(),
 		evmDebugCmd(),
 		evmTransferCmd(),
-		evmWithdrawCmd(),
 		getEvmBalanceCmd(),
 		evmToolsCmd(),
 		getNonceCmd(),
@@ -309,58 +307,6 @@ func createEvmTx(cfg *types.Chain33Config, action proto.Message, execer, caller,
 	tx.Fee, _ = tx.GetRealFee(cfg.GetMinTxFeeRate())
 	if tx.Fee < int64(fee) {
 		tx.Fee += int64(fee)
-	}
-
-	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	tx.Nonce = random.Int63()
-	tx.ChainID = cfg.GetChainID()
-	txHex := types.Encode(tx)
-	rawTx := hex.EncodeToString(txHex)
-
-	unsignedTx := &types.ReqSignRawTx{
-		Addr:   caller,
-		TxHex:  rawTx,
-		Expire: expire,
-		Fee:    tx.Fee,
-	}
-
-	var res string
-	client, err := jsonclient.NewJSONClient(rpcLaddr)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return "", err
-	}
-	err = client.Call("Chain33.SignRawTx", unsignedTx, &res)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return "", err
-	}
-
-	return res, nil
-}
-
-func createEvmTransferTx(cfg *types.Chain33Config, cmd *cobra.Command, caller, execName, expire, rpcLaddr string, amountInt64 int64, isWithdraw bool) (string, error) {
-	paraName, _ := cmd.Flags().GetString("paraName")
-	var tx *types.Transaction
-	transfer := &cty.CoinsAction{}
-
-	if isWithdraw {
-		transfer.Value = &cty.CoinsAction_Withdraw{Withdraw: &types.AssetsWithdraw{Amount: amountInt64, ExecName: execName, To: address.ExecAddress(execName)}}
-		transfer.Ty = cty.CoinsActionWithdraw
-	} else {
-		transfer.Value = &cty.CoinsAction_TransferToExec{TransferToExec: &types.AssetsTransferToExec{Amount: amountInt64, ExecName: execName, To: address.ExecAddress(execName)}}
-		transfer.Ty = cty.CoinsActionTransferToExec
-	}
-	if paraName == "" {
-		tx = &types.Transaction{Execer: []byte(cfg.ExecName(paraName + "coins")), Payload: types.Encode(transfer), To: address.ExecAddress(execName)}
-	} else {
-		tx = &types.Transaction{Execer: []byte(cfg.ExecName(paraName + "coins")), Payload: types.Encode(transfer), To: address.ExecAddress(cfg.ExecName(paraName + "coins"))}
-	}
-
-	var err error
-	tx.Fee, err = tx.GetRealFee(cfg.GetMinTxFeeRate())
-	if err != nil {
-		return "", err
 	}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -852,7 +798,7 @@ func evmDebugRPC(cmd *cobra.Command, flag int32) {
 func evmTransferCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
-		Short: "Transfer to evm contract address",
+		Short: "transfer within evm contract platform, just same ETH transfer on Ethereum",
 		Run:   evmTransfer,
 	}
 	addEvmTransferFlags(cmd)
@@ -860,13 +806,13 @@ func evmTransferCmd() *cobra.Command {
 }
 
 func addEvmTransferFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("to", "t", "", "evm contract address (like user.evm.xxx)")
-	cmd.MarkFlagRequired("to")
+	cmd.Flags().StringP("receiver", "r", "", "receiver address")
+	cmd.MarkFlagRequired("receiver")
 
 	cmd.Flags().StringP("caller", "c", "", "the caller address")
 	cmd.MarkFlagRequired("caller")
 
-	cmd.Flags().Float64P("amount", "a", 0, "the amount transfer to the contract")
+	cmd.Flags().Float64P("amount", "a", 0, "the amount transfer to the contract, precision to 0.0001")
 	cmd.MarkFlagRequired("amount")
 
 	cmd.Flags().StringP("expire", "p", "120s", "transaction expire time (optional)")
@@ -876,69 +822,33 @@ func evmTransfer(cmd *cobra.Command, args []string) {
 	title, _ := cmd.Flags().GetString("title")
 	cfg := types.GetCliSysParam(title)
 
+	paraName, _ := cmd.Flags().GetString("paraName")
 	caller, _ := cmd.Flags().GetString("caller")
 	amount, _ := cmd.Flags().GetFloat64("amount")
-	to, _ := cmd.Flags().GetString("to")
+	receiver, _ := cmd.Flags().GetString("receiver")
 	expire, _ := cmd.Flags().GetString("expire")
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 
 	amountInt64 := int64(amount*1e4) * 1e4
 
-	data, err := createEvmTransferTx(cfg, cmd, caller, to, expire, rpcLaddr, amountInt64, false)
-
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "create contract transfer error:", err)
+	r_addr, err := address.NewAddrFromString(receiver)
+	if nil != err {
+		_, _ = fmt.Println("Pls input correct address")
 		return
 	}
 
-	params := rpctypes.RawParm{
-		Data: data,
+	action := &evmtypes.EVMContractAction{
+		Amount:   uint64(amountInt64),
+		GasLimit: 0,
+		GasPrice: 0,
+		Code:     nil,
+		Para:     r_addr.Hash160[:],
+		Alias:    "",
+		Note:     fmt.Sprintf("transfer from:"+caller+" to:"+receiver+" for amount: %s", amount),
 	}
-
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.SendTransaction", params, nil)
-	ctx.RunWithoutMarshal()
-}
-
-// 向EVM合约地址转账
-func evmWithdrawCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "withdraw",
-		Short: "Withdraw from evm contract address to caller's balance",
-		Run:   evmWithdraw,
-	}
-	addEvmWithdrawFlags(cmd)
-	return cmd
-}
-
-func addEvmWithdrawFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("exec", "e", "", "evm contract address (like user.evm.xxx)")
-	cmd.MarkFlagRequired("exec")
-
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	cmd.MarkFlagRequired("caller")
-
-	cmd.Flags().Float64P("amount", "a", 0, "the amount transfer to the contract")
-	cmd.MarkFlagRequired("amount")
-
-	cmd.Flags().StringP("expire", "p", "120s", "transaction expire time (optional)")
-}
-
-func evmWithdraw(cmd *cobra.Command, args []string) {
-	title, _ := cmd.Flags().GetString("title")
-	cfg := types.GetCliSysParam(title)
-
-	caller, _ := cmd.Flags().GetString("caller")
-	amount, _ := cmd.Flags().GetFloat64("amount")
-	from, _ := cmd.Flags().GetString("exec")
-	expire, _ := cmd.Flags().GetString("expire")
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-
-	amountInt64 := int64(amount*1e4) * 1e4
-
-	data, err := createEvmTransferTx(cfg, cmd, caller, from, expire, rpcLaddr, amountInt64, true)
-
+	data, err := createEvmTx(cfg, action, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, 0)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "create contract transfer error:", err)
+		_, _ = fmt.Fprintln(os.Stderr, "create transfer tx error:", err)
 		return
 	}
 

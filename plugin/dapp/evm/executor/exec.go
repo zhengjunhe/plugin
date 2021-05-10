@@ -39,19 +39,33 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	cfg := evm.GetAPI().GetConfig()
 	// 创建EVM运行时对象
 	env := runtime.NewEVM(context, evm.mStateDB, *evm.vmCfg, cfg)
-	isCreate := strings.Compare(msg.To().String(), EvmAddress) == 0
+	isCreate := strings.Compare(msg.To().String(), EvmAddress) == 0 && len(msg.Data()) > 0
+	isTransferOnly := strings.Compare(msg.To().String(), EvmAddress) == 0 && 0 == len(msg.Data())
 	var (
-		ret          []byte
-		vmerr        error
-		leftOverGas  uint64
-		contractAddr common.Address
-		snapshot     int
-		execName     string
+		ret             []byte
+		vmerr           error
+		leftOverGas     uint64
+		contractAddr    common.Address
+		snapshot        int
+		execName        string
+		contractAddrStr string
 	)
 
-	var contractAddrStr string
-	// 为了方便计费，即使合约为新生成，也将地址的初始化放到外面操作
-	if isCreate {
+	if isTransferOnly {
+		caller := msg.From()
+		receiver := common.BytesToAddress(msg.Para())
+
+		if !evm.mStateDB.CanTransfer(caller.String(), msg.Value()) {
+			log.Error("innerExec", "Not enough balance to be transferred from", caller.String(), "amout", msg.Value())
+			return nil, types.ErrNoBalance
+		}
+		env.StateDB.Snapshot()
+		env.Transfer(env.StateDB, caller, receiver, msg.Value())
+		curVer := evm.mStateDB.GetLastSnapshot()
+		kvSet, logs := evm.mStateDB.GetChangedData(curVer.GetID())
+		receipt = &types.Receipt{Ty: types.ExecOk, KV: kvSet, Logs: logs}
+		return receipt, nil
+	} else if isCreate {
 		// 使用随机生成的地址作为合约地址（这个可以保证每次创建的合约地址不会重复，不存在冲突的情况）
 		contractAddr = evm.createContractAddress(msg.From(), txHash)
 		contractAddrStr = contractAddr.String()
@@ -111,7 +125,6 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	if curVer == nil {
 		return receipt, nil
 	}
-
 	// 从状态机中获取数据变更和变更日志
 	kvSet, logs := evm.mStateDB.GetChangedData(curVer.GetID())
 	contractReceipt := &evmtypes.ReceiptEVMContract{Caller: msg.From().String(), ContractName: execName, ContractAddr: contractAddrStr, UsedGas: usedGas, Ret: ret}
