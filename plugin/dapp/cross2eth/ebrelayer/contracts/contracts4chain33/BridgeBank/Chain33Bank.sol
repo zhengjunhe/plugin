@@ -12,9 +12,20 @@ contract Chain33Bank {
 
     using SafeMath for uint256;
 
+    address public offlineSave;
     uint256 public lockNonce;
     mapping(address => uint256) public lockedFunds;
     mapping(bytes32 => address) public tokenAllow2Lock;
+    mapping(address => OfflineSaveCfg) public offlineSaveCfgs;
+    uint8 public lowThreshold  = 5;
+    uint8 public highThreshold = 8;
+
+    struct OfflineSaveCfg {
+        address token;
+        string symbol;
+        uint256 _threshold;
+        uint8 _percents;
+    }
 
     /*
     * @dev: Event declarations
@@ -100,6 +111,8 @@ contract Chain33Bank {
     internal
     {
         bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        address tokenQuery = tokenAllow2Lock[symHash];
+        require(tokenQuery == address(0), 'The token with the same symbol has been added to lock allow list already.');
         tokenAllow2Lock[symHash] = _token;
     }
 
@@ -107,7 +120,6 @@ contract Chain33Bank {
       * @dev: addToken2AllowLock used to add token with the specified address to be
       *       allowed locked from Ethereum
       *
-      * @param _token: token contract address
       * @param _symbol: token symbol
      */
 
@@ -115,6 +127,48 @@ contract Chain33Bank {
     {
         bytes32 symHash = keccak256(abi.encodePacked(_symbol));
         return tokenAllow2Lock[symHash];
+    }
+
+    /*
+    * @dev: configOfflineSave4Lock used to config threshold to trigger tranfer token to offline account
+    *       when the balance of locked token reaches
+    *
+    * @param _token: token contract address
+    * @param _symbol:token symbol,just used for double check that token address and symbol is consistent
+    * @param _threshold: _threshold to trigger transfer
+    * @param _percents: amount to transfer per percents of threshold
+    */
+    function configOfflineSave4Lock(
+        address _token,
+        string memory _symbol,
+        uint256 _threshold,
+        uint8 _percents
+    )
+    internal
+    {
+        require(
+            _percents >= lowThreshold && _percents <= highThreshold,
+            "The percents to trigger should within range [5, 80]"
+        );
+        OfflineSaveCfg memory offlineSaveCfg = OfflineSaveCfg(
+            _token,
+            _symbol,
+            _threshold,
+            _percents
+        );
+        offlineSaveCfgs[_token] = offlineSaveCfg;
+    }
+
+    /*
+      * @dev: getofflineSaveCfg used to get token's offline save configuration
+      *
+      * @param _token: token contract address
+     */
+
+    function getofflineSaveCfg(address _token) public view returns(uint256, uint8)
+    {
+        OfflineSaveCfg memory offlineSaveCfg =  offlineSaveCfgs[_token];
+        return (offlineSaveCfg._threshold, offlineSaveCfg._percents);
     }
 
     /*

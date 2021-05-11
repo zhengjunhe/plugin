@@ -162,6 +162,28 @@ contract BridgeBank is Chain33Bank, EthereumBank {
      }
 
     /*
+    * @dev: configTokenOfflineSave used to config threshold to trigger tranfer token to offline account
+    *       when the balance of locked token reaches
+    *
+    * @param _token: token contract address
+    * @param _symbol:token symbol,just used for double check that token address and symbol is consistent
+    * @param _threshold: _threshold to trigger transfer
+    * @param _percents: amount to transfer per percents of threshold
+    */
+    function configLockedTokenOfflineSave(
+        address _token,
+        string memory _symbol,
+        uint256 _threshold,
+        uint8 _percents
+    )
+    public
+    onlyOperator
+    {
+        require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        configOfflineSave4Lock(_token, _symbol, _threshold, _percents);
+    }
+
+    /*
     * @dev: Locks received Ethereum funds.
     *
     * @param _recipient: bytes representation of destination address.
