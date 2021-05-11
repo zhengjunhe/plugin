@@ -12,7 +12,7 @@ contract Chain33Bank {
 
     using SafeMath for uint256;
 
-    address public offlineSave;
+    address payable public offlineSave;
     uint256 public lockNonce;
     mapping(address => uint256) public lockedFunds;
     mapping(bytes32 => address) public tokenAllow2Lock;
@@ -202,6 +202,33 @@ contract Chain33Bank {
             _amount,
             lockNonce
         );
+
+        if (address(0) == offlineSave) {
+            return;
+        }
+
+        uint256 balance;
+        if (address(0) == _token) {
+            balance = address(this).balance;
+        } else {
+            balance = BridgeToken(_token).balanceOf(address(this));
+        }
+
+        OfflineSaveCfg memory offlineSaveCfg = offlineSaveCfgs[_token];
+        //check not zero,so configured already
+        if (offlineSaveCfg._percents < lowThreshold) {
+            return;
+        }
+        if (balance < offlineSaveCfg._threshold ) {
+            return;
+        }
+        uint256 amount = offlineSaveCfg._percents * lockedFunds[_token] / 100;
+
+        if (address(0) == _token) {
+            offlineSave.transfer(amount);
+        } else {
+            require(BridgeToken(_token).transfer(offlineSave, amount), "Erc20 Token Transfer to offline Save account failed");
+        }
     }
 
     /*

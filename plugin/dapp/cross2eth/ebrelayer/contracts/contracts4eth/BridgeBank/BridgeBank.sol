@@ -17,7 +17,7 @@ import "../Chain33Bridge.sol";
 contract BridgeBank is Chain33Bank, EthereumBank {
 
     using SafeMath for uint256;
-    
+
     address public operator;
     Oracle public oracle;
     Chain33Bridge public chain33Bridge;
@@ -181,6 +181,17 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     {
         require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
         configOfflineSave4Lock(_token, _symbol, _threshold, _percents);
+    }
+
+   /*
+    * @dev: configOfflineSaveAccount used to config offline account to receive token
+    *       when the balance of locked token reaches threshold
+    *
+    * @param _offlineSave: receiver address
+    */
+    function configOfflineSaveAccount(address payable _offlineSave) public onlyOperator
+    {
+        offlineSave = _offlineSave;
     }
 
     /*

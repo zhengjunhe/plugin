@@ -189,7 +189,7 @@ contract BridgeBank is EthereumBank, Chain33Bank {
    *
    * @param _offlineSave: receiver address
    */
-    function configOfflineSaveAccount(address _offlineSave) public onlyOperator
+    function configOfflineSaveAccount(address payable _offlineSave) public onlyOperator
     {
         offlineSave = _offlineSave;
     }
