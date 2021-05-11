@@ -14,6 +14,7 @@ contract Chain33Bank {
 
     uint256 public lockNonce;
     mapping(address => uint256) public lockedFunds;
+    mapping(bytes32 => address) public tokenAllow2Lock;
 
     /*
     * @dev: Event declarations
@@ -83,6 +84,37 @@ contract Chain33Bank {
         public
     {
         lockNonce = 0;
+    }
+
+    /*
+     * @dev: addToken2AllowLock used to add token with the specified address to be
+     *       allowed locked from Ethereum
+     *
+     * @param _token: token contract address
+     * @param _symbol: token symbol
+     */
+    function addToken2AllowLock(
+        address _token,
+        string memory _symbol
+    )
+    internal
+    {
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        tokenAllow2Lock[symHash] = _token;
+    }
+
+    /*
+      * @dev: addToken2AllowLock used to add token with the specified address to be
+      *       allowed locked from Ethereum
+      *
+      * @param _token: token contract address
+      * @param _symbol: token symbol
+     */
+
+    function getLockedTokenAddress(string memory _symbol) public view returns(address)
+    {
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        return tokenAllow2Lock[symHash];
     }
 
     /*

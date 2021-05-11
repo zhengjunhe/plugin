@@ -145,6 +145,23 @@ contract BridgeBank is EthereumBank, Chain33Bank {
     }
 
     /*
+    * @dev: addToken2LockList used to add token with the specified address to be
+    *       allowed locked from Ethereum
+    *
+    * @param _token: token contract address
+    * @param _symbol: token symbol
+    */
+    function addToken2LockList(
+        address _token,
+        string memory _symbol
+    )
+        public
+        onlyOperator
+    {
+        addToken2AllowLock(_token, _symbol);
+    }
+
+    /*
     * @dev: Locks received Chain33 funds.
     *
     * @param _recipient: bytes representation of destination address.
