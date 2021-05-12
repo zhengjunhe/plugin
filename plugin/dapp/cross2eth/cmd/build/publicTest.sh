@@ -112,16 +112,16 @@ function balance_ret() {
 
 # 查询关键字所在行然后删除 ${1}文件名称 ${2}关键字
 function delete_line() {
-    line=$(cat -n "${1}" | grep "${2}" | awk '{print $1}')
-    if [[ ${line} != "" ]]; then
+    line=$(cat -n "${1}" | grep "${2}" | awk '{print $1}' | xargs | awk '{print $1}')
+    if [ "${line}" ]; then
         sed -i "${line}"'d' "${1}" # 删除行
     fi
 }
 
 # 查询关键字所在行然后删除 ${1}文件名称 ${2}关键字
 function delete_line_show() {
-    local line=$(cat -n "${1}" | grep "${2}" | awk '{print $1}')
-    if [[ ${line} != "" ]]; then
+    local line=$(cat -n "${1}" | grep "${2}" | awk '{print $1}' | xargs | awk '{print $1}')
+    if [ "${line}" ]; then
         sed -i "${line}"'d' "${1}" # 删除行
         line=$((line - 1))
     fi
@@ -547,7 +547,7 @@ function pushNameChange() {
 
     # 修改 relayer.toml 配置文件 pushName 字段
     line=$(delete_line_show "${file}" "pushName")
-    time=$(date "+%m-%d%H:%M:%S")
+    local time=$(date "+%m-%d-%H:%M:%S")
     sed -i ''"${line}"' a pushName="cross2eth_'${time}'"' "${file}"
 }
 
@@ -575,4 +575,22 @@ function is_equal() {
     fi
 
     set -x
+}
+
+function kill_all_ebrelayer() {
+    kill_ebrelayer ebrelayer
+    sleep 2
+
+    rm datadir/ logs/ -rf
+
+    for name in B C D; do
+        kill_ebrelayer ebrelayer_${name}
+        sleep 2
+
+        rm relayer_${name} -rf
+        mkdir relayer_${name}
+        cp ./ebrelayer relayer_${name}/ebrelayer
+#        cp ./relayer.toml relayer_${name}/relayer.toml
+#        cp ./ebcli_${name} relayer_${name}/ebcli_${name}
+    done
 }
