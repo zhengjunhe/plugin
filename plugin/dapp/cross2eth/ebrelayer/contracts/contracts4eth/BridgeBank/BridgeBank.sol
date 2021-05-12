@@ -179,7 +179,11 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     public
     onlyOperator
     {
-        require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        if (address(0) != _token) {
+            require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        } else {
+            require(keccak256(bytes("ETH")) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        }
         configOfflineSave4Lock(_token, _symbol, _threshold, _percents);
     }
 

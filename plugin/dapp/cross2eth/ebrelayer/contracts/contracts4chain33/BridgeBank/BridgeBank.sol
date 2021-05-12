@@ -179,7 +179,12 @@ contract BridgeBank is EthereumBank, Chain33Bank {
     public
     onlyOperator
     {
-        require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        if (address(0) != _token) {
+            require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        } else {
+            require(keccak256(bytes("BTY")) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        }
+
         configOfflineSave4Lock(_token, _symbol, _threshold, _percents);
     }
 
@@ -233,6 +238,10 @@ contract BridgeBank is EthereumBank, Chain33Bank {
           );
           // Set symbol to the ERC20 token's symbol
           symbol = BridgeToken(_token).symbol();
+          require(
+              tokenAllow2Lock[keccak256(abi.encodePacked(symbol))] == _token,
+              'The token is not allowed to be locked from Chain33.'
+          );
         }
 
         lockFunds(

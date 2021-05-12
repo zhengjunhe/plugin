@@ -18,7 +18,7 @@ contract EthereumBank {
     mapping(bytes32 => address) public tokenAllow2Lock;
     mapping(address => OfflineSaveCfg) public offlineSaveCfgs;
     uint8 public lowThreshold  = 5;
-    uint8 public highThreshold = 8;
+    uint8 public highThreshold = 80;
 
     struct OfflineSaveCfg {
         address token;
