@@ -145,6 +145,61 @@ contract BridgeBank is EthereumBank, Chain33Bank {
     }
 
     /*
+    * @dev: addToken2LockList used to add token with the specified address to be
+    *       allowed locked from Ethereum
+    *
+    * @param _token: token contract address
+    * @param _symbol: token symbol
+    */
+    function addToken2LockList(
+        address _token,
+        string memory _symbol
+    )
+        public
+        onlyOperator
+    {
+        addToken2AllowLock(_token, _symbol);
+    }
+
+   /*
+    * @dev: configTokenOfflineSave used to config threshold to trigger tranfer token to offline account
+    *       when the balance of locked token reaches
+    *
+    * @param _token: token contract address
+    * @param _symbol:token symbol,just used for double check that token address and symbol is consistent
+    * @param _threshold: _threshold to trigger transfer
+    * @param _percents: amount to transfer per percents of threshold
+    */
+    function configLockedTokenOfflineSave(
+        address _token,
+        string memory _symbol,
+        uint256 _threshold,
+        uint8 _percents
+    )
+    public
+    onlyOperator
+    {
+        if (address(0) != _token) {
+            require(keccak256(bytes(BridgeToken(_token).symbol())) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        } else {
+            require(keccak256(bytes("BTY")) == keccak256(bytes(_symbol)), "token address and symbol is not consistent");
+        }
+
+        configOfflineSave4Lock(_token, _symbol, _threshold, _percents);
+    }
+
+   /*
+   * @dev: configOfflineSaveAccount used to config offline account to receive token
+   *       when the balance of locked token reaches threshold
+   *
+   * @param _offlineSave: receiver address
+   */
+    function configOfflineSaveAccount(address payable _offlineSave) public onlyOperator
+    {
+        offlineSave = _offlineSave;
+    }
+
+    /*
     * @dev: Locks received Chain33 funds.
     *
     * @param _recipient: bytes representation of destination address.
@@ -183,6 +238,10 @@ contract BridgeBank is EthereumBank, Chain33Bank {
           );
           // Set symbol to the ERC20 token's symbol
           symbol = BridgeToken(_token).symbol();
+          require(
+              tokenAllow2Lock[keccak256(abi.encodePacked(symbol))] == _token,
+              'The token is not allowed to be locked from Chain33.'
+          );
         }
 
         lockFunds(

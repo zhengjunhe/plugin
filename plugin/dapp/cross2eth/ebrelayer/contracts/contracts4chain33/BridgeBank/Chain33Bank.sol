@@ -12,8 +12,20 @@ contract Chain33Bank {
 
     using SafeMath for uint256;
 
+    address payable public offlineSave;
     uint256 public lockNonce;
     mapping(address => uint256) public lockedFunds;
+    mapping(bytes32 => address) public tokenAllow2Lock;
+    mapping(address => OfflineSaveCfg) public offlineSaveCfgs;
+    uint8 public lowThreshold  = 5;
+    uint8 public highThreshold = 80;
+
+    struct OfflineSaveCfg {
+        address token;
+        string symbol;
+        uint256 _threshold;
+        uint8 _percents;
+    }
 
     /*
     * @dev: Event declarations
@@ -86,6 +98,80 @@ contract Chain33Bank {
     }
 
     /*
+     * @dev: addToken2AllowLock used to add token with the specified address to be
+     *       allowed locked from Ethereum
+     *
+     * @param _token: token contract address
+     * @param _symbol: token symbol
+     */
+    function addToken2AllowLock(
+        address _token,
+        string memory _symbol
+    )
+    internal
+    {
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        address tokenQuery = tokenAllow2Lock[symHash];
+        require(tokenQuery == address(0), 'The token with the same symbol has been added to lock allow list already.');
+        tokenAllow2Lock[symHash] = _token;
+    }
+
+    /*
+      * @dev: addToken2AllowLock used to add token with the specified address to be
+      *       allowed locked from Ethereum
+      *
+      * @param _symbol: token symbol
+     */
+
+    function getLockedTokenAddress(string memory _symbol) public view returns(address)
+    {
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        return tokenAllow2Lock[symHash];
+    }
+
+    /*
+    * @dev: configOfflineSave4Lock used to config threshold to trigger tranfer token to offline account
+    *       when the balance of locked token reaches
+    *
+    * @param _token: token contract address
+    * @param _symbol:token symbol,just used for double check that token address and symbol is consistent
+    * @param _threshold: _threshold to trigger transfer
+    * @param _percents: amount to transfer per percents of threshold
+    */
+    function configOfflineSave4Lock(
+        address _token,
+        string memory _symbol,
+        uint256 _threshold,
+        uint8 _percents
+    )
+    internal
+    {
+        require(
+            _percents >= lowThreshold && _percents <= highThreshold,
+            "The percents to trigger should within range [5, 80]"
+        );
+        OfflineSaveCfg memory offlineSaveCfg = OfflineSaveCfg(
+            _token,
+            _symbol,
+            _threshold,
+            _percents
+        );
+        offlineSaveCfgs[_token] = offlineSaveCfg;
+    }
+
+    /*
+      * @dev: getofflineSaveCfg used to get token's offline save configuration
+      *
+      * @param _token: token contract address
+     */
+
+    function getofflineSaveCfg(address _token) public view returns(uint256, uint8)
+    {
+        OfflineSaveCfg memory offlineSaveCfg =  offlineSaveCfgs[_token];
+        return (offlineSaveCfg._threshold, offlineSaveCfg._percents);
+    }
+
+    /*
     * @dev: Creates a new Chain33 deposit with a unique id.
     *
     * @param _sender: The sender's Chain33 address.
@@ -116,6 +202,33 @@ contract Chain33Bank {
             _amount,
             lockNonce
         );
+
+        if (address(0) == offlineSave) {
+            return;
+        }
+
+        uint256 balance;
+        if (address(0) == _token) {
+            balance = address(this).balance;
+        } else {
+            balance = BridgeToken(_token).balanceOf(address(this));
+        }
+
+        OfflineSaveCfg memory offlineSaveCfg = offlineSaveCfgs[_token];
+        //check not zero,so configured already
+        if (offlineSaveCfg._percents < lowThreshold) {
+            return;
+        }
+        if (balance < offlineSaveCfg._threshold ) {
+            return;
+        }
+        uint256 amount = offlineSaveCfg._percents * lockedFunds[_token] / 100;
+
+        if (address(0) == _token) {
+            offlineSave.transfer(amount);
+        } else {
+            require(BridgeToken(_token).transfer(offlineSave, amount), "Erc20 Token Transfer to offline Save account failed");
+        }
     }
 
     /*
