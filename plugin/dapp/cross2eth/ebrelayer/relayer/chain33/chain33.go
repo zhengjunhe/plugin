@@ -210,9 +210,9 @@ func (chain33Relayer *Relayer4Chain33) onNewHeightProc(currentHeight int64) {
 
 			for _, evmlog := range txAndLog.LogsPerTx.Logs {
 				var evmEventType events.Chain33EvmEvent
-				if chain33Relayer.bridgeBankEventBurnSig == common.ToHex(evmlog.Topic) {
+				if chain33Relayer.bridgeBankEventBurnSig == common.ToHex(evmlog.Topic[0]) {
 					evmEventType = events.Chain33EventLogBurn
-				} else if chain33Relayer.bridgeBankEventLockSig == common.ToHex(evmlog.Topic) {
+				} else if chain33Relayer.bridgeBankEventLockSig == common.ToHex(evmlog.Topic[0]) {
 					evmEventType = events.Chain33EventLogLock
 				} else {
 					continue

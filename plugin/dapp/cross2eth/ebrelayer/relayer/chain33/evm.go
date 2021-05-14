@@ -21,4 +21,7 @@ func (relayer *Relayer4Chain33) prePareSubscribeEvent() {
 	eventName = events.Chain33EventLogBurn.String()
 	relayer.bridgeBankEventBurnSig = contractABI.Events[eventName].ID.Hex()
 	relayer.bridgeBankAbi = contractABI
+
+	relayerLog.Info("prePareSubscribeEvent", "bridgeBankEventLockSig", relayer.bridgeBankEventLockSig,
+		"bridgeBankEventBurnSig", relayer.bridgeBankEventBurnSig)
 }

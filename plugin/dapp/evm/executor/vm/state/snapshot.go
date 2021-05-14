@@ -150,6 +150,7 @@ type (
 	addLogChange struct {
 		baseChange
 		txhash common.Hash
+		logs   []*types.ReceiptLog
 	}
 
 	// 合约生成sha3事件
@@ -310,20 +311,7 @@ func (ch addLogChange) getLog(mdb *MemoryStateDB) []*types.ReceiptLog {
 		return nil
 	}
 
-	logs := mdb.logs[mdb.txHash]
-	var receiptLogs []*types.ReceiptLog
-	for _, log := range logs {
-		newEvmLog := &types.EVMLog{
-			Topic: log.Topics[0].Bytes(),
-			Data:  log.Data,
-		}
-		receiptLog := &types.ReceiptLog{
-			Ty:  evmtypes.TyLogEVMEventData,
-			Log: types.Encode(newEvmLog),
-		}
-		receiptLogs = append(receiptLogs, receiptLog)
-	}
-	return receiptLogs
+	return ch.logs
 }
 
 func (ch addPreimageChange) revert(mdb *MemoryStateDB) {

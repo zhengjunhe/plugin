@@ -881,8 +881,6 @@ func makeLog(size int) executionFunc {
 			topics[i] = common.Uint256ToHash(&addr)
 		}
 
-		log15.Info("makeLog is called", "Address", callContext.contract.Address().String())
-
 		d := callContext.memory.GetCopy(int64(mStart.Uint64()), int64(mSize.Uint64()))
 		evm.StateDB.AddLog(&model.ContractLog{
 			Address: callContext.contract.Address(),
@@ -892,7 +890,7 @@ func makeLog(size int) executionFunc {
 			// core/state doesn't know the current block number.
 			BlockNumber: evm.BlockNumber.Uint64(),
 		})
-		log15.Info("makeLog DATA", "data", string(d), "data in hex", common.Bytes2Hex(d))
+		log15.Info("makeLog End", "data", string(d), "data in hex", common.Bytes2Hex(d))
 		return nil, nil
 	}
 }

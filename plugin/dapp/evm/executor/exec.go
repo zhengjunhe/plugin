@@ -170,9 +170,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 
 // CheckInit 检查是否初始化数据库
 func (evm *EVMExecutor) CheckInit() {
-	if evm.mStateDB == nil {
-		evm.mStateDB = state.NewMemoryStateDB(evm.GetStateDB(), evm.GetLocalDB(), evm.GetCoinsAccount(), evm.GetHeight(), evm.GetAPI())
-	}
+	evm.mStateDB = state.NewMemoryStateDB(evm.GetStateDB(), evm.GetLocalDB(), evm.GetCoinsAccount(), evm.GetHeight(), evm.GetAPI())
 }
 
 // GetMessage 目前的交易中，如果是coins交易，金额是放在payload的，但是合约不行，需要修改Transaction结构

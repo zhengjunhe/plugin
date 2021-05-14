@@ -80,6 +80,7 @@ func NewMemoryStateDB(StateDB db.KV, LocalDB db.KVDB, CoinsAccount *account.DB, 
 		evmPlatformAddr: address.GetExecAddress(api.GetConfig().ExecName("evm")).String(),
 		accounts:        make(map[string]*ContractAccount),
 		logs:            make(map[common.Hash][]*model.ContractLog),
+		logSize:         0,
 		preimages:       make(map[common.Hash][]byte),
 		stateDirty:      make(map[string]interface{}),
 		dataDirty:       make(map[string]interface{}),
@@ -96,6 +97,7 @@ func NewMemoryStateDB(StateDB db.KV, LocalDB db.KVDB, CoinsAccount *account.DB, 
 func (mdb *MemoryStateDB) Prepare(txHash common.Hash, txIndex int) {
 	mdb.txHash = txHash
 	mdb.txIndex = txIndex
+	log15.Info("MemoryStateDB::Prepare", "txHash", txHash.Hex(), "txIndex", txIndex, "logSize", mdb.logSize)
 }
 
 // CreateAccount 创建一个新的合约账户对象
@@ -359,6 +361,7 @@ func (mdb *MemoryStateDB) Snapshot() int {
 	mdb.versionID++
 	mdb.currentVer = &Snapshot{id: id, statedb: mdb}
 	mdb.snapshots = append(mdb.snapshots, mdb.currentVer)
+	log15.Debug("MemoryStateDB::Snapshot", "mdb.versionID", mdb.versionID)
 	return id
 }
 
@@ -394,7 +397,7 @@ func (mdb *MemoryStateDB) GetReceiptLogs(addr string) (logs []*types.ReceiptLog)
 // 这里获取的应该是从0到目前快照的所有变更；
 // 另外，因为合约内部会调用其它合约，也会产生数据变更，所以这里返回的数据，不止是一个合约的数据。
 func (mdb *MemoryStateDB) GetChangedData(version int) (kvSet []*types.KeyValue, logs []*types.ReceiptLog) {
-	if version < 0 {
+	if version < 0 || version >= len(mdb.snapshots) {
 		return
 	}
 
@@ -403,11 +406,11 @@ func (mdb *MemoryStateDB) GetChangedData(version int) (kvSet []*types.KeyValue, 
 		if kv != nil {
 			kvSet = append(kvSet, kv...)
 		}
-
 		if log != nil {
 			logs = append(logs, log...)
 		}
 	}
+
 	return
 }
 
@@ -566,12 +569,30 @@ func (mdb *MemoryStateDB) mergeResult(one, two *types.Receipt) (ret *types.Recei
 // AddLog LOG0-4 指令对应的具体操作
 // 生成对应的日志信息，目前这些生成的日志信息会在合约执行后打印到日志文件中
 func (mdb *MemoryStateDB) AddLog(log *model.ContractLog) {
-	mdb.addChange(addLogChange{txhash: mdb.txHash})
+	newEvmLog := &types.EVMLog{
+		Topic: [][]byte{log.Topics[0].Bytes()},
+		Data:  log.Data,
+	}
+	if len(log.Topics) > 0 {
+		for i := 1; i < len(log.Topics); i++ {
+			newEvmLog.Topic = append(newEvmLog.Topic, log.Topics[i].Bytes())
+		}
+	}
+	receiptLog := &types.ReceiptLog{
+		Ty:  evmtypes.TyLogEVMEventData,
+		Log: types.Encode(newEvmLog),
+	}
+
+	mdb.addChange(addLogChange{
+		txhash: mdb.txHash,
+		logs:   []*types.ReceiptLog{receiptLog}})
+
 	log.TxHash = mdb.txHash
 	log.Index = int(mdb.logSize)
 	mdb.logs[mdb.txHash] = append(mdb.logs[mdb.txHash], log)
 	mdb.logSize++
-	log15.Info("MemoryStateDB::AddLog", "txhash", mdb.txHash.Hex(), "mdb.logSize", mdb.logSize)
+	log15.Info("MemoryStateDB::AddLog", "txhash", mdb.txHash.Hex(), "blockHeight", mdb.blockHeight, "txIndex", mdb.txIndex,
+		"mdb.logSize", mdb.logSize, "topic", log.Topics[0].Hex())
 }
 
 // AddPreimage 存储sha3指令对应的数据
