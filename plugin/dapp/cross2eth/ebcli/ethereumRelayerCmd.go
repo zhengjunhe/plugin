@@ -829,7 +829,6 @@ func TransferTokenFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("to")
 	cmd.Flags().Float64P("amount", "m", 0, "amount")
 	_ = cmd.MarkFlagRequired("amount")
-
 }
 
 //TransferToken ...
@@ -843,7 +842,7 @@ func TransferToken(cmd *cobra.Command, args []string) {
 
 	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
 	if err != nil {
-		fmt.Println("get decimals error")
+		fmt.Println("get decimals error", err.Error())
 		return
 	}
 

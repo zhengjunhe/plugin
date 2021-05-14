@@ -584,13 +584,11 @@ function kill_all_ebrelayer() {
     rm datadir/ logs/ -rf
 
     for name in B C D; do
-        kill_ebrelayer ebrelayer_${name}
+        kill_ebrelayer relayer_${name}/ebrelayer
         sleep 2
 
         rm relayer_${name} -rf
         mkdir relayer_${name}
         cp ./ebrelayer relayer_${name}/ebrelayer
-#        cp ./relayer.toml relayer_${name}/relayer.toml
-#        cp ./ebcli_${name} relayer_${name}/ebcli_${name}
     done
 }
