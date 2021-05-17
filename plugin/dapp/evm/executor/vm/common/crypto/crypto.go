@@ -8,6 +8,8 @@ import (
 	"crypto/ecdsa"
 	"math/big"
 
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/common/crypto"
 	"github.com/33cn/chain33/types"
@@ -26,11 +28,11 @@ func ValidateSignatureValues(r, s *big.Int) bool {
 
 // Ecrecover 根据压缩消息和签名，返回压缩的公钥信息
 func Ecrecover(hash, sig []byte) ([]byte, error) {
-	pub, err := SigToPub(hash, sig)
+	unpressedPub, err := ethCrypto.SigToPub(hash, sig)
 	if err != nil {
 		return nil, err
 	}
-	bytes := (*btcec.PublicKey)(pub).SerializeCompressed()
+	bytes := (*btcec.PublicKey)(unpressedPub).SerializeCompressed()
 	return bytes, err
 }
 
