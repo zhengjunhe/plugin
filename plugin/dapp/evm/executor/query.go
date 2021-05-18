@@ -160,7 +160,7 @@ func (evm *EVMExecutor) Query_Query(in *evmtypes.EvmQueryReq) (types.Message, er
 	receipt, err := evm.innerExec(msg, txHash, 1, evmtypes.MaxGasLimit, true)
 	if err != nil {
 		ret.JsonData = fmt.Sprintf("%v", err)
-		return ret, nil
+		return ret, err
 	}
 	if receipt.Ty == types.ExecOk {
 		callData := getCallReceipt(receipt.GetLogs())

@@ -239,12 +239,12 @@ func deployContract(cmd *cobra.Command, binFile, abiFile, parameter, contractNam
 		return "", errors.New(contractName + " read file error " + abiFile + err.Error())
 	}
 
-	var action evmtypes.EVMContractAction
+	var action *evmtypes.EVMContractExec
 	bCode, err := common.FromHex(code)
 	if err != nil {
 		return "", errors.New(contractName + " parse evm code error " + err.Error())
 	}
-	action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: "PancakeFactory"}
+	action = &evmtypes.EVMContractExec{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: note, Alias: "PancakeFactory"}
 	if parameter != "" {
 		constructorPara := "constructor(" + parameter + ")"
 		packData, err := evmAbi.PackContructorPara(constructorPara, abi)
@@ -253,7 +253,11 @@ func deployContract(cmd *cobra.Command, binFile, abiFile, parameter, contractNam
 		}
 		action.Code = append(action.Code, packData...)
 	}
-	data, err := createEvmTx(cfg, &action, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, feeInt64)
+	exec := &evmtypes.EVMContractAction{
+		Value:                &evmtypes.EVMContractAction_Exec{Exec:action},
+		Ty:                   evmtypes.EvmExecAction,
+	}
+	data, err := createEvmTx(cfg, exec, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, feeInt64)
 	if err != nil {
 		return "", errors.New(contractName + " create contract error:" + err.Error())
 	}

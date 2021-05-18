@@ -53,6 +53,8 @@ func GetName() string {
 func newEVMDriver() drivers.Driver {
 	evm := NewEVMExecutor()
 	evm.vmCfg.Debug = evmDebug
+	evm.SetChild(evm)
+	evm.SetExecutorType(types.LoadExecutorType(driverName))
 	return evm
 }
 

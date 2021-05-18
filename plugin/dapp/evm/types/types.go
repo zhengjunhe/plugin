@@ -11,10 +11,16 @@ import (
 )
 
 const (
-	// EvmCreateAction 创建合约
-	EvmCreateAction = 1
-	// EvmCallAction 调用合约
-	EvmCallAction = 2
+	// EvmCreateAction 创建或调用合约
+	EvmExecAction = 1
+	// EvmDestroyAction 销毁合约
+	EvmUpdateAction = 2
+	// EvmDestroyAction 销毁合约
+	EvmDestroyAction = 3
+	// EvmFreezeAction 冻结合约
+	EvmFreezeAction = 4
+	// EvmReleaseAction 解冻合约
+	EvmReleaseAction = 5
 
 	// TyLogContractData  合约代码变更日志
 	TyLogContractData = 601
