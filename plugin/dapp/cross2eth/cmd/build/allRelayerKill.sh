@@ -101,6 +101,7 @@ function TestChain33ToEthAssetsKill() {
     result=$(${Chain33Cli} account balance -a "${chain33ReceiverAddr}" -e evm)
     balance_ret "${result}" "0.0000"
 
+    start_ebrelayerC
     start_ebrelayerD
 
      # 接收的地址金额 变成了 3
@@ -121,6 +122,7 @@ function TestETH2Chain33AssetsKill() {
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
     cli_ret "${result}" "balance" ".balance" "0"
 
+    kill_ebrelayerC
     kill_ebrelayerD
 
     # ETH 这端 lock 11个
@@ -164,6 +166,7 @@ function TestETH2Chain33AssetsKill() {
     cli_ret "${result}" "balance" ".balance" "100"
 
     start_ebrelayerC
+    start_ebrelayerD
 
     # 比之前多 5
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}")
@@ -188,6 +191,7 @@ function TestETH2Chain33YccKill() {
     cli_ret "${result}" "balance" ".balance" "0"
 
     kill_ebrelayerC
+    kill_ebrelayerD
 
     # ETH 这端 lock 7个 YCC
     result=$(${CLIA} ethereum lock -m 7 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
@@ -229,6 +233,7 @@ function TestETH2Chain33YccKill() {
     cli_ret "${result}" "balance" ".balance" "0"
 
     start_ebrelayerC
+    start_ebrelayerD
 
     # 更新后的金额 5
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}" -t "${ethereumYccTokenAddr}")
@@ -254,7 +259,7 @@ function mainTest() {
     kill_all_ebrelayer
     StartRelayerAndDeploy
 
-#    TestChain33ToEthAssetsKill
+    TestChain33ToEthAssetsKill
     TestETH2Chain33AssetsKill
     TestETH2Chain33YccKill
 }

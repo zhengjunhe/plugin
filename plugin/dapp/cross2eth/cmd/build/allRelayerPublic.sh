@@ -73,13 +73,19 @@ function start_ebrelayerC() {
     nohup ./relayer_C/ebrelayer ./relayer_C/relayer.toml &
     sleep 2
     ${CLIC} unlock -p 123456hzj
+    ${Chain33Cli} send coins transfer -a 1 -n note -t 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+    ${Chain33Cli} send coins transfer -a 1 -n note -t 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     sleep ${maturityDegree}
+    eth_block_wait 12
 }
 function start_ebrelayerD() {
     nohup ./relayer_D/ebrelayer ./relayer_D/relayer.toml &
     sleep 2
     ${CLID} unlock -p 123456hzj
+    ${Chain33Cli} send coins transfer -a 1 -n note -t 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
+    ${Chain33Cli} send coins transfer -a 1 -n note -t 12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv -k 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
     sleep ${maturityDegree}
+    eth_block_wait 12
 }
 
 function InitAndDeploy() {
