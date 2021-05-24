@@ -29,6 +29,9 @@ registry0:
 bridgeBank0:
 	@abigen --sol $(SRC_CONTRACT0)/BridgeBank/BridgeBank.sol --pkg $(PACKAGE) --out $(GO_OUT0)/BridgeBank.go
 
+asmExample:
+    @solc --asm --bin -o  tmp/ valset-bin=./tmp/valset-bin Valset.sol
+
 depends:
 	if ! [ -d openzeppelin-solidity ]; then \
 	echo "not exist openzeppelin-solidity and going to get" ; \
