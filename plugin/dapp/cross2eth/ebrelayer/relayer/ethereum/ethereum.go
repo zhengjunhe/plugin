@@ -542,7 +542,7 @@ func (ethRelayer *Relayer4Ethereum) procNewHeight(ctx context.Context, continueF
 	ethRelayer.updateTxStatus()
 	*continueFailCount = 0
 	currentHeight := head.Number.Uint64()
-	relayerLog.Info("procNewHeight", "currentHeight", currentHeight)
+	relayerLog.Info("procNewHeight", "currentHeight", currentHeight, "ethRelayer.eventLogIndex.Height", ethRelayer.eventLogIndex.Height, "uint64(ethRelayer.maturityDegree)", uint64(ethRelayer.maturityDegree))
 
 	//一次最大只获取10个logEvent进行处理
 	fetchCnt := int32(10)
@@ -678,7 +678,6 @@ func (ethRelayer *Relayer4Ethereum) filterLogEvents() {
 	bridgeBankLog := make(chan types.Log)
 	done := make(chan int)
 
-	height4BridgeBankLogAt = curHeight - 10 //todo:该行只是为了调试方便，后续需要删除，否则会忽略关闭期间的log 处理
 	go ethRelayer.filterLogEventsProc(bridgeBankLog, done, "bridgeBank", curHeight, height4BridgeBankLogAt, ethRelayer.bridgeBankAddr, bridgeBankSig)
 
 	for {
@@ -696,7 +695,7 @@ func (ethRelayer *Relayer4Ethereum) filterLogEvents() {
 }
 
 func (ethRelayer *Relayer4Ethereum) filterLogEventsProc(logchan chan<- types.Log, done chan<- int, title string, curHeight, heightLogProcAt int64, contractAddr common.Address, eventSig map[string]bool) {
-	relayerLog.Info(title, "eventSig", eventSig)
+	relayerLog.Info(title, "eventSig", eventSig, "heightLogProcAt", heightLogProcAt, "curHeight", curHeight)
 
 	startHeight := heightLogProcAt
 	batchCount := int64(10)

@@ -7,25 +7,37 @@ set -x
 source "./publicTest.sh"
 source "./allRelayerPublic.sh"
 
-ethAddress[0]=0x92C8b16aFD6d423652559C6E266cBE1c29Bfd84f
-ethAddress[1]=0x0df9a824699Bc5878232C9e612fE1A5346a5A368
-ethAddress[2]=0xcB074CB21cdDDF3ce9c3C0a7AC4497d633C9D9f1
-ethAddress[3]=0xd9dAb021e74EcF475788ed7b61356056B2095830
-ethAddress[4]=0xdb15E7327aDc83F2878624bBD6307f5Af1B477b4
-ethAddress[5]=0x9cBA1fF8D0b0c9Bc95d5762533F8CddBE795f687
-ethAddress[6]=0x1919203bA8b325278d28Fb8fFeac49F2CD881A4e
-ethAddress[7]=0xA4Ea64a583F6e51C3799335b28a8F0529570A635
-ethAddress[8]=0x0C05bA5c230fDaA503b53702aF1962e08D0C60BF
+ethAddress[0]=0xdb15E7327aDc83F2878624bBD6307f5Af1B477b4
+ethAddress[1]=0x9cBA1fF8D0b0c9Bc95d5762533F8CddBE795f687
+ethAddress[2]=0x1919203bA8b325278d28Fb8fFeac49F2CD881A4e
+ethAddress[3]=0xA4Ea64a583F6e51C3799335b28a8F0529570A635
+ethAddress[4]=0x0C05bA5c230fDaA503b53702aF1962e08D0C60BF
+ethAddress[5]=0x0921948C0d25BBbe85285CB5975677503319F02A
+ethAddress[6]=0x69921517970a28b73ac5E4C8ac8Fd135A80D2be1
+ethAddress[7]=0x9a8438aeaa86aFA6a18e39551E14078fb2bdea90
+ethAddress[8]=0xcF73954c8BaE39cCe0eb633885B6Bcf93f70c867
+ethAddress[9]=0x1A03038C468F2520288c352d74232f862BA7c6a6
+ethAddress[10]=0xe51a1c7f7C704D8FcC192b242bE656fFB34A70e4
+ethAddress[11]=0x4c85848a7E2985B76f06a7Ed338FCB3aF94a7DCf
+ethAddress[12]=0x6F163E6daf0090D897AD7016484f10e0cE844994
+ethAddress[13]=0xbc333839E37bc7fAAD0137aBaE2275030555101f
+ethAddress[14]=0x495953A743ef169EC5D4aC7b5F786BF2Bd56aFd5
 
-privateKeys[0]=3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e
-privateKeys[1]=a5f3063552f4483cfc20ac4f40f45b798791379862219de9e915c64722c1d400
-privateKeys[2]=bbf5e65539e9af0eb0cfac30bad475111054b09c11d668fc0731d54ea777471e
-privateKeys[3]=c9fa31d7984edf81b8ef3b40c761f1847f6fcd5711ab2462da97dc458f1f896b
-privateKeys[4]=1385016736f7379884763f4a39811d1391fa156a7ca017be6afffa52bb327695
-privateKeys[5]=4ae589fe3837dcfc90d1c85b8423dc30841525cbebc41dfb537868b0f8376bbf
-privateKeys[6]=62ca4122aac0e6f35bed02fc15c7ddbdaa07f2f2a1821c8b8210b891051e3ee9
-privateKeys[7]=355b876d7cbcb930d5dfab767f66336ce327e082cbaa1877210c1bae89b1df71
-privateKeys[8]=9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08
+privateKeys[0]=0x1385016736f7379884763f4a39811d1391fa156a7ca017be6afffa52bb327695
+privateKeys[1]=0x4ae589fe3837dcfc90d1c85b8423dc30841525cbebc41dfb537868b0f8376bbf
+privateKeys[2]=0x62ca4122aac0e6f35bed02fc15c7ddbdaa07f2f2a1821c8b8210b891051e3ee9
+privateKeys[3]=0x355b876d7cbcb930d5dfab767f66336ce327e082cbaa1877210c1bae89b1df71
+privateKeys[4]=0x9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08
+privateKeys[5]=0x5a43f2c8724f60ea5d6b87ad424daa73639a5fc76702edd3e5eaed37aaffdf49
+privateKeys[6]=0x03b28c0fc78c6ebae719b559b0781db24644b655d4bd58e5cf2311c9f03baa3d
+privateKeys[7]=0x72dff1c863631208a3d4f67a5fb0b7ebe69f827a75f332e2069dc7c825cb2202
+privateKeys[8]=0xecbc20b02e1ffd321e31c2a6d7d35a69715ba43ef2b0048a27de4f67b8249bde
+privateKeys[9]=0x1649955b3f2852a9cd71e50237b5a6f717539cffbe336bfcd95eb19a1b5c6f1b
+privateKeys[10]=0xd3064a91f01a60b0e3d92d08fc8be144a61a2a4a7780827727cd3804a66d31bd
+privateKeys[11]=0x5e8aadb91eaa0fce4df0bcc8bd1af9e703a1d6db78e7a4ebffd6cf045e053574
+privateKeys[12]=0x0504bcb22b21874b85b15f1bfae19ad62fc2ad89caefc5344dc669c57efa60db
+privateKeys[13]=0x0c61f5a879d70807686e43eccc1f52987a15230ae0472902834af4d1933674f2
+privateKeys[14]=0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80697
 
 # ETH 部署合约者的私钥 用于部署合约时签名使用
 #ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
@@ -131,7 +143,7 @@ function loop_send_lock_eth() {
     while [[ i -lt ${#privateKeys[@]} ]]; do
         nowEthBalance=$(${CLIA} ethereum balance -o "${ethAddress[i]}" | jq -r ".balance")
         res=$(echo "${preEthBalance[i]} - $nowEthBalance" | bc)
-        echo ${i} "preBalance" "${preEthBalance[i]}" "nowBalance" "${nowEthBalance}" "diff" ${res}
+        echo ${i} "preBalance" "${preEthBalance[i]}" "nowBalance" "${nowEthBalance}" "diff" "${res}"
         diff=$(echo "$res >= 1"| bc) # 浮点数比较 判断是否大于1 大于返回1 小于返回0
         if [ "${diff}" -ne 1 ]; then
             echo -e "${RED}error number, expect greater than 1, get ${res}${NOC}"
@@ -166,7 +178,7 @@ function loop_send_burn_eth() {
     while [[ i -lt ${#privateKeys[@]} ]]; do
         nowEthBalance=$(${CLIA} ethereum balance -o "${ethAddress[i]}" | jq -r ".balance")
         res=$(echo "$nowEthBalance - ${preEthBalance[i]}" | bc)
-        echo ${i} "preBalance" "${preEthBalance[i]}" "nowBalance" "${nowEthBalance}" "diff" ${res}
+        echo ${i} "preBalance" "${preEthBalance[i]}" "nowBalance" "${nowEthBalance}" "diff" "${res}"
         diff=$(echo "$res >= 1"| bc) # 浮点数比较 判断是否大于1 大于返回1 小于返回0
         if [ "${diff}" -ne 1 ]; then
             echo -e "${RED}error number, expect greater than 1, get ${res}${NOC}"
