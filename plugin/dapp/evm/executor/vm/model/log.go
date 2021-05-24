@@ -35,6 +35,6 @@ type ContractLog struct {
 }
 
 // PrintLog 合约日志打印格式
-func (log *ContractLog) PrintLog() {
+func (log *ContractLog) PrintLog(routerAbiStr string) {
 	log15.Debug("!Contract Log!", "Contract address", log.Address.String(), "TxHash", log.TxHash.Hex(), "Log Index", log.Index, "Log Topics", log.Topics, "Log Data", common.Bytes2Hex(log.Data))
 }

@@ -73,7 +73,7 @@ func (evm *EVMExecutor) Query_EstimateGas(in *evmtypes.EstimateEVMGasReq) (types
 	if to == nil {
 		to = common.StringToAddress(EvmAddress)
 	}
-	msg := common.NewMessage(caller, to, 0, in.Amount, evmtypes.MaxGasLimit, 1, in.Code, "estimateGas", in.Abi)
+	msg := common.NewMessage(caller, to, 0, in.Amount, evmtypes.MaxGasLimit, 1, nil, in.Para, "estimateGas")
 	txHash := common.BigToHash(big.NewInt(evmtypes.MaxGasLimit)).Bytes()
 
 	receipt, err := evm.innerExec(msg, txHash, 1, evmtypes.MaxGasLimit, false)
@@ -154,7 +154,7 @@ func (evm *EVMExecutor) Query_Query(in *evmtypes.EvmQueryReq) (types.Message, er
 		caller = common.ExecAddress(cfg.ExecName(evmtypes.ExecutorName))
 	}
 
-	msg := common.NewMessage(caller, common.StringToAddress(in.Address), 0, 0, evmtypes.MaxGasLimit, 1, nil, "estimateGas", in.Input)
+	msg := common.NewMessage(caller, common.StringToAddress(in.Address), 0, 0, evmtypes.MaxGasLimit, 1, nil, common.FromHex(in.Input), "estimateGas")
 	txHash := common.BigToHash(big.NewInt(evmtypes.MaxGasLimit)).Bytes()
 
 	receipt, err := evm.innerExec(msg, txHash, 1, evmtypes.MaxGasLimit, true)
@@ -185,4 +185,11 @@ func (evm *EVMExecutor) Query_QueryABI(in *evmtypes.EvmQueryAbiReq) (types.Messa
 	abiData := evm.mStateDB.GetAbi(addr.String())
 
 	return &evmtypes.EvmQueryAbiResp{Address: in.GetAddress(), Abi: abiData}, nil
+}
+
+func (evm *EVMExecutor) Query_GetNonce(in *evmtypes.EvmGetNonceReq) (types.Message, error) {
+	evm.CheckInit()
+	nonce := evm.mStateDB.GetNonce(in.Address)
+
+	return &evmtypes.EvmGetNonceRespose{Nonce: int64(nonce)}, nil
 }

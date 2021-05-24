@@ -11,6 +11,8 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/33cn/chain33/common/address"
+	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto/blake2b"
@@ -37,57 +39,72 @@ type PrecompiledContract interface {
 // 保存拜占庭版本支持的所有预编译合约（包括之前版本的合约）；
 // 后面如果有硬分叉，需要在此处考虑分叉逻辑，根据区块高度分别处理；
 // 下面的8个预编译指令，直接引用go-ethereum中的EVM实现
-var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{},
-	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
-	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
+var PrecompiledContractsByzantium = map[common.Hash160Address]PrecompiledContract{
+	common.BytesToAddress(common.RightPadBytes([]byte{1}, 20)).ToHash160(): &ecrecover{},
+	common.BytesToAddress(common.RightPadBytes([]byte{2}, 20)).ToHash160(): &sha256hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{3}, 20)).ToHash160(): &ripemd160hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{4}, 20)).ToHash160(): &dataCopy{},
+	common.BytesToAddress(common.RightPadBytes([]byte{5}, 20)).ToHash160(): &bigModExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{6}, 20)).ToHash160(): &bn256AddByzantium{},
+	common.BytesToAddress(common.RightPadBytes([]byte{7}, 20)).ToHash160(): &bn256ScalarMulByzantium{},
+	common.BytesToAddress(common.RightPadBytes([]byte{8}, 20)).ToHash160(): &bn256PairingByzantium{},
 }
 
 // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
 // contracts used in the Istanbul release.
-var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-	common.BytesToAddress([]byte{5}): &bigModExp{},
-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}): &blake2F{},
+var PrecompiledContractsIstanbul = map[common.Hash160Address]PrecompiledContract{
+	common.BytesToAddress(common.RightPadBytes([]byte{1}, 20)).ToHash160():  &ecrecover{},
+	common.BytesToAddress(common.RightPadBytes([]byte{2}, 20)).ToHash160():  &sha256hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{3}, 20)).ToHash160():  &ripemd160hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{4}, 20)).ToHash160():  &dataCopy{},
+	common.BytesToAddress(common.RightPadBytes([]byte{5}, 20)).ToHash160():  &bigModExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{6}, 20)).ToHash160():  &bn256AddIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{7}, 20)).ToHash160():  &bn256ScalarMulIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{8}, 20)).ToHash160():  &bn256PairingIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{19}, 20)).ToHash160(): &blake2F{},
 }
 
 // PrecompiledContractsYoloV1 黄皮书v1版本兼容伊斯坦布尔版本
 // PrecompiledContractsYoloV1 contains the default set of pre-compiled Ethereum
-var PrecompiledContractsYoloV1 = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}):  &ecrecover{},
-	common.BytesToAddress([]byte{2}):  &sha256hash{},
-	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
-	common.BytesToAddress([]byte{4}):  &dataCopy{},
-	common.BytesToAddress([]byte{5}):  &bigModExp{},
-	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}):  &blake2F{},
-	common.BytesToAddress([]byte{10}): &bls12381G1Add{},
-	common.BytesToAddress([]byte{11}): &bls12381G1Mul{},
-	common.BytesToAddress([]byte{12}): &bls12381G1MultiExp{},
-	common.BytesToAddress([]byte{13}): &bls12381G2Add{},
-	common.BytesToAddress([]byte{14}): &bls12381G2Mul{},
-	common.BytesToAddress([]byte{15}): &bls12381G2MultiExp{},
-	common.BytesToAddress([]byte{16}): &bls12381Pairing{},
-	common.BytesToAddress([]byte{17}): &bls12381MapG1{},
-	common.BytesToAddress([]byte{18}): &bls12381MapG2{},
+var PrecompiledContractsYoloV1 = map[common.Hash160Address]PrecompiledContract{
+	common.BytesToAddress(common.RightPadBytes([]byte{1}, 20)).ToHash160():  &ecrecover{},
+	common.BytesToAddress(common.RightPadBytes([]byte{2}, 20)).ToHash160():  &sha256hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{3}, 20)).ToHash160():  &ripemd160hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{4}, 20)).ToHash160():  &dataCopy{},
+	common.BytesToAddress(common.RightPadBytes([]byte{5}, 20)).ToHash160():  &bigModExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{6}, 20)).ToHash160():  &bn256AddIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{7}, 20)).ToHash160():  &bn256ScalarMulIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{8}, 20)).ToHash160():  &bn256PairingIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{9}, 20)).ToHash160():  &blake2F{},
+	common.BytesToAddress(common.RightPadBytes([]byte{10}, 20)).ToHash160(): &bls12381G1Add{},
+	common.BytesToAddress(common.RightPadBytes([]byte{11}, 20)).ToHash160(): &bls12381G1Mul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{12}, 20)).ToHash160(): &bls12381G1MultiExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{13}, 20)).ToHash160(): &bls12381G2Add{},
+	common.BytesToAddress(common.RightPadBytes([]byte{14}, 20)).ToHash160(): &bls12381G2Mul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{15}, 20)).ToHash160(): &bls12381G2MultiExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{16}, 20)).ToHash160(): &bls12381Pairing{},
+	common.BytesToAddress(common.RightPadBytes([]byte{17}, 20)).ToHash160(): &bls12381MapG1{},
+	common.BytesToAddress(common.RightPadBytes([]byte{18}, 20)).ToHash160(): &bls12381MapG2{},
+}
+
+// PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
+// contracts used in the Berlin release.
+var PrecompiledContractsBerlin = map[common.Hash160Address]PrecompiledContract{
+	common.BytesToAddress(common.RightPadBytes([]byte{1}, 20)).ToHash160(): &ecrecover{},
+	common.BytesToAddress(common.RightPadBytes([]byte{2}, 20)).ToHash160(): &sha256hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{3}, 20)).ToHash160(): &ripemd160hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{4}, 20)).ToHash160(): &dataCopy{},
+	common.BytesToAddress(common.RightPadBytes([]byte{5}, 20)).ToHash160(): &bigModExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{6}, 20)).ToHash160(): &bn256AddIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{7}, 20)).ToHash160(): &bn256ScalarMulIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{8}, 20)).ToHash160(): &bn256PairingIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{9}, 20)).ToHash160(): &blake2F{},
 }
 
 // RunPrecompiledContract 调用预编译的合约逻辑并返回结果
 func RunPrecompiledContract(p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error) {
 	gas := p.RequiredGas(input)
+	log15.Info("RunPrecompiledContract", "RequiredGas", gas, "avaliableGas", contract.Gas)
 	if contract.UseGas(gas) {
 		return p.Run(input)
 	}
@@ -104,7 +121,7 @@ func (c *ecrecover) RequiredGas(input []byte) uint64 {
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	const ecRecoverInputLength = 128
-
+	log15.Info("ecrecover", "run input", common.Bytes2Hex(input))
 	input = common.RightPadBytes(input, ecRecoverInputLength)
 	// "input" is (hash, v, r, s), each 32 bytes
 	// but for ecrecover we want (r, s, v)
@@ -115,6 +132,7 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 
 	// tighter sig s values input homestead only apply to tx sigs
 	if !common.AllZero(input[32:63]) || !crypto.ValidateSignatureValues(r, s) {
+		log15.Info("ecrecover", "failed due to", "ValidateSignatureValues")
 		return nil, nil
 	}
 	// We must make sure not to modify the 'input', so placing the 'v' along with
@@ -126,11 +144,17 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	pubKey, err := crypto.Ecrecover(input[:32], sig)
 	// make sure the public key is a valid one
 	if err != nil {
+		log15.Info("ecrecover", "failed due to", err.Error())
 		return nil, nil
 	}
 
+	log15.Info("ecrecover::input", "hash", common.Bytes2Hex(input[:32]))
+	log15.Info("ecrecover::signature", "signature", common.Bytes2Hex(sig))
+
+	log15.Info("ecrecover::pubkey", "pubkey", common.Bytes2Hex(pubKey))
+	log15.Info("ecrecover::address", "address", address.PubKeyToAddress(pubKey).String())
 	// the first byte of pubkey is bitcoin heritage
-	return common.LeftPadBytes(crypto.Keccak256(pubKey[1:])[12:], 32), nil
+	return common.LeftPadBytes(address.PubKeyToAddress(pubKey).Hash160[:], 32), nil
 }
 
 // SHA256 implemented as a native contract.
@@ -188,10 +212,14 @@ func (c *dataCopy) Run(in []byte) ([]byte, error) {
 type bigModExp struct{}
 
 var (
+	big0      = big.NewInt(0)
 	big1      = big.NewInt(1)
+	big3      = big.NewInt(3)
 	big4      = big.NewInt(4)
+	big7      = big.NewInt(7)
 	big8      = big.NewInt(8)
 	big16     = big.NewInt(16)
+	big20     = big.NewInt(20)
 	big32     = big.NewInt(32)
 	big64     = big.NewInt(64)
 	big96     = big.NewInt(96)
@@ -253,7 +281,7 @@ func (c *bigModExp) RequiredGas(input []byte) uint64 {
 		)
 	}
 	gas.Mul(gas, common.BigMax(adjExpLen, big1))
-	gas.Div(gas, new(big.Int).SetUint64(params.ModExpQuadCoeffDiv))
+	gas.Div(gas, big20)
 
 	if gas.BitLen() > 64 {
 		return math.MaxUint64
