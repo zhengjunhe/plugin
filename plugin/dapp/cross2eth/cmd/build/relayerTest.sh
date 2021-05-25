@@ -59,7 +59,7 @@ function InitAndDeploy() {
     # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
     cp BridgeRegistry.abi "${BridgeRegistryOnChain33}.abi"
     chain33BridgeBank=$(${Chain33Cli} evm abi call -c "${chain33DeployAddr}" -b "bridgeBank()" -a "${BridgeRegistryOnChain33}")
-    cp BridgeBank.abi "${chain33BridgeBank}.abi"
+    cp Chain33BridgeBank.abi "${chain33BridgeBank}.abi"
 
     # 在 Eth 上部署合约
     result=$(${CLIA} ethereum deploy)
@@ -70,7 +70,7 @@ function InitAndDeploy() {
     cp BridgeRegistry.abi "${BridgeRegistryOnEth}.abi"
     result=$(${CLIA} ethereum bridgeBankAddr)
     ethBridgeBank=$(echo "${result}" | jq -r ".addr")
-    cp BridgeBank.abi "${ethBridgeBank}.abi"
+    cp EthBridgeBank.abi "${ethBridgeBank}.abi"
 
     # 修改 relayer.toml 字段
     updata_relayer "BridgeRegistryOnChain33" "${BridgeRegistryOnChain33}" "./relayer.toml"
