@@ -222,7 +222,7 @@ contract Chain33Bank {
         if (balance < offlineSaveCfg._threshold ) {
             return;
         }
-        uint256 amount = offlineSaveCfg._percents * lockedFunds[_token] / 100;
+        uint256 amount = offlineSaveCfg._percents * balance / 100;
 
         if (address(0) == _token) {
             offlineSave.transfer(amount);
