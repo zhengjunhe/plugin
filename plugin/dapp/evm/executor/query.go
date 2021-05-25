@@ -193,3 +193,39 @@ func (evm *EVMExecutor) Query_GetNonce(in *evmtypes.EvmGetNonceReq) (types.Messa
 
 	return &evmtypes.EvmGetNonceRespose{Nonce: int64(nonce)}, nil
 }
+
+func (evm *EVMExecutor) Query_QueryStatistic(in *evmtypes.EvmQueryStatisticReq) (types.Message, error) {
+	evm.CheckInit();
+
+	addr := common.StringToAddress(in.GetAddr())
+	if addr == nil {
+		return nil, fmt.Errorf("invalid address: %v", in.GetAddr())
+	}
+
+	statisticDataByte, err := evm.mStateDB.LocalDB.Get(GetStatisticKey(addr.String()))
+	if err != nil {
+		return nil, fmt.Errorf("QueryStatistic.get address: %v, error:%s", in.GetAddr(), err.Error())
+	}
+
+	var statisticData evmtypes.EVMContractStatistic
+	err = types.Decode(statisticDataByte, &statisticData)
+	if err != nil {
+		return nil, fmt.Errorf("QueryStatistic.decode address: %v, error:%s", in.GetAddr(), err.Error())
+	}
+
+	if statisticData.CallTimes == 0 {
+	    return &evmtypes.EvmQueryStatisticRep{}, nil
+	}
+
+	var res evmtypes.EvmQueryStatisticRep
+	res.Amount = statisticData.CallTimes
+	res.Callers = uint64(len(statisticData.Caller))
+	res.SuccessTimes = statisticData.SuccseccTimes
+	res.Ratio = float32(res.SuccessTimes)/float32(res.Amount)
+	res.FailedTimes = res.Amount - res.SuccessTimes
+	res.EvmErrNum = statisticData.FailReason[model.StatisticEVMError]
+	res.ExecErrNum = statisticData.FailReason[model.StatisticExecError]
+	res.GasErrNum = statisticData.FailReason[model.StatisticGasError]
+
+	return &res, nil
+}

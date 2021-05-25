@@ -89,6 +89,22 @@ message EVMContractRelease {
     string addr = 1;
 }
 
+// 存放合约统计数据
+message EVMContractStatistic {
+    uint64               callTimes     = 1;
+    repeated  string     caller        = 2;
+    uint64               succseccTimes = 3;
+    map<string, uint64>  failReason    = 4;
+}
+
+// 合约统计数据日志
+message ReceiptEvmStatistic {
+    string               addr          = 1;
+    uint64               callTimes     = 2;
+    string               caller        = 3;
+    uint64               succseccTimes = 4;
+}
+
 // 合约创建/调用日志
 message ReceiptEVMContract {
     string caller       = 1;
@@ -227,5 +243,20 @@ message EvmGetNonceReq {
 
 message EvmGetNonceRespose {
     int64 nonce     = 1;
+}
+
+message EvmQueryStatisticReq {
+    string addr = 1;
+}
+
+message EvmQueryStatisticRep {
+    uint64   amount       = 1;
+    uint64   callers      = 2;
+    uint64   successTimes = 3;
+    float    ratio        = 4;
+    uint64   failedTimes  = 5;
+    uint64   gasErrNum    = 6;
+    uint64   execErrNum   = 7;
+    uint64   evmErrNum    = 8;
 }
 

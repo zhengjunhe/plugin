@@ -102,13 +102,13 @@ func (evm *EVMExecutor) Exec_Release(payload *evmtypes.EVMContractRelease, tx *t
 // 通用的EVM合约执行逻辑封装
 // readOnly 是否只读调用，仅执行evm abi查询时为true
 func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int, txFee int64, readOnly bool) (receipt *types.Receipt, err error) {
+	var logs []*types.ReceiptLog
+	var kvSet []*types.KeyValue
+
 	// 获取当前区块的上下文信息构造EVM上下文
 	context := evm.NewEVMContext(msg)
 	cfg := evm.GetAPI().GetConfig()
 	// 创建EVM运行时对象
-	if evm.mStateDB.HasFrozen( (*msg.To()).String()) {
-		fmt.Println("true")
-	}
 	env := runtime.NewEVM(context, evm.mStateDB, *evm.vmCfg, cfg)
 	isCreate := strings.Compare(msg.To().String(), EvmAddress) == 0 && len(msg.Data()) > 0
 	isTransferOnly := strings.Compare(msg.To().String(), EvmAddress) == 0 && 0 == len(msg.Data())
@@ -133,7 +133,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		env.StateDB.Snapshot()
 		env.Transfer(env.StateDB, caller, receiver, msg.Value())
 		curVer := evm.mStateDB.GetLastSnapshot()
-		kvSet, logs := evm.mStateDB.GetChangedData(curVer.GetID())
+		kvSet, logs = evm.mStateDB.GetChangedData(curVer.GetID())
 		receipt = &types.Receipt{Ty: types.ExecOk, KV: kvSet, Logs: logs}
 		return receipt, nil
 	} else if isCreate {
@@ -202,7 +202,7 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 		return receipt, nil
 	}
 	// 从状态机中获取数据变更和变更日志
-	kvSet, logs := evm.mStateDB.GetChangedData(curVer.GetID())
+	kvSet, logs = evm.mStateDB.GetChangedData(curVer.GetID())
 	contractReceipt := &evmtypes.ReceiptEVMContract{Caller: msg.From().String(), ContractName: execName, ContractAddr: contractAddrStr, UsedGas: usedGas, Ret: ret}
 	//// 这里进行ABI调用结果格式化
 	//if len(methodName) > 0 && len(msg.Para()) > 0 && cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMABI) {
@@ -215,6 +215,19 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	//}
 	logs = append(logs, &types.ReceiptLog{Ty: evmtypes.TyLogCallContract, Log: types.Encode(contractReceipt)})
 	logs = append(logs, evm.mStateDB.GetReceiptLogs(contractAddrStr)...)
+
+	if isCreate {
+		var evmstat evmtypes.ReceiptEvmStatistic
+		evmstat.Addr = contractAddrStr
+		logs = append(logs,  &types.ReceiptLog{Ty: evmtypes.TyLogEVMStatisticDataInit, Log: types.Encode(&evmstat)})
+	} else {
+		var evmstat evmtypes.ReceiptEvmStatistic
+		evmstat.Addr = contractAddrStr
+		evmstat.CallTimes = 1
+		evmstat.Caller = msg.From().String()
+		evmstat.SuccseccTimes = 1
+		logs = append(logs, &types.ReceiptLog{Ty: evmtypes.TyLogEVMStatisticData, Log: types.Encode(&evmstat)})
+	}
 
 	if cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMKVHash) {
 		// 将执行时生成的合约状态数据变更信息也计算哈希并保存

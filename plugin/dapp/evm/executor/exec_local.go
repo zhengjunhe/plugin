@@ -6,8 +6,8 @@ package executor
 
 import (
 	"bytes"
-
 	"github.com/33cn/chain33/types"
+	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
 )
 
@@ -17,9 +17,90 @@ func (evm *EVMExecutor) ExecLocal(tx *types.Transaction, receipt *types.ReceiptD
 	if err != nil {
 		return nil, err
 	}
+
 	if receipt.GetTy() != types.ExecOk {
+		action := evm.GetActionName(tx)
+		if action == "exec" {
+			for _, logItem := range receipt.Logs {
+				lcdbKey := GetStatisticKey(tx.To)
+				evmStatData, err := evm.GetLocalDB().Get(lcdbKey)
+				if err != nil {
+					continue
+				}
+
+				var evmstat evmtypes.EVMContractStatistic
+				err = types.Decode(evmStatData, &evmstat)
+				if err != nil {
+					continue
+				}
+
+				evmstat.CallTimes++
+				failReason := string(logItem.Log)
+				if failReason == model.ErrOutOfGas.Error() {
+					evmstat.FailReason[model.StatisticGasError]++
+				} else if failReason == model.ErrFrozen.Error() || failReason == model.ErrDestruct.Error() ||
+					failReason == model.ErrDepth.Error() || failReason == model.ErrInsufficientBalance.Error() {
+					evmstat.FailReason[model.StatisticExecError]++
+				} else {
+					evmstat.FailReason[model.StatisticEVMError]++
+				}
+
+				set.KV = append(set.KV, &types.KeyValue{Key: GetStatisticKey(tx.To), Value: types.Encode(&evmstat)})
+			}
+		}
 		return set, nil
 	}
+
+	for _, logItem := range receipt.Logs {
+		if evmtypes.TyLogEVMStatisticDataInit == logItem.Ty {
+			data := logItem.Log
+			var changeItem evmtypes.ReceiptEvmStatistic
+			err = types.Decode(data, &changeItem)
+			if err != nil {
+				return set, err
+			}
+			var evmstat evmtypes.EVMContractStatistic
+			evmstat.Caller = make([]string, 0)
+			evmstat.FailReason = make(map[string]uint64)
+			evmstat.FailReason[model.StatisticEVMError] = 0
+			evmstat.FailReason[model.StatisticExecError] = 0
+			evmstat.FailReason[model.StatisticGasError] = 0
+			set.KV = append(set.KV, &types.KeyValue{Key: GetStatisticKey(changeItem.Addr), Value: types.Encode(&evmstat)})
+		} else if evmtypes.TyLogEVMStatisticData == logItem.Ty {
+			data := logItem.Log
+			var changeItem evmtypes.ReceiptEvmStatistic
+			err = types.Decode(data, &changeItem)
+			if err != nil {
+				return set, err
+			}
+
+			lcdbKey := GetStatisticKey(changeItem.Addr)
+			evmStatData, err := evm.GetLocalDB().Get(lcdbKey)
+			if err != nil {
+				return set, err
+			}
+			var evmstat evmtypes.EVMContractStatistic
+			err = types.Decode(evmStatData, &evmstat)
+			if err != nil {
+				return set, err
+			}
+			evmstat.CallTimes++
+			evmstat.SuccseccTimes++
+
+			var exist bool
+			for _, callerAddr := range evmstat.Caller {
+				if callerAddr == changeItem.Caller {
+					exist = true
+					break
+				}
+			}
+			if !exist {
+				evmstat.Caller = append(evmstat.Caller, changeItem.Caller)
+			}
+			set.KV = append(set.KV, &types.KeyValue{Key: lcdbKey, Value: types.Encode(&evmstat)})
+		}
+	}
+
 	cfg := evm.GetAPI().GetConfig()
 	if cfg.IsDappFork(evm.GetHeight(), "evm", evmtypes.ForkEVMState) {
 		// 需要将Exec中生成的合约状态变更信息写入localdb

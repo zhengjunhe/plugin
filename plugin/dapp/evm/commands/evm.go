@@ -58,6 +58,7 @@ func EvmCmd() *cobra.Command {
 		freezeContractTxCmd(),
 		releaseContractTxCmd(),
 		updateContractCmd(),
+		queryContractStatCmd(),
 	)
 
 	return cmd
@@ -849,7 +850,7 @@ func evmTransfer(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	action := &evmtypes.EVMContractAction{
+	action := &evmtypes.EVMContractExec{
 		Amount:   uint64(amountInt64),
 		GasLimit: 0,
 		GasPrice: 0,
@@ -858,7 +859,12 @@ func evmTransfer(cmd *cobra.Command, args []string) {
 		Alias:    "",
 		Note:     fmt.Sprintf("transfer from:"+caller+" to:"+receiver+" for amount: %s", amount),
 	}
-	data, err := createEvmTx(cfg, action, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, 0)
+
+	exec := &evmtypes.EVMContractAction{
+		Value:                &evmtypes.EVMContractAction_Exec{Exec:action},
+		Ty:                   evmtypes.EvmExecAction,
+	}
+	data, err := createEvmTx(cfg, exec, cfg.ExecName(paraName+"evm"), caller, address.ExecAddress(cfg.ExecName(paraName+"evm")), expire, rpcLaddr, 0)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "create transfer tx error:", err)
 		return
@@ -1214,4 +1220,35 @@ func updateContract(cmd *cobra.Command, args []string) {
 
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.SendTransaction", params, nil)
 	ctx.RunWithoutMarshal()
+}
+
+
+func queryContractStatCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "query",
+		Short: "query contract statistic",
+		Run:   queryContractStat,
+	}
+	addqueryContractStatFlags(cmd)
+	return cmd
+}
+
+func addqueryContractStatFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("addr", "a", "", "contract addr")
+
+}
+
+func queryContractStat(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	contractAddr, _ := cmd.Flags().GetString("addr")
+
+	var params rpctypes.Query4Jrpc
+	params.Execer = evmtypes.ExecutorName
+	params.FuncName = "QueryStatistic"
+
+	req := &evmtypes.EvmQueryStatisticReq{Addr: contractAddr}
+	params.Payload = types.MustPBToJSON(req)
+	var res evmtypes.EvmQueryStatisticRep
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.Query", params, &res)
+	ctx.Run()
 }

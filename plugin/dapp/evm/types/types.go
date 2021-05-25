@@ -32,6 +32,10 @@ const (
 	TyLogEVMStateChangeItem = 604
 	// TyLogEVMEventData 合约生成新的event日志数据
 	TyLogEVMEventData = 605
+	// TyLogEVMStatisticDataInit 合约统计数据初始化日志
+	TyLogEVMStatisticDataInit = 606
+	// TyLogEVMStatisticData 合约统计数据变更日志
+	TyLogEVMStatisticData = 607
 
 	// MaxGasLimit  最大Gas消耗上限
 	MaxGasLimit = 10000000
@@ -66,9 +70,11 @@ var (
 	UserPrefix = []byte(EvmPrefix)
 
 	logInfo = map[int64]*types.LogInfo{
-		TyLogCallContract:       {Ty: reflect.TypeOf(ReceiptEVMContract{}), Name: "LogCallContract"},
-		TyLogContractData:       {Ty: reflect.TypeOf(EVMContractData{}), Name: "LogContractData"},
-		TyLogContractState:      {Ty: reflect.TypeOf(EVMContractState{}), Name: "LogContractState"},
-		TyLogEVMStateChangeItem: {Ty: reflect.TypeOf(EVMStateChangeItem{}), Name: "LogEVMStateChangeItem"},
+		TyLogCallContract:         {Ty: reflect.TypeOf(ReceiptEVMContract{}), Name: "LogCallContract"},
+		TyLogContractData:         {Ty: reflect.TypeOf(EVMContractData{}), Name: "LogContractData"},
+		TyLogContractState:        {Ty: reflect.TypeOf(EVMContractState{}), Name: "LogContractState"},
+		TyLogEVMStateChangeItem:   {Ty: reflect.TypeOf(EVMStateChangeItem{}), Name: "LogEVMStateChangeItem"},
+		TyLogEVMStatisticDataInit: {Ty: reflect.TypeOf(ReceiptEvmStatistic{}), Name: "LogEVMStatisticDataInit"},
+		TyLogEVMStatisticData:     {Ty: reflect.TypeOf(ReceiptEvmStatistic{}), Name: "LogEVMStatisticData"},
 	}
 )

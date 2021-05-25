@@ -87,6 +87,11 @@ func NewEVMExecutor() *EVMExecutor {
 	return exec
 }
 
+// GetStatisticKey 获取状态key
+func GetStatisticKey(addr string) []byte {
+	return []byte("LODB-" + evmtypes.ExecutorName + "-statistic: " + addr)
+}
+
 // GetFuncMap 获取方法列表
 func (evm *EVMExecutor) GetFuncMap() map[string]reflect.Method {
 	ety := types.LoadExecutorType(driverName)
@@ -165,10 +170,10 @@ func (evm *EVMExecutor) CheckTx(tx *types.Transaction, index int) error {
 
 // GetActionName 获取运行状态名
 func (evm *EVMExecutor) GetActionName(tx *types.Transaction) string {
-	cfg := evm.GetAPI().GetConfig()
-	if bytes.Equal(tx.Execer, []byte(cfg.ExecName(evmtypes.ExecutorName))) {
-		return cfg.ExecName(evmtypes.ExecutorName)
-	}
+	//cfg := evm.GetAPI().GetConfig()
+	//if bytes.Equal(tx.Execer, []byte(cfg.ExecName(evmtypes.ExecutorName))) {
+	//	return cfg.ExecName(evmtypes.ExecutorName)
+	//}
 	return tx.ActionName()
 }
 
