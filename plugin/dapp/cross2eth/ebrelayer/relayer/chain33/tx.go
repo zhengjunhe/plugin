@@ -58,34 +58,14 @@ type X2EthDeployResult struct {
 }
 
 var chain33txLog = log.New("module", "chain33_txs")
+var chainID int32
 
-// RelayLockToChain33 : RelayLockToChain33 applies validator's signature to an EthBridgeClaim message
-//		containing information about an event on the Ethereum blockchain before relaying to the Bridge
-//func RelayLockBurnToChain33(privateKey chain33Crypto.PrivKey, privateKey_ecdsa *ecdsa.PrivateKey, claim *ebrelayerTypes.EthBridgeClaim, rpcURL, oracleAddr string) (string, error) {
-//	nonceBytes := big.NewInt(claim.Nonce).Bytes()
-//	amountBytes := big.NewInt(claim.Amount).Bytes()
-//	claimID := crypto.Keccak256Hash(nonceBytes, []byte(claim.EthereumSender), []byte(claim.Chain33Receiver), []byte(claim.Symbol), amountBytes)
-//
-//	// Sign the hash using the active validator's private key
-//	signature, err := utils.SignClaim4Evm(claimID, privateKey_ecdsa)
-//	if nil != err {
-//		return "", err
-//	}
-//	parameter := fmt.Sprintf("newOracleClaim(%d, %s, %s, %s, %s, %s, %s, %s)",
-//		claim.ClaimType,
-//		claim.EthereumSender,
-//		claim.Chain33Receiver,
-//		claim.TokenAddr,
-//		claim.Symbol,
-//		claim.Amount,
-//		claimID,
-//		signature)
-//
-//	return relayEvmTx2Chain33(privateKey, claim, parameter, rpcURL, oracleAddr)
-//}
+func setChainID(chainID4Chain33 int32) {
+	chainID = chainID4Chain33
+}
 
 func createEvmTx(privateKey chain33Crypto.PrivKey, action proto.Message, execer, to string, fee int64) string {
-	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: fee, To: to}
+	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: fee, To: to, ChainID: chainID}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tx.Nonce = random.Int63()
@@ -222,7 +202,7 @@ func deploySingleContract(code []byte, abi, constructorPara, contractName, paraC
 }
 
 func createSignedEvmTx(action proto.Message, execer, caller, rpcLaddr, to string) (string, error) {
-	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: int64(1e8), To: to}
+	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: int64(1e8), To: to, ChainID: chainID}
 
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tx.Nonce = random.Int63()

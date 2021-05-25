@@ -85,6 +85,7 @@ func main() {
 		DBHandle:           db,
 		EthBridgeClaimChan: ethBridgeClaimChan,
 		Chain33MsgChan:     chain33MsgChan,
+		ChainID:            cfg.ChainID4Chain33,
 	}
 	chain33RelayerService := chain33Relayer.StartChain33Relayer(chain33StartPara)
 

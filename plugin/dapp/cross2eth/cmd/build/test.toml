@@ -2,7 +2,7 @@ Title="local"
 TestNet=true
 CoinSymbol="bty"
 TxHeight=true
-ChainId=0
+ChainID=33
 
 # crypto模块配置
 [crypto]

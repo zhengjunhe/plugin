@@ -36,6 +36,7 @@ type Relayer4Chain33 struct {
 	syncEvmTxLogs       *syncTx.EVMTxLogs
 	rpcLaddr            string //用户向指定的blockchain节点进行rpc调用
 	chainName           string //用来区别主链中继还是平行链，主链为空，平行链则是user.p.xxx.
+	chainID             int32
 	fetchHeightPeriodMs int64
 	db                  dbm.DB
 	lastHeight4Tx       int64 //等待被处理的具有相应的交易回执的高度
@@ -71,6 +72,7 @@ type Chain33StartPara struct {
 	DBHandle           dbm.DB
 	EthBridgeClaimChan <-chan *ebTypes.EthBridgeClaim
 	Chain33MsgChan     chan<- *events.Chain33Msg
+	ChainID            int32
 }
 
 // StartChain33Relayer : initializes a relayer which witnesses events on the chain33 network and relays them to Ethereum
@@ -78,6 +80,7 @@ func StartChain33Relayer(startPara *Chain33StartPara) *Relayer4Chain33 {
 	chain33Relayer := &Relayer4Chain33{
 		rpcLaddr:             startPara.SyncTxConfig.Chain33Host,
 		chainName:            startPara.ChainName,
+		chainID:              startPara.ChainID,
 		fetchHeightPeriodMs:  startPara.SyncTxConfig.FetchHeightPeriodMs,
 		unlockChan:           make(chan int),
 		db:                   startPara.DBHandle,
@@ -150,6 +153,7 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
 	chain33Relayer.mulSignAddr = chain33Relayer.getMultiSignAddress()
 	chain33Relayer.prePareSubscribeEvent()
+	setChainID(chain33Relayer.chainID)
 	timer := time.NewTicker(time.Duration(chain33Relayer.fetchHeightPeriodMs) * time.Millisecond)
 	for {
 		select {

@@ -45,6 +45,7 @@ message RelayerConfig {
   string ethProviderCli  = 11;
   string bridgeRegistryOnChain33 = 12;
   string chainName               = 13;
+  int32  chainID4Chain33         = 14;
 }
 
 message SyncTxReceiptConfig {
