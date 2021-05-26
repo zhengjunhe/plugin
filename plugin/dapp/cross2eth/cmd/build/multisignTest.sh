@@ -24,7 +24,7 @@ ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d532721046
 
 # chain33 部署合约者的私钥 用于部署合约时签名使用
 chain33DeployAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-#chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
+chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
 
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
@@ -44,103 +44,9 @@ chain33EthTokenAddr=""
 ethereumBtyTokenAddr=""
 chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
+multisignAddr=""
 
 CLIA="./ebcli_A"
-
-
-function Test() {
-    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
-
-#addr:privateKey =
-#//168Sn1DXnLrZHTcAM9stD6t2P49fNuJfJ9  ----------------->2 1
-#//{
-#//"data": "0xcd284cd17456b73619fa609bb9e3105e8eff5d059c5e0b6eb1effbebd4d64144"
-#//}
-#//13KTf57aCkVVJYNJBXBBveiA5V811SrLcT    ----------------->1 2
-#//{
-#//"data": "0xe892212221b3b58211b90194365f4662764b6d5474ef2961ef77c909e31eeed3"
-#//}
-#//1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe   ----------------->3 4
-#//{
-#//"data": "0x9d19a2e9a440187010634f4f08ce36e2bc7b521581436a99f05568be94dc66ea"
-#//}
-#//1NHuKqoKe3hyv52PF8XBAyaTmJWAqA2Jbb    ----------------->4 3
-#//{
-#//"data": "0x45d4ce009e25e6d5e00d8d3a50565944b2e3604aa473680a656b242d9acbff35"
-#//}
-
-
-#14KEKbYtKKQm4wMthSK9J4La4nAiidGozt
-#{
-#    "data": "0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
-#}
-
-chain33YccTokenAddr=1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o
-#YCC合约地址： 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o
-../../chain33-cli evm abi call -a 1873WtEqHc4BsdQuozhGvCsfADQ1C24Tok -c 1873WtEqHc4BsdQuozhGvCsfADQ1C24Tok -b "symbol()"
-../../chain33-cli evm abi call -a 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -c 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -b "balanceOf(14KEKbYtKKQm4wMthSK9J4La4nAiidGozt)"
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e 1873WtEqHc4BsdQuozhGvCsfADQ1C24Tok -p "transfer(1NHuKqoKe3hyv52PF8XBAyaTmJWAqA2Jbb, 99)"
-
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e 1873WtEqHc4BsdQuozhGvCsfADQ1C24Tok -p "transfer(1GV4NeNnRXxVWZh7Y2DVA93UWHdRgL17WZ, 3300)"
-
-
-./ebcli_A chain33 multisign deploy
-mulsign合约地址:1DZ7BxXregaPVA8MGhuXcV37LcZT17ZYTP
-
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -p "transfer(1DZ7BxXregaPVA8MGhuXcV37LcZT17ZYTP, 30000000000)"
-../../chain33-cli evm abi call -a 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -c 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -b "balanceOf(1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe)"
-../../chain33-cli evm abi call -a 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -c 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -b "balanceOf(14KEKbYtKKQm4wMthSK9J4La4nAiidGozt)"
-../../chain33-cli evm abi call -a 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -c 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -b "balanceOf(1DZ7BxXregaPVA8MGhuXcV37LcZT17ZYTP)"
-
-
-./ebcli_A chain33 multisign setup -k 0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944 -o "1NHuKqoKe3hyv52PF8XBAyaTmJWAqA2Jbb,1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe,13KTf57aCkVVJYNJBXBBveiA5V811SrLcT,168Sn1DXnLrZHTcAM9stD6t2P49fNuJfJ9"
-
-./ebcli_A chain33 multisign transfer -a 10 -r 1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe -t 1Y9hgtyFBD5QcrNTSRgAZXFg9LnvVhT8o -k "0xe892212221b3b58211b90194365f4662764b6d5474ef2961ef77c909e31eeed3,0xcd284cd17456b73619fa609bb9e3105e8eff5d059c5e0b6eb1effbebd4d64144,0x9d19a2e9a440187010634f4f08ce36e2bc7b521581436a99f05568be94dc66ea,0x45d4ce009e25e6d5e00d8d3a50565944b2e3604aa473680a656b242d9acbff35"
-
-./ebcli_A chain33 multisign transfer -a 10 -r 1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe -k "0xe892212221b3b58211b90194365f4662764b6d5474ef2961ef77c909e31eeed3,0xcd284cd17456b73619fa609bb9e3105e8eff5d059c5e0b6eb1effbebd4d64144,0x9d19a2e9a440187010634f4f08ce36e2bc7b521581436a99f05568be94dc66ea,0x45d4ce009e25e6d5e00d8d3a50565944b2e3604aa473680a656b242d9acbff35"
-
-
-chain33BridgeBank=18iSoa6UJACYdfSK9AySsfSzRWQU9Vo9dD
-multisignAddr=14wCJvmT5NcbqSbD1hbYuUXrJJEe5Jdwux
-chain33YccTokenAddr=198p6oA6jA552Zu6cWF4pWMzeMsV8cAiGp
-
-echo 'multisign１:部署离线钱包合约'
-./ebcli_A chain33 multisign deploy
-
-echo '1:在chain33BridgeBank中设置多签合约地址'
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignAddr})"
-echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(1111111111111111111114oLvT2,BTY,100000000000,50)"
-
-#将钱转入合约
-../../chain33-cli send coins send_exec -a 100000 -e evm -k 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT
-
-echo '3:#在chain33侧lock bty, 不需要addlock，执行完成之后，在chain33侧的multisign没有增加ＢＴＹ余额'
-../../chain33-cli evm call -f 1 -a 330 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 33000000000)"
-echo '4:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
-../../chain33-cli evm call -f 1 -a 800 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 80000000000)"
-
-
-echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
-../../chain33-cli evm call -f 1 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33YccTokenAddr} -p "approve(${chain33BridgeBank}, 1000000000000)"
-
-echo 'YCC.1:#在chain33侧lock YCC, 因为需要提前addlock，所以lock失败,chain33BridgeBank的ＹＣＣ余额没有发生变化'
-../../chain33-cli evm call -f 1 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccTokenAddr}, 33000000000)"
-
-echo 'YCC.2:#执行add lock操作:addToken2LockList'
-../../chain33-cli evm call -f 1 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccTokenAddr}, YCC)"
-
-echo '3:#在chain33侧lock YCC, 执行完成之后，在chain33侧的multisign没有增加YCC余额'
-../../chain33-cli evm call -f 1 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccTokenAddr}, 33000000000)"
-
-echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccTokenAddr},YCC,100000000000,50)"
-
-echo '6:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
-../../chain33-cli evm call -f 1 -c 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccTokenAddr}, 80000000000)"
-
-    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
-}
 
 # shellcheck disable=SC2034
 {
@@ -154,7 +60,8 @@ chain33MultisignKeyC="0x9d19a2e9a440187010634f4f08ce36e2bc7b521581436a99f05568be
 chain33MultisignKeyD="0x45d4ce009e25e6d5e00d8d3a50565944b2e3604aa473680a656b242d9acbff35"
 }
 
-function foo() {
+function deployMultisign() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     for name in A B C D; do
         eval chain33MultisignKey=\$chain33MultisignKey${name}
         eval chain33Multisign=\$chain33Multisign${name}
@@ -163,10 +70,10 @@ function foo() {
         check_addr "${result}" "${chain33Multisign}"
 
         # chain33Multisign 要有手续费
-        hash=$(${Chain33Cli} send coins transfer -a 1000 -t "${chain33Multisign}" -k "${chain33DeployAddr}")
+        hash=$(${Chain33Cli} send coins transfer -a 10 -t "${chain33Multisign}" -k "${chain33DeployAddr}")
         check_tx "${Chain33Cli}" "${hash}"
         result=$(${Chain33Cli} account balance -a "${chain33Multisign}" -e coins)
-        balance_ret "${result}" "1000.0000"
+        balance_ret "${result}" "10.0000"
     done
 
     echo 'multisign１:部署离线钱包合约'
@@ -174,36 +81,135 @@ function foo() {
     cli_ret "${result}" "chain33 multisign deploy"
     multisignAddr=$(echo "${result}" | jq -r ".msg")
 
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignAddr})"
-echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
-../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(1111111111111111111114oLvT2,BTY,100000000000,50)"
+    result=$(${CLIA} chain33 multisign setup -k "${chain33DeployKey}" -o "${chain33MultisignA},${chain33MultisignB},${chain33MultisignC},${chain33MultisignD}")
+    cli_ret "${result}" "chain33 multisign setup"
 
-#将钱转入合约
-#../../chain33-cli send coins send_exec -a 100000 -e evm -k 13KTf57aCkVVJYNJBXBBveiA5V811SrLcT
+    # multisignAddr 要有手续费
+    hash=$(${Chain33Cli} send coins transfer -a 10 -t "${multisignAddr}" -k "${chain33DeployAddr}")
+    check_tx "${Chain33Cli}" "${hash}"
+    result=$(${Chain33Cli} account balance -a "${multisignAddr}" -e coins)
+    balance_ret "${result}" "10.0000"
 
-echo '3:#在chain33侧lock bty, 不需要addlock，执行完成之后，在chain33侧的multisign没有增加ＢＴＹ余额'
-../../chain33-cli evm call -f 1 -a 330 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 33000000000)"
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
 
-../../chain33-cli account balance -a "${multisignAddr}"
-../../chain33-cli account balance -a "${chain33BridgeBank}"
+function lockBty() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
-echo '4:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
-../../chain33-cli evm call -f 1 -a 800 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 80000000000)"
+    echo '1:#配置离线钱包地址'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignAddr})")
+    check_tx "${Chain33Cli}" "${hash}"
 
-../../chain33-cli account balance -a "${multisignAddr}"
-../../chain33-cli account balance -a "${chain33BridgeBank}"
+    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(1111111111111111111114oLvT2,BTY,100000000000,50)")
+    check_tx "${Chain33Cli}" "${hash}"
 
-../../chain33-cli evm call -f 1 -a 500 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 50000000000)"
+    echo '3:#在chain33侧lock bty, 不需要addlock，执行完成之后，在chain33侧的multisign没有增加 bty 余额'
+    hash=$(${Chain33Cli} evm call -f 1 -a 330 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 33000000000)")
+    check_tx "${Chain33Cli}" "${hash}"
 
-../../chain33-cli account balance -a "${multisignAddr}"
-../../chain33-cli account balance -a "${chain33BridgeBank}"
+    result=$(${Chain33Cli} account balance -a "${multisignAddr}" -e evm)
+    balance_ret "${result}" "0.0000"
 
-# 100 60%
-# ../../chain33-cli evm call -f 1 -c 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccTokenAddr},YCC,10000000000,60)"
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+    balance_ret "${result}" "330.0000"
+
+    echo '4:#在#执行完成之后，在chain33侧的multisign增加了 bty 余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
+    hash=$(${Chain33Cli} evm call -f 1 -a 800 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 80000000000)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${Chain33Cli} account balance -a "${multisignAddr}" -e evm)
+    balance_ret "${result}" "565.0000"
+
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+    balance_ret "${result}" "565.0000"
+
+    hash=$(${Chain33Cli} evm call -f 1 -a 500 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, 1111111111111111111114oLvT2, 50000000000)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${Chain33Cli} account balance -a "${multisignAddr}" -e evm)
+    balance_ret "${result}" "1097.5000"
+
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+    balance_ret "${result}" "532.5000"
+
+    # transfer test
+    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${Chain33Cli} account balance -a "${multisignAddr}" -e evm)
+
+
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+
+    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
+
+    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function lockEth() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
 
 
 
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function lockYcc() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    result=$(${CLIA} chain33 token create -s YCC -o 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt)
+    cli_ret "${result}" "chain33 token create -s YCC"
+    chain33YccErc20Addr=$(echo "${result}" | jq -r .msg)
+
+    cp ./ERC20.abi "${chain33YccErc20Addr}.abi"
+
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
+
+    echo '1:#配置离线钱包地址'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignAddr})")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,60)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+
+    echo '1:#配置离线钱包地址'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "configOfflineSaveAccount(${chain33YccErc20Addr})")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    echo '2:#配置自动转离线钱包(ETH, 1000, 60%)'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,60)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+
+    echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
+    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33YccErc20Addr}, 1000000000000)"
+
+    echo 'YCC.1:#在chain33侧lock YCC, 因为需要提前addlock，所以lock失败,chain33BridgeBank的ＹＣＣ余额没有发生变化'
+    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 33000000000)"
+
+    echo 'YCC.2:#执行add lock操作:addToken2LockList'
+    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)"
+
+    echo '3:#在chain33侧lock YCC, 执行完成之后，在chain33侧的multisign没有增加YCC余额'
+    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 33000000000)"
+
+    #echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
+    #../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,50)"
+
+    echo '6:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
+    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 80000000000)"
+
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 function mainTest() {
@@ -214,9 +220,11 @@ function mainTest() {
     kill_all_ebrelayer
     StartRelayerAndDeploy
 
+    deployMultisign
+#    lockBty
+    lockYcc
+
 
 }
 
 mainTest
-
-foo

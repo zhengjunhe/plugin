@@ -132,6 +132,7 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 		relayerLog.Info("Failed to RestoreTokenAddress")
 		return
 	}
+	setChainID(chain33Relayer.chainID)
 	//如果该中继器的bridgeRegistryAddr为空，就说明合约未部署，需要等待部署成功之后再继续
 	if "" == chain33Relayer.bridgeRegistryAddr {
 		<-chain33Relayer.unlockChan
@@ -153,7 +154,6 @@ func (chain33Relayer *Relayer4Chain33) syncProc(syncCfg *ebTypes.SyncTxReceiptCo
 	chain33Relayer.lastHeight4Tx = chain33Relayer.loadLastSyncHeight()
 	chain33Relayer.mulSignAddr = chain33Relayer.getMultiSignAddress()
 	chain33Relayer.prePareSubscribeEvent()
-	setChainID(chain33Relayer.chainID)
 	timer := time.NewTicker(time.Duration(chain33Relayer.fetchHeightPeriodMs) * time.Millisecond)
 	for {
 		select {
