@@ -48,3 +48,4 @@ build/sendstock
 build/sendstock.toml
 build/*.csv
 plugin/dapp/x2ethereum/ebrelayer/ethcontract/openzeppelin-solidity
+plugin/dapp/cross2eth/contracts/openzeppelin-solidity
