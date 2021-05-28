@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/chain33/offline"
+
 	"github.com/33cn/plugin/plugin/dapp/dex/boss/buildFlags"
 	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/chain33"
 	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum"
@@ -22,11 +24,11 @@ func main() {
 		buildFlags.RPCAddr4Ethereum = "https://data-seed-prebsc-1-s1.binance.org:8545"
 	}
 
-	rootCmd := Cmd()
+	rootCmd := RootCmd()
 	rootCmd.PersistentFlags().String("rpc_laddr", buildFlags.RPCAddr4Chain33, "http url")
 	rootCmd.PersistentFlags().String("rpc_laddr_ethereum", buildFlags.RPCAddr4Ethereum, "http url")
 	rootCmd.PersistentFlags().String("paraName", "", "para chain name,Eg:user.p.fzm.")
-	rootCmd.PersistentFlags().String("expire", "120s", "transaction expire time (optional)")
+	rootCmd.PersistentFlags().String("expire", "120m", "transaction expire time (optional)")
 	rootCmd.PersistentFlags().Int32("chainID", 0, "chain id, default to 0")
 
 	if err := rootCmd.Execute(); err != nil {
@@ -36,10 +38,34 @@ func main() {
 }
 
 // Cmd x2ethereum client command
-func Cmd() *cobra.Command {
+func RootCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "boss",
+		Short: "manage create offline tx or deploy contracts(dex) for test",
+	}
+	cmd.AddCommand(
+		DeployCmd(),
+		OfflineCmd(),
+	)
+	return cmd
+}
+
+func OfflineCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "offline",
+		Short: "create and sign offline tx to deploy and set dex contracts to ethereum or chain33",
+	}
+	cmd.AddCommand(
+		offline.Chain33OfflineCmd(),
+	)
+	return cmd
+}
+
+// Cmd x2ethereum client command
+func DeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy",
-		Short: "deploy to ethereum or chain33",
+		Short: "deploy dex to ethereum or chain33",
 	}
 	cmd.AddCommand(
 		ethereum.EthCmd(),
