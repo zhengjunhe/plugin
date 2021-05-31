@@ -164,7 +164,7 @@ func UpdateAllocPoint(cmd *cobra.Command, args []string) {
 func TransferOwnerShipCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "Transfer OwnerShip",
-		Short: "Transfer OwnerShip",
+		Short: "Transfer OwnerShip, should transfer both cakeToken and syrupbar's ownership to masterChef",
 		Run:   TransferOwnerShip,
 	}
 

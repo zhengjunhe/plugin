@@ -189,7 +189,7 @@ func UpdateAllocPoint(cmd *cobra.Command, args []string) {
 func TransferOwnerShipCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
-		Short: "Transfer OwnerShip",
+		Short: "Transfer OwnerShip, should transfer both cakeToken and syrupbar's ownership to masterChef",
 		Run:   TransferOwnerShip,
 	}
 
@@ -224,7 +224,7 @@ func TransferOwnerShip(cmd *cobra.Command, args []string) {
 
 	//function transferOwnership(address newOwner) public onlyOwner
 	parameter := fmt.Sprintf("transferOwnership(%s)", newOwner)
-	_, packData, err := evmAbi.Pack(parameter, syrupBar.SyrupBarABI, false)
+	_, packData, err := evmAbi.Pack(parameter, syrupBar.OwnableABI, false)
 	if nil != err {
 		fmt.Println("TransferOwnerShip", "Failed to do abi.Pack due to:", err.Error())
 		return
