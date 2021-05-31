@@ -27,6 +27,7 @@ var (
 	ethTokenSymbol2LockAddrPrefix  = []byte("eth-ethTokenSymbol2LockAddrPrefix")
 	ethLockTxUpdateTxIndex         = []byte("eth-ethLockTxUpdateTxIndex")
 	ethBurnTxUpdateTxIndex         = []byte("eth-ethBurnTxUpdateTxIndex")
+	multiSignAddressPrefix         = []byte("eth-multiSignAddress")
 )
 
 func ethTokenSymbol2AddrKey(symbol string) []byte {
@@ -343,4 +344,17 @@ func (ethRelayer *Relayer4Ethereum) ShowETHLockTokenAddress(token2show ebTypes.T
 		res.TokenAddress = append(res.TokenAddress, &token2set)
 	}
 	return res, nil
+}
+
+func (ethRelayer *Relayer4Ethereum) setMultiSignAddress(address string) {
+	bytes := []byte(address)
+	_ = ethRelayer.db.Set(multiSignAddressPrefix, bytes)
+}
+
+func (ethRelayer *Relayer4Ethereum) getMultiSignAddress() string {
+	bytes, _ := ethRelayer.db.Get(multiSignAddressPrefix)
+	if 0 == len(bytes) {
+		return ""
+	}
+	return string(bytes)
 }

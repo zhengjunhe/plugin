@@ -172,42 +172,41 @@ function lockYcc() {
 
     ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
 
-    echo '1:#配置离线钱包地址'
+#    echo '1:#配置离线钱包地址'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignAddr})")
     check_tx "${Chain33Cli}" "${hash}"
 
-    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
+#    echo '2:#配置自动转离线钱包(YCC, 1000, 60%)'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,60)")
     check_tx "${Chain33Cli}" "${hash}"
 
-
-    echo '1:#配置离线钱包地址'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "configOfflineSaveAccount(${chain33YccErc20Addr})")
+#    echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)")
     check_tx "${Chain33Cli}" "${hash}"
-
-    echo '2:#配置自动转离线钱包(ETH, 1000, 60%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,60)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-
-    echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
-    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33YccErc20Addr}, 1000000000000)"
 
     echo 'YCC.1:#在chain33侧lock YCC, 因为需要提前addlock，所以lock失败,chain33BridgeBank的ＹＣＣ余额没有发生变化'
-    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 33000000000)"
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 50000000000)")
 
-    echo 'YCC.2:#执行add lock操作:addToken2LockList'
-    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)"
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})"
 
-    echo '3:#在chain33侧lock YCC, 执行完成之后，在chain33侧的multisign没有增加YCC余额'
-    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 33000000000)"
+#    echo 'YCC.2:#执行add lock操作:addToken2LockList'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)")
+    check_tx "${Chain33Cli}" "${hash}"
 
-    #echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
-    #../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,50)"
+#    echo '3:#在chain33侧lock YCC, 执行完成之后，在chain33侧的multisign没有增加YCC余额'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 50000000000)")
+    check_tx "${Chain33Cli}" "${hash}"
 
-    echo '6:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
-    ../../chain33-cli evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 80000000000)"
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})"
 
+#    echo '6:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(8afdadfc88a1087c9a1d6c0f5dd04634b87f303a, ${chain33YccErc20Addr}, 60000000000)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
+    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33DeployAddr})"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

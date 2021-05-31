@@ -4,16 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"math/big"
+	"strings"
+
 	chain33Address "github.com/33cn/chain33/common/address"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated/erc20"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
+	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
 )
 
 //NewProphecyClaimPara ...
@@ -220,45 +225,6 @@ func MintERC20Token(tokenAddr, ownerAddr string, amount *big.Int, client ethinte
 	}
 
 	return tx.Hash().String(), nil
-}
-
-func DeployERC20(ownerAddr, name, symbol string, amount *big.Int, client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
-	if nil == para {
-		return "", errors.New("no operator private key configured")
-	}
-
-	var prepareDone bool
-	var err error
-
-	defer func() {
-		if err != nil && prepareDone {
-			_, _ = revokeNonce(para.Address)
-		}
-	}()
-
-	operatorAuth, err := PrepareAuth(client, para.PrivateKey, para.Address)
-	if nil != err {
-		return "", err
-	}
-
-	prepareDone = true
-
-	txslog.Info("DeployERC20", "ownerAddr", ownerAddr, "name", name, "symbol", symbol, "amount", amount, "client", client)
-
-	Erc20OwnerAddr := common.HexToAddress(ownerAddr)
-	Erc20Addr, deployTx, _, err := erc20.DeployERC20(operatorAuth, client, name, symbol, amount, Erc20OwnerAddr)
-	if nil != err {
-		txslog.Error("DeployERC20", "Failed to DeployErc20 with err:", err.Error())
-		return "", err
-	}
-
-	txslog.Info("DeployERC20", "DeployErc20 tx hash:", deployTx.Hash().String())
-	err = waitEthTxFinished(client, deployTx.Hash(), "AddToken2LockList")
-	if nil != err {
-		return "", err
-	}
-
-	return Erc20Addr.String(), nil
 }
 
 //ApproveAllowance ...
@@ -532,11 +498,21 @@ func LockEthErc20AssetAsync(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver st
 	}
 	ownerAddr := crypto.PubkeyToAddress(ownerPrivateKey.PublicKey)
 
+	var prepareDone bool
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(ownerAddr)
+		}
+	}()
+
 	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
 	if nil != err {
 		txslog.Error("LockEthErc20AssetAsync", "PrepareAuth err", err.Error())
 		return "", err
 	}
+	prepareDone = true
+
 	//ETH转账，空地址，且设置value
 	var tokenAddr common.Address
 	if "" == tokenAddrStr {
@@ -562,4 +538,182 @@ func LockEthErc20AssetAsync(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver st
 		return "", err
 	}
 	return tx.Hash().String(), nil
+}
+
+func SetupMultiSign(ownerPrivateKeyStr, multiSignAddrstr string, owners []string, client ethinterface.EthClientSpec) (string, error) {
+	txslog.Info("SetupMultiSign", "owners", owners, "multiSignAddrstr", multiSignAddrstr)
+
+	ownerPrivateKey, err := crypto.ToECDSA(common.FromHex(ownerPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	ownerAddr := crypto.PubkeyToAddress(ownerPrivateKey.PublicKey)
+
+	var prepareDone bool
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(ownerAddr)
+		}
+	}()
+
+	auth, err := PrepareAuth(client, ownerPrivateKey, ownerAddr)
+	if nil != err {
+		txslog.Error("SetupMultiSign", "PrepareAuth err", err.Error())
+		return "", err
+	}
+	prepareDone = true
+
+	gnosisSafeAddr := common.HexToAddress(multiSignAddrstr)
+	gnosisSafeInt, err := generated.NewGnosisSafe(gnosisSafeAddr, client)
+	if nil != err {
+		return "", err
+	}
+
+	var _owners []common.Address
+	for _, onwer := range owners {
+		_owners = append(_owners, common.HexToAddress(onwer))
+	}
+	AddressZero := common.HexToAddress(ebTypes.EthNilAddr)
+
+	//safe.setup([user1.address, user2.address], 1, AddressZero, "0x", handler.address, AddressZero, 0, AddressZero)
+	setupTx, err := gnosisSafeInt.Setup(auth, _owners, big.NewInt(int64(len(_owners))), AddressZero, []byte{'0', 'x'}, AddressZero, AddressZero, big.NewInt(int64(0)), AddressZero)
+	if nil != err {
+		txslog.Error("SetupMultiSign", "Failed to setupTx with err:", err.Error())
+		return "", err
+	}
+
+	txslog.Info("SetupMultiSign", "SetupMultiSign tx hash:", setupTx.Hash().String())
+	err = waitEthTxFinished(client, setupTx.Hash(), "SetupMultiSign")
+	if nil != err {
+		return "", err
+	}
+
+	return setupTx.Hash().String(), nil
+}
+
+func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string, amount float64, client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
+	txslog.Info("SafeTransfer", "receiver", receiver, "token", token, "amount", amount)
+
+	if nil == para {
+		return "", errors.New("no operator private key configured")
+	}
+
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	auth, err := PrepareAuth(client, para.PrivateKey, para.Address)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	gnosisSafeAddr := common.HexToAddress(multiSignAddrstr)
+	gnosisSafeInt, err := generated.NewGnosisSafe(gnosisSafeAddr, client)
+	if nil != err {
+		return "", err
+	}
+	AddressZero := common.HexToAddress(ebTypes.EthNilAddr)
+
+	_to := common.HexToAddress(receiver)
+	_data := []byte{'0', 'x'}
+	safeTxGas := big.NewInt(10 * 10000)
+	baseGas := big.NewInt(0)
+	gasPrice := big.NewInt(0)
+	var value *big.Int = big.NewInt(int64(amount * 1e18))
+	opts := &bind.CallOpts{
+		From:    para.Address,
+		Context: context.Background(),
+	}
+	//token transfer
+	if token != "" {
+		_to = common.HexToAddress(token)
+
+		erc20Abi, err := abi.JSON(strings.NewReader(erc20.ERC20ABI))
+		if err != nil {
+			return "", err
+		}
+
+		tokenInstance, err := erc20.NewERC20(_to, client)
+		if err != nil {
+			return "", err
+		}
+		decimals, err := tokenInstance.Decimals(opts)
+		if err != nil {
+			return "", err
+		}
+		mul := int64(1)
+		for i := 0; i < int(decimals); i++ {
+			mul *= 10
+		}
+		value = big.NewInt(int64(amount * float64(mul)))
+
+		_data, err = erc20Abi.Pack("transfer", common.HexToAddress(receiver), value)
+		if err != nil {
+			return "", err
+		}
+		//对于erc20这种方式 最后需要将其设置为0
+		value = big.NewInt(0)
+	}
+
+	nonce, err := gnosisSafeInt.Nonce(opts)
+	if err != nil {
+		txslog.Error("SafeTransfer", "Failed to get Nonce", err.Error())
+		return "", err
+	}
+
+	signContent, err := gnosisSafeInt.GetTransactionHash(opts, _to, value, _data, 0, safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, nonce)
+	if err != nil {
+		txslog.Error("SafeTransfer", "Failed to GetTransactionHash", err.Error())
+		return "", err
+	}
+	txslog.Error("SafeTransfer", "safe.Nonce =", nonce.String(), "safe.Nonce(int64) =", nonce.Int64())
+	sigs, err := buildSigs(signContent[:], privateKeys)
+	if err != nil {
+		txslog.Error("SafeTransfer", "Failed to buildSigs", err.Error())
+		return "", err
+	}
+
+	execTx, err := gnosisSafeInt.ExecTransaction(auth, _to, value, _data, 0, safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, sigs)
+	if nil != err {
+		txslog.Error("SafeTransfer", "Failed to ExecTransaction", err.Error())
+		return "", err
+	}
+
+	txslog.Info("SetupMultiSign", "SetupMultiSign tx hash:", execTx.Hash().String())
+	err = waitEthTxFinished(client, execTx.Hash(), "SetupMultiSign")
+	if nil != err {
+		return "", err
+	}
+
+	return execTx.Hash().String(), nil
+}
+
+func buildSigs(data []byte, privateKeys []string) ([]byte, error) {
+	txslog.Info("buildSigs", "data:", common.Bytes2Hex(data))
+
+	var sigs []byte
+	for _, privateKeyStr := range privateKeys {
+		privateKey, err := crypto.ToECDSA(common.FromHex(privateKeyStr))
+		if nil != err {
+			return nil, errors.New("Failed to recover private key")
+		}
+
+		signature, err := crypto.Sign(data, privateKey)
+		if err != nil {
+			txslog.Error("buildSigs", "Failed to sign data due to:"+err.Error())
+			return nil, err
+		}
+		signature[64] += 27
+		sigs = append(sigs, signature[:]...)
+	}
+
+	return sigs, nil
 }

@@ -71,6 +71,7 @@ type Relayer4Ethereum struct {
 	totalTx4Eth2Chain33    int64
 	symbol2Addr            map[string]common.Address
 	symbol2LockAddr        map[string]common.Address
+	mulSignAddr            string
 }
 
 var (
@@ -116,8 +117,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 	registrAddrInDB, err := ethRelayer.getBridgeRegistryAddr()
 	//如果输入的registry地址非空，且和数据库保存地址不一致，则直接使用输入注册地址
 	if startPara.BridgeRegistryAddr != "" && nil == err && registrAddrInDB != startPara.BridgeRegistryAddr {
-		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB,
-			"but now setting to", startPara.BridgeRegistryAddr)
+		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB, "but now setting to", startPara.BridgeRegistryAddr)
 		_ = ethRelayer.setBridgeRegistryAddr(startPara.BridgeRegistryAddr)
 	} else if startPara.BridgeRegistryAddr == "" && registrAddrInDB != "" {
 		//输入地址为空，且数据库中保存地址不为空，则直接使用数据库中的地址
@@ -125,6 +125,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 	}
 	ethRelayer.eventLogIndex = ethRelayer.getLastBridgeBankProcessedHeight()
 	ethRelayer.initBridgeBankTx()
+	ethRelayer.mulSignAddr = ethRelayer.getMultiSignAddress()
 
 	// Start clientSpec with infura ropsten provider
 	relayerLog.Info("Relayer4Ethereum proc", "Started Ethereum websocket with provider:", ethRelayer.provider)
@@ -929,4 +930,34 @@ func (ethRelayer *Relayer4Ethereum) updateSingleTxStatus(claimType events.ClaimT
 		_ = ethRelayer.setEthLockTxUpdateTxIndex(statics.TxIndex, claimType)
 		relayerLog.Info("updateSingleTxStatus", "txHash", statics.EthereumTxhash, "updated status", status)
 	}
+}
+
+func (ethRelayer *Relayer4Ethereum) DeployMulsign() (mulsign string, err error) {
+	mulsign, err = ethtxs.DeployMulSign2Eth(ethRelayer.clientSpec, ethRelayer.operatorInfo)
+	if err != nil {
+		return "", err
+	}
+	ethRelayer.rwLock.Lock()
+	ethRelayer.mulSignAddr = mulsign
+	ethRelayer.rwLock.Unlock()
+
+	ethRelayer.setMultiSignAddress(mulsign)
+
+	return mulsign, nil
+}
+
+func (ethRelayer *Relayer4Ethereum) SetupMulSign(setupMulSign ebTypes.SetupMulSign) (string, error) {
+	if "" == ethRelayer.mulSignAddr {
+		return "", ebTypes.ErrMulSignNotDeployed
+	}
+
+	return ethtxs.SetupMultiSign(setupMulSign.OperatorPrivateKey, ethRelayer.mulSignAddr, setupMulSign.Owners, ethRelayer.clientSpec)
+}
+
+func (ethRelayer *Relayer4Ethereum) SafeTransfer(para ebTypes.SafeTransfer) (string, error) {
+	if "" == ethRelayer.mulSignAddr {
+		return "", ebTypes.ErrMulSignNotDeployed
+	}
+
+	return ethtxs.SafeTransfer(ethRelayer.mulSignAddr, para.To, para.Token, para.OwnerPrivateKeys, para.Amount, ethRelayer.clientSpec, ethRelayer.operatorInfo)
 }

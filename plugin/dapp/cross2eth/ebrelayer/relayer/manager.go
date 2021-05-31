@@ -950,3 +950,54 @@ func (manager *Manager) GetDecimals(tokenAddr string) (int64, error) {
 
 	return int64(d), nil
 }
+
+func (manager *Manager) DeployMulsign2Eth(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	mulSign, err := manager.ethRelayer.DeployMulsign()
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  mulSign,
+	}
+	return nil
+}
+
+func (manager *Manager) SetupOwner4Eth(setupMulSign relayerTypes.SetupMulSign, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	mulSign, err := manager.ethRelayer.SetupMulSign(setupMulSign)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  mulSign,
+	}
+	return nil
+}
+
+func (manager *Manager) SafeTransfer4Eth(para relayerTypes.SafeTransfer, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	mulSign, err := manager.ethRelayer.SafeTransfer(para)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  mulSign,
+	}
+	return nil
+}
