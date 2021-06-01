@@ -11,16 +11,8 @@ source "./allRelayerPublic.sh"
 ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 
-# validatorsAddr=["0x92c8b16afd6d423652559c6e266cbe1c29bfd84f", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
-#ethValidatorAddrKeyA="3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e"
 # validatorsAddr=["0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
 ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
-# shellcheck disable=SC2034
-#{
-#ethValidatorAddrKeyB="a5f3063552f4483cfc20ac4f40f45b798791379862219de9e915c64722c1d400"
-#ethValidatorAddrKeyC="bbf5e65539e9af0eb0cfac30bad475111054b09c11d668fc0731d54ea777471e"
-#ethValidatorAddrKeyD="c9fa31d7984edf81b8ef3b40c761f1847f6fcd5711ab2462da97dc458f1f896b"
-#}
 
 # chain33 部署合约者的私钥 用于部署合约时签名使用
 chain33DeployAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
@@ -29,23 +21,8 @@ chain33DeployAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
 
-# 新增地址 chain33 需要导入地址 转入 10 bty当收费费
-# shellcheck disable=SC2034
-#chain33ValidatorA="1GTxrmuWiXavhcvsaH5w9whgVxUrWsUMdV"
-#chain33ValidatorB="155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6"
-#chain33ValidatorC="13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv"
-#chain33ValidatorD="113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG"
-#chain33ValidatorKeyA="0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
-# shellcheck disable=SC2034
-#{
-#chain33ValidatorKeyB="0x9d539bc5fd084eb7fe86ad631dba9aa086dba38418725c38d9751459f567da66"
-#chain33ValidatorKeyC="0x0a6671f101e30a2cc2d79d77436b62cdf2664ed33eb631a9c9e3f3dd348a23be"
-#chain33ValidatorKeyD="0x3818b257b05ee75b6e43ee0e3cfc2d8502342cf67caed533e3756966690b62a5"
-#}
 ethReceiverAddr1="0xa4ea64a583f6e51c3799335b28a8f0529570a635"
 #ethReceiverAddrKey1="355b876d7cbcb930d5dfab767f66336ce327e082cbaa1877210c1bae89b1df71"
-#ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
-#ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
 
 maturityDegree=10
 

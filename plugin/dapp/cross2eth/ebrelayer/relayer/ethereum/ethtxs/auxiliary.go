@@ -717,3 +717,85 @@ func buildSigs(data []byte, privateKeys []string) ([]byte, error) {
 
 	return sigs, nil
 }
+
+func ConfigOfflineSaveAccount(addr string, client ethinterface.EthClientSpec, para *OperatorInfo, x2EthContracts *X2EthContracts) (string, error) {
+	if nil == para {
+		return "", errors.New("no operator private key configured")
+	}
+
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	auth, err := PrepareAuth(client, para.PrivateKey, para.Address)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	OfflineAddr := common.HexToAddress(addr)
+	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.ConfigOfflineSaveAccount(auth, OfflineAddr)
+	if nil != err {
+		return "", err
+	}
+
+	sim, isSim := client.(*ethinterface.SimExtend)
+	if isSim {
+		fmt.Println("Use the simulator")
+		sim.Commit()
+	}
+
+	err = waitEthTxFinished(client, tx.Hash(), "ConfigOfflineSaveAccount")
+	if nil != err {
+		return "", err
+	}
+
+	return tx.Hash().String(), nil
+}
+
+func ConfigLockedTokenOfflineSave(addr, symbol string, threshold *big.Int, percents uint8, client ethinterface.EthClientSpec, para *OperatorInfo, x2EthContracts *X2EthContracts) (string, error) {
+	if nil == para {
+		return "", errors.New("no operator private key configured")
+	}
+
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	auth, err := PrepareAuth(client, para.PrivateKey, para.Address)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	OfflineAddr := common.HexToAddress(addr)
+	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.ConfigLockedTokenOfflineSave(auth, OfflineAddr, symbol, threshold, percents)
+	if nil != err {
+		return "", err
+	}
+
+	sim, isSim := client.(*ethinterface.SimExtend)
+	if isSim {
+		fmt.Println("Use the simulator")
+		sim.Commit()
+	}
+
+	err = waitEthTxFinished(client, tx.Hash(), "ConfigLockedTokenOfflineSave")
+	if nil != err {
+		return "", err
+	}
+
+	return tx.Hash().String(), nil
+}

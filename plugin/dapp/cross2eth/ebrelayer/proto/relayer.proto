@@ -222,3 +222,10 @@ message ETHTokenLockAddress {
     string address = 1;
     string symbol  = 2;
 }
+
+message ETHConfigLockedTokenOffline {
+    string address   = 1;
+    string symbol    = 2;
+    string threshold = 3;
+    uint32 percents  = 4;
+}

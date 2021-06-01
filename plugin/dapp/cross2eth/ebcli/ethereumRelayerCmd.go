@@ -48,6 +48,8 @@ func EthereumRelayerCmd() *cobra.Command {
 		DeployERC20Cmd(),
 		TokenCmd(),
 		MultiSignEthCmd(),
+		ConfigOfflineSaveAccountCmd(),
+		ConfigLockedTokenOfflineSaveCmd(),
 	)
 
 	return cmd
@@ -991,5 +993,74 @@ func TransferEth(cmd *cobra.Command, args []string) {
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SafeTransfer4Eth", para, &res)
+	ctx.Run()
+}
+
+//ConfigOfflineSaveAccountCmd ...
+func ConfigOfflineSaveAccountCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set_offline_addr",
+		Short: "save config offline account",
+		Run:   ConfigOfflineSaveAccount,
+	}
+	ConfigOfflineSaveAccountFlags(cmd)
+	return cmd
+}
+
+//CreateBridgeTokenFlags ...
+func ConfigOfflineSaveAccountFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("address", "s", "", "multisign address")
+	_ = cmd.MarkFlagRequired("address")
+}
+
+//CreateBridgeToken ...
+func ConfigOfflineSaveAccount(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	address, _ := cmd.Flags().GetString("address")
+
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigOfflineSaveAccount", address, &res)
+	ctx.Run()
+}
+
+//ConfigLockedTokenOfflineSaveCmd ...
+func ConfigLockedTokenOfflineSaveCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set_offline_token",
+		Short: "set config offline locked token",
+		Run:   ConfigLockedTokenOfflineSave,
+	}
+	ConfigLockedTokenOfflineSaveFlags(cmd)
+	return cmd
+}
+
+//CreateBridgeTokenFlags ...
+func ConfigLockedTokenOfflineSaveFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("token", "t", "", "token addr")
+	_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().StringP("threshold", "m", "", "threshold")
+	_ = cmd.MarkFlagRequired("threshold")
+	cmd.Flags().Uint32P("percents", "p", 50, "percents")
+	//_ = cmd.MarkFlagRequired("percents")
+}
+
+//CreateBridgeToken ...
+func ConfigLockedTokenOfflineSave(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	token, _ := cmd.Flags().GetString("token")
+	threshold, _ := cmd.Flags().GetString("threshold")
+	percents, _ := cmd.Flags().GetUint32("percents")
+
+	para := ebTypes.ETHConfigLockedTokenOffline{
+		Symbol:    symbol,
+		Address:   token,
+		Threshold: threshold,
+		Percents:  percents,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigLockedTokenOfflineSave", para, &res)
 	ctx.Run()
 }

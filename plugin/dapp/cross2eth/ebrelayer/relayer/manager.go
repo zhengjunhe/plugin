@@ -1001,3 +1001,39 @@ func (manager *Manager) SafeTransfer4Eth(para relayerTypes.SafeTransfer, result 
 	}
 	return nil
 }
+
+// ConfigOfflineSaveAccount
+func (manager *Manager) ConfigOfflineSaveAccount(addr string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.ConfigOfflineSaveAccount(addr)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
+// ConfigLockedTokenOfflineSave
+func (manager *Manager) ConfigLockedTokenOfflineSave(config relayerTypes.ETHConfigLockedTokenOffline, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.ConfigLockedTokenOfflineSave(config.Address, config.Symbol, config.Threshold, config.Percents)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
