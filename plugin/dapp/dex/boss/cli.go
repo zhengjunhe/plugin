@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/chain33/offline"
-
 	"github.com/33cn/plugin/plugin/dapp/dex/boss/buildFlags"
 	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/chain33"
+	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/chain33/offline"
 	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum"
+	ethoffline "github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum/offline"
 	"github.com/spf13/cobra"
 )
 
@@ -57,6 +57,7 @@ func OfflineCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		offline.Chain33OfflineCmd(),
+		ethoffline.EthOfflineCmd(),
 	)
 	return cmd
 }
