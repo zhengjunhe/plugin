@@ -59,6 +59,14 @@ contract MasterChef is Ownable {
         uint256 accCakePerShare; // Accumulated CAKEs per share, times 1e12. See below.
     }
 
+    // Info of cake Per Block Cfg.
+    struct CakePerBlockCfg {
+        // CAKE tokens created per block.
+        uint256 cakePerBlock;
+        // block height to take effect
+        uint256 startBlock;
+    }
+
     // The CAKE TOKEN!
     CakeToken public cake;
     // The SYRUP TOKEN!
@@ -66,7 +74,7 @@ contract MasterChef is Ownable {
     // Dev address.
     address public devaddr;
     // CAKE tokens created per block.
-    uint256 public cakePerBlock;
+    //uint256 public cakePerBlock;
     // Bonus muliplier for early cake makers.
     uint256 public BONUS_MULTIPLIER = 1;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
@@ -80,6 +88,11 @@ contract MasterChef is Ownable {
     uint256 public totalAllocPoint = 0;
     // The block number when CAKE mining starts.
     uint256 public startBlock;
+    //config record of cakePerBlock
+    CakePerBlockCfg[] public cakePerBlockCfg;
+    //mapping (uint256 => uint256) public cakePerBlockCfgRecord;
+    // latest CakePerBlock Index
+    uint256 public latestCakePerBlockIndex;
 
     event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
     event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -95,7 +108,6 @@ contract MasterChef is Ownable {
         cake = _cake;
         syrup = _syrup;
         devaddr = _devaddr;
-        cakePerBlock = _cakePerBlock;
         startBlock = _startBlock;
 
         // staking pool
@@ -108,10 +120,22 @@ contract MasterChef is Ownable {
 
         totalAllocPoint = 1000;
 
+        cakePerBlockCfg.push(CakePerBlockCfg({
+            cakePerBlock:_cakePerBlock,
+            startBlock:_startBlock}));
+        latestCakePerBlockIndex = 0;
     }
 
     function updateMultiplier(uint256 multiplierNumber) public onlyOwner {
         BONUS_MULTIPLIER = multiplierNumber;
+    }
+
+    function updateCakePerBlock(uint256 _cakePerBlock, uint256 _startBlock) public onlyOwner {
+        require(cakePerBlockCfg[cakePerBlockCfg.length - 1].startBlock < _startBlock, "The startBlock should be not set correctly");
+
+        cakePerBlockCfg.push(CakePerBlockCfg({
+            cakePerBlock:_cakePerBlock,
+            startBlock:_startBlock}));
     }
 
     function poolLength() external view returns (uint256) {
@@ -183,6 +207,37 @@ contract MasterChef is Ownable {
         return _to.sub(_from).mul(BONUS_MULTIPLIER);
     }
 
+    // Return get CakePerBlock due to current block number.
+    function getCakePerBlock(uint256 height) public view returns (uint256) {
+        //当前只有一个配置，直接返回
+        if (cakePerBlockCfg.length == 1) {
+            return cakePerBlockCfg[0].cakePerBlock;
+        }
+        //当前已经使用最新配置项，同样直接返回最新即可
+        if (latestCakePerBlockIndex ==  (cakePerBlockCfg.length - 1)) {
+            return cakePerBlockCfg[latestCakePerBlockIndex].cakePerBlock;
+        }
+        //如果需要启用新的配置项，则更新index的值
+        if (height >= cakePerBlockCfg[latestCakePerBlockIndex + 1].startBlock) {
+            return cakePerBlockCfg[latestCakePerBlockIndex + 1].cakePerBlock;
+        }
+        //未达到使用最新配置的高度前，使用当前配置项
+        return cakePerBlockCfg[latestCakePerBlockIndex].cakePerBlock;
+    }
+
+    function calcCake2Reward(uint256 _from, uint256 _to) public view returns (uint256, bool) {
+        uint256 cake2RewardFrom =  getCakePerBlock(_from);
+        uint256 cake2RewardTo =  getCakePerBlock(_to);
+        if (cake2RewardTo == cake2RewardFrom) {
+            return (_to.sub(_from).mul(cake2RewardFrom), false);
+        }
+        //分段计算
+        uint256 cake2RewardPart1 = cakePerBlockCfg[latestCakePerBlockIndex + 1].startBlock.sub(_from).mul(cakePerBlockCfg[latestCakePerBlockIndex].cakePerBlock);
+        uint256 cake2RewardPart2 = _to.sub(cakePerBlockCfg[latestCakePerBlockIndex + 1].startBlock).mul(cakePerBlockCfg[latestCakePerBlockIndex + 1].cakePerBlock);
+
+        return (cake2RewardPart1.add(cake2RewardPart2), true);
+    }
+
     // View function to see pending CAKEs on frontend.
     function pendingCake(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
@@ -190,9 +245,13 @@ contract MasterChef is Ownable {
         uint256 accCakePerShare = pool.accCakePerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
-            uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-            uint256 cakeReward = multiplier.mul(cakePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+            //uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+            (uint256 cake2Reward, bool updateBlockIndex) = calcCake2Reward(pool.lastRewardBlock, block.number);
+            uint256 cakeReward = cake2Reward.mul(pool.allocPoint).div(totalAllocPoint);
             accCakePerShare = accCakePerShare.add(cakeReward.mul(1e12).div(lpSupply));
+            if (updateBlockIndex){
+                //只是为了消除编译告警信息
+            }
         }
         return user.amount.mul(accCakePerShare).div(1e12).sub(user.rewardDebt);
     }
@@ -217,8 +276,14 @@ contract MasterChef is Ownable {
             pool.lastRewardBlock = block.number;
             return;
         }
-        uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
-        uint256 cakeReward = multiplier.mul(cakePerBlock).mul(pool.allocPoint).div(totalAllocPoint);
+        //uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+        //uint256 cakeReward = multiplier.mul(getCakePerBlock()).mul(pool.allocPoint).div(totalAllocPoint);
+        (uint256 cakeReward, bool updateBlockIndex) = calcCake2Reward(pool.lastRewardBlock, block.number);
+        if (updateBlockIndex) {
+            latestCakePerBlockIndex++;
+        }
+        cakeReward = cakeReward.mul(pool.allocPoint).div(totalAllocPoint);
+
         cake.mint(devaddr, cakeReward.div(10));
         cake.mint(address(syrup), cakeReward);
         pool.accCakePerShare = pool.accCakePerShare.add(cakeReward.mul(1e12).div(lpSupply));
