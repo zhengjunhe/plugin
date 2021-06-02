@@ -8,15 +8,14 @@ func EthOfflineCmd() *cobra.Command {
 		Short: "create and sign offline tx to deploy and set dex contracts to eth",
 		Args:  cobra.MinimumNArgs(1),
 	}
-	var query =new(queryCmd)
-	var signFac =new(SignFactoryCmd)
-	var deployFac=new(deploayFactory)
+	var query = new(queryCmd)
+	var sign = new(SignCmd)
+	var deploy = new(deploayContract)
 	cmd.AddCommand(
-		query.queryAddrInfoCmd(),
-		signFac.signFactoryCmd(),     //step1
-		deployFac.deployFactoryCmd(), //send tx
-		//signWth9Cmd(),//step2
-		//signPancakeRouter(),//step3
+		query.queryCmd(),   //query fromAccount info such as: nonce,gasprice
+		sign.signCmd(),     //sign fatory.weth9,pancakrouter contract
+		deploy.deployCmd(), //send singned tx to deploy contract:factory,weth9,pancakerouter.
+
 	)
 	return cmd
 }
