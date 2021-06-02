@@ -9,6 +9,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/cakeToken"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/masterChef"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/syrupBar"
+	"github.com/33cn/plugin/plugin/dapp/dex/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -53,18 +54,18 @@ func createCakeToken(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	createPara := ""
-	content, err := createContractAndSign(info, cakeToken.CakeTokenBin, cakeToken.CakeTokenABI, createPara, "cakeToken")
+	content, err := utils.CreateContractAndSign(info, cakeToken.CakeTokenBin, cakeToken.CakeTokenABI, createPara, "cakeToken")
 	if nil != err {
-		writeContractFile("./cakeToken", content)
+		utils.WriteContractFile("./cakeToken", content)
 	}
 }
 
@@ -99,19 +100,19 @@ func createSyrupBar(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	//constructor(CakeToken _cake)
 	createPara := cakeToken
-	content, err := createContractAndSign(info, syrupBar.SyrupBarBin, syrupBar.SyrupBarABI, createPara, "syrupBar")
+	content, err := utils.CreateContractAndSign(info, syrupBar.SyrupBarBin, syrupBar.SyrupBarABI, createPara, "syrupBar")
 	if nil != err {
-		writeContractFile("./syrupBar", content)
+		utils.WriteContractFile("./syrupBar", content)
 	}
 }
 
@@ -158,13 +159,13 @@ func createMasterChef(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	//constructor(
 	//	CakeToken _cake,
@@ -174,9 +175,9 @@ func createMasterChef(cmd *cobra.Command, args []string) {
 	//	uint256 _startBlock
 	//) public {
 	createPara := fmt.Sprintf("%s,%s,%s,%d,%d", cakeToken, syrup, devaddr, cakePerBlock, startBlock)
-	content, err := createContractAndSign(info, masterChef.MasterChefBin, masterChef.MasterChefABI, createPara, "masterChef")
+	content, err := utils.CreateContractAndSign(info, masterChef.MasterChefBin, masterChef.MasterChefABI, createPara, "masterChef")
 	if nil != err {
-		writeContractFile("./masterChef", content)
+		utils.WriteContractFile("./masterChef", content)
 	}
 }
 
@@ -208,7 +209,6 @@ func addPoolFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("caller", "c", "", "caller address")
 	_ = cmd.MarkFlagRequired("caller")
-	cmd.Flags().StringP("expire", "e", "120s", "transaction expire time (optional)")
 }
 
 func addPool(cmd *cobra.Command, args []string) {
@@ -224,13 +224,13 @@ func addPool(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	parameter := fmt.Sprintf("add(%d, %s, %v)", allocPoint, lpToken, update)
 	_, packData, err := evmAbi.Pack(parameter, masterChef.MasterChefABI, false)
@@ -239,9 +239,9 @@ func addPool(cmd *cobra.Command, args []string) {
 		return
 	}
 	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
-	content, err := callContractAndSign(info, action, masterChefAddrStr)
+	content, err := utils.CallContractAndSign(info, action, masterChefAddrStr)
 	if nil != err {
-		writeContractFile("./addPool", content)
+		utils.WriteContractFile("./addPool", content)
 	}
 }
 
@@ -285,13 +285,13 @@ func updateAllocPoint(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	parameter := fmt.Sprintf("set(%d, %d, %v)", pid, allocPoint, update)
 	_, packData, err := evmAbi.Pack(parameter, masterChef.MasterChefABI, false)
@@ -300,8 +300,8 @@ func updateAllocPoint(cmd *cobra.Command, args []string) {
 		return
 	}
 	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
-	content, err := callContractAndSign(info, action, masterChefAddrStr)
+	content, err := utils.CallContractAndSign(info, action, masterChefAddrStr)
 	if nil != err {
-		writeContractFile("./updateAllocPoint", content)
+		utils.WriteContractFile("./updateAllocPoint", content)
 	}
 }

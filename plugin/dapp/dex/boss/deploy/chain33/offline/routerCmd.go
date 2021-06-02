@@ -1,19 +1,12 @@
 package offline
 
 import (
-	"math/rand"
-	"time"
-
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeFactory"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeRouter"
+	"github.com/33cn/plugin/plugin/dapp/dex/utils"
 
-	"github.com/33cn/chain33/system/crypto/secp256k1"
-
-	"github.com/33cn/chain33/common"
 	erc20 "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/erc20/generated"
 
-	"github.com/33cn/chain33/types"
-	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 )
 
@@ -55,63 +48,19 @@ func createERC20Contract(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	createPara := name + "," + symbol + "," + supply + "," + caller
-	content, err := createContractAndSign(info, erc20.ERC20Bin, erc20.ERC20ABI, createPara, "erc20")
+	content, err := utils.CreateContractAndSign(info, erc20.ERC20Bin, erc20.ERC20ABI, createPara, "erc20")
 	if nil != err {
-		writeContractFile("./erc20", content)
+		utils.WriteContractFile("./erc20", content)
 	}
-}
-
-func createAndSignEvmTx(chainID int32, action proto.Message, execer, privateKeyStr, contract2call, expire string, fee int64) (string, error) {
-	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: 0, To: contract2call}
-
-	expireInt64, err := types.ParseExpire(expire)
-	if nil != err {
-		return "", err
-	}
-
-	if expireInt64 > types.ExpireBound {
-		if expireInt64 < int64(time.Second*120) {
-			expireInt64 = int64(time.Second * 120)
-		}
-		//用秒数来表示的时间
-		tx.Expire = types.Now().Unix() + expireInt64/int64(time.Second)
-	} else {
-		tx.Expire = expireInt64
-	}
-
-	tx.Fee = int64(1e7)
-	if tx.Fee < fee {
-		tx.Fee += fee
-	}
-
-	random := rand.New(rand.NewSource(time.Now().UnixNano()))
-	tx.Nonce = random.Int63()
-	tx.ChainID = chainID
-
-	var driver secp256k1.Driver
-	privateKeySli, err := common.FromHex(privateKeyStr)
-	if nil != err {
-		return "", err
-	}
-	privateKey, err := driver.PrivKeyFromBytes(privateKeySli)
-	if nil != err {
-		return "", err
-	}
-
-	tx.Sign(types.SECP256K1, privateKey)
-	txData := types.Encode(tx)
-	dataStr := common.ToHex(txData)
-
-	return dataStr, nil
 }
 
 func createRouterCmd() *cobra.Command {
@@ -150,19 +99,19 @@ func createRouterContract(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	//constructor(address _factory, address _WETH)
 	createPara := factory + "," + weth9
-	content, err := createContractAndSign(info, pancakeRouter.PancakeRouterBin, pancakeRouter.PancakeRouterABI, createPara, "pancakeRouter")
+	content, err := utils.CreateContractAndSign(info, pancakeRouter.PancakeRouterBin, pancakeRouter.PancakeRouterABI, createPara, "pancakeRouter")
 	if nil != err {
-		writeContractFile("./pancakeRouter", content)
+		utils.WriteContractFile("./pancakeRouter", content)
 	}
 }
 
@@ -184,19 +133,19 @@ func createWeth9(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	//constructor(address _feeToSetter) public
 	createPara := ""
-	content, err := createContractAndSign(info, pancakeRouter.WETH9Bin, pancakeRouter.WETH9ABI, createPara, "WETH9")
+	content, err := utils.CreateContractAndSign(info, pancakeRouter.WETH9Bin, pancakeRouter.WETH9ABI, createPara, "WETH9")
 	if nil != err {
-		writeContractFile("./weth9", content)
+		utils.WriteContractFile("./weth9", content)
 	}
 }
 
@@ -229,19 +178,19 @@ func createFactoryContract(cmd *cobra.Command, args []string) {
 	paraName, _ := cmd.Flags().GetString("paraName")
 	chainID, _ := cmd.Flags().GetInt32("chainID")
 	feeInt64 := int64(fee*1e4) * 1e4
-	info := &TxCreateInfo{
-		privateKey: privateKey,
-		expire:     expire,
-		note:       note,
-		fee:        feeInt64,
-		paraName:   paraName,
-		chainID:    chainID,
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
 	}
 	//constructor(address _feeToSetter) public
 	createPara := feeToSetter
-	content, err := createContractAndSign(info, pancakeFactory.PancakeFactoryBin, pancakeFactory.PancakeFactoryABI, createPara, "PancakeFactory")
+	content, err := utils.CreateContractAndSign(info, pancakeFactory.PancakeFactoryBin, pancakeFactory.PancakeFactoryABI, createPara, "PancakeFactory")
 	if nil != err {
-		writeContractFile("./factory", content)
+		utils.WriteContractFile("./factory", content)
 	}
 }
 
