@@ -122,11 +122,11 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	//sign weth9
 	//--------------------
 	weth := new(SignWeth9Cmd)
-	wsignedTx, hash, err := weth.reWriteDeployWETH9(s.Nonce+1, gasPrice, key)
+	wsignedTx, hash, err := weth.reWriteDeployWETH9(factData.Nonce+1, gasPrice, key)
 	if nil != err {
 		panic(fmt.Sprintf("Failed to DeployPancakeFactory with err:%s", err.Error()))
 	}
-	weth9Addr := crypto.CreateAddress(from, s.Nonce+1)
+	weth9Addr := crypto.CreateAddress(from, factData.Nonce +1)
 	var weth9Data deploayContract
 	weth9Data.Nonce = s.Nonce + 1
 	weth9Data.TxHash = hash
@@ -211,7 +211,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	return nil
 }
 
-//构造交易，签名交易
+//构造交易，签名交易 factory
 func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey, fee2addr common.Address,param...interface{}) (signedTx, hash string, err error) {
 	parsed, err := abi.JSON(strings.NewReader(pancakeFactory.PancakeFactoryABI))
 	if err != nil {
@@ -233,14 +233,14 @@ func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, 
 type SignWeth9Cmd struct {
 }
 
-//only sign
+//only sign Weth9
 func (s *SignWeth9Cmd) reWriteDeployWETH9(nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey,param...interface{}) (signedTx, hash string, err error) {
 	parsed, err := abi.JSON(strings.NewReader(pancakeRouter.WETH9ABI))
 	if err != nil {
 		return "", "", err
 	}
 	input, err := parsed.Pack("", param...)
-	abiBin := pancakeRouter.PancakeRouterBin
+	abiBin := pancakeRouter.WETH9Bin
 	data := append(common.FromHex(abiBin), input...)
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)

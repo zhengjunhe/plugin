@@ -19,7 +19,7 @@ type queryCmd struct {
 func (q *queryCmd) queryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "query address", //first step
-		Short: " query gasPrice,nonce by address",
+		Short: " query gasPrice,nonce from the spec address",
 		Run:   q.query, //对要部署的factory合约进行签名
 	}
 	q.addQueryFlags(cmd)
@@ -92,9 +92,8 @@ func (d *deploayContract) send(cmd *cobra.Command, args []string) {
 		fmt.Println("paraseFile,err",err.Error())
 		return
 	}
-	fmt.Println("parase ready send tx num.",len(rdata))
+	fmt.Println("parase ready total tx num.",len(rdata))
 	for i, deployInfo := range rdata {
-		//fmt.Println("signedTx:",deployInfo.SignedRawTx,"index:",i)
 		tx := new(types.Transaction)
 		err = tx.UnmarshalBinary(common.FromHex(deployInfo.SignedRawTx))
 		if err != nil {
@@ -106,7 +105,8 @@ func (d *deploayContract) send(cmd *cobra.Command, args []string) {
 			fmt.Println("err:", err)
 			panic(err)
 		}
-		fmt.Println("Index Tx", i+1, "TxHash", tx.Hash().String())
+		fmt.Println("deplay contract Index Tx", i+1, "TxHash", tx.Hash().String(),"contractName",deployInfo.ContractName)
+		time.Sleep(time.Second)
 	}
 
 	fmt.Println("All tx send ...")

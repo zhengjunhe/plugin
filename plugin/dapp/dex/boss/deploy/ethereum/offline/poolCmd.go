@@ -202,7 +202,7 @@ type transferOwnerShip struct{
 func (t*transferOwnerShip)TransferOwnerShipCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer OwnerShip",
-		Short: "transfer",
+		Short: "transfer OwnerShip",
 		Run:   t.TransferOwnerShip,
 	}
 

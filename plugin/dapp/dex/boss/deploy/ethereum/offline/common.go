@@ -1,7 +1,7 @@
 package offline
 
 import "github.com/spf13/cobra"
-const  gasLimit uint64 = 10000*100
+const  gasLimit uint64 = 10000*800
 func EthOfflineCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "eth",
