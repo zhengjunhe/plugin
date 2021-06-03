@@ -85,15 +85,18 @@ func (d *deploayContract) send(cmd *cobra.Command, args []string) {
 	filePath, _ := cmd.Flags().GetString("file")
 	url, _ := cmd.Flags().GetString("rpc_laddr")
 	//解析文件数据
-	var rdata = make([]*deploayContract, 0)
-	err := paraseFile(filePath, rdata)
+	fmt.Println("file",filePath)
+	var rdata = make([]*deploayContract,0)
+	err := paraseFile(filePath, &rdata)
 	if err != nil {
+		fmt.Println("paraseFile,err",err.Error())
 		return
 	}
+	fmt.Println("parase ready send tx num.",len(rdata))
 	for i, deployInfo := range rdata {
-
+		//fmt.Println("signedTx:",deployInfo.SignedRawTx,"index:",i)
 		tx := new(types.Transaction)
-		err = tx.UnmarshalJSON(common.FromHex(deployInfo.SignedRawTx))
+		err = tx.UnmarshalBinary(common.FromHex(deployInfo.SignedRawTx))
 		if err != nil {
 			panic(err)
 		}
@@ -101,9 +104,9 @@ func (d *deploayContract) send(cmd *cobra.Command, args []string) {
 		err = client.SendTransaction(context.Background(), tx)
 		if err != nil {
 			fmt.Println("err:", err)
+			panic(err)
 		}
 		fmt.Println("Index Tx", i+1, "TxHash", tx.Hash().String())
-		return
 	}
 
 	fmt.Println("All tx send ...")

@@ -223,7 +223,6 @@ func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, 
 	}
 	abiBin := pancakeFactory.PancakeFactoryBin
 	data := append(common.FromHex(abiBin), input...)
-	var gasLimit uint64 = 150000
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	//ntx := types.NewTransaction(nonce, common.Address{}, amount, gasLimit, gasPrice, data)
@@ -243,7 +242,6 @@ func (s *SignWeth9Cmd) reWriteDeployWETH9(nonce uint64, gasPrice *big.Int, key *
 	input, err := parsed.Pack("", param...)
 	abiBin := pancakeRouter.PancakeRouterBin
 	data := append(common.FromHex(abiBin), input...)
-	var gasLimit uint64 = 150000
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	return signTx(key, ntx)
@@ -263,7 +261,6 @@ func (s *SignPanCakeRout) reWriteDeployPanCakeRout(nonce uint64, gasPrice *big.I
 	}
 	abiBin := pancakeRouter.PancakeRouterBin
 	data := append(common.FromHex(abiBin), input...)
-	var gasLimit uint64 = 150000
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	return signTx(key, ntx)
