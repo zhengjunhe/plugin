@@ -1,7 +1,7 @@
 package offline
 
 import "github.com/spf13/cobra"
-
+const  gasLimit uint64 = 150000
 func EthOfflineCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "eth",
@@ -9,13 +9,18 @@ func EthOfflineCmd() *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 	}
 	var query = new(queryCmd)
-	var sign = new(SignCmd)
+	var signdeployCmd = new(SignCmd)
 	var deploy = new(deploayContract)
+	var addpool=new(AddPool)
+	var update=new(updateAllocPoint)
+	var transOwner=new(transferOwnerShip)
 	cmd.AddCommand(
 		query.queryCmd(),   //query fromAccount info such as: nonce,gasprice
-		sign.signCmd(),     //sign fatory.weth9,pancakrouter contract
+		signdeployCmd.signCmd(),     //sign fatory.weth9,pancakrouter contract
+		addpool.AddPoolCmd(),//call contract
+		update.UpdateAllocPointCmd(),
+		transOwner.TransferOwnerShipCmd(),
 		deploy.deployCmd(), //send singned tx to deploy contract:factory,weth9,pancakerouter.
-
 	)
 	return cmd
 }

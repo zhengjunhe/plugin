@@ -34,6 +34,7 @@ func (q *queryCmd) addQueryFlags(cmd *cobra.Command) {
 func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	url, _ := cmd.Flags().GetString("rpc_laddr")
 	addr, _ := cmd.Flags().GetString("address")
+
 	client, err := ethclient.Dial(url)
 	ctx := context.Background()
 	price, err := client.SuggestGasPrice(ctx)
@@ -50,7 +51,6 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	info.GasPrice = price.Uint64()
 	info.Nonce = nonce
 	info.Timestamp = time.Now().Format(time.RFC3339)
-
 	writeToFile("accountinfo.txt", &info)
 	return
 
@@ -77,7 +77,7 @@ func (d *deploayContract) deployCmd() *cobra.Command {
 }
 
 func (d *deploayContract) addSendFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("file", "f", "accountinfo.txt", "multi params")
+	cmd.Flags().StringP("file", "f", "", "*.txt signed tx")
 	cmd.MarkFlagRequired("file")
 }
 
