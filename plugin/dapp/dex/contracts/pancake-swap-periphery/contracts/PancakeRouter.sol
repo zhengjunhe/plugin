@@ -17,11 +17,6 @@ contract PancakeRouter is IPancakeRouter02 {
     string public callName;
     uint256 public addLpTimes;
 
-    event debug(string des, int pos);
-    event runStep(uint step);
-    event logRunData(string func, address pair, address to, uint amountToken, uint amountETH, uint liquidity);
-    event amountInfo(uint amount);
-
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'PancakeRouter: EXPIRED');
         _;
@@ -45,15 +40,11 @@ contract PancakeRouter is IPancakeRouter02 {
         uint amountAMin,
         uint amountBMin
     ) internal virtual returns (uint amountA, uint amountB) {
-        emit debug("_addLiquidity0", 0);
         // create the pair if it doesn't exist yet
         if (IPancakeFactory(factory).getPair(tokenA, tokenB) == address(0)) {
-            emit debug("_addLiquidity1", 1);
             IPancakeFactory(factory).createPair(tokenA, tokenB);
         }
-        emit debug("_addLiquidity2", 2);
         (uint reserveA, uint reserveB) = PancakeLibrary.getReserves(factory, tokenA, tokenB);
-        emit debug("_addLiquidity3", 2);
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
@@ -98,7 +89,6 @@ contract PancakeRouter is IPancakeRouter02 {
         address to,
         uint deadline
     ) external virtual override payable ensure(deadline) returns (uint amountToken, uint amountETH, uint liquidity) {
-        emit debug("addLiquidityETH1", 1);
         (amountToken, amountETH) = _addLiquidity(
             token,
             WETH,
@@ -107,25 +97,15 @@ contract PancakeRouter is IPancakeRouter02 {
             amountTokenMin,
             amountETHMin
         );
-        emit debug("addLiquidityETH2", 2);
 
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
-        emit debug("addLiquidityETH3", 3);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
-        emit debug("addLiquidityETH4", 3);
-        emit amountInfo(amountToken);
-        emit amountInfo(amountETH);
         uint256 balance = address(this).balance;
-        emit amountInfo(balance);
         IWETH(WETH).deposit{value: amountETH}();
-        emit debug("addLiquidityETH5", 3);
         assert(IWETH(WETH).transfer(pair, amountETH));
-        emit debug("addLiquidityETH6", 3);
         liquidity = IPancakePair(pair).mint(to);
-        emit debug("addLiquidityETH7", 3);
         // refund dust eth, if any
         if (msg.value > amountETH) TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
-        emit logRunData('addLiquidityETH', pair, to, amountToken, amountETH, liquidity);
     }
 
     // **** REMOVE LIQUIDITY ****

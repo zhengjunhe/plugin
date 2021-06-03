@@ -6,9 +6,6 @@ import "./SafeMath.sol";
 
 library PancakeLibrary {
     using SafeMath for uint;
-    event debugPancakeLibrary(string name);
-    event debugPairAddr(bytes32 hash);
-    event debugPairAddr2(address pair);
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
@@ -33,7 +30,6 @@ library PancakeLibrary {
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address tokenA, address tokenB) internal returns (address pair) {
         //(address token0, address token1) = sortTokens(tokenA, tokenB);
-        //emit debugPancakeLibrary("PancakeLibrary::pairFor");
         //emit debugPairAddr(keccak256(abi.encodePacked(
                                            //hex'ff',
                                            //factory,
@@ -46,7 +42,7 @@ library PancakeLibrary {
                 //keccak256(abi.encodePacked(token0, token1)),
                 //hex'c6b93034ea97d931a8fae5b6eeaa11fabfdac8cd71fd4b50df6697398722e590' // init code hash
             //))));
-        //emit debugPancakeLibrary("PancakeLibrary::pairFor:address");
+
 
         pair = IPancakeFactory(factory).getPair(tokenA, tokenB);
     }
@@ -54,13 +50,7 @@ library PancakeLibrary {
     // fetches and sorts the reserves for a pair
     function getReserves(address factory, address tokenA, address tokenB) internal returns (uint reserveA, uint reserveB) {
         (address token0,) = sortTokens(tokenA, tokenB);
-        emit debugPancakeLibrary("PancakeLibrary::getReserves::0");
-        //pairFor(factory, tokenA, tokenB);
-        emit debugPancakeLibrary("PancakeLibrary::getReserves::1");
-        //(uint reserve0, uint reserve1,) = IPancakePair(pairFor(factory, tokenA, tokenB)).getReserves();
         (uint reserve0, uint reserve1,) = IPancakePair(IPancakeFactory(factory).getPair(tokenA, tokenB)).getReserves();
-
-        emit debugPancakeLibrary("PancakeLibrary::getReserves::2");
         (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 

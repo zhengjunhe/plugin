@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/spf13/cobra"
 )
@@ -17,6 +18,7 @@ func FarmCmd() *cobra.Command {
 		UpdateAllocPointCmd(),
 		TransferOwnerShipCmd(),
 		ShowCackeBalanceCmd(),
+		UpdateCakePerBlockCmd(),
 	)
 	return cmd
 }
@@ -194,4 +196,45 @@ func TransferOwnerShip(cmd *cobra.Command, args []string) {
 		return
 	}
 	fmt.Println("Succeed to TransferOwnerShip")
+}
+
+func UpdateCakePerBlockCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "updateCakePerBlock",
+		Short: "update CakePerBlock ",
+		Run:   UpdateCakePerBlock,
+	}
+
+	AddUpdateCakePerBlockFlags(cmd)
+
+	return cmd
+}
+
+func AddUpdateCakePerBlockFlags(cmd *cobra.Command) {
+	cmd.Flags().Float64P("cakePerBlock", "c", 0, "cakePerBlock, the value will be multiplied by 1e18")
+	_ = cmd.MarkFlagRequired("cakePerBlock")
+
+	cmd.Flags().Float64P("startBlock", "s", 0, "start block to take effect")
+	_ = cmd.MarkFlagRequired("startBlock")
+
+	cmd.Flags().StringP("masterChef", "m", "", "masterChef address")
+	_ = cmd.MarkFlagRequired("masterChef")
+}
+
+func UpdateCakePerBlock(cmd *cobra.Command, args []string) {
+	cakePerBlockFloat, _ := cmd.Flags().GetFloat64("cakePerBlock")
+	startBlock, _ := cmd.Flags().GetInt64("startBlock")
+	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	masterChef, _ := cmd.Flags().GetString("masterChef")
+	cakePerBlock := big.NewInt(int64(cakePerBlockFloat*1e4) * 1e14)
+
+	setupWebsocketEthClient(ethNodeAddr)
+
+	//owner string, spender string, amount int64
+	err := updateCakePerBlockHandle(cakePerBlock, startBlock, masterChef)
+	if nil != err {
+		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
+		return
+	}
+	fmt.Println("Succeed to AddPool2Farm")
 }

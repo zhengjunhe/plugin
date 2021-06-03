@@ -22,7 +22,6 @@ contract PancakeERC20 is IPancakeERC20 {
 
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
-    event RunStep(string funcName);
 
     constructor() public {
         uint chainId;
@@ -41,9 +40,7 @@ contract PancakeERC20 is IPancakeERC20 {
     }
 
     function _mint(address to, uint value) internal {
-        emit RunStep("PancakeERC20::mint::0");
         totalSupply = totalSupply.add(value);
-        emit RunStep("PancakeERC20::mint::1");
         balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(address(0), to, value);
     }

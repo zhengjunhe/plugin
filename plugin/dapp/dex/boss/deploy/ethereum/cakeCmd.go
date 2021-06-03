@@ -17,6 +17,7 @@ func CakeCmd() *cobra.Command {
 		DeployPancakeCmd(),
 		AddAllowance4LPCmd(),
 		CheckAllowance4LPCmd(),
+		showPairInitCodeHashCmd(),
 	)
 	return cmd
 }
@@ -117,4 +118,36 @@ func CheckAllowance4LP(cmd *cobra.Command, args []string) {
 		return
 	}
 	fmt.Println("Succeed to CheckAllowance4LP")
+}
+
+func showPairInitCodeHashCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "showInitHash",
+		Short: "show pair's init code hash",
+		Run:   showPairInitCodeHash,
+	}
+
+	showPairInitCodeHashFlags(cmd)
+
+	return cmd
+}
+
+func showPairInitCodeHashFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("factory", "f", "", "factory address")
+	_ = cmd.MarkFlagRequired("factory")
+}
+
+func showPairInitCodeHash(cmd *cobra.Command, args []string) {
+	factory, _ := cmd.Flags().GetString("factory")
+
+	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+
+	setupWebsocketEthClient(ethNodeAddr)
+
+	//owner string, spender string, amount int64
+	err := showPairInitCodeHashHandle(factory)
+	if nil != err {
+		fmt.Println("Failed to showPairInitCodeHash due to:", err.Error())
+		return
+	}
 }

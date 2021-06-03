@@ -14,9 +14,7 @@ contract PancakeFactory is IPancakeFactory {
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
-    event debug(string des, int pos);
     event PairCreated(string func, address indexed token0, address indexed token1, address pair, string hash);
-    event RunStep(string funcName, uint step);
 
     constructor(address _feeToSetter) public {
         feeToSetter = _feeToSetter;
@@ -27,15 +25,11 @@ contract PancakeFactory is IPancakeFactory {
     }
 
     function createPair(address tokenA, address tokenB) external returns (address pair) {
-        emit debug("createPair0", 0);
         require(tokenA != tokenB, 'Pancake: IDENTICAL_ADDRESSES');
-        emit debug("createPair1", 0);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'Pancake: ZERO_ADDRESS');
         require(getPair[token0][token1] == address(0), 'Pancake: PAIR_EXISTS'); // single check is sufficient
-        emit debug("createPair2", 0);
         bytes memory bytecode = type(PancakePair).creationCode;
-        emit debug("createPair3", 0);
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)

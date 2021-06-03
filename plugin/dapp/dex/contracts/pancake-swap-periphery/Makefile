@@ -2,7 +2,7 @@
 ##编译solidity，并产生bin文件，abi文件，和相应的go文件
 
 SRC_CONTRACT := contracts
-GO_OUT := pancakeRouter
+GO_OUT := src/pancakeRouter
 PACKAGE := pancakeRouter
 
 proj := "build"
@@ -17,7 +17,7 @@ weth:
 	@abigen --sol $(SRC_CONTRACT)/test/WETH9.sol --pkg $(PACKAGE) --out $(GO_OUT)/weth.go
 
 factory:
-	@abigen --sol pancake-swap-core/$(SRC_CONTRACT)/PancakeFactory.sol --pkg pancakeFactory --out pancakeFactory/pancakeFactory.go
+	@abigen --sol pancake-swap-core/$(SRC_CONTRACT)/PancakeFactory.sol --pkg pancakeFactory --out src/pancakeFactory/pancakeFactory.go
 
 
 clean:

@@ -38,7 +38,7 @@ func setupWebsocketEthClient(ethNodeAddr string) {
 	if nil != err {
 		panic(fmt.Sprintf("Failed to SetupWebsocketEthClient with url:%s", ethNodeAddr))
 	}
-	fmt.Println("Succeed to establish connection to bsc")
+	fmt.Println("Succeed to establish connection to ethereum test net with URL: ", ethNodeAddr)
 }
 
 // SetupWebsocketEthClient : returns boolean indicating if a URL is valid websocket ethclient
@@ -112,7 +112,7 @@ func PrepareAuth(privateKey *ecdsa.PrivateKey, transactor common.Address) (*bind
 }
 
 func DeployPancake() error {
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -219,10 +219,10 @@ deployPancakeRouter:
 	return nil
 }
 
-func recoverBinancePrivateKey() (err error) {
+func recoverEthTestNetPrivateKey() (err error) {
 	//louyuqi: f726c7c704e57ec5d59815dda23ddd794f71ae15f7e0141f00f73eff35334ac6
-	//hzj: 2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9
-	privateKey, err = crypto.ToECDSA(common.FromHex("f726c7c704e57ec5d59815dda23ddd794f71ae15f7e0141f00f73eff35334ac6"))
+	//hzj: 2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9 --->addr:0x21B5f4C2F6Ff418fa0067629D9D76AE03fB4a2d2
+	privateKey, err = crypto.ToECDSA(common.FromHex("2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9"))
 	if nil != err {
 		panic("Failed to recover private key")
 		return err
@@ -244,7 +244,7 @@ func recoverBinancePrivateKey() (err error) {
 //Succeed to deploy contracts
 
 func AddAllowance4LPHandle(lp string, spender string, amount int64) (err error) {
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	pairInt, err := pancakeFactory.NewPancakePair(common.HexToAddress(lp), ethClient)
 	if nil != err {
 		return err
@@ -298,7 +298,7 @@ checkAllowance:
 }
 
 func CheckAllowance4LPHandle(lp string, spender string) (err error) {
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	pairInt, err := pancakeFactory.NewPancakePair(common.HexToAddress(lp), ethClient)
 	if nil != err {
 		return err
@@ -314,6 +314,27 @@ func CheckAllowance4LPHandle(lp string, spender string) (err error) {
 		return err
 	}
 	fmt.Println("\n The allowance recetrived is:", result.String())
+
+	return nil
+}
+
+func showPairInitCodeHashHandle(factory string) (err error) {
+	_ = recoverEthTestNetPrivateKey()
+	factoryInt, err := pancakeFactory.NewPancakeFactory(common.HexToAddress(factory), ethClient)
+	if nil != err {
+		return err
+	}
+	//checkAllowance:
+	opts := &bind.CallOpts{
+		Pending: true,
+		Context: context.Background(),
+	}
+
+	initHash, err := factoryInt.INITCODEPAIRHASH(opts)
+	if nil != err {
+		return err
+	}
+	fmt.Println("\n The code init hash is:", common.Bytes2Hex(initHash[:]))
 
 	return nil
 }

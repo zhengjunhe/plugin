@@ -29,7 +29,6 @@ contract PancakePair is IPancakePair, PancakeERC20 {
     uint public price1CumulativeLast;
     uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
-    event RunStep(string funcName, uint step);
     event number(uint v);
 
     uint private unlocked = 1;
@@ -69,7 +68,6 @@ contract PancakePair is IPancakePair, PancakeERC20 {
 
     // called once by the factory at time of deployment
     function initialize(address _token0, address _token1) external {
-        emit RunStep('initialize', 0);
         require(msg.sender == factory, 'Pancake: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
@@ -114,26 +112,19 @@ contract PancakePair is IPancakePair, PancakeERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
-        emit RunStep('PancakePair::mint::0', 0);
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        emit RunStep('PancakePair::mint::1', 0);
         uint balance0 = IERC20(token0).balanceOf(address(this));
-        emit RunStep('PancakePair::mint::2', 0);
         uint balance1 = IERC20(token1).balanceOf(address(this));
-        emit RunStep('PancakePair::mint::3', 0);
         uint amount0 = balance0.sub(_reserve0);
         uint amount1 = balance1.sub(_reserve1);
 
-        emit RunStep('PancakePair::mint::4', 0);
+
         bool feeOn = _mintFee(_reserve0, _reserve1);
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
-        emit RunStep('PancakePair::mint::5', 0);
+
         if (_totalSupply == 0) {
-            emit RunStep('PancakePair::mint::v::0', 0);
             uint mulValue0 = amount0.mul(amount1);
-            emit RunStep('PancakePair::mint::v::1', 0);
             uint sqrtValue0 = Math.sqrt(mulValue0);
-            emit RunStep('PancakePair::mint::v::2', 0);
             emit number(amount0);
             emit number(amount1);
             emit number(mulValue0);
@@ -141,22 +132,14 @@ contract PancakePair is IPancakePair, PancakeERC20 {
             emit number(MINIMUM_LIQUIDITY);
             liquidity = sqrtValue0.sub(MINIMUM_LIQUIDITY);
             //liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-            emit RunStep('PancakePair::mint::v::3', 0);
             _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
-            emit RunStep('PancakePair::mint::v::4', 0);
         } else {
-            emit RunStep('PancakePair::mint::ivi::0', 0);
             liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
-            emit RunStep('PancakePair::mint::ivi::1', 0);
         }
-        emit RunStep('PancakePair::mint::6', 0);
         require(liquidity > 0, 'Pancake: INSUFFICIENT_LIQUIDITY_MINTED');
-        emit RunStep('PancakePair::mint::7', 0);
         _mint(to, liquidity);
-        emit RunStep('PancakePair::mint::8', 0);
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit RunStep('PancakePair::mint::9', 0);
         if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
     }

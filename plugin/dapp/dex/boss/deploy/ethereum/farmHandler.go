@@ -32,7 +32,7 @@ func GetCakeBalance(owner string, pid int64) (string, error) {
 }
 
 func DeployFarm() error {
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -143,7 +143,7 @@ func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken stri
 		return err
 	}
 
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -187,7 +187,7 @@ func UpdateAllocPointHandle(masterChefAddrStr string, pid, allocPoint int64, wit
 		return err
 	}
 
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
@@ -230,7 +230,7 @@ func TransferOwnerShipHandle(newOwner, contract string) (err error) {
 		return err
 	}
 
-	_ = recoverBinancePrivateKey()
+	_ = recoverEthTestNetPrivateKey()
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
@@ -267,4 +267,44 @@ func TransferOwnerShipHandle(newOwner, contract string) (err error) {
 	}
 
 	return nil
+}
+
+func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef string) (err error) {
+	_ = recoverEthTestNetPrivateKey()
+	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress(masterchef), ethClient)
+	if nil != err {
+		return err
+	}
+	auth, err := PrepareAuth(privateKey, deployerAddr)
+	if nil != err {
+		return err
+	}
+	updateCakePerBlockTx, err := masterChefInt.UpdateCakePerBlock(auth, cakePerBlock, big.NewInt(startBlock))
+	if nil != err {
+		panic(fmt.Sprintf("Failed to UpdateCakePerBlock with err:%s", err.Error()))
+		return err
+	}
+
+	{
+		fmt.Println("\nUpdateCakePerBlock tx hash:", updateCakePerBlockTx.Hash().String())
+		timeout := time.NewTimer(300 * time.Second)
+		oneSecondtimeout := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-timeout.C:
+				panic("UpdateCakePerBlock timeout")
+			case <-oneSecondtimeout.C:
+				_, err := ethClient.TransactionReceipt(context.Background(), updateCakePerBlockTx.Hash())
+				if err == ethereum.NotFound {
+					fmt.Println("\n No receipt received yet for UpdateCakePerBlock tx and continue to wait")
+					continue
+				} else if err != nil {
+					panic("UpdateCakePerBlock failed due to" + err.Error())
+				}
+				fmt.Println("\n Succeed to do the UpdateCakePerBlock operation")
+				return nil
+			}
+		}
+	}
+
 }
