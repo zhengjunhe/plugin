@@ -358,6 +358,13 @@ func (ethRelayer *Relayer4Ethereum) TransferToken(tokenAddr, fromKey, toAddr, am
 	return ethtxs.TransferToken(tokenAddr, fromKey, toAddr, bn, ethRelayer.clientSpec)
 }
 
+//TransferEth ...
+func (ethRelayer *Relayer4Ethereum) TransferEth(fromKey, toAddr, amount string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
+	return ethtxs.TransferEth(fromKey, toAddr, bn, ethRelayer.clientSpec)
+}
+
 //GetDecimals ...
 func (ethRelayer *Relayer4Ethereum) GetDecimals(tokenAddr string) (uint8, error) {
 	opts := &bind.CallOpts{

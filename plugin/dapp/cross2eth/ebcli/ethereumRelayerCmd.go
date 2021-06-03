@@ -44,12 +44,10 @@ func EthereumRelayerCmd() *cobra.Command {
 		LockAsyncCmd(),
 		ShowBridgeBankAddrCmd(),
 		ShowBridgeRegistryAddrCmd(),
-		TransferTokenCmd(),
 		DeployERC20Cmd(),
 		TokenCmd(),
 		MultiSignEthCmd(),
-		ConfigOfflineSaveAccountCmd(),
-		ConfigLockedTokenOfflineSaveCmd(),
+		TransferEthCmd(),
 	)
 
 	return cmd
@@ -69,6 +67,7 @@ func TokenCmd() *cobra.Command {
 		ShowTokenAddress4EthCmd(),
 		AddToken2LockListCmd(),
 		ShowTokenAddress4LockEthCmd(),
+		TransferTokenCmd(),
 	)
 	return cmd
 }
@@ -816,8 +815,8 @@ func IsProphecyPending(cmd *cobra.Command, args []string) {
 //TransferTokenCmd ...
 func TransferTokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer",
-		Short: "create a transfer transaction",
+		Use:   "token_transfer",
+		Short: "create a token transfer transaction",
 		Run:   TransferToken,
 	}
 	TransferTokenFlags(cmd)
@@ -872,8 +871,10 @@ func MultiSignEthCmd() *cobra.Command {
 	cmd.AddCommand(
 		DeployMultiSignEthCmd(),
 		SetupEthCmd(),
-		TransferEthCmd(),
+		MultiSignTransferEthCmd(),
 		ShowEthAddrCmd(),
+		ConfigOfflineSaveAccountCmd(),
+		ConfigLockedTokenOfflineSaveCmd(),
 	)
 	return cmd
 }
@@ -953,17 +954,17 @@ func SetupEthOwner(cmd *cobra.Command, args []string) {
 	ctx.Run()
 }
 
-func TransferEthCmd() *cobra.Command {
+func MultiSignTransferEthCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer",
 		Short: "transfer via safe",
-		Run:   TransferEth,
+		Run:   SafeTransferEth,
 	}
-	TransferEthFlags(cmd)
+	SafeTransferEthFlags(cmd)
 	return cmd
 }
 
-func TransferEthFlags(cmd *cobra.Command) {
+func SafeTransferEthFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("receiver", "r", "", "receive address")
 	_ = cmd.MarkFlagRequired("receiver")
 
@@ -976,7 +977,7 @@ func TransferEthFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("token", "t", "", "erc20 address,not need to set for ETH(optional)")
 }
 
-func TransferEth(cmd *cobra.Command, args []string) {
+func SafeTransferEth(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	receiver, _ := cmd.Flags().GetString("receiver")
 	tokenAddr, _ := cmd.Flags().GetString("token")
@@ -1007,13 +1008,13 @@ func ConfigOfflineSaveAccountCmd() *cobra.Command {
 	return cmd
 }
 
-//CreateBridgeTokenFlags ...
+//ConfigOfflineSaveAccountFlags ...
 func ConfigOfflineSaveAccountFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("address", "s", "", "multisign address")
 	_ = cmd.MarkFlagRequired("address")
 }
 
-//CreateBridgeToken ...
+//ConfigOfflineSaveAccount ...
 func ConfigOfflineSaveAccount(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	address, _ := cmd.Flags().GetString("address")
@@ -1034,33 +1035,80 @@ func ConfigLockedTokenOfflineSaveCmd() *cobra.Command {
 	return cmd
 }
 
-//CreateBridgeTokenFlags ...
+//ConfigLockedTokenOfflineSaveFlags ...
 func ConfigLockedTokenOfflineSaveFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("token", "t", "", "token addr")
-	_ = cmd.MarkFlagRequired("token")
+	//_ = cmd.MarkFlagRequired("token")
 	cmd.Flags().StringP("symbol", "s", "", "token symbol")
 	_ = cmd.MarkFlagRequired("symbol")
-	cmd.Flags().StringP("threshold", "m", "", "threshold")
+	cmd.Flags().Float64P("threshold", "m", 0, "threshold")
 	_ = cmd.MarkFlagRequired("threshold")
 	cmd.Flags().Uint32P("percents", "p", 50, "percents")
 	//_ = cmd.MarkFlagRequired("percents")
 }
 
-//CreateBridgeToken ...
+//ConfigLockedTokenOfflineSave ...
 func ConfigLockedTokenOfflineSave(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	symbol, _ := cmd.Flags().GetString("symbol")
 	token, _ := cmd.Flags().GetString("token")
-	threshold, _ := cmd.Flags().GetString("threshold")
+	threshold, _ := cmd.Flags().GetFloat64("threshold")
 	percents, _ := cmd.Flags().GetUint32("percents")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
 
+	d, err := utils.GetDecimalsFromNode(token, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimals error", err.Error())
+		return
+	}
+
+	realAmount := utils.ToWei(threshold, d)
 	para := ebTypes.ETHConfigLockedTokenOffline{
 		Symbol:    symbol,
 		Address:   token,
-		Threshold: threshold,
+		Threshold: realAmount.String(),
 		Percents:  percents,
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigLockedTokenOfflineSave", para, &res)
+	ctx.Run()
+}
+
+func TransferEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer",
+		Short: "create a transfer transaction",
+		Run:   TransferEth,
+	}
+	TransferEthFlags(cmd)
+	return cmd
+}
+
+func TransferEthFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("from", "k", "", "from private key")
+	_ = cmd.MarkFlagRequired("from")
+	cmd.Flags().StringP("to", "r", "", "to address")
+	_ = cmd.MarkFlagRequired("to")
+	cmd.Flags().Float64P("amount", "m", 0, "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
+func TransferEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	from, _ := cmd.Flags().GetString("from")
+	to, _ := cmd.Flags().GetString("to")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+
+	d := int64(18)
+
+	realAmount := utils.ToWei(amount, d)
+	para := ebTypes.TransferToken{
+		TokenAddr: "",
+		FromKey:   from,
+		ToAddr:    to,
+		Amount:    realAmount.String(),
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.TransferEth", para, &res)
 	ctx.Run()
 }

@@ -410,6 +410,68 @@ func TransferToken(tokenAddr, fromPrivateKeyStr, toAddr string, amount *big.Int,
 	return tx.Hash().String(), nil
 }
 
+func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethinterface.EthClientSpec) (string, error) {
+	txslog.Info("TransferEth", "toAddr", toAddr, "amount", amount)
+	var prepareDone bool
+
+	fromPrivateKey, err := crypto.ToECDSA(common.FromHex(fromPrivateKeyStr))
+	if nil != err {
+		return "", err
+	}
+	fromAddr := crypto.PubkeyToAddress(fromPrivateKey.PublicKey)
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(fromAddr)
+		}
+	}()
+
+	auth, err := PrepareAuth(client, fromPrivateKey, fromAddr)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	toAddress := common.HexToAddress(toAddr)
+	var data []byte
+
+	tx := types.NewTx(&types.LegacyTx{
+		Nonce:    uint64(auth.Nonce.Int64()),
+		To:       &toAddress,
+		Value:    amount,
+		Gas:      auth.GasLimit,
+		GasPrice: auth.GasPrice,
+		Data:     data,
+	})
+
+	chainID, err := client.NetworkID(context.Background())
+	if err != nil {
+		txslog.Error("TransferEth NetworkID", "tx", tx)
+		return "", err
+	}
+
+	txslog.Info("TransferEth", "chainID", chainID, "amount", amount)
+
+	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), fromPrivateKey)
+	if err != nil {
+		txslog.Error("TransferEth SignTx", "err", err)
+		return "", err
+	}
+
+	err = client.SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		txslog.Error("TransferEth SendTransaction", "err", err)
+		return "", err
+	}
+
+	err = waitEthTxFinished(client, tx.Hash(), "TransferEth")
+	if nil != err {
+		return "", err
+	}
+	return tx.Hash().String(), nil
+}
+
 //LockEthErc20Asset ...
 func LockEthErc20Asset(ownerPrivateKeyStr, tokenAddrStr, chain33Receiver string, amount *big.Int, client ethinterface.EthClientSpec, bridgeBank *generated.BridgeBank, bridgeBankAddr common.Address) (string, error) {
 	var prepareDone bool
@@ -593,7 +655,7 @@ func SetupMultiSign(ownerPrivateKeyStr, multiSignAddrstr string, owners []string
 }
 
 func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string, amount float64, client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
-	txslog.Info("SafeTransfer", "receiver", receiver, "token", token, "amount", amount)
+	txslog.Info("SafeTransfer", "multiSignAddrstr", multiSignAddrstr, "receiver", receiver, "token", token, "amount", amount)
 
 	if nil == para {
 		return "", errors.New("no operator private key configured")
@@ -674,7 +736,7 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 		txslog.Error("SafeTransfer", "Failed to GetTransactionHash", err.Error())
 		return "", err
 	}
-	txslog.Error("SafeTransfer", "safe.Nonce =", nonce.String(), "safe.Nonce(int64) =", nonce.Int64())
+
 	sigs, err := buildSigs(signContent[:], privateKeys)
 	if err != nil {
 		txslog.Error("SafeTransfer", "Failed to buildSigs", err.Error())
@@ -719,6 +781,7 @@ func buildSigs(data []byte, privateKeys []string) ([]byte, error) {
 }
 
 func ConfigOfflineSaveAccount(addr string, client ethinterface.EthClientSpec, para *OperatorInfo, x2EthContracts *X2EthContracts) (string, error) {
+	txslog.Info("ConfigOfflineSaveAccount", "addr", addr)
 	if nil == para {
 		return "", errors.New("no operator private key configured")
 	}
@@ -751,6 +814,7 @@ func ConfigOfflineSaveAccount(addr string, client ethinterface.EthClientSpec, pa
 		sim.Commit()
 	}
 
+	txslog.Info("ConfigOfflineSaveAccount", "tx.Hash()", tx.Hash().String())
 	err = waitEthTxFinished(client, tx.Hash(), "ConfigOfflineSaveAccount")
 	if nil != err {
 		return "", err
@@ -760,6 +824,7 @@ func ConfigOfflineSaveAccount(addr string, client ethinterface.EthClientSpec, pa
 }
 
 func ConfigLockedTokenOfflineSave(addr, symbol string, threshold *big.Int, percents uint8, client ethinterface.EthClientSpec, para *OperatorInfo, x2EthContracts *X2EthContracts) (string, error) {
+	txslog.Info("ConfigLockedTokenOfflineSave", "addr", addr, "symbol", symbol, "threshold", threshold, "percents", percents)
 	if nil == para {
 		return "", errors.New("no operator private key configured")
 	}
@@ -780,6 +845,11 @@ func ConfigLockedTokenOfflineSave(addr, symbol string, threshold *big.Int, perce
 
 	prepareDone = true
 
+	// ?????
+	if "0x0000000000000000000000000000000000000000" == addr {
+		auth.Value = threshold
+	}
+
 	OfflineAddr := common.HexToAddress(addr)
 	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.ConfigLockedTokenOfflineSave(auth, OfflineAddr, symbol, threshold, percents)
 	if nil != err {
@@ -792,6 +862,7 @@ func ConfigLockedTokenOfflineSave(addr, symbol string, threshold *big.Int, perce
 		sim.Commit()
 	}
 
+	txslog.Info("ConfigLockedTokenOfflineSave", "tx.Hash()", tx.Hash().String())
 	err = waitEthTxFinished(client, tx.Hash(), "ConfigLockedTokenOfflineSave")
 	if nil != err {
 		return "", err

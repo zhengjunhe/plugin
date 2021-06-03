@@ -1037,3 +1037,18 @@ func (manager *Manager) ConfigLockedTokenOfflineSave(config relayerTypes.ETHConf
 	}
 	return nil
 }
+
+//TransferEth ...
+func (manager *Manager) TransferEth(transfer relayerTypes.TransferToken, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.TransferEth(transfer.FromKey, transfer.ToAddr, transfer.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
