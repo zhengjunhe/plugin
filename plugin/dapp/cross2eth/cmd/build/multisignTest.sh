@@ -103,7 +103,7 @@ function deployMultisign() {
     cli_ret "${result}" "ethereum multisign setup"
 
     # multisignEthAddr 要有手续费
-    ./ebcli_A ethereum transfer -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 -m 10 -r "${multisignEthAddr}"
+#    ./ebcli_A ethereum transfer -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 -m 10 -r "${multisignEthAddr}"
 
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"

@@ -433,6 +433,8 @@ func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethin
 
 	prepareDone = true
 
+	gasLimit := uint64(100 * 10000) //uint64(21000) // in units
+
 	toAddress := common.HexToAddress(toAddr)
 	var data []byte
 
@@ -440,7 +442,7 @@ func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethin
 		Nonce:    uint64(auth.Nonce.Int64()),
 		To:       &toAddress,
 		Value:    amount,
-		Gas:      auth.GasLimit,
+		Gas:      gasLimit, //auth.GasLimit,
 		GasPrice: auth.GasPrice,
 		Data:     data,
 	})
@@ -451,7 +453,7 @@ func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethin
 		return "", err
 	}
 
-	txslog.Info("TransferEth", "chainID", chainID, "amount", amount)
+	txslog.Info("TransferEth", "chainID", chainID, "amount", amount, "tx", tx)
 
 	signedTx, err := types.SignTx(tx, types.NewEIP155Signer(chainID), fromPrivateKey)
 	if err != nil {
@@ -465,11 +467,11 @@ func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethin
 		return "", err
 	}
 
-	err = waitEthTxFinished(client, tx.Hash(), "TransferEth")
+	err = waitEthTxFinished(client, signedTx.Hash(), "TransferEth")
 	if nil != err {
 		return "", err
 	}
-	return tx.Hash().String(), nil
+	return signedTx.Hash().String(), nil
 }
 
 //LockEthErc20Asset ...

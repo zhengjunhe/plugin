@@ -85,7 +85,7 @@ func PrepareAuth(client ethinterface.EthClientSpec, privateKey *ecdsa.PrivateKey
 		return nil, errors.New("failed to get suggest gas price " + err.Error())
 	}
 
-	chainID, err := client.NetworkID(context.Background())
+	chainID, err := client.NetworkID(ctx)
 	if err != nil {
 		txslog.Error("PrepareAuth NetworkID", "err", err)
 		return nil, err
@@ -113,6 +113,7 @@ func waitEthTxFinished(client ethinterface.EthClientSpec, txhash common.Hash, tx
 	for {
 		select {
 		case <-timeout.C:
+			txslog.Info(txName, "tx", "eth tx timeout")
 			return errors.New("eth tx timeout")
 		case <-oneSecondtimeout.C:
 			_, err := client.TransactionReceipt(context.Background(), txhash)
