@@ -276,7 +276,7 @@ func approve(privateKey chain33Crypto.PrivKey, contractAddr, spender, chainName,
 		chain33txLog.Info("approve", "Failed to do abi.Pack due to:", err.Error())
 		return "", err
 	}
-	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData)
+	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData, 0)
 }
 
 func burn(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, ethereumTokenAddress, chainName, rpcURL string, amount int64) (string, error) {
@@ -293,7 +293,7 @@ func burn(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, ethe
 		return "", err
 	}
 
-	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData)
+	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData, 0)
 }
 
 func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, chainName, rpcURL string, amount int64) (string, error) {
@@ -309,11 +309,11 @@ func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, c
 		chain33txLog.Info("setOracle", "Failed to do abi.Pack due to:", err.Error())
 		return "", ebrelayerTypes.ErrPack
 	}
-	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData)
+	return sendEvmTx(privateKey, contractAddr, chainName, rpcURL, note, packData, amount)
 }
 
-func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, chainName, rpcURL, note string, parameter []byte) (string, error) {
-	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: parameter}
+func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, chainName, rpcURL, note string, parameter []byte, amount int64) (string, error) {
+	action := evmtypes.EVMContractAction{Amount: uint64(amount), GasLimit: 0, GasPrice: 0, Note: note, Para: parameter}
 
 	feeInt64 := int64(1e7)
 	toAddr := contractAddr
@@ -416,7 +416,7 @@ func setupMultiSign(ownerPrivateKeyStr, contractAddr, chainName, rpcURL string, 
 		return "", err
 	}
 
-	return sendEvmTx(ownerPrivateKey, contractAddr, chainName, rpcURL, note, packData)
+	return sendEvmTx(ownerPrivateKey, contractAddr, chainName, rpcURL, note, packData, 0)
 }
 
 func safeTransfer(ownerPrivateKeyStr, mulSign, chainName, rpcURL, receiver, token string, privateKeys []string, amount float64) (string, error) {
@@ -530,7 +530,7 @@ func safeTransfer(ownerPrivateKeyStr, mulSign, chainName, rpcURL, receiver, toke
 		return "", err
 	}
 
-	return sendEvmTx(ownerPrivateKey, mulSign, chainName, rpcURL, note, packData)
+	return sendEvmTx(ownerPrivateKey, mulSign, chainName, rpcURL, note, packData, 0)
 }
 
 func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, bridgeBank string) {
