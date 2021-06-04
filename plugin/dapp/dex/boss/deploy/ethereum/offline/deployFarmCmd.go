@@ -29,7 +29,7 @@ func (s *SignCakeToken) reWriteDeployCakeToken(nonce uint64, gasPrice *big.Int, 
 
 	var amount = new(big.Int)
 	ntx := types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 
 }
 
@@ -52,7 +52,7 @@ func  (s *signsyrupBar)reWriteDeploysyrupBar(nonce uint64, gasPrice *big.Int, ke
 
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 }
 
 type signMasterChef struct{
@@ -73,5 +73,5 @@ func (s *signMasterChef)reWriteDeployMasterChef(nonce uint64, gasPrice *big.Int,
 
 	var amount = new(big.Int)
 	ntx := types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 }

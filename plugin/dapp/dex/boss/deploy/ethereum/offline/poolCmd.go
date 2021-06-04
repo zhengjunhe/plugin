@@ -104,7 +104,7 @@ func (a *AddPool)reWriteAddPool2Farm(nonce uint64,masterChefAddrStr string,gasPr
 		panic(err)
 	}
 	ntx := types.NewTransaction(nonce, masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 }
 
 
@@ -191,7 +191,7 @@ func (u*updateAllocPoint)rewriteUpdateAllocPoint(masterChefAddrStr string,nonce 
 		panic(err)
 	}
 	ntx := types.NewTransaction(nonce, masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 
 }
 
@@ -268,7 +268,7 @@ func TransferOwnerShipHandle(nonce uint64,gasPrice *big.Int,newOwner, contract s
 		return
 	}
 	ntx:= types.NewTransaction(nonce, contractAddr, big.NewInt(0), gasLimit, gasPrice, input)
-	return  signTx(key,ntx)
+	return  SignTx(key,ntx)
 
 }
 

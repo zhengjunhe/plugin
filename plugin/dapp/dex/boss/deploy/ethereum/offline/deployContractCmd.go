@@ -226,7 +226,7 @@ func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, 
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	//ntx := types.NewTransaction(nonce, common.Address{}, amount, gasLimit, gasPrice, data)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 }
 
 
@@ -244,7 +244,7 @@ func (s *SignWeth9Cmd) reWriteDeployWETH9(nonce uint64, gasPrice *big.Int, key *
 	data := append(common.FromHex(abiBin), input...)
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 }
 
 type SignPanCakeRout struct {
@@ -263,11 +263,11 @@ func (s *SignPanCakeRout) reWriteDeployPanCakeRout(nonce uint64, gasPrice *big.I
 	data := append(common.FromHex(abiBin), input...)
 	var amount = new(big.Int)
 	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
-	return signTx(key, ntx)
+	return SignTx(key, ntx)
 
 }
 
-func signTx(key *ecdsa.PrivateKey, tx *types.Transaction) (signedTx, hash  string, err error) {
+func SignTx(key *ecdsa.PrivateKey, tx *types.Transaction) (signedTx, hash  string, err error) {
 	signer := types.HomesteadSigner{}
 	txhash := signer.Hash(tx)
 	signature, err := crypto.Sign(txhash.Bytes(), key)
