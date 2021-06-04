@@ -433,10 +433,10 @@ func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethin
 
 	prepareDone = true
 
-	gasLimit := uint64(100 * 10000) //uint64(21000) // in units
+	gasLimit := uint64(21000)
 
 	toAddress := common.HexToAddress(toAddr)
-	var data []byte
+	//var data []byte
 
 	tx := types.NewTx(&types.LegacyTx{
 		Nonce:    uint64(auth.Nonce.Int64()),
@@ -444,7 +444,7 @@ func TransferEth(fromPrivateKeyStr, toAddr string, amount *big.Int, client ethin
 		Value:    amount,
 		Gas:      gasLimit, //auth.GasLimit,
 		GasPrice: auth.GasPrice,
-		Data:     data,
+		//Data:     data,
 	})
 
 	chainID, err := client.NetworkID(context.Background())
@@ -846,11 +846,6 @@ func ConfigLockedTokenOfflineSave(addr, symbol string, threshold *big.Int, perce
 	}
 
 	prepareDone = true
-
-	// ?????
-	if "0x0000000000000000000000000000000000000000" == addr {
-		auth.Value = threshold
-	}
 
 	OfflineAddr := common.HexToAddress(addr)
 	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.ConfigLockedTokenOfflineSave(auth, OfflineAddr, symbol, threshold, percents)

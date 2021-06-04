@@ -27,15 +27,15 @@ chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 #ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
 #ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
 
-maturityDegree=10
+#maturityDegree=10
 
 Chain33Cli="../../chain33-cli"
 chain33BridgeBank=""
 ethBridgeBank=""
 chain33BtyTokenAddr="1111111111111111111114oLvT2"
-chain33EthTokenAddr=""
-ethereumBtyTokenAddr=""
-chain33YccTokenAddr=""
+#chain33EthTokenAddr=""
+#ethereumBtyTokenAddr=""
+#chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
 multisignChain33Addr=""
 multisignEthAddr=""
@@ -80,7 +80,7 @@ function deployMultisign() {
         balance_ret "${result}" "10.0000"
     done
 
-    echo '部署 chain33 离线钱包合约'
+    echo -e "${GRE}=========== 部署 chain33 离线钱包合约 ===========${NOC}"
     result=$(${CLIA} chain33 multisign deploy)
     cli_ret "${result}" "chain33 multisign deploy"
     multisignChain33Addr=$(echo "${result}" | jq -r ".msg")
@@ -94,7 +94,10 @@ function deployMultisign() {
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e coins)
     balance_ret "${result}" "10.0000"
 
-    echo '部署 ETH 离线钱包合约'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
     result=$(${CLIA} ethereum multisign deploy)
     cli_ret "${result}" "ethereum multisign deploy"
     multisignEthAddr=$(echo "${result}" | jq -r ".msg")
@@ -102,175 +105,181 @@ function deployMultisign() {
     result=$(${CLIA} ethereum multisign setup -k "${ethDeployKey}" -o "${ethMultisignA},${ethMultisignB},${ethMultisignC},${ethMultisignD}")
     cli_ret "${result}" "ethereum multisign setup"
 
-    # multisignEthAddr 要有手续费
-#    ./ebcli_A ethereum transfer -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 -m 10 -r "${multisignEthAddr}"
-
+    result=$(${CLIA} ethereum multisign set_offline_addr -s "${multisignEthAddr}")
+    cli_ret "${result}" "set_offline_addr"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function lock_bty_balance () {
+    local lockAmount=$1
+    local lockAmount2="${1}00000000"
+    local bridgeBankBalance=$2
+    local multisignBalance=$3
+
+    hash=$(${Chain33Cli} evm call -f 1 -a "${lockAmount}" -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, ${lockAmount2})")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+    balance_ret "${result}" "${bridgeBankBalance}"
+
+    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+    balance_ret "${result}" "${multisignBalance}"
 }
 
 function lockBty() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
-    echo '1:#配置离线钱包地址'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
+#    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,100000000000,50)")
     check_tx "${Chain33Cli}" "${hash}"
 
-    echo '3:#在chain33侧lock bty, 不需要addlock，执行完成之后，在chain33侧的multisign没有增加 bty 余额'
-    hash=$(${Chain33Cli} evm call -f 1 -a 330 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 33000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
-    balance_ret "${result}" "0.0000"
-
-    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-    balance_ret "${result}" "330.0000"
-
-    echo '4:#在#执行完成之后，在chain33侧的multisign增加了 bty 余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
-    hash=$(${Chain33Cli} evm call -f 1 -a 800 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 80000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
-    balance_ret "${result}" "565.0000"
-
-    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-    balance_ret "${result}" "565.0000"
-
-    hash=$(${Chain33Cli} evm call -f 1 -a 500 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 50000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
-    balance_ret "${result}" "1097.5000"
-
-    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-    balance_ret "${result}" "532.5000"
+    lock_bty_balance 330 "330.0000" "0.0000"
+    lock_bty_balance 800 "565.0000" "565.0000"
+    lock_bty_balance 500 "532.5000" "1097.5000"
 
     # transfer test
-    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
-
-
-    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-
-    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
-
-    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
+#    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
+##    check_tx "${Chain33Cli}" "${hash}"
+#
+#    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+#    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+#
+#    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
+##    check_tx "${Chain33Cli}" "${hash}"
+#
+#    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+#    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function lock_bty_ycc_balance () {
+    local lockAmount="${1}00000000"
+    local bridgeBankBalance="${2}00000000"
+    local multisignBalance="${3}00000000"
+    if [[ "${3}" == "0" ]]; then
+        multisignBalance="0"
+    fi
+
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33YccErc20Addr}, ${lockAmount})")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "${bridgeBankBalance}"
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${multisignChain33Addr}" -b "balanceOf(${multisignChain33Addr})")
+    is_equal "${result}" "${multisignBalance}"
 }
 
 function lockChain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
-    result=$(${CLIA} chain33 token create -s YCC -o 14KEKbYtKKQm4wMthSK9J4La4nAiidGozt)
+    # chain33 token create YCC
+    result=$(${CLIA} chain33 token create -s YCC -o "${chain33DeployAddr}")
     cli_ret "${result}" "chain33 token create -s YCC"
     chain33YccErc20Addr=$(echo "${result}" | jq -r .msg)
-
     cp ./ERC20.abi "${chain33YccErc20Addr}.abi"
 
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
-
-#    echo '1:#配置离线钱包地址'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})")
-    check_tx "${Chain33Cli}" "${hash}"
-
-#    echo '2:#配置自动转离线钱包(YCC, 1000, 60%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,100000000000,60)")
+#    echo '2:#配置自动转离线钱包(YCC, 100, 60%)'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,10000000000,60)")
     check_tx "${Chain33Cli}" "${hash}"
 
 #    echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)")
     check_tx "${Chain33Cli}" "${hash}"
 
-    echo 'YCC.1:#在chain33侧lock YCC, 因为需要提前addlock，所以lock失败,chain33BridgeBank的ＹＣＣ余额没有发生变化'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33YccErc20Addr}, 50000000000)")
-
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})"
-
-#    echo 'YCC.2:#执行add lock操作:addToken2LockList'
-#    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)")
-#    check_tx "${Chain33Cli}" "${hash}"
-
-#    echo '3:#在chain33侧lock YCC, 执行完成之后，在chain33侧的multisign没有增加YCC余额'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33YccErc20Addr}, 50000000000)")
+    # echo 'YCC.2:#执行add lock操作:addToken2LockList'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)")
     check_tx "${Chain33Cli}" "${hash}"
 
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})"
-
-#    echo '6:#在#执行完成之后，在chain33侧的multisign增加了ＢＴＹ余额，具体的数量　＝　(之前执行该笔交易执行的chain33BridgeBank的BTY余额　+ 800 ) * 50%'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "lock(${ethDeployAddr}, ${chain33YccErc20Addr}, 60000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33DeployAddr})"
-    ${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33DeployAddr})"
+    lock_bty_ycc_balance 30 30 0
+    lock_bty_ycc_balance 70 40 60
+    lock_bty_ycc_balance 260 120 240
+    lock_bty_ycc_balance 10 52 318
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-function lockEth() {
-    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+function lock_eth_balance() {
+    local lockAmount=$1
+    local bridgeBankBalance=$2
+    local multisignBalance=$3
 
-    echo '1:#配置离线钱包地址'
-    ./ebcli_A ethereum multisign set_offline_addr -s "${multisignEthAddr}"
-
-
-    echo '2:#配置自动转离线钱包(eth, 20, 50%)'
-    ./ebcli_A ethereum multisign set_offline_token -s ETH -m 20
-
-
-    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
-    cli_ret "${result}" "balance" ".balance" "0"
-
-    # ETH 这端 lock 11个
-    result=$(${CLIA} ethereum lock -m 11 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}")
+    result=$(${CLIA} ethereum lock -m "${lockAmount}" -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}")
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
     eth_block_wait 2
 
-    # 查询 ETH 这端 bridgeBank 地址 11
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
-#    cli_ret "${result}" "balance" ".balance" "11"
+    cli_ret "${result}" "balance" ".balance" "${bridgeBankBalance}"
     result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
+    cli_ret "${result}" "balance" ".balance" "${multisignBalance}"
+}
 
- # ETH 这端 lock 11个
-    result=$(${CLIA} ethereum lock -m 11 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}")
-    cli_ret "${result}" "lock"
+function lockEth() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
+    # echo '2:#配置自动转离线钱包(eth, 20, 50%)'
+    result=$(${CLIA} ethereum multisign set_offline_token -s ETH -m 20)
+    cli_ret "${result}" "set_offline_token -s ETH -m 20"
+
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
+    cli_ret "${result}" "balance" ".balance" "0"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
+    cli_ret "${result}" "balance" ".balance" "0"
+
+    lock_eth_balance 19 19 0
+    lock_eth_balance 1 10 10
+    lock_eth_balance 16 13 23
+
+    # transfer
+    hash=$(./ebcli_A ethereum multisign transfer -a 100 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}")
 
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
     result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
-
-#    ./ebcli_A ethereum transfer -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 -m 10 -r "${multisignEthAddr}"
-
-
-
-#hash=$(./ebcli_A ethereum multisign transfer -a 100 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}")
-#    check_tx "${Chain33Cli}" "${hash}"
-
 
 #0x5e8aadb91eaa0fce4df0bcc8bd1af9e703a1d6db78e7a4ebffd6cf045e053574,0x0504bcb22b21874b85b15f1bfae19ad62fc2ad89caefc5344dc669c57efa60db,0x0c61f5a879d70807686e43eccc1f52987a15230ae0472902834af4d1933674f2,0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80697
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+function lock_eth_ycc_balance() {
+    local lockAmount=$1
+    local bridgeBankBalance=$2
+    local multisignBalance=$3
+
+    result=$(${CLIA} ethereum lock -m "${lockAmount}" -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "lock"
+
+    # eth 等待 10 个区块
+    eth_block_wait 2
+
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "${bridgeBankBalance}"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "${multisignBalance}"
+}
 
 function lockEthYcc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
+    # echo '2:#配置自动转离线钱包(ycc, 100, 40%)'
+    result=$(${CLIA} ethereum multisign set_offline_token -s YCC -m 100 -p 40 -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "set_offline_token -s YCC -m 100"
 
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "0"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "0"
 
+    lock_eth_ycc_balance 70 70 0
+    lock_eth_ycc_balance 30 60 40
+    lock_eth_ycc_balance 60 72 88
+
+    # transfer
+    # multisignEthAddr 要有手续费
+    ./ebcli_A ethereum transfer -k "${ethDeployKey}" -m 10 -r "${multisignEthAddr}"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -284,11 +293,11 @@ function mainTest() {
     StartRelayerAndDeploy
 
     deployMultisign
-#    lockBty
+
+    lockBty
 #    lockChain33Ycc
-lockEth
-
-
+    lockEth
+    lockEthYcc
 }
 
 mainTest
