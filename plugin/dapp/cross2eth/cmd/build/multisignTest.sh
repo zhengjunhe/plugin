@@ -27,7 +27,7 @@ chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 #ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
 #ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
 
-#maturityDegree=10
+maturityDegree=10
 
 Chain33Cli="../../chain33-cli"
 chain33BridgeBank=""
@@ -203,6 +203,8 @@ function lockChain33Ycc() {
     lock_bty_ycc_balance 260 120 240
     lock_bty_ycc_balance 10 52 318
 
+    sleep ${maturityDegree}
+
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethToeknYccErc20Addr}" )
     cli_ret "${result}" "balance" ".balance" "370"
 
@@ -305,8 +307,8 @@ function mainTest() {
 
     lockBty
     lockChain33Ycc
-#    lockEth
-#    lockEthYcc
+    lockEth
+    lockEthYcc
 }
 
 mainTest
