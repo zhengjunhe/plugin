@@ -148,6 +148,7 @@ func GetToken2address(bridgeBank *generated.BridgeBank, tokenSymbol string) (str
 		Pending: true,
 		Context: context.Background(),
 	}
+	txslog.Info("GetToken2address", "Name", tokenSymbol)
 	tokenAddr, err := bridgeBank.GetToken2address(opts, tokenSymbol)
 	if nil != err {
 		return "", err

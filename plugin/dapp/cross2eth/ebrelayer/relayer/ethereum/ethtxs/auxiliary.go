@@ -678,6 +678,7 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 	}
 
 	prepareDone = true
+	auth.GasLimit = GasLimit
 
 	gnosisSafeAddr := common.HexToAddress(multiSignAddrstr)
 	gnosisSafeInt, err := generated.NewGnosisSafe(gnosisSafeAddr, client)
@@ -733,7 +734,8 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 		return "", err
 	}
 
-	signContent, err := gnosisSafeInt.GetTransactionHash(opts, _to, value, _data, 0, safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, nonce)
+	signContent, err := gnosisSafeInt.GetTransactionHash(opts, _to, value, _data, 0,
+		safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, nonce)
 	if err != nil {
 		txslog.Error("SafeTransfer", "Failed to GetTransactionHash", err.Error())
 		return "", err
@@ -745,7 +747,8 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 		return "", err
 	}
 
-	execTx, err := gnosisSafeInt.ExecTransaction(auth, _to, value, _data, 0, safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, sigs)
+	execTx, err := gnosisSafeInt.ExecTransaction(auth, _to, value, _data, 0,
+		safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, sigs)
 	if nil != err {
 		txslog.Error("SafeTransfer", "Failed to ExecTransaction", err.Error())
 		return "", err
@@ -847,8 +850,11 @@ func ConfigLockedTokenOfflineSave(addr, symbol string, threshold *big.Int, perce
 
 	prepareDone = true
 
-	OfflineAddr := common.HexToAddress(addr)
-	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.ConfigLockedTokenOfflineSave(auth, OfflineAddr, symbol, threshold, percents)
+	if addr == "" || symbol == "ETH" {
+		addr = ebTypes.EthNilAddr
+	}
+	ToeknAddr := common.HexToAddress(addr)
+	tx, err := x2EthContracts.BridgeBank.BridgeBankTransactor.ConfigLockedTokenOfflineSave(auth, ToeknAddr, symbol, threshold, percents)
 	if nil != err {
 		return "", err
 	}
