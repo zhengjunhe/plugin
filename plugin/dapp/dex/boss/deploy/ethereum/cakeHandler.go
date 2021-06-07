@@ -222,7 +222,7 @@ deployPancakeRouter:
 func recoverBinancePrivateKey() (err error) {
 	//louyuqi: f726c7c704e57ec5d59815dda23ddd794f71ae15f7e0141f00f73eff35334ac6
 	//hzj: 2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9
-	privateKey, err = crypto.ToECDSA(common.FromHex("f726c7c704e57ec5d59815dda23ddd794f71ae15f7e0141f00f73eff35334ac6"))
+	privateKey, err = crypto.ToECDSA(common.FromHex("2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9"))
 	if nil != err {
 		panic("Failed to recover private key")
 		return err
