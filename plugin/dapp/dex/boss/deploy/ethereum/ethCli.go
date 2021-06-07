@@ -54,6 +54,8 @@ func DeployERC20Flags(cmd *cobra.Command){
 		_ = cmd.MarkFlagRequired("amount")
 		cmd.Flags().StringP("priv", "p", "", "private key")
 		_ = cmd.MarkFlagRequired("priv")
+		cmd.Flags().Uint8P("decimals","d",18,"token decimals")
+		_ = cmd.MarkFlagRequired("decimals")
 
 }
 
@@ -64,6 +66,7 @@ func deplayErc20(cmd *cobra.Command,args []string){
 	name, _ := cmd.Flags().GetString("name")
 	symbol, _ := cmd.Flags().GetString("symbol")
 	amount, _ := cmd.Flags().GetString("amount")
+	decimals,_:=cmd.Flags().GetUint8("decimals")
 	key,_:=cmd.Flags().GetString("priv")
 	fmt.Println("owner",owner,"name",name,"symbol:",symbol,"amount",amount)
 	priv, err := crypto.ToECDSA(common.FromHex(key))
@@ -85,7 +88,7 @@ func deplayErc20(cmd *cobra.Command,args []string){
 		fmt.Println("err:", err)
 	}
 	contractAddr:=crypto.CreateAddress(deployFrom, nonce)
-	signedtx,hash,err:=rewriteDeployErc20(owner,name,symbol,amount,nonce,gasPrice,priv)
+	signedtx,hash,err:=rewriteDeployErc20(owner,name,symbol,amount,decimals,nonce,gasPrice,priv)
 	if err!=nil{
 		panic(err)
 	}
@@ -99,10 +102,11 @@ func deplayErc20(cmd *cobra.Command,args []string){
 	if nil != err {
 		fmt.Println("err:", err)
 	}
-	fmt.Println("success deploy erc20 contract,ContractAddress",contractAddr,"txhash:",hash)
+
+	fmt.Println("success deploy erc20:", symbol,"contract,ContractAddress",contractAddr,"txhash:",hash)
 }
 
-func rewriteDeployErc20(owner,name,symbol,amount string,nonce uint64,gasPrice *big.Int,key *ecdsa.PrivateKey)(signedTx,hash string,err error){
+func rewriteDeployErc20(owner,name,symbol,amount string,decimals uint8,nonce uint64,gasPrice *big.Int,key *ecdsa.PrivateKey)(signedTx,hash string,err error){
 	erc20OwnerAddr := common.HexToAddress(owner)
 	bn := big.NewInt(1)
 	supply, ok := bn.SetString(utils.TrimZeroAndDot(amount), 10)
@@ -115,7 +119,7 @@ func rewriteDeployErc20(owner,name,symbol,amount string,nonce uint64,gasPrice *b
 	}
 
 	erc20Bin:=common.FromHex(generated.ERC20Bin)
-	packdata,err:=parsed.Pack("",name,symbol,supply,erc20OwnerAddr)
+	packdata,err:=parsed.Pack("",name,symbol,supply,erc20OwnerAddr,decimals)
 	if err!=nil{
 		panic(err)
 	}
