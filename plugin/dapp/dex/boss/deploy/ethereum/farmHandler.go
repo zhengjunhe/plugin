@@ -167,7 +167,11 @@ func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken stri
 			if err!=nil{
 				panic(err)
 			}
-			ntx := types.NewTransaction(auth.Nonce.Uint64(), masterChefAddr, new(big.Int), gasLimit, auth.GasPrice, input)
+			gasPrice,err:=ethClient.SuggestGasPrice(context.Background())
+			if err!=nil{
+				panic(err)
+			}
+			ntx := types.NewTransaction(auth.Nonce.Uint64(), masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
 			signedTx,_,err:=	offline.SignTx(privateKey,ntx)
 			if err!=nil{
 				panic(err)
@@ -178,8 +182,9 @@ func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken stri
 				panic(err)
 			}
 			//send
-			err= ethClient.SendTransaction(auth.Context,AddPool2FarmTx)
+			err= ethClient.SendTransaction(context.Background(),AddPool2FarmTx)
 			if err!=nil{
+				fmt.Println("auth nonce",auth.Nonce.Uint64())
 				panic(err)
 			}
 
