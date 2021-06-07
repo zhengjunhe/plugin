@@ -457,7 +457,7 @@ latter:
 }
 
 func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33Msg) {
-	relayerLog.Info("handleChain33Msg", "Received chain33Msg", chain33Msg)
+	relayerLog.Info("handleChain33Msg", "Received chain33Msg", chain33Msg, "tx hash string", common.Bytes2Hex(chain33Msg.TxHash))
 
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
 	prophecyClaim := ethtxs.Chain33MsgToProphecyClaim(*chain33Msg)
@@ -466,6 +466,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 	if chain33Msg.ClaimType == events.ClaimTypeLock {
 		tokenAddr, exist = ethRelayer.symbol2Addr[prophecyClaim.Symbol]
 		if !exist {
+			relayerLog.Info("handleChain33Msg", "Query address from ethereum for symbol", prophecyClaim.Symbol)
 			//Try to query token's address from ethereum node
 			addr, err := ethRelayer.ShowTokenAddrBySymbol(prophecyClaim.Symbol)
 			if err != nil {

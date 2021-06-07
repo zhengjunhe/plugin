@@ -323,7 +323,7 @@ function StartChain33() {
     # delete chain33 datadir
     rm ../../datadir ../../logs -rf
 
-    nohup ../../chain33 -f ./ci/cross2eth/test.toml &
+    nohup ../../chain33 -f ./ci/cross2eth/test.toml 2>&1 &
 
     sleep 1
 
