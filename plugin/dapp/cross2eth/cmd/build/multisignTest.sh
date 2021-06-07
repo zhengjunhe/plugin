@@ -181,7 +181,7 @@ function lockChain33Ycc() {
     cp ./ERC20.abi "${chain33YccErc20Addr}.abi"
 
     # ethereum token create YCC
-    result=$(${CLIA} ethereum token create-ERC20-token -s YCC)
+    result=$(${CLIA} ethereum token create-bridge-token -s YCC)
     cli_ret "${result}" "ethereum token create -s YCC"
     ethToeknYccErc20Addr=$(echo "${result}" | jq -r .addr)
     cp BridgeToken.abi "${ethToeknYccErc20Addr}.abi"
@@ -198,10 +198,13 @@ function lockChain33Ycc() {
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)")
     check_tx "${Chain33Cli}" "${hash}"
 
-#    lock_bty_ycc_balance 30 30 0
-#    lock_bty_ycc_balance 70 40 60
-#    lock_bty_ycc_balance 260 120 240
-#    lock_bty_ycc_balance 10 52 318
+    lock_bty_ycc_balance 30 30 0
+    lock_bty_ycc_balance 70 40 60
+    lock_bty_ycc_balance 260 120 240
+    lock_bty_ycc_balance 10 52 318
+
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethToeknYccErc20Addr}" )
+    cli_ret "${result}" "balance" ".balance" "370"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -300,7 +303,7 @@ function mainTest() {
 
     deployMultisign
 
-#    lockBty
+    lockBty
     lockChain33Ycc
 #    lockEth
 #    lockEthYcc
