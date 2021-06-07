@@ -99,6 +99,7 @@ func addAddPoolCmdFlags(cmd *cobra.Command) {
 
 	cmd.Flags().BoolP("update", "u", true, "with update")
 	_ = cmd.MarkFlagRequired("update")
+	cmd.Flags().Uint64P("gasLimit","g",80*10000,"set gas limit")
 }
 
 func AddPool2Farm(cmd *cobra.Command, args []string) {
@@ -106,11 +107,12 @@ func AddPool2Farm(cmd *cobra.Command, args []string) {
 	allocPoint, _ := cmd.Flags().GetInt64("alloc")
 	lpToken, _ := cmd.Flags().GetString("lptoken")
 	update, _ := cmd.Flags().GetBool("update")
+	gasLimit,_:=cmd.Flags().GetUint64("gaslimit")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 
 	setupWebsocketEthClient(ethNodeAddr)
 
-	err := AddPool2FarmHandle(masterChefAddrStr, allocPoint, lpToken, update)
+	err := AddPool2FarmHandle(masterChefAddrStr, allocPoint, lpToken, update,gasLimit)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return
