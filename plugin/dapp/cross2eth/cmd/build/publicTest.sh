@@ -287,6 +287,7 @@ function kill_ebrelayer() {
     fi
 
     kill -9 ${pid}
+    sleep 1
     # shellcheck disable=SC2009
     pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" != "" ]; then

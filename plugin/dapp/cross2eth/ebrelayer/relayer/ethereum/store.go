@@ -284,17 +284,26 @@ func (ethRelayer *Relayer4Ethereum) ShowTokenAddress(token2show ebTypes.TokenAdd
 	res := &ebTypes.TokenAddressArray{}
 
 	if len(token2show.Symbol) > 0 {
-		data, err := ethRelayer.db.Get(ethTokenSymbol2AddrKey(token2show.Symbol))
+		//data, err := ethRelayer.db.Get(ethTokenSymbol2AddrKey(token2show.Symbol))
+		//if err != nil {
+		addr, err := ethRelayer.ShowTokenAddrBySymbol(token2show.Symbol)
 		if err != nil {
 			return nil, err
 		}
 		var token2set ebTypes.TokenAddress
-		err = chain33Types.Decode(data, &token2set)
-		if nil != err {
-			return nil, err
-		}
+		token2set.Address = addr
+		token2set.Symbol = token2show.Symbol
+		token2set.ChainName = token2show.ChainName
 		res.TokenAddress = append(res.TokenAddress, &token2set)
 		return res, nil
+		//}
+		//var token2set ebTypes.TokenAddress
+		//err = chain33Types.Decode(data, &token2set)
+		//if nil != err {
+		//	return nil, err
+		//}
+		//res.TokenAddress = append(res.TokenAddress, &token2set)
+		//return res, nil
 	}
 	helper := dbm.NewListHelper(ethRelayer.db)
 	datas := helper.List(ethTokenSymbol2AddrPrefix, nil, 100, dbm.ListASC)

@@ -27,7 +27,7 @@ chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 #ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
 #ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
 
-#maturityDegree=10
+maturityDegree=10
 
 Chain33Cli="../../chain33-cli"
 chain33BridgeBank=""
@@ -138,7 +138,7 @@ function lockBty() {
     lock_bty_balance 800 "565.0000" "565.0000"
     lock_bty_balance 500 "532.5000" "1097.5000"
 
-    # transfer test
+#    # transfer test
 #    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
 ##    check_tx "${Chain33Cli}" "${hash}"
 #
@@ -180,6 +180,12 @@ function lockChain33Ycc() {
     chain33YccErc20Addr=$(echo "${result}" | jq -r .msg)
     cp ./ERC20.abi "${chain33YccErc20Addr}.abi"
 
+    # ethereum token create YCC
+    result=$(${CLIA} ethereum token create-bridge-token -s YCC)
+    cli_ret "${result}" "ethereum token create -s YCC"
+    ethToeknYccErc20Addr=$(echo "${result}" | jq -r .addr)
+    cp BridgeToken.abi "${ethToeknYccErc20Addr}.abi"
+
 #    echo '2:#配置自动转离线钱包(YCC, 100, 60%)'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,10000000000,60)")
     check_tx "${Chain33Cli}" "${hash}"
@@ -196,6 +202,11 @@ function lockChain33Ycc() {
     lock_bty_ycc_balance 70 40 60
     lock_bty_ycc_balance 260 120 240
     lock_bty_ycc_balance 10 52 318
+
+    sleep ${maturityDegree}
+
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethToeknYccErc20Addr}" )
+    cli_ret "${result}" "balance" ".balance" "370"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -234,7 +245,7 @@ function lockEth() {
     lock_eth_balance 16 13 23
 
     # transfer
-    hash=$(./ebcli_A ethereum multisign transfer -a 100 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}")
+    hash=$(./ebcli_A ethereum multisign transfer -a 10 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}")
 
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
     result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
@@ -295,7 +306,7 @@ function mainTest() {
     deployMultisign
 
     lockBty
-#    lockChain33Ycc
+    lockChain33Ycc
     lockEth
     lockEthYcc
 }
