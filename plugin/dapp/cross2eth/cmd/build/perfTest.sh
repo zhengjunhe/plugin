@@ -5,7 +5,7 @@
 set -x
 
 source "./publicTest.sh"
-source "./allRelayerPublic.sh"
+source "./relayerPublic.sh"
 
 ethAddress[0]=0xdb15E7327aDc83F2878624bBD6307f5Af1B477b4
 ethAddress[1]=0x9cBA1fF8D0b0c9Bc95d5762533F8CddBE795f687
@@ -273,11 +273,8 @@ function perf_test_main() {
     fi
 
     StartChain33
-
     start_trufflesuite
-
-    kill_all_ebrelayer
-    StartRelayerAndDeploy
+    AllRelayerStart
 
     loop_send_lock_bty
     loop_send_burn_bty

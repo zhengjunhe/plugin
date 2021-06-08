@@ -5,7 +5,7 @@ set -x
 set +e
 
 source "./publicTest.sh"
-source "./allRelayerPublic.sh"
+source "./relayerPublic.sh"
 
 # ETH 部署合约者的私钥 用于部署合约时签名使用
 ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
@@ -190,11 +190,8 @@ function TestETH2Chain33Ycc() {
 
 function mainTest() {
     StartChain33
-
     start_trufflesuite
-
-    kill_all_ebrelayer
-    StartRelayerAndDeploy
+    AllRelayerStart
 
     TestChain33ToEthAssets
     TestETH2Chain33Assets
