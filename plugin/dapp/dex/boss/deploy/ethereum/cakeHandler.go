@@ -38,7 +38,7 @@ func setupWebsocketEthClient(ethNodeAddr string) {
 	if nil != err {
 		panic(fmt.Sprintf("Failed to SetupWebsocketEthClient with url:%s", ethNodeAddr))
 	}
-	fmt.Println("Succeed to establish connection to bsc")
+	fmt.Println("Succeed to establish connection to block chain")
 }
 
 // SetupWebsocketEthClient : returns boolean indicating if a URL is valid websocket ethclient
@@ -232,7 +232,6 @@ func recoverBinancePrivateKey() (err error) {
 
 	return nil
 }
-
 
 //DeployVaultFactory tx hash: 0x97c0e9b7f42aed3ddf5bbead6d042fcd5609ee1dde9113e31f54b2afae56b551
 //Succeed to deploy DeployVaultFactory with address = 0xe534945F98f344d6D5E53e0E747A44704c7C3806

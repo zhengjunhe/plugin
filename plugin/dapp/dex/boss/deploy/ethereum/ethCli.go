@@ -30,9 +30,10 @@ func EthCmd() *cobra.Command {
 	)
 	return cmd
 }
+
 //Erc20Cmd
 
-func Erc20Cmd()*cobra.Command{
+func Erc20Cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "erc20",
 		Short: "deploy erc20 contract",
@@ -42,33 +43,32 @@ func Erc20Cmd()*cobra.Command{
 	return cmd
 }
 
-func DeployERC20Flags(cmd *cobra.Command){
+func DeployERC20Flags(cmd *cobra.Command) {
 
-		cmd.Flags().StringP("owner", "c", "", "owner address")
-		_ = cmd.MarkFlagRequired("owner")
-		cmd.Flags().StringP("name", "n", "", "erc20 name")
-		_ = cmd.MarkFlagRequired("name")
-		cmd.Flags().StringP("symbol", "s", "", "erc20 symbol")
-		_ = cmd.MarkFlagRequired("symbol")
-		cmd.Flags().StringP("amount", "m", "0", "amount")
-		_ = cmd.MarkFlagRequired("amount")
-		cmd.Flags().StringP("priv", "p", "", "private key")
-		_ = cmd.MarkFlagRequired("priv")
-		cmd.Flags().Uint8P("decimals","d",18,"token decimals")
-		_ = cmd.MarkFlagRequired("decimals")
+	cmd.Flags().StringP("owner", "c", "", "owner address")
+	_ = cmd.MarkFlagRequired("owner")
+	cmd.Flags().StringP("name", "n", "", "erc20 name")
+	_ = cmd.MarkFlagRequired("name")
+	cmd.Flags().StringP("symbol", "s", "", "erc20 symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().StringP("amount", "m", "0", "amount")
+	_ = cmd.MarkFlagRequired("amount")
+	cmd.Flags().StringP("priv", "p", "", "private key")
+	_ = cmd.MarkFlagRequired("priv")
+	cmd.Flags().Uint8P("decimals", "d", 18, "token decimals")
+	_ = cmd.MarkFlagRequired("decimals")
 
 }
 
-
-func deplayErc20(cmd *cobra.Command,args []string){
+func deplayErc20(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	owner, _ := cmd.Flags().GetString("owner")
 	name, _ := cmd.Flags().GetString("name")
 	symbol, _ := cmd.Flags().GetString("symbol")
 	amount, _ := cmd.Flags().GetString("amount")
-	decimals,_:=cmd.Flags().GetUint8("decimals")
-	key,_:=cmd.Flags().GetString("priv")
-	fmt.Println("owner",owner,"name",name,"symbol:",symbol,"amount",amount)
+	decimals, _ := cmd.Flags().GetUint8("decimals")
+	key, _ := cmd.Flags().GetString("priv")
+	fmt.Println("owner", owner, "name", name, "symbol:", symbol, "amount", amount)
 	priv, err := crypto.ToECDSA(common.FromHex(key))
 	if nil != err {
 		panic("Failed to recover private key")
@@ -83,34 +83,34 @@ func deplayErc20(cmd *cobra.Command,args []string){
 		panic(err)
 	}
 
-	nonce, err := client.PendingNonceAt(ctx,deployFrom)
+	nonce, err := client.PendingNonceAt(ctx, deployFrom)
 	if nil != err {
 		fmt.Println("err:", err)
 	}
-	contractAddr:=crypto.CreateAddress(deployFrom, nonce)
-	signedtx,hash,err:=rewriteDeployErc20(owner,name,symbol,amount,decimals,nonce,gasPrice,priv)
-	if err!=nil{
+	contractAddr := crypto.CreateAddress(deployFrom, nonce)
+	signedtx, hash, err := rewriteDeployErc20(owner, name, symbol, amount, decimals, nonce, gasPrice, priv)
+	if err != nil {
 		panic(err)
 	}
-	var tx=new(types.Transaction)
-	err=tx.UnmarshalBinary(common.FromHex(signedtx))
-	if err!=nil{
+	var tx = new(types.Transaction)
+	err = tx.UnmarshalBinary(common.FromHex(signedtx))
+	if err != nil {
 		panic(err)
 	}
 
-	err=client.SendTransaction(ctx,tx)
+	err = client.SendTransaction(ctx, tx)
 	if nil != err {
 		fmt.Println("err:", err)
 	}
 
-	fmt.Println("success deploy erc20:", symbol,"contract,ContractAddress",contractAddr,"txhash:",hash)
+	fmt.Println("success deploy erc20:", symbol, "contract,ContractAddress", contractAddr, "txhash:", hash)
 }
 
-func rewriteDeployErc20(owner,name,symbol,amount string,decimals uint8,nonce uint64,gasPrice *big.Int,key *ecdsa.PrivateKey)(signedTx,hash string,err error){
+func rewriteDeployErc20(owner, name, symbol, amount string, decimals uint8, nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey) (signedTx, hash string, err error) {
 	erc20OwnerAddr := common.HexToAddress(owner)
 	bn := big.NewInt(1)
 	supply, ok := bn.SetString(utils.TrimZeroAndDot(amount), 10)
-	if !ok{
+	if !ok {
 		panic("amount format err")
 	}
 	parsed, err := abi.JSON(strings.NewReader(generated.ERC20ABI))
@@ -118,18 +118,17 @@ func rewriteDeployErc20(owner,name,symbol,amount string,decimals uint8,nonce uin
 		return
 	}
 
-	erc20Bin:=common.FromHex(generated.ERC20Bin)
-	packdata,err:=parsed.Pack("",name,symbol,supply,erc20OwnerAddr,decimals)
-	if err!=nil{
+	erc20Bin := common.FromHex(generated.ERC20Bin)
+	packdata, err := parsed.Pack("", name, symbol, supply, erc20OwnerAddr, decimals)
+	if err != nil {
 		panic(err)
 	}
-	input:=append(erc20Bin,packdata...)
-	var gasLimit=100*10000
-	tx:= types.NewContractCreation(nonce, big.NewInt(0), uint64(gasLimit), gasPrice, input)
-	return  offline.SignTx(key,tx)
+	input := append(erc20Bin, packdata...)
+	var gasLimit = 100 * 10000
+	tx := types.NewContractCreation(nonce, big.NewInt(0), uint64(gasLimit), gasPrice, input)
+	return offline.SignTx(key, tx)
 
 }
-
 
 //GetBalanceCmd ...
 func GetBalanceCmd() *cobra.Command {

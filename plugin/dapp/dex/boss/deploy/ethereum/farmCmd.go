@@ -1,7 +1,13 @@
 package ethereum
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/masterChef"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"math/big"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -17,8 +23,80 @@ func FarmCmd() *cobra.Command {
 		UpdateAllocPointCmd(),
 		TransferOwnerShipCmd(),
 		ShowCackeBalanceCmd(),
+		ShowPoolInfosCmd(),
 	)
 	return cmd
+}
+
+func ShowPoolInfosCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pool info",
+		Short: "query pool length,and pool info by pid",
+		Run:   showPools,
+	}
+
+	ShowPoolInfoFlags(cmd)
+	return cmd
+}
+
+func ShowPoolInfoFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("lp", "l", "", "lp address")
+	cmd.Flags().Int64P("poolid", "p", 0, "pool id")
+	//_ = cmd.MarkFlagRequired("lp")
+	cmd.Flags().StringP("masterchef", "m", "", "master Chef Addr ")
+	_ = cmd.MarkFlagRequired("masterchef")
+
+}
+
+func showPools(cmd *cobra.Command, args []string) {
+	masterChefAddrStr, _ := cmd.Flags().GetString("masterchef")
+	lpAddrStr, _ := cmd.Flags().GetString("lp")
+	poolid, _ := cmd.Flags().GetInt64("poolid")
+	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	setupWebsocketEthClient(ethNodeAddr)
+	masterChefAddr := common.HexToAddress(masterChefAddrStr)
+
+	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
+	if nil != err {
+		return
+	}
+	var opts bind.CallOpts
+	pl, err := masterChefInt.PoolLength(&opts)
+	if err != nil {
+		fmt.Println("query masterChef PoolLength err", err.Error())
+		return
+	}
+	fmt.Println("++++++++++++++++\ntotal pool num:", pl.Int64(), "\n++++++++++++++++\n")
+	//var pid int64 =1
+	totalPid := pl.Int64()
+	for pid := 1; pid < int(totalPid); pid++ {
+		info, err := masterChefInt.PoolInfo(&opts, big.NewInt(int64(pid)))
+		if err != nil {
+			fmt.Println("query poolinfo err", err.Error(), "pid", pid)
+			continue
+		}
+		jinfo, _ := json.MarshalIndent(info, "", "\t")
+		if lpAddrStr != "" {
+			//find lpaddr-->pid
+			if strings.ToLower(info.LpToken.String()) == strings.ToLower(lpAddrStr) {
+
+				fmt.Println("Find LP PID:", pid, "\nLP info:", string(jinfo))
+				return
+			}
+			continue
+		}
+		if poolid != 0 {
+			//find pid--->lpaddr
+			if pid == int(poolid) {
+				fmt.Println("Find LP PID:", pid, "\nLP info:", string(jinfo))
+				return
+			}
+			continue
+		}
+		fmt.Println("LP PID:", pid, "\nLP info:", string(jinfo))
+
+	}
+
 }
 
 func ShowCackeBalanceCmd() *cobra.Command {
@@ -99,7 +177,7 @@ func addAddPoolCmdFlags(cmd *cobra.Command) {
 
 	cmd.Flags().BoolP("update", "u", true, "with update")
 	_ = cmd.MarkFlagRequired("update")
-	cmd.Flags().Uint64P("gasLimit","g",80*10000,"set gas limit")
+	cmd.Flags().Uint64P("gasLimit", "g", 80*10000, "set gas limit")
 }
 
 func AddPool2Farm(cmd *cobra.Command, args []string) {
@@ -107,12 +185,12 @@ func AddPool2Farm(cmd *cobra.Command, args []string) {
 	allocPoint, _ := cmd.Flags().GetInt64("alloc")
 	lpToken, _ := cmd.Flags().GetString("lptoken")
 	update, _ := cmd.Flags().GetBool("update")
-	gasLimit,_:=cmd.Flags().GetUint64("gaslimit")
+	gasLimit, _ := cmd.Flags().GetUint64("gaslimit")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 
 	setupWebsocketEthClient(ethNodeAddr)
 
-	err := AddPool2FarmHandle(masterChefAddrStr, allocPoint, lpToken, update,gasLimit)
+	err := AddPool2FarmHandle(masterChefAddrStr, allocPoint, lpToken, update, gasLimit)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return

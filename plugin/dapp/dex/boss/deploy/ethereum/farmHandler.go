@@ -139,7 +139,7 @@ deployMasterchef:
 	return nil
 }
 
-func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken string, withUpdate bool,gasLimit uint64) (err error) {
+func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
@@ -155,40 +155,40 @@ func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken stri
 
 	AddPool2FarmTx, err := masterChefInt.Add(auth, big.NewInt(int64(allocPoint)), common.HexToAddress(lpToken), withUpdate)
 	if err != nil {
-		if strings.Contains(err.Error(),"failed to estimate gas needed"){
+		if strings.Contains(err.Error(), "failed to estimate gas needed") {
 			fmt.Println("specific gas to create tx...")
 			//指定gas大小，手动构建签名交易
-			if gasLimit==0{
-				gasLimit =10000*80
+			if gasLimit == 0 {
+				gasLimit = 10000 * 80
 			}
 
 			parsed, err := abi.JSON(strings.NewReader(masterChef.MasterChefABI))
-			input,err:=parsed.Pack("add", big.NewInt(allocPoint),common.HexToAddress(lpToken),withUpdate)
-			if err!=nil{
+			input, err := parsed.Pack("add", big.NewInt(allocPoint), common.HexToAddress(lpToken), withUpdate)
+			if err != nil {
 				panic(err)
 			}
-			gasPrice,err:=ethClient.SuggestGasPrice(context.Background())
-			if err!=nil{
+			gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+			if err != nil {
 				panic(err)
 			}
 			ntx := types.NewTransaction(auth.Nonce.Uint64(), masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
-			signedTx,_,err:=	offline.SignTx(privateKey,ntx)
-			if err!=nil{
+			signedTx, _, err := offline.SignTx(privateKey, ntx)
+			if err != nil {
 				panic(err)
 			}
-			AddPool2FarmTx =new(types.Transaction)
-			err= AddPool2FarmTx.UnmarshalBinary(common.FromHex(signedTx))
-			if err!=nil{
+			AddPool2FarmTx = new(types.Transaction)
+			err = AddPool2FarmTx.UnmarshalBinary(common.FromHex(signedTx))
+			if err != nil {
 				panic(err)
 			}
 			//send
-			err= ethClient.SendTransaction(context.Background(),AddPool2FarmTx)
-			if err!=nil{
-				fmt.Println("auth nonce",auth.Nonce.Uint64())
+			err = ethClient.SendTransaction(context.Background(), AddPool2FarmTx)
+			if err != nil {
+				fmt.Println("auth nonce", auth.Nonce.Uint64())
 				panic(err)
 			}
 
-		}else{
+		} else {
 			panic(fmt.Sprintf("Failed to AddPool2FarmTx with err:%s", err.Error()))
 
 		}
