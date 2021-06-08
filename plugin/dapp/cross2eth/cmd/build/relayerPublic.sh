@@ -10,8 +10,6 @@ source "./publicTest.sh"
 ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 
-# validatorsAddr=["0x92c8b16afd6d423652559c6e266cbe1c29bfd84f", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
-#ethValidatorAddrKeyA="3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e"
 # validatorsAddr=["0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
 #ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 # shellcheck disable=SC2034
@@ -23,18 +21,20 @@ ethValidatorAddrKeyD="c9fa31d7984edf81b8ef3b40c761f1847f6fcd5711ab2462da97dc458f
 
 # chain33 部署合约者的私钥 用于部署合约时签名使用
 chain33DeployAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-#chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
+chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
 
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
 
 # 新增地址 chain33 需要导入地址 转入 10 bty当收费费
 # shellcheck disable=SC2034
-chain33ValidatorA="1GTxrmuWiXavhcvsaH5w9whgVxUrWsUMdV"
+#chain33ValidatorA="1GTxrmuWiXavhcvsaH5w9whgVxUrWsUMdV"
+chain33ValidatorA="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
 chain33ValidatorB="155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6"
 chain33ValidatorC="13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv"
 chain33ValidatorD="113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG"
-chain33ValidatorKeyA="0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
+#chain33ValidatorKeyA="0xd627968e445f2a41c92173225791bae1ba42126ae96c32f28f97ff8f226e5c68"
+chain33ValidatorKeyA="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
 # shellcheck disable=SC2034
 {
 chain33ValidatorKeyB="0x9d539bc5fd084eb7fe86ad631dba9aa086dba38418725c38d9751459f567da66"
@@ -49,10 +49,18 @@ BridgeRegistryOnChain33=""
 chain33BridgeBank=""
 BridgeRegistryOnEth=""
 ethBridgeBank=""
+
+#
 chain33EthTokenAddr=""
 ethereumBtyTokenAddr=""
-chain33YccTokenAddr=""
+
+# etheruem erc20 ycc
 ethereumYccTokenAddr=""
+chain33YccTokenAddr=""
+
+# chain33 erc20 ycc
+chain33YccErc20Addr=""
+ethBridgeToeknYccAddr=""
 
 CLIA="./ebcli_A"
 # shellcheck disable=SC2034
@@ -97,7 +105,7 @@ function InitAndDeploy() {
     result=$(${CLIA} unlock -p 123456hzj)
     cli_ret "${result}" "unlock"
 
-    result=$(${CLIA} chain33 import_privatekey -k "${chain33ValidatorKeyA}")
+    result=$(${CLIA} chain33 import_privatekey -k "${chain33DeployKey}")
     cli_ret "${result}" "chain33 import_privatekey"
 
     result=$(${CLIA} ethereum import_privatekey -k "${ethDeployKey}")
@@ -170,6 +178,18 @@ function InitTokenAddr() {
 
     result=$(${CLIA} ethereum token add_lock_list -s YCC -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "add_lock_list"
+
+    # chain33 token create YCC
+    result=$(${CLIA} chain33 token create -s YCC -o "${chain33DeployAddr}")
+    cli_ret "${result}" "chain33 token create -s YCC"
+    chain33YccErc20Addr=$(echo "${result}" | jq -r .msg)
+    cp ./ERC20.abi "${chain33YccErc20Addr}.abi"
+
+    # ethereum create-bridge-token YCC
+    result=$(${CLIA} ethereum token create-bridge-token -s YCC)
+    cli_ret "${result}" "ethereum token create -s YCC"
+    ethBridgeToeknYccAddr=$(echo "${result}" | jq -r .addr)
+    cp BridgeToken.abi "${ethBridgeToeknYccAddr}.abi"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -299,7 +319,7 @@ function InitChain33() {
     balance_ret "${result}" "1000000.0000"
 
     # 导入 chain33Validators 私钥生成地址
-    for name in A B C D; do
+    for name in B C D; do
         eval chain33ValidatorKey=\$chain33ValidatorKey${name}
         eval chain33Validator=\$chain33Validator${name}
         result=$(${Chain33Cli} account import_key -k "${chain33ValidatorKey}" -l validator$name)
@@ -328,4 +348,52 @@ function StartChain33() {
     sleep 1
 
     InitChain33
+}
+
+function AllRelayerStart() {
+    kill_all_ebrelayer
+    StartRelayerAndDeploy
+}
+
+function StartRelayer_A() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    # 修改 relayer.toml 配置文件 pushName 字段
+    pushNameChange "./relayer.toml"
+
+    # 启动 ebrelayer
+    start_ebrelayerA
+
+    # 导入私钥 部署合约 设置 bridgeRegistry 地址
+    InitAndDeploy
+
+    # 重启
+    kill_ebrelayer ebrelayer
+    start_ebrelayerA
+
+    result=$(${CLIA} unlock -p 123456hzj)
+    cli_ret "${result}" "unlock"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function StartOneRelayer() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    kill_ebrelayer ebrelayer
+    sleep 10
+    rm datadir/ logs/ -rf
+
+    StartRelayer_A
+
+    # 设置 token 地址
+    InitTokenAddr
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function StartRelayerOnRopsten() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
