@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"math/big"
 	"strings"
+
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
+
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 
 	chain33Address "github.com/33cn/chain33/common/address"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
@@ -692,13 +695,15 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 	safeTxGas := big.NewInt(10 * 10000)
 	baseGas := big.NewInt(0)
 	gasPrice := big.NewInt(0)
-	var value *big.Int = big.NewInt(int64(amount * 1e18))
+	var value *big.Int
 	opts := &bind.CallOpts{
 		From:    para.Address,
 		Context: context.Background(),
 	}
-	//token transfer
-	if token != "" {
+	//Eth transfer
+	if token == "" {
+		value = utils.ToWei(amount, 18)
+	} else {
 		_to = common.HexToAddress(token)
 
 		erc20Abi, err := abi.JSON(strings.NewReader(erc20.ERC20ABI))
@@ -714,11 +719,7 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 		if err != nil {
 			return "", err
 		}
-		mul := int64(1)
-		for i := 0; i < int(decimals); i++ {
-			mul *= 10
-		}
-		value = big.NewInt(int64(amount * float64(mul)))
+		value = utils.ToWei(amount, int64(decimals))
 
 		_data, err = erc20Abi.Pack("transfer", common.HexToAddress(receiver), value)
 		if err != nil {
@@ -747,6 +748,7 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 		return "", err
 	}
 
+	txslog.Info("SafeTransfer", "value str", value.String(), "value int64", value.Int64())
 	execTx, err := gnosisSafeInt.ExecTransaction(auth, _to, value, _data, 0,
 		safeTxGas, baseGas, gasPrice, AddressZero, AddressZero, sigs)
 	if nil != err {

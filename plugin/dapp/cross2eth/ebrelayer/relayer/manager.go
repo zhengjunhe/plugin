@@ -731,6 +731,21 @@ func (manager *Manager) GetBalance(balanceAddr relayerTypes.BalanceAddr, result 
 	return nil
 }
 
+func (manager *Manager) ShowMultiBalance(balanceAddr relayerTypes.BalanceAddr, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	balance, err := manager.ethRelayer.ShowMultiBalance(balanceAddr.TokenAddr, balanceAddr.Owner)
+	if nil != err {
+		return err
+	}
+
+	*result = relayerTypes.ReplyBalance{
+		IsOK:    true,
+		Balance: balance,
+	}
+	return nil
+}
+
 //ShowBridgeBankAddr ...
 func (manager *Manager) ShowBridgeBankAddr(para interface{}, result *interface{}) error {
 	manager.mtx.Lock()

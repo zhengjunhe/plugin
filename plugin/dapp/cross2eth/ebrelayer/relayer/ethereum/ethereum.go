@@ -240,6 +240,26 @@ func (ethRelayer *Relayer4Ethereum) GetBalance(tokenAddr, owner string) (string,
 	return ethtxs.GetBalance(ethRelayer.clientSpec, tokenAddr, owner)
 }
 
+func (ethRelayer *Relayer4Ethereum) ShowMultiBalance(tokenAddr, owner string) (string, error) {
+	relayerLog.Info("ShowMultiBalance", "tokenAddr", tokenAddr, "owner", owner)
+	opts := &bind.CallOpts{
+		From:    ethRelayer.ethValidator,
+		Context: context.Background(),
+	}
+
+	gnosisSafeAddr := common.HexToAddress(ethRelayer.mulSignAddr)
+	gnosisSafeInt, err := generated.NewGnosisSafe(gnosisSafeAddr, ethRelayer.clientSpec)
+	if nil != err {
+		return "", err
+	}
+
+	balance, err := gnosisSafeInt.GetSelfBalance(opts)
+	if nil != err {
+		return "", err
+	}
+	return balance.String(), nil
+}
+
 //ShowBridgeBankAddr ...
 func (ethRelayer *Relayer4Ethereum) ShowBridgeBankAddr() (string, error) {
 	if nil == ethRelayer.x2EthDeployInfo {

@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/33cn/chain33/common/address"
 	"strings"
+
+	"github.com/33cn/chain33/common/address"
 
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/rpc/jsonclient"
@@ -875,8 +876,28 @@ func MultiSignEthCmd() *cobra.Command {
 		ShowEthAddrCmd(),
 		ConfigOfflineSaveAccountCmd(),
 		ConfigLockedTokenOfflineSaveCmd(),
+		GetSelfBalanceCmd(),
 	)
 	return cmd
+}
+
+func GetSelfBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "selfbalance",
+		Short: "get balance for multisign",
+		Run:   showMultiBalance,
+	}
+	return cmd
+}
+
+//showMultiBalance ...
+func showMultiBalance(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+
+	para := ebTypes.BalanceAddr{}
+	var res ebTypes.ReplyBalance
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowMultiBalance", para, &res)
+	ctx.Run()
 }
 
 func DeployMultiSignEthCmd() *cobra.Command {
