@@ -3,15 +3,18 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"math/big"
-	"time"
-
+	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum/offline"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/cakeToken"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/masterChef"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/syrupBar"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"math/big"
+	"strings"
+	"time"
 )
 
 func GetCakeBalance(owner string, pid int64) (string, error) {
@@ -136,7 +139,7 @@ deployMasterchef:
 	return nil
 }
 
-func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken string, withUpdate bool) (err error) {
+func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
@@ -152,8 +155,44 @@ func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken stri
 
 	AddPool2FarmTx, err := masterChefInt.Add(auth, big.NewInt(int64(allocPoint)), common.HexToAddress(lpToken), withUpdate)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to AddPool2FarmTx with err:%s", err.Error()))
-		return err
+		if strings.Contains(err.Error(), "failed to estimate gas needed") {
+			fmt.Println("specific gas to create tx...")
+			//指定gas大小，手动构建签名交易
+			if gasLimit == 0 {
+				gasLimit = 10000 * 80
+			}
+
+			parsed, err := abi.JSON(strings.NewReader(masterChef.MasterChefABI))
+			input, err := parsed.Pack("add", big.NewInt(allocPoint), common.HexToAddress(lpToken), withUpdate)
+			if err != nil {
+				panic(err)
+			}
+			gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+			if err != nil {
+				panic(err)
+			}
+			ntx := types.NewTransaction(auth.Nonce.Uint64(), masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
+			signedTx, _, err := offline.SignTx(privateKey, ntx)
+			if err != nil {
+				panic(err)
+			}
+			AddPool2FarmTx = new(types.Transaction)
+			err = AddPool2FarmTx.UnmarshalBinary(common.FromHex(signedTx))
+			if err != nil {
+				panic(err)
+			}
+			//send
+			err = ethClient.SendTransaction(context.Background(), AddPool2FarmTx)
+			if err != nil {
+				fmt.Println("auth nonce", auth.Nonce.Uint64())
+				panic(err)
+			}
+
+		} else {
+			panic(fmt.Sprintf("Failed to AddPool2FarmTx with err:%s", err.Error()))
+
+		}
+
 	}
 
 	{

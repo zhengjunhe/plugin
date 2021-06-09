@@ -1,5 +1,3 @@
-
-
 proj := "build"
 .PHONY: default build remote winset
 
@@ -19,4 +17,4 @@ winset:
 
 clean:
 	@rm ${OUT}/*
-	
+
