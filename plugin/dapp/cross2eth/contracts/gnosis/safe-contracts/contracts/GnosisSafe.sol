@@ -54,7 +54,8 @@ contract GnosisSafe
     event ExecutionResult(
         string name, bool result
     );
-    event SignatureRecover(
+
+event SignatureRecover(
         uint256 index, address owner, bytes32 hash
     );
     uint256 public nonce;
@@ -119,7 +120,7 @@ contract GnosisSafe
     /// @param refundReceiver Address of receiver of gas payment (or 0 if tx.origin).
     /// @param signatures Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
     function execTransaction(
-        address to,
+        address payable to,
         uint256 value,
         bytes memory data,
         Enum.Operation operation,
@@ -152,6 +153,13 @@ contract GnosisSafe
         require(gasleft() >= (safeTxGas * 64 / 63).max(safeTxGas + 2500) + 500, "Not enough gas to execute safe transaction");
         // Use scope here to limit variable lifetime and prevent `stack too deep` errors
         {
+            if (value != 0) {
+                require(address(this).balance > value, "The offline wallet balance is not enough");
+                to.transfer(value);
+                emit ExecutionResult("ExecutionResult", true);
+                emit ExecutionSuccess(txHash, value);
+                return true;
+            }
             uint256 gasUsed = gasleft();
             // If the gasPrice is 0 we assume that nearly all available gas can be used (it is always more than safeTxGas)
             // We only substract 2500 (compared to the 3000 before) to ensure that the amount passed is still higher than safeTxGas
@@ -163,8 +171,9 @@ contract GnosisSafe
                 payment = handlePayment(gasUsed, baseGas, gasPrice, gasToken, refundReceiver);
             }
             emit ExecutionResult("ExecutionResult", success);
-            if (success) emit ExecutionSuccess(txHash, payment);
-            else emit ExecutionFailure(txHash, payment);
+            require(success, "execTransaction not executed successfully");
+            emit ExecutionSuccess(txHash, payment);
+            return true;
         }
     }
 
@@ -410,5 +419,10 @@ contract GnosisSafe
         returns (bytes32)
     {
         return keccak256(encodeTransactionData(to, value, data, operation, safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, _nonce));
+    }
+
+    function getSelfBalance() public view returns (uint256)
+    {
+        return address(this).balance;
     }
 }

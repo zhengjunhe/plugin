@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/big"
+
 	chain33Address "github.com/33cn/chain33/common/address"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/contracts4eth/generated/erc20"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/contracts4eth/generated"
+	erc20 "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/erc20/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
 )
 
 //NewProphecyClaimPara ...
