@@ -7,8 +7,6 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 
 	chain33Address "github.com/33cn/chain33/common/address"
@@ -695,14 +693,14 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 	safeTxGas := big.NewInt(10 * 10000)
 	baseGas := big.NewInt(0)
 	gasPrice := big.NewInt(0)
-	var value *big.Int
+	value := big.NewInt(0)
 	opts := &bind.CallOpts{
 		From:    para.Address,
 		Context: context.Background(),
 	}
 	//Eth transfer
 	if token == "" {
-		value = utils.ToWei(amount, 18)
+		value.Mul(big.NewInt(int64(amount)), big.NewInt(int64(1e18)))
 	} else {
 		_to = common.HexToAddress(token)
 
@@ -719,7 +717,14 @@ func SafeTransfer(multiSignAddrstr, receiver, token string, privateKeys []string
 		if err != nil {
 			return "", err
 		}
-		value = utils.ToWei(amount, int64(decimals))
+
+		dec, ok := ebTypes.DecimalsPrefix[decimals]
+		if !ok {
+			txslog.Error("SafeTransfer", "not support the decimals =", decimals)
+			return "", errors.New("not support the decimals")
+		}
+		value.Mul(big.NewInt(int64(amount)), big.NewInt(dec))
+		//value = utils.ToWei(amount, int64(decimals))
 
 		_data, err = erc20Abi.Pack("transfer", common.HexToAddress(receiver), value)
 		if err != nil {

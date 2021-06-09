@@ -141,17 +141,22 @@ function lockBty() {
     lock_bty_balance 500 "532.5000" "1097.5000"
 
     # transfer test
-    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
-#    check_tx "${Chain33Cli}" "${hash}"
-
+    hash=$(${CLIA} chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
+    check_tx "${Chain33Cli}" "${hash}"
+    sleep 2
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+    balance_ret "${result}" "997.5000"
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+    balance_ret "${result}" "632.5000"
 
-    hash=$(./ebcli_A chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}")
-#    check_tx "${Chain33Cli}" "${hash}"
 
+    hash=$(${CLIA} chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
+    check_tx "${Chain33Cli}" "${hash}"
+    sleep 2
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+    balance_ret "${result}" "897.5000"
     result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
+    balance_ret "${result}" "100.0000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -194,8 +199,26 @@ function lockChain33Ycc() {
 
     sleep ${maturityDegree}
 
+    # 判断 ETH 这端是否金额一致
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknYccAddr}" )
     cli_ret "${result}" "balance" ".balance" "370"
+
+     # transfer test
+    hash=$(${CLIA} chain33 multisign transfer -a 10 -r "${chain33BridgeBank}" -t "${chain33YccErc20Addr}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
+    check_tx "${Chain33Cli}" "${hash}"
+    sleep 2
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "6200000000"
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${multisignChain33Addr}" -b "balanceOf(${multisignChain33Addr})")
+    is_equal "${result}" "30800000000"
+
+    hash=$(${CLIA} chain33 multisign transfer -a 5 -r "${chain33MultisignA}" -t "${chain33YccErc20Addr}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
+    check_tx "${Chain33Cli}" "${hash}"
+    sleep 2
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${chain33MultisignA}" -b "balanceOf(${chain33MultisignA})")
+    is_equal "${result}" "500000000"
+    result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${multisignChain33Addr}" -b "balanceOf(${multisignChain33Addr})")
+    is_equal "${result}" "30300000000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -234,12 +257,20 @@ function lockEth() {
     lock_eth_balance 16 13 23
 
     # transfer
-    hash=$(./ebcli_A ethereum multisign transfer -a 10 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}")
+    ${CLIA} ethereum multisign transfer -a 3 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
+    sleep 2
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}")
+    cli_ret "${result}" "balance" ".balance" "16"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}")
+    cli_ret "${result}" "balance" ".balance" "20"
 
-    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
-    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
-
-#0x5e8aadb91eaa0fce4df0bcc8bd1af9e703a1d6db78e7a4ebffd6cf045e053574,0x0504bcb22b21874b85b15f1bfae19ad62fc2ad89caefc5344dc669c57efa60db,0x0c61f5a879d70807686e43eccc1f52987a15230ae0472902834af4d1933674f2,0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80697
+    # transfer
+    ${CLIA} ethereum multisign transfer -a 5 -r "${ethMultisignA}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
+    sleep 2
+    result=$(${CLIA} ethereum balance -o "${ethMultisignA}")
+    cli_ret "${result}" "balance" ".balance" "105"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}")
+    cli_ret "${result}" "balance" ".balance" "15"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -281,6 +312,21 @@ function lockEthYcc() {
     # multisignEthAddr 要有手续费
     ./ebcli_A ethereum transfer -k "${ethDeployKey}" -m 10 -r "${multisignEthAddr}"
 
+     # transfer
+    ${CLIA} ethereum multisign transfer -a 8 -r "${ethBridgeBank}" -t "${ethereumYccTokenAddr}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
+    sleep 2
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "80"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "80"
+
+    # transfer
+    ${CLIA} ethereum multisign transfer -a 10 -r "${ethMultisignA}" -t "${ethereumYccTokenAddr}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
+    sleep 2
+    result=$(${CLIA} ethereum balance -o "${ethMultisignA}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "10"
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "70"
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
@@ -291,8 +337,8 @@ function mainTest() {
 
     deployMultisign
 
-#    lockBty
-#    lockChain33Ycc
+    lockBty
+    lockChain33Ycc
     lockEth
     lockEthYcc
 }
