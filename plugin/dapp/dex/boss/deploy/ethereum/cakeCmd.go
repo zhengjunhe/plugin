@@ -26,7 +26,7 @@ func CakeCmd() *cobra.Command {
 func setFeeToCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "setFeeTo",
-		Short: "set FeeTo address to factroy",
+		Short: "set FeeTo address to factory",
 		Run:   setFeeTo,
 	}
 	AddSetFeeToFlags(cmd)
@@ -34,8 +34,8 @@ func setFeeToCmd() *cobra.Command {
 }
 
 func AddSetFeeToFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("factroy", "f", "", "factroy Addr ")
-	_ = cmd.MarkFlagRequired("factroy")
+	cmd.Flags().StringP("factory", "f", "", "factory Addr ")
+	_ = cmd.MarkFlagRequired("factory")
 
 	cmd.Flags().StringP("feeTo", "t", "", "feeTo Addr ")
 	_ = cmd.MarkFlagRequired("feeTo")
@@ -45,7 +45,7 @@ func AddSetFeeToFlags(cmd *cobra.Command) {
 
 func setFeeTo(cmd *cobra.Command, args []string) {
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-	factroy, _ := cmd.Flags().GetString("factroy")
+	factroy, _ := cmd.Flags().GetString("factory")
 	feeTo, _ := cmd.Flags().GetString("feeTo")
 	key, _ := cmd.Flags().GetString("key")
 
