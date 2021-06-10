@@ -28,8 +28,8 @@ var deployerAddr common.Address
 const (
 	// GasLimit : the gas limit in Gwei used for transactions sent with TransactOpts
 	GasLimit        = uint64(100 * 10000)
-	GasLimit4Deploy = uint64(0) //此处需要设置为0,让交易自行估计,否则将会导致部署失败,TODO:其他解决途径后续调研解决
-	fee2setter      = "0x0f2e821517D4f64a012a04b668a6b1aa3B262e08"
+	GasLimit4Deploy = uint64(0)                                    //此处需要设置为0,让交易自行估计,否则将会导致部署失败,TODO:其他解决途径后续调研解决
+	fee2setter      = "0x0f2e821517D4f64a012a04b668a6b1aa3B262e08" //private Key:f934e9171c5cf13b35e6c989e95f5e95fa471515730af147b66d60fbcd664b7c
 )
 
 func setupWebsocketEthClient(ethNodeAddr string) {
@@ -295,6 +295,52 @@ checkAllowance:
 	fmt.Println("\n The allowance recetrived is:", result.Int64())
 
 	return nil
+}
+
+func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string) (err error) {
+	_ = recoverEthTestNetPrivateKey()
+
+	feeToSetterPrivateKey, err := crypto.ToECDSA(common.FromHex(feeToSetterPrivateKeyStr))
+	if nil != err {
+		panic("Failed to recover private key")
+		return err
+	}
+	feeToSetter := crypto.PubkeyToAddress(feeToSetterPrivateKey.PublicKey)
+	fmt.Println("The address is:", deployerAddr.String())
+
+	factoryInt, err := pancakeFactory.NewPancakeFactory(common.HexToAddress(factory), ethClient)
+	if nil != err {
+		return err
+	}
+	auth, err := PrepareAuth(feeToSetterPrivateKey, feeToSetter)
+	if nil != err {
+		return err
+	}
+	setFeeToTx, err := factoryInt.SetFeeTo(auth, common.HexToAddress(feeTo))
+	if nil != err {
+		panic(fmt.Sprintf("Failed to setFeeTo with err:%s", err.Error()))
+		return err
+	}
+
+	fmt.Println("\nsetFeeTo tx hash:", setFeeToTx.Hash().String())
+	timeout := time.NewTimer(300 * time.Second)
+	oneSecondtimeout := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			panic("setFeeTo timeout")
+		case <-oneSecondtimeout.C:
+			_, err := ethClient.TransactionReceipt(context.Background(), setFeeToTx.Hash())
+			if err == ethereum.NotFound {
+				fmt.Println("\n No receipt received yet for setFeeTo tx and continue to wait")
+				continue
+			} else if err != nil {
+				panic("setFeeToTx failed due to" + err.Error())
+			}
+			fmt.Println("\n Succeed to do the setFeeTo operation")
+			return nil
+		}
+	}
 }
 
 func CheckAllowance4LPHandle(lp string, spender string) (err error) {

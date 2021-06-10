@@ -18,13 +18,49 @@ func CakeCmd() *cobra.Command {
 		AddAllowance4LPCmd(),
 		CheckAllowance4LPCmd(),
 		showPairInitCodeHashCmd(),
+		setFeeToCmd(),
 	)
 	return cmd
 }
 
+func setFeeToCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "setFeeTo",
+		Short: "set FeeTo address to factroy",
+		Run:   setFeeTo,
+	}
+	AddSetFeeToFlags(cmd)
+	return cmd
+}
+
+func AddSetFeeToFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("factroy", "f", "", "factroy Addr ")
+	_ = cmd.MarkFlagRequired("factroy")
+
+	cmd.Flags().StringP("feeTo", "t", "", "feeTo Addr ")
+	_ = cmd.MarkFlagRequired("feeTo")
+
+	cmd.Flags().StringP("key", "k", "f934e9171c5cf13b35e6c989e95f5e95fa471515730af147b66d60fbcd664b7c", "private key of feetoSetter")
+}
+
+func setFeeTo(cmd *cobra.Command, args []string) {
+	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	factroy, _ := cmd.Flags().GetString("factroy")
+	feeTo, _ := cmd.Flags().GetString("feeTo")
+	key, _ := cmd.Flags().GetString("key")
+
+	setupWebsocketEthClient(ethNodeAddr)
+	err := setFeeToHandle(factroy, feeTo, key)
+	if nil != err {
+		fmt.Println("Failed to deploy contracts due to:", err.Error())
+		return
+	}
+	fmt.Println("Succeed to deploy contracts")
+}
+
 func DeployPancakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deploy pancake",
+		Use:   "deploy",
 		Short: "deploy pancake router to ethereum ",
 		Run:   DeployContractsCake,
 	}
