@@ -6,6 +6,8 @@ import "./SafeMath.sol";
 
 library PancakeLibrary {
     using SafeMath for uint;
+    uint public constant FEE_BASE = 10000;
+    uint public constant FEE_FACTOR = 9975;
 
     // returns sorted token addresses, used to handle return values from pairs sorted in this order
     function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
@@ -29,13 +31,6 @@ library PancakeLibrary {
 
     // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address tokenA, address tokenB) internal returns (address pair) {
-        //(address token0, address token1) = sortTokens(tokenA, tokenB);
-        //emit debugPairAddr(keccak256(abi.encodePacked(
-                                           //hex'ff',
-                                           //factory,
-                                           //keccak256(abi.encodePacked(token0, token1)),
-                                           //hex'c6b93034ea97d931a8fae5b6eeaa11fabfdac8cd71fd4b50df6697398722e590' // init code hash just for debug
-         //)));
         //pair = address(uint(keccak256(abi.encodePacked(
                 //hex'ff',
                 //factory,
@@ -65,9 +60,9 @@ library PancakeLibrary {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, 'PancakeLibrary: INSUFFICIENT_INPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'PancakeLibrary: INSUFFICIENT_LIQUIDITY');
-        uint amountInWithFee = amountIn.mul(998);
+        uint amountInWithFee = amountIn.mul(FEE_FACTOR);
         uint numerator = amountInWithFee.mul(reserveOut);
-        uint denominator = reserveIn.mul(1000).add(amountInWithFee);
+        uint denominator = reserveIn.mul(FEE_BASE).add(amountInWithFee);
         amountOut = numerator / denominator;
     }
 
@@ -75,8 +70,8 @@ library PancakeLibrary {
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal pure returns (uint amountIn) {
         require(amountOut > 0, 'PancakeLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'PancakeLibrary: INSUFFICIENT_LIQUIDITY');
-        uint numerator = reserveIn.mul(amountOut).mul(1000);
-        uint denominator = reserveOut.sub(amountOut).mul(998);
+        uint numerator = reserveIn.mul(amountOut).mul(FEE_BASE);
+        uint denominator = reserveOut.sub(amountOut).mul(FEE_FACTOR);
         amountIn = (numerator / denominator).add(1);
     }
 
