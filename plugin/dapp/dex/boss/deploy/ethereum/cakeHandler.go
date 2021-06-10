@@ -3,9 +3,11 @@ package ethereum
 import (
 	"context"
 	"crypto/ecdsa"
-
+	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum/offline"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeFactory"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeRouter"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/core/types"
 
 	"fmt"
 	"math/big"
@@ -297,7 +299,7 @@ checkAllowance:
 	return nil
 }
 
-func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string) (err error) {
+func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit uint64) (err error) {
 	_ = recoverEthTestNetPrivateKey()
 
 	feeToSetterPrivateKey, err := crypto.ToECDSA(common.FromHex(feeToSetterPrivateKeyStr))
@@ -318,8 +320,43 @@ func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string) (err error)
 	}
 	setFeeToTx, err := factoryInt.SetFeeTo(auth, common.HexToAddress(feeTo))
 	if nil != err {
-		panic(fmt.Sprintf("Failed to setFeeTo with err:%s", err.Error()))
-		return err
+		//try specific  gaslimit
+		if strings.Contains(err.Error(), "failed to estimate gas needed") {
+			fmt.Println("specific gas to create tx...")
+			//指定gas大小，手动构建签名交易
+
+			parsed, err := abi.JSON(strings.NewReader(pancakeFactory.PancakeFactoryABI))
+			input, err := parsed.Pack("setFeeTo", feeTo)
+			if err != nil {
+				panic(err)
+			}
+			gasPrice, err := ethClient.SuggestGasPrice(context.Background())
+			if err != nil {
+				panic(err)
+			}
+			ntx := types.NewTransaction(auth.Nonce.Uint64(), common.HexToAddress(factory), new(big.Int), gasLimit, gasPrice, input)
+			signedTx, _, err := offline.SignTx(privateKey, ntx)
+			if err != nil {
+				panic(err)
+			}
+			setFeeToTx = new(types.Transaction)
+			err = setFeeToTx.UnmarshalBinary(common.FromHex(signedTx))
+			if err != nil {
+				panic(err)
+			}
+			//send
+			err = ethClient.SendTransaction(context.Background(), setFeeToTx)
+			if err != nil {
+				fmt.Println("auth nonce", auth.Nonce.Uint64())
+				panic(err)
+			}
+
+		} else {
+			panic(fmt.Sprintf("Failed to SetFeeTo with err:%s", err.Error()))
+
+		}
+
+
 	}
 
 	fmt.Println("\nsetFeeTo tx hash:", setFeeToTx.Hash().String())
