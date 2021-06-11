@@ -49,6 +49,17 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     }
 
     /*
+     * @dev: Modifier to restrict access to Offline
+     */
+    modifier onlyOffline() {
+        require(
+            msg.sender == offlineSave,
+            'Must be onlyOffline.'
+        );
+        _;
+    }
+
+    /*
     * @dev: Modifier to restrict access to the oracle
     */
     modifier onlyOracle()
@@ -76,7 +87,7 @@ contract BridgeBank is Chain33Bank, EthereumBank {
     * @dev: Fallback function allows operator to send funds to the bank directly
     *       This feature is used for testing and is available at the operator's own risk.
     */
-    function() external payable onlyOperator {}
+    function() external payable onlyOffline {}
 
     /*
     * @dev: Creates a new BridgeToken

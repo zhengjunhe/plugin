@@ -3,12 +3,16 @@ package ethtxs
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
 	"time"
 
+	gnosis "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/gnosis/generated"
+
 	"github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/contracts4eth/generated"
+	erc20 "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/erc20/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -493,4 +497,79 @@ deployBridgeRegistry:
 finished:
 
 	return x2EthContracts, deployInfo, nil
+}
+
+func DeployERC20(ownerAddr, name, symbol string, amount *big.Int, client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
+	if nil == para {
+		return "", errors.New("no operator private key configured")
+	}
+
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	operatorAuth, err := PrepareAuth(client, para.PrivateKey, para.Address)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	txslog.Info("DeployERC20", "ownerAddr", ownerAddr, "name", name, "symbol", symbol, "amount", amount, "client", client)
+
+	Erc20OwnerAddr := common.HexToAddress(ownerAddr)
+	Erc20Addr, deployTx, _, err := erc20.DeployERC20(operatorAuth, client, name, symbol, amount, Erc20OwnerAddr)
+	if nil != err {
+		txslog.Error("DeployERC20", "Failed to DeployErc20 with err:", err.Error())
+		return "", err
+	}
+
+	txslog.Info("DeployERC20", "DeployErc20 tx hash:", deployTx.Hash().String())
+	err = waitEthTxFinished(client, deployTx.Hash(), "DeployErc20")
+	if nil != err {
+		return "", err
+	}
+
+	return Erc20Addr.String(), nil
+}
+
+func DeployMulSign2Eth(client ethinterface.EthClientSpec, para *OperatorInfo) (string, error) {
+	if nil == para {
+		return "", errors.New("no operator private key configured")
+	}
+
+	var prepareDone bool
+	var err error
+
+	defer func() {
+		if err != nil && prepareDone {
+			_, _ = revokeNonce(para.Address)
+		}
+	}()
+
+	operatorAuth, err := PrepareAuth(client, para.PrivateKey, para.Address)
+	if nil != err {
+		return "", err
+	}
+
+	prepareDone = true
+
+	MulSignAddr, deployTx, _, err := gnosis.DeployGnosisSafe(operatorAuth, client)
+	if nil != err {
+		txslog.Error("DeployGnosisSafe", "Failed to DeployGnosisSafe with err:", err.Error())
+		return "", err
+	}
+
+	txslog.Info("DeployGnosisSafe", "DeployGnosisSafe tx hash:", deployTx.Hash().String())
+	err = waitEthTxFinished(client, deployTx.Hash(), "DeployGnosisSafe")
+	if nil != err {
+		return "", err
+	}
+
+	return MulSignAddr.String(), nil
 }

@@ -380,4 +380,15 @@ contract Chain33Bank {
         bytes32 symHash = keccak256(abi.encodePacked(_symbol));
         return token2address[symHash];
     }
+
+    function getToken2addressV2(string memory _symbol)
+        created(_symbol)
+        public view returns(address, bool)
+    {
+        bytes32 symHash = keccak256(abi.encodePacked(_symbol));
+        if (true != bridgeTokenCreated[symHash]) {
+            return (address(0), false);
+        }
+        return (token2address[symHash], true);
+    }
 }

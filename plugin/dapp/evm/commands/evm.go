@@ -462,7 +462,7 @@ func callContract(cmd *cobra.Command, args []string) {
 
 	_, packedParameter, err := abi.Pack(parameter, abiStr, false)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Failed to do para pack")
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to do para pack", err.Error())
 		return
 	}
 
@@ -651,7 +651,7 @@ func estimateContract(cmd *cobra.Command, args []string) {
 
 	_, packedParameter, err := abi.Pack(input, abiStr, false)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "Failed to do para pack")
+		_, _ = fmt.Fprintln(os.Stderr, "Failed to do para pack", err.Error())
 		return
 	}
 

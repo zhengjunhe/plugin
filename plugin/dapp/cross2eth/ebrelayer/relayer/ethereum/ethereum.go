@@ -71,6 +71,7 @@ type Relayer4Ethereum struct {
 	totalTx4Eth2Chain33    int64
 	symbol2Addr            map[string]common.Address
 	symbol2LockAddr        map[string]common.Address
+	mulSignAddr            string
 }
 
 var (
@@ -116,8 +117,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 	registrAddrInDB, err := ethRelayer.getBridgeRegistryAddr()
 	//如果输入的registry地址非空，且和数据库保存地址不一致，则直接使用输入注册地址
 	if startPara.BridgeRegistryAddr != "" && nil == err && registrAddrInDB != startPara.BridgeRegistryAddr {
-		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB,
-			"but now setting to", startPara.BridgeRegistryAddr)
+		relayerLog.Error("StartEthereumRelayer", "BridgeRegistry is setted already with value", registrAddrInDB, "but now setting to", startPara.BridgeRegistryAddr)
 		_ = ethRelayer.setBridgeRegistryAddr(startPara.BridgeRegistryAddr)
 	} else if startPara.BridgeRegistryAddr == "" && registrAddrInDB != "" {
 		//输入地址为空，且数据库中保存地址不为空，则直接使用数据库中的地址
@@ -125,6 +125,7 @@ func StartEthereumRelayer(startPara *EthereumStartPara) *Relayer4Ethereum {
 	}
 	ethRelayer.eventLogIndex = ethRelayer.getLastBridgeBankProcessedHeight()
 	ethRelayer.initBridgeBankTx()
+	ethRelayer.mulSignAddr = ethRelayer.getMultiSignAddress()
 
 	// Start clientSpec with infura ropsten provider
 	relayerLog.Info("Relayer4Ethereum proc", "Started Ethereum websocket with provider:", ethRelayer.provider)
@@ -237,6 +238,26 @@ func (ethRelayer *Relayer4Ethereum) DeployContrcts() (bridgeRegistry string, err
 //GetBalance ：获取某一个币种的余额
 func (ethRelayer *Relayer4Ethereum) GetBalance(tokenAddr, owner string) (string, error) {
 	return ethtxs.GetBalance(ethRelayer.clientSpec, tokenAddr, owner)
+}
+
+func (ethRelayer *Relayer4Ethereum) ShowMultiBalance(tokenAddr, owner string) (string, error) {
+	relayerLog.Info("ShowMultiBalance", "tokenAddr", tokenAddr, "owner", owner)
+	opts := &bind.CallOpts{
+		From:    ethRelayer.ethValidator,
+		Context: context.Background(),
+	}
+
+	gnosisSafeAddr := common.HexToAddress(ethRelayer.mulSignAddr)
+	gnosisSafeInt, err := generated.NewGnosisSafe(gnosisSafeAddr, ethRelayer.clientSpec)
+	if nil != err {
+		return "", err
+	}
+
+	balance, err := gnosisSafeInt.GetSelfBalance(opts)
+	if nil != err {
+		return "", err
+	}
+	return balance.String(), nil
 }
 
 //ShowBridgeBankAddr ...
@@ -357,6 +378,13 @@ func (ethRelayer *Relayer4Ethereum) TransferToken(tokenAddr, fromKey, toAddr, am
 	return ethtxs.TransferToken(tokenAddr, fromKey, toAddr, bn, ethRelayer.clientSpec)
 }
 
+//TransferEth ...
+func (ethRelayer *Relayer4Ethereum) TransferEth(fromKey, toAddr, amount string) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
+	return ethtxs.TransferEth(fromKey, toAddr, bn, ethRelayer.clientSpec)
+}
+
 //GetDecimals ...
 func (ethRelayer *Relayer4Ethereum) GetDecimals(tokenAddr string) (uint8, error) {
 	opts := &bind.CallOpts{
@@ -449,7 +477,7 @@ latter:
 }
 
 func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33Msg) {
-	relayerLog.Info("handleChain33Msg", "Received chain33Msg", chain33Msg)
+	relayerLog.Info("handleChain33Msg", "Received chain33Msg", chain33Msg, "tx hash string", common.Bytes2Hex(chain33Msg.TxHash))
 
 	// Parse the Chain33Msg into a ProphecyClaim for relay to Ethereum
 	prophecyClaim := ethtxs.Chain33MsgToProphecyClaim(*chain33Msg)
@@ -458,6 +486,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 	if chain33Msg.ClaimType == events.ClaimTypeLock {
 		tokenAddr, exist = ethRelayer.symbol2Addr[prophecyClaim.Symbol]
 		if !exist {
+			relayerLog.Info("handleChain33Msg", "Query address from ethereum for symbol", prophecyClaim.Symbol)
 			//Try to query token's address from ethereum node
 			addr, err := ethRelayer.ShowTokenAddrBySymbol(prophecyClaim.Symbol)
 			if err != nil {
@@ -929,4 +958,46 @@ func (ethRelayer *Relayer4Ethereum) updateSingleTxStatus(claimType events.ClaimT
 		_ = ethRelayer.setEthLockTxUpdateTxIndex(statics.TxIndex, claimType)
 		relayerLog.Info("updateSingleTxStatus", "txHash", statics.EthereumTxhash, "updated status", status)
 	}
+}
+
+func (ethRelayer *Relayer4Ethereum) DeployMulsign() (mulsign string, err error) {
+	mulsign, err = ethtxs.DeployMulSign2Eth(ethRelayer.clientSpec, ethRelayer.operatorInfo)
+	if err != nil {
+		return "", err
+	}
+	ethRelayer.rwLock.Lock()
+	ethRelayer.mulSignAddr = mulsign
+	ethRelayer.rwLock.Unlock()
+
+	ethRelayer.setMultiSignAddress(mulsign)
+
+	return mulsign, nil
+}
+
+func (ethRelayer *Relayer4Ethereum) SetupMulSign(setupMulSign ebTypes.SetupMulSign) (string, error) {
+	if "" == ethRelayer.mulSignAddr {
+		return "", ebTypes.ErrMulSignNotDeployed
+	}
+
+	return ethtxs.SetupMultiSign(setupMulSign.OperatorPrivateKey, ethRelayer.mulSignAddr, setupMulSign.Owners, ethRelayer.clientSpec)
+}
+
+func (ethRelayer *Relayer4Ethereum) SafeTransfer(para ebTypes.SafeTransfer) (string, error) {
+	if "" == ethRelayer.mulSignAddr {
+		return "", ebTypes.ErrMulSignNotDeployed
+	}
+
+	return ethtxs.SafeTransfer(ethRelayer.mulSignAddr, para.To, para.Token, para.OwnerPrivateKeys, para.Amount, ethRelayer.clientSpec, ethRelayer.operatorInfo)
+}
+
+func (ethRelayer *Relayer4Ethereum) ConfigOfflineSaveAccount(addr string) (string, error) {
+	txhash, err := ethtxs.ConfigOfflineSaveAccount(addr, ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthContracts)
+	return txhash, err
+}
+
+func (ethRelayer *Relayer4Ethereum) ConfigLockedTokenOfflineSave(addr, symbol, threshold string, percents uint32) (string, error) {
+	bn := big.NewInt(1)
+	bn, _ = bn.SetString(utils.TrimZeroAndDot(threshold), 10)
+	txhash, err := ethtxs.ConfigLockedTokenOfflineSave(addr, symbol, bn, uint8(percents), ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthContracts)
+	return txhash, err
 }
