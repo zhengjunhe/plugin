@@ -2,7 +2,6 @@ package ethereum
 
 import (
 	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +38,7 @@ func AddSetFeeToFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("feeTo", "t", "", "feeTo Addr ")
 	_ = cmd.MarkFlagRequired("feeTo")
-
+	cmd.Flags().Uint64P("gas", "g", 80*10000, "gaslimit")
 	cmd.Flags().StringP("key", "k", "f934e9171c5cf13b35e6c989e95f5e95fa471515730af147b66d60fbcd664b7c", "private key of feetoSetter")
 }
 
@@ -48,9 +47,10 @@ func setFeeTo(cmd *cobra.Command, args []string) {
 	factroy, _ := cmd.Flags().GetString("factory")
 	feeTo, _ := cmd.Flags().GetString("feeTo")
 	key, _ := cmd.Flags().GetString("key")
+	gasLimit, _ := cmd.Flags().GetUint64("gas")
 
 	setupWebsocketEthClient(ethNodeAddr)
-	err := setFeeToHandle(factroy, feeTo, key)
+	err := setFeeToHandle(factroy, feeTo, key,gasLimit)
 	if nil != err {
 		fmt.Println("Failed to deploy contracts due to:", err.Error())
 		return
