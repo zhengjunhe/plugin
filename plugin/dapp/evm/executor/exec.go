@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/33cn/chain33/account"
+
 	log "github.com/33cn/chain33/common/log/log15"
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
@@ -17,6 +19,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/runtime"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/state"
 	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
+	pt "github.com/33cn/plugin/plugin/dapp/paracross/types"
 )
 
 // Exec 本合约执行逻辑
@@ -170,7 +173,14 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 
 // CheckInit 检查是否初始化数据库
 func (evm *EVMExecutor) CheckInit() {
-	evm.mStateDB = state.NewMemoryStateDB(evm.GetStateDB(), evm.GetLocalDB(), evm.GetCoinsAccount(), evm.GetHeight(), evm.GetAPI())
+	cfg := evm.GetAPI().GetConfig()
+	if !cfg.IsPara() {
+		//主链
+		evm.mStateDB = state.NewMemoryStateDB(evm.GetStateDB(), evm.GetLocalDB(), evm.GetCoinsAccount(), evm.GetHeight(), evm.GetAPI())
+	}
+	//平行链
+	accountDB, _ := account.NewAccountDB(evm.GetAPI().GetConfig(), pt.ParaX, "coins.bty", evm.GetStateDB())
+	evm.mStateDB = state.NewMemoryStateDB(evm.GetStateDB(), evm.GetLocalDB(), accountDB, evm.GetHeight(), evm.GetAPI())
 }
 
 // GetMessage 目前的交易中，如果是coins交易，金额是放在payload的，但是合约不行，需要修改Transaction结构
