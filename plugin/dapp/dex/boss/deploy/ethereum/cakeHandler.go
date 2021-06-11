@@ -314,10 +314,10 @@ func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit ui
 	if nil != err {
 		return err
 	}
-	auth.GasLimit=gasLimit
+	auth.GasLimit = gasLimit
 	setFeeToTx, err := factoryInt.SetFeeTo(auth, common.HexToAddress(feeTo))
 	if nil != err {
-			panic(fmt.Sprintf("Failed to SetFeeTo with err:%s", err.Error()))
+		panic(fmt.Sprintf("Failed to SetFeeTo with err:%s", err.Error()))
 
 	}
 

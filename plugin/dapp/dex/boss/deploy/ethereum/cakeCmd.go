@@ -50,7 +50,7 @@ func setFeeTo(cmd *cobra.Command, args []string) {
 	gasLimit, _ := cmd.Flags().GetUint64("gas")
 
 	setupWebsocketEthClient(ethNodeAddr)
-	err := setFeeToHandle(factroy, feeTo, key,gasLimit)
+	err := setFeeToHandle(factroy, feeTo, key, gasLimit)
 	if nil != err {
 		fmt.Println("Failed to deploy contracts due to:", err.Error())
 		return
