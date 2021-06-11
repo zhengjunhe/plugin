@@ -45,6 +45,8 @@ func RelayOracleClaimToEthereum(oracleInstance *generated.Oracle, client ethinte
 		return "", err
 	}
 
+	txslog.Info("RelayProphecyClaimToEthereum", "sender", sender.String(), "nonce", auth.Nonce, "claim.chain33TxHash", common.Bytes2Hex(claim.chain33TxHash))
+
 	tx, err := oracleInstance.NewOracleClaim(auth, uint8(claim.ClaimType), claim.Chain33Sender, claim.EthereumReceiver, tokenOnEth, claim.Symbol, claim.Amount, claimID, signature)
 	if nil != err {
 		txslog.Error("RelayProphecyClaimToEthereum", "NewOracleClaim failed due to:", err.Error())
