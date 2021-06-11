@@ -96,18 +96,18 @@ function deployMultisign() {
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})")
     check_tx "${Chain33Cli}" "${hash}"
 
-    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
-    result=$(${CLIA} ethereum multisign deploy)
-    cli_ret "${result}" "ethereum multisign deploy"
-    multisignEthAddr=$(echo "${result}" | jq -r ".msg")
-
-    result=$(${CLIA} ethereum multisign setup -k "${ethDeployKey}" -o "${bseMultisignA},${bseMultisignB},${bseMultisignC}")
-    cli_ret "${result}" "ethereum multisign setup"
-
-    result=$(${CLIA} ethereum multisign set_offline_addr -s "${multisignEthAddr}")
-    cli_ret "${result}" "set_offline_addr"
-
-    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+#    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
+#    result=$(${CLIA} ethereum multisign deploy)
+#    cli_ret "${result}" "ethereum multisign deploy"
+#    multisignEthAddr=$(echo "${result}" | jq -r ".msg")
+#
+#    result=$(${CLIA} ethereum multisign setup -k "${ethDeployKey}" -o "${bseMultisignA},${bseMultisignB},${bseMultisignC}")
+#    cli_ret "${result}" "ethereum multisign setup"
+#
+#    result=$(${CLIA} ethereum multisign set_offline_addr -s "${multisignEthAddr}")
+#    cli_ret "${result}" "set_offline_addr"
+#
+#    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 function lock_eth_balance() {
@@ -122,31 +122,36 @@ function lock_eth_balance() {
     eth_block_wait 2
 
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
-    cli_ret "${result}" "balance" ".balance" "${bridgeBankBalance}"
+#    cli_ret "${result}" "balance" ".balance" "${bridgeBankBalance}"
     result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
-    cli_ret "${result}" "balance" ".balance" "${multisignBalance}"
+#    cli_ret "${result}" "balance" ".balance" "${multisignBalance}"
 }
 
 function lockEth() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
     # echo '2:#配置自动转离线钱包(BNB, 4, 50%)'
-    result=$(${CLIA} ethereum multisign set_offline_token -s BNB -m 4 -p 50)
-    cli_ret "${result}" "set_offline_token -s BNB -m 4"
+#    result=$(${CLIA} ethereum multisign set_offline_token -s ETH -m 4)
+#    cli_ret "${result}" "set_offline_token -s ETH -m 4"
 
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
-    cli_ret "${result}" "balance" ".balance" "0"
+#    cli_ret "${result}" "balance" ".balance" "0"
     result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
-    cli_ret "${result}" "balance" ".balance" "0"
+#    cli_ret "${result}" "balance" ".balance" "0"
 
-    lock_eth_balance 4 2 2
+#    lock_eth_balance 4 2 2
+    lock_eth_balance 2 4 2
 #    lock_eth_balance 1 10 10
 #    lock_eth_balance 16 13 23
 
     # transfer
     hash=$(./ebcli_A ethereum multisign transfer -a 1 -r "${ethBridgeBank}" -k "${bseMultisignKeyA},${bseMultisignKeyB},${bseMultisignKeyC}")
-
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
+    result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
+
+    result=$(${CLIA} ethereum balance -o "${bseMultisignA}" )
+    hash=$(./ebcli_A ethereum multisign transfer -a 1 -r "${bseMultisignA}" -k "${bseMultisignKeyA},${bseMultisignKeyB},${bseMultisignKeyC}")
+    result=$(${CLIA} ethereum balance -o "${bseMultisignA}" )
     result=$(${CLIA} ethereum balance -o "${multisignEthAddr}" )
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
@@ -196,17 +201,22 @@ function StartRelayerOnBsc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
 
-
-
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
+
+    BridgeRegistryOnEth=0x5331F912027057fBE8139D91B225246e8159232f
+    ethBridgeBank=0xC65B02a22B714b55D708518E2426a22ffB79113d
+    multisignEthAddr=0xbf271b2B23DA4fA8Dc93Ce86D27dd09796a7Bf54
 
 function mainTest() {
     StartChain33
 
-    kill_ebrelayer ebrelayer
-    sleep 10
-    rm datadir/ logs/ -rf
+    pid=$(ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}' | xargs)
+    if [ "${pid}" == "" ]; then
+        kill_ebrelayer ebrelayer
+        sleep 2
+        rm datadir/ logs/ -rf
+    fi
 
     # shellcheck disable=SC2155
     line=$(delete_line_show "./relayer.toml" "EthProviderCli=\"http://127.0.0.1:7545\"")
@@ -219,16 +229,81 @@ function mainTest() {
         sed -i ''"${line}"' a EthProvider="wss://data-seed-prebsc-1-s1.binance.org:8545/"' "./relayer.toml"
     fi
 
-    StartRelayer_A
 
 
-#    kill_all_ebrelayer
-#    StartRelayerAndDeploy
+#    StartRelayer_A
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 
-#    deployMultisign
-#
-#    lockEth
+    # 修改 relayer.toml 配置文件 pushName 字段
+    pushNameChange "./relayer.toml"
+
+    # 启动 ebrelayer
+    start_ebrelayerA
+
+    # 导入私钥 部署合约 设置 bridgeRegistry 地址
+#    InitAndDeploy
+{
+    echo -e "${GRE}=========== InitAndDeploy begin ===========${NOC}"
+
+    result=$(${CLIA} set_pwd -p 123456hzj)
+    cli_ret "${result}" "set_pwd"
+
+    result=$(${CLIA} unlock -p 123456hzj)
+    cli_ret "${result}" "unlock"
+
+    result=$(${CLIA} chain33 import_privatekey -k "${chain33DeployKey}")
+    cli_ret "${result}" "chain33 import_privatekey"
+
+    result=$(${CLIA} ethereum import_privatekey -k "${ethDeployKey}")
+    cli_ret "${result}" "ethereum import_privatekey"
+
+    # 在 chain33 上部署合约
+    result=$(${CLIA} chain33 deploy)
+    cli_ret "${result}" "chain33 deploy"
+    BridgeRegistryOnChain33=$(echo "${result}" | jq -r ".msg")
+
+    # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
+    cp BridgeRegistry.abi "${BridgeRegistryOnChain33}.abi"
+    chain33BridgeBank=$(${Chain33Cli} evm abi call -c "${chain33DeployAddr}" -b "bridgeBank()" -a "${BridgeRegistryOnChain33}")
+    cp Chain33BridgeBank.abi "${chain33BridgeBank}.abi"
+
+    # 在 Eth 上部署合约
+#    result=$(${CLIA} ethereum deploy)
+#    cli_ret "${result}" "ethereum deploy"
+#    BridgeRegistryOnEth=$(echo "${result}" | jq -r ".msg")
+
+    # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
+#    cp BridgeRegistry.abi "${BridgeRegistryOnEth}.abi"
+#    result=$(${CLIA} ethereum bridgeBankAddr)
+#    ethBridgeBank=$(echo "${result}" | jq -r ".addr")
+    cp EthBridgeBank.abi "${ethBridgeBank}.abi"
+
+    # 修改 relayer.toml 字段
+    updata_relayer "BridgeRegistryOnChain33" "${BridgeRegistryOnChain33}" "./relayer.toml"
+
+    line=$(delete_line_show "./relayer.toml" "BridgeRegistry=")
+    if [ "${line}" ]; then
+        sed -i ''"${line}"' a BridgeRegistry="'"${BridgeRegistryOnEth}"'"' "./relayer.toml"
+    fi
+
+    echo -e "${GRE}=========== InitAndDeploy end ===========${NOC}"
+}
+
+    # 重启
+    kill_ebrelayer ebrelayer
+    start_ebrelayerA
+
+    result=$(${CLIA} unlock -p 123456hzj)
+    cli_ret "${result}" "unlock"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+
+    deployMultisign
+
+    lockEth
 #    lockEthYcc
 }
 
 mainTest
+
+#lockEth
