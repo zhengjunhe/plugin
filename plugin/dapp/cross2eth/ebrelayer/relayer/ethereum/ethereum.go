@@ -26,6 +26,7 @@ import (
 	log "github.com/33cn/chain33/common/log/log15"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/contracts4eth/generated"
+	gnosis "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/gnosis/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethtxs"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
@@ -248,7 +249,7 @@ func (ethRelayer *Relayer4Ethereum) ShowMultiBalance(tokenAddr, owner string) (s
 	}
 
 	gnosisSafeAddr := common.HexToAddress(ethRelayer.mulSignAddr)
-	gnosisSafeInt, err := generated.NewGnosisSafe(gnosisSafeAddr, ethRelayer.clientSpec)
+	gnosisSafeInt, err := gnosis.NewGnosisSafe(gnosisSafeAddr, ethRelayer.clientSpec)
 	if nil != err {
 		return "", err
 	}
