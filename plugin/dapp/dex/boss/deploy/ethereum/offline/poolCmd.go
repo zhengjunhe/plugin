@@ -66,7 +66,7 @@ func (a *AddPool)AddPool2Farm(cmd *cobra.Command, args []string) {
 	a.allocPoint=allocPoint
 	a.lpToken=lpToken
 	a.withUpdate=update
-	var signData = make([]*deploayContract, 0)
+	var signData = make([]*DeploayContract, 0)
 	var signInfo SignCmd
 	paraseFile(filePath,&signInfo)
 	//check is timeout
@@ -85,7 +85,7 @@ func (a *AddPool)AddPool2Farm(cmd *cobra.Command, args []string) {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return
 	}
-	var addPoolData=new(deploayContract)
+	var addPoolData=new(DeploayContract)
 	addPoolData.Nonce=signInfo.Nonce
 	addPoolData.SignedRawTx=signedtx
 	addPoolData.TxHash=hash
@@ -144,7 +144,7 @@ func (u *updateAllocPoint)UpdateAllocPoint(cmd *cobra.Command, args []string) {
 	u.allocPoint=allocPoint
 	u.withUpdate=update
 	var signInfo SignCmd
-	var signData = make([]*deploayContract, 0)
+	var signData = make([]*DeploayContract, 0)
 	paraseFile(filePath,&signInfo)
 	checkFile(signInfo.From,from.String(),signInfo.Timestamp)
 
@@ -153,7 +153,7 @@ func (u *updateAllocPoint)UpdateAllocPoint(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	var updateAllocData=new(deploayContract)
+	var updateAllocData=new(DeploayContract)
 	updateAllocData.Nonce=signInfo.Nonce
 	updateAllocData.SignedRawTx=signedtx
 	updateAllocData.TxHash=hash
@@ -247,8 +247,8 @@ func  (t*transferOwnerShip)TransferOwnerShip(cmd *cobra.Command, args []string) 
 		return
 	}
 
-	var transferOwner=new(deploayContract)
-	var signData = make([]*deploayContract, 0)
+	var transferOwner=new(DeploayContract)
+	var signData = make([]*DeploayContract, 0)
 	transferOwner.Nonce=signInfo.Nonce
 	transferOwner.SignedRawTx=signedtx
 	transferOwner.TxHash=hash

@@ -10,7 +10,7 @@ func EthOfflineCmd() *cobra.Command {
 	}
 	var query = new(queryCmd)
 	var signdeployCmd = new(SignCmd)
-	var deploy = new(deploayContract)
+	var deploy = new(DeploayContract)
 	var addpool=new(AddPool)
 	var update=new(updateAllocPoint)
 	var transOwner=new(transferOwnerShip)
@@ -20,7 +20,7 @@ func EthOfflineCmd() *cobra.Command {
 		addpool.AddPoolCmd(),//call contract
 		update.UpdateAllocPointCmd(),
 		transOwner.TransferOwnerShipCmd(),
-		deploy.deployCmd(), //send singned tx to deploy contract:factory,weth9,pancakerouter.
+		deploy.DeployCmd(), //send singned tx to deploy contract:factory,weth9,pancakerouter.
 	)
 	return cmd
 }

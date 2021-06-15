@@ -3,13 +3,9 @@ package ethereum
 import (
 	"context"
 	"crypto/ecdsa"
-	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum/offline"
+	"fmt"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeFactory"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeRouter"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/core/types"
-
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -318,44 +314,10 @@ func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit ui
 	if nil != err {
 		return err
 	}
+	auth.GasLimit = gasLimit
 	setFeeToTx, err := factoryInt.SetFeeTo(auth, common.HexToAddress(feeTo))
 	if nil != err {
-		//try specific  gaslimit
-		if strings.Contains(err.Error(), "failed to estimate gas needed") {
-			fmt.Println("specific gas to create tx...")
-			//指定gas大小，手动构建签名交易
-
-			parsed, err := abi.JSON(strings.NewReader(pancakeFactory.PancakeFactoryABI))
-			input, err := parsed.Pack("setFeeTo", feeTo)
-			if err != nil {
-				panic(err)
-			}
-			gasPrice, err := ethClient.SuggestGasPrice(context.Background())
-			if err != nil {
-				panic(err)
-			}
-			ntx := types.NewTransaction(auth.Nonce.Uint64(), common.HexToAddress(factory), new(big.Int), gasLimit, gasPrice, input)
-			signedTx, _, err := offline.SignTx(privateKey, ntx)
-			if err != nil {
-				panic(err)
-			}
-			setFeeToTx = new(types.Transaction)
-			err = setFeeToTx.UnmarshalBinary(common.FromHex(signedTx))
-			if err != nil {
-				panic(err)
-			}
-			//send
-			err = ethClient.SendTransaction(context.Background(), setFeeToTx)
-			if err != nil {
-				fmt.Println("auth nonce", auth.Nonce.Uint64())
-				panic(err)
-			}
-
-		} else {
-			panic(fmt.Sprintf("Failed to SetFeeTo with err:%s", err.Error()))
-
-		}
-
+		panic(fmt.Sprintf("Failed to SetFeeTo with err:%s", err.Error()))
 
 	}
 
