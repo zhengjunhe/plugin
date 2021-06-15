@@ -3,6 +3,7 @@ package ethereum
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/boss4x/ethereum/offline"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethtxs"
 	tml "github.com/BurntSushi/toml"
 	"github.com/ethereum/go-ethereum/common"
@@ -12,7 +13,7 @@ import (
 	"os"
 )
 
-type depolyInfo struct {
+type DepolyInfo struct {
 	OperatorAddr       string   `toml:"operatorAddr"`
 	DeployerPrivateKey string   `toml:"deployerPrivateKey"`
 	ValidatorsAddr     []string `toml:"validatorsAddr"`
@@ -26,10 +27,12 @@ func EthCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		DeployContrctsCmd(),
+		offline.OfflineDeployContractsCmd(),
 	)
 	return cmd
 
 }
+
 
 //DeployContrctsCmd ...
 func DeployContrctsCmd() *cobra.Command {
@@ -56,8 +59,8 @@ func DeployContrcts(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	filepath, _ := cmd.Flags().GetString("file")
 	privkey, _ := cmd.Flags().GetString("privkey")
-	var deployCfg depolyInfo
-	initCfg(filepath, &deployCfg)
+	var deployCfg DepolyInfo
+	InitCfg(filepath, &deployCfg)
 
 	if privkey != "" {
 		deployKeystr = privkey
@@ -105,7 +108,7 @@ func DeployContrcts(cmd *cobra.Command, args []string) {
 
 }
 
-func initCfg(filepath string, cfg interface{}) {
+func InitCfg(filepath string, cfg interface{}) {
 
 	if _, err := tml.DecodeFile(filepath, cfg); err != nil {
 		fmt.Println(err)

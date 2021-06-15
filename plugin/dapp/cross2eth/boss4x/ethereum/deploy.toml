@@ -1,4 +1,3 @@
-[deploy]
 #合约部署人员私钥，用于部署合约时签名使用
 deployerPrivateKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 #验证人地址，至少配置３个以上，即大于等于３个

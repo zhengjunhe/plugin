@@ -110,8 +110,8 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	}
 
 	factoryAddr := crypto.CreateAddress(from, nonce)
-	var signData = make([]*deploayContract, 0)
-	var factData deploayContract
+	var signData = make([]*DeploayContract, 0)
+	var factData DeploayContract
 	factData.TxHash = txHash
 	factData.SignedRawTx = signedTx
 	factData.Nonce = s.Nonce
@@ -127,7 +127,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 		panic(fmt.Sprintf("Failed to DeployPancakeFactory with err:%s", err.Error()))
 	}
 	weth9Addr := crypto.CreateAddress(from, factData.Nonce +1)
-	var weth9Data deploayContract
+	var weth9Data DeploayContract
 	weth9Data.Nonce = s.Nonce + 1
 	weth9Data.TxHash = hash
 	weth9Data.SignedRawTx = wsignedTx
@@ -143,7 +143,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 		panic(fmt.Sprintf("Failed to reWriteDeployPanCakeRout with err:%s", err.Error()))
 	}
 	panrouterAddr := crypto.CreateAddress(from, weth9Data.Nonce+1)
-	var panData deploayContract
+	var panData DeploayContract
 	panData.Nonce = weth9Data.Nonce + 1
 	panData.SignedRawTx = rSignedTx
 	panData.ContractAddr = panrouterAddr.String()
@@ -157,7 +157,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	//--------------------
 	farmNonce:=panData.Nonce+1
 	var cakeToken=new(SignCakeToken)
-	var cakeData=new(deploayContract)
+	var cakeData=new(DeploayContract)
 	cakeSignedtx,hash,err:=cakeToken.reWriteDeployCakeToken(farmNonce,gasPrice,key)
 	if nil != err {
 		panic(fmt.Sprintf("Failed to reWriteDeployCakeToken with err:%s", err.Error()))
@@ -174,7 +174,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	//--------------------
 	syrupBarNonce:=farmNonce+1
 	var syrupBar=new(signsyrupBar)
-	var syrupBarData=new(deploayContract)
+	var syrupBarData=new(DeploayContract)
 	syupSignedTx,hash,err:=	syrupBar.reWriteDeploysyrupBar(syrupBarNonce,gasPrice,key,cakeContractAddr)
 	if err!=nil{
 		panic(err)
@@ -190,7 +190,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	//Sign masterChef Contractor
 	//--------------------
 	masterChefNonce:=syrupBarNonce+1
-	var mChefData=new(deploayContract)
+	var mChefData=new(DeploayContract)
 	var mChef=new(signMasterChef)
 	reward:=big.NewInt(int64(s.Reward * 1e18))
 	startBlockHeight:=big.NewInt(int64(s.StartBlock))
