@@ -42,8 +42,8 @@ func (s *SignCmd) signCmd() *cobra.Command {
 func (s *SignCmd) addFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("file", "f", "accountinfo.txt", "multi params")
 	cmd.MarkFlagRequired("file")
-	cmd.Flags().StringP("feeaddr", "", "", "fee2stter")
-	cmd.MarkFlagRequired("feeaddr")
+	cmd.Flags().StringP("fee2stter", "", "", "fee2stter addr")
+	cmd.MarkFlagRequired("fee2stter")
 	cmd.Flags().StringP("priv", "p", "", "private key")
 	cmd.Flags().Int64P("reward","",5,"Set the reward for each block")
 	cmd.MarkFlagRequired("reward")
@@ -55,7 +55,7 @@ func (s *SignCmd) addFlags(cmd *cobra.Command) {
 
 func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
 	filePath, _ := cmd.Flags().GetString("file")
-	fee2setter, _ := cmd.Flags().GetString("feeaddr")
+	fee2setter, _ := cmd.Flags().GetString("fee2stter")
 	key, _ := cmd.Flags().GetString("priv")
 	reward,_:=cmd.Flags().GetInt64("reward")
 	startBlock,_:=cmd.Flags().GetInt64("start")
