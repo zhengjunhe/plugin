@@ -65,7 +65,7 @@
 #### 步骤三：发送签名后的数据（在线操作）
 
 ```
-#./boss  ethereum offline send -f signed_cross2eth.txt --rpc_laddr  wss://ws-testnet.hecochain.com
+#./boss  ethereum offline send -f signed.txt --rpc_laddr  wss://ws-testnet.hecochain.com
 
 备注：
 -f:指定要发送的签名后的文件
