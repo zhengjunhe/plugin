@@ -81,8 +81,10 @@ func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
 
 	gasPrice := big.NewInt(int64(s.GasPrice))
 	var timewait time.Duration
-	if interval<=0{
+	if interval>0{
 		timewait=time.Duration(interval)*time.Second
+	}else{
+		timewait=time.Second*5
 	}
 	err = s.signContractTx(fee2setter, priv, gasPrice, s.Nonce, timewait)
 	if nil != err {

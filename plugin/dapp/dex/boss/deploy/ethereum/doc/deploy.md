@@ -27,9 +27,11 @@
 ***
 
 #### 步骤二： 批量构造交易，并签名交易数据（离线操作）
-> 这一步是离线操作，需要使用到之前步骤一查询操作产生的**accountinfo.txt** 文件，同时要指定配置文件
+> 这一步是离线操作，需要使用到之前步骤一查询操作产生的**accountinfo.txt** 文件 
 ```
-#./boss offline eth sign -f accountinfo.txt -p 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 --reward 5 --start 5618990 --fee2stter 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a
+#./boss offline eth sign -f accountinfo.txt 
+-p 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 --reward 5 --start 5618990 
+--fee2stter 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a -g 1000000000 -n 21
 
 
 备注：
@@ -38,6 +40,8 @@
 --reward:  区块奖励数
 --start: 设置启动高度
 --fee2stter: 设置管理员账户地址
+-g :指定上一步查询获得的gasprice
+-n:指定查询获得的nonce
 ```
 上述操作后，得到一个输出文件： **signed.txt** 文件，文件内容如下：
 ```
@@ -65,7 +69,7 @@
 #### 步骤三：发送签名后的数据（在线操作）
 
 ```
-#./boss  ethereum offline send -f signed.txt --rpc_laddr  wss://ws-testnet.hecochain.com
+#./boss  offline eth send  -f signed.txt --rpc_laddr  wss://ws-testnet.hecochain.com
 
 备注：
 -f:指定要发送的签名后的文件
