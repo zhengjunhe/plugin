@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/33cn/chain33/common/address"
 
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/rpc/jsonclient"
@@ -42,9 +45,10 @@ func EthereumRelayerCmd() *cobra.Command {
 		LockAsyncCmd(),
 		ShowBridgeBankAddrCmd(),
 		ShowBridgeRegistryAddrCmd(),
-		TransferTokenCmd(),
 		DeployERC20Cmd(),
 		TokenCmd(),
+		MultiSignEthCmd(),
+		TransferEthCmd(),
 	)
 
 	return cmd
@@ -64,6 +68,7 @@ func TokenCmd() *cobra.Command {
 		ShowTokenAddress4EthCmd(),
 		AddToken2LockListCmd(),
 		ShowTokenAddress4LockEthCmd(),
+		TransferTokenCmd(),
 	)
 	return cmd
 }
@@ -811,8 +816,8 @@ func IsProphecyPending(cmd *cobra.Command, args []string) {
 //TransferTokenCmd ...
 func TransferTokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "transfer",
-		Short: "create a transfer transaction",
+		Use:   "token_transfer",
+		Short: "create a token transfer transaction",
 		Run:   TransferToken,
 	}
 	TransferTokenFlags(cmd)
@@ -855,5 +860,276 @@ func TransferToken(cmd *cobra.Command, args []string) {
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.TransferToken", para, &res)
+	ctx.Run()
+}
+
+func MultiSignEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "multisign",
+		Short: "deploy,setup and trasfer multisign",
+		Args:  cobra.MinimumNArgs(1),
+	}
+	cmd.AddCommand(
+		DeployMultiSignEthCmd(),
+		SetupEthCmd(),
+		MultiSignTransferEthCmd(),
+		ShowEthAddrCmd(),
+		ConfigOfflineSaveAccountCmd(),
+		ConfigLockedTokenOfflineSaveCmd(),
+		GetSelfBalanceCmd(),
+	)
+	return cmd
+}
+
+func GetSelfBalanceCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "selfbalance",
+		Short: "get balance for multisign",
+		Run:   showMultiBalance,
+	}
+	return cmd
+}
+
+//showMultiBalance ...
+func showMultiBalance(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+
+	para := ebTypes.BalanceAddr{}
+	var res ebTypes.ReplyBalance
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ShowMultiBalance", para, &res)
+	ctx.Run()
+}
+
+func DeployMultiSignEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deploy",
+		Short: "deploy mulsign to ethereum",
+		Run:   DeployMultiSignEth,
+	}
+	return cmd
+}
+
+func DeployMultiSignEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.DeployMulsign2Eth", nil, &res)
+	ctx.Run()
+}
+
+func ShowEthAddrCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "show",
+		Short: "show address's hash160",
+		Run:   ShowEthAddr,
+	}
+	ShowEthAddrCmdFlags(cmd)
+	return cmd
+}
+
+func ShowEthAddrCmdFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("address", "a", "", "address")
+	_ = cmd.MarkFlagRequired("address")
+}
+
+func ShowEthAddr(cmd *cobra.Command, args []string) {
+	addressstr, _ := cmd.Flags().GetString("address")
+
+	addr, err := address.NewAddrFromString(addressstr)
+	if nil != err {
+		fmt.Println("Wrong address")
+		return
+	}
+	fmt.Println(common.ToHex(addr.Hash160[:]))
+	return
+}
+
+func SetupEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "setup",
+		Short: "Setup owners to contract",
+		Run:   SetupEthOwner,
+	}
+	SetupEthOwnerFlags(cmd)
+	return cmd
+}
+
+func SetupEthOwnerFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("owner", "o", "", "owners's address, separated by ','")
+	_ = cmd.MarkFlagRequired("owner")
+	cmd.Flags().StringP("operator", "k", "", "operator private key")
+	_ = cmd.MarkFlagRequired("operator")
+}
+
+func SetupEthOwner(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	ownersStr, _ := cmd.Flags().GetString("owner")
+	operator, _ := cmd.Flags().GetString("operator")
+	owners := strings.Split(ownersStr, ",")
+
+	para := ebTypes.SetupMulSign{
+		OperatorPrivateKey: operator,
+		Owners:             owners,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SetupOwner4Eth", para, &res)
+	ctx.Run()
+}
+
+func MultiSignTransferEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer",
+		Short: "transfer via safe",
+		Run:   SafeTransferEth,
+	}
+	SafeTransferEthFlags(cmd)
+	return cmd
+}
+
+func SafeTransferEthFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("receiver", "r", "", "receive address")
+	_ = cmd.MarkFlagRequired("receiver")
+
+	cmd.Flags().Float64P("amount", "a", 0, "amount to transfer")
+	_ = cmd.MarkFlagRequired("amount")
+
+	cmd.Flags().StringP("keys", "k", "", "owners' private key, separated by ','")
+	_ = cmd.MarkFlagRequired("keys")
+
+	cmd.Flags().StringP("token", "t", "", "erc20 address,not need to set for ETH(optional)")
+}
+
+func SafeTransferEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	receiver, _ := cmd.Flags().GetString("receiver")
+	tokenAddr, _ := cmd.Flags().GetString("token")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	keysStr, _ := cmd.Flags().GetString("keys")
+
+	keys := strings.Split(keysStr, ",")
+
+	para := ebTypes.SafeTransfer{
+		To:               receiver,
+		Token:            tokenAddr,
+		Amount:           amount,
+		OwnerPrivateKeys: keys,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SafeTransfer4Eth", para, &res)
+	ctx.Run()
+}
+
+//ConfigOfflineSaveAccountCmd ...
+func ConfigOfflineSaveAccountCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set_offline_addr",
+		Short: "save config offline account",
+		Run:   ConfigOfflineSaveAccount,
+	}
+	ConfigOfflineSaveAccountFlags(cmd)
+	return cmd
+}
+
+//ConfigOfflineSaveAccountFlags ...
+func ConfigOfflineSaveAccountFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("address", "s", "", "multisign address")
+	_ = cmd.MarkFlagRequired("address")
+}
+
+//ConfigOfflineSaveAccount ...
+func ConfigOfflineSaveAccount(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	address, _ := cmd.Flags().GetString("address")
+
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigOfflineSaveAccount", address, &res)
+	ctx.Run()
+}
+
+//ConfigLockedTokenOfflineSaveCmd ...
+func ConfigLockedTokenOfflineSaveCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set_offline_token",
+		Short: "set config offline locked token",
+		Run:   ConfigLockedTokenOfflineSave,
+	}
+	ConfigLockedTokenOfflineSaveFlags(cmd)
+	return cmd
+}
+
+//ConfigLockedTokenOfflineSaveFlags ...
+func ConfigLockedTokenOfflineSaveFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("token", "t", "", "token addr")
+	//_ = cmd.MarkFlagRequired("token")
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().Float64P("threshold", "m", 0, "threshold")
+	_ = cmd.MarkFlagRequired("threshold")
+	cmd.Flags().Uint32P("percents", "p", 50, "percents")
+	//_ = cmd.MarkFlagRequired("percents")
+}
+
+//ConfigLockedTokenOfflineSave ...
+func ConfigLockedTokenOfflineSave(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	token, _ := cmd.Flags().GetString("token")
+	threshold, _ := cmd.Flags().GetFloat64("threshold")
+	percents, _ := cmd.Flags().GetUint32("percents")
+	nodeAddr, _ := cmd.Flags().GetString("node_addr")
+
+	d, err := utils.GetDecimalsFromNode(token, nodeAddr)
+	if err != nil {
+		fmt.Println("get decimals error", err.Error())
+		return
+	}
+
+	realAmount := utils.ToWei(threshold, d)
+	para := ebTypes.ETHConfigLockedTokenOffline{
+		Symbol:    symbol,
+		Address:   token,
+		Threshold: realAmount.String(),
+		Percents:  percents,
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigLockedTokenOfflineSave", para, &res)
+	ctx.Run()
+}
+
+func TransferEthCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "transfer",
+		Short: "create a transfer transaction",
+		Run:   TransferEth,
+	}
+	TransferEthFlags(cmd)
+	return cmd
+}
+
+func TransferEthFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("from", "k", "", "from private key")
+	_ = cmd.MarkFlagRequired("from")
+	cmd.Flags().StringP("to", "r", "", "to address")
+	_ = cmd.MarkFlagRequired("to")
+	cmd.Flags().Float64P("amount", "m", 0, "amount")
+	_ = cmd.MarkFlagRequired("amount")
+}
+
+func TransferEth(cmd *cobra.Command, args []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	from, _ := cmd.Flags().GetString("from")
+	to, _ := cmd.Flags().GetString("to")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+
+	d := int64(18)
+
+	realAmount := utils.ToWei(amount, d)
+	para := ebTypes.TransferToken{
+		TokenAddr: "",
+		FromKey:   from,
+		ToAddr:    to,
+		Amount:    realAmount.String(),
+	}
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.TransferEth", para, &res)
 	ctx.Run()
 }

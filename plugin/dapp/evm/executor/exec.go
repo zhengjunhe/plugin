@@ -177,6 +177,7 @@ func (evm *EVMExecutor) CheckInit() {
 	if !cfg.IsPara() {
 		//主链
 		evm.mStateDB = state.NewMemoryStateDB(evm.GetStateDB(), evm.GetLocalDB(), evm.GetCoinsAccount(), evm.GetHeight(), evm.GetAPI())
+		return
 	}
 	//平行链
 	accountDB, _ := account.NewAccountDB(evm.GetAPI().GetConfig(), pt.ParaX, "coins.bty", evm.GetStateDB())

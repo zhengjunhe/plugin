@@ -25,3 +25,24 @@ var Tx_Status_Map = map[int32]string{
 	2: Tx_Status_Success,
 	3: Tx_Status_Failed,
 }
+
+var DecimalsPrefix = map[uint8]int64{
+	1:  1e1,
+	2:  1e2,
+	3:  1e3,
+	4:  1e4,
+	5:  1e5,
+	6:  1e6,
+	7:  1e7,
+	8:  1e8,
+	9:  1e9,
+	10: 1e10,
+	11: 1e11,
+	12: 1e12,
+	13: 1e13,
+	14: 1e14,
+	15: 1e15,
+	16: 1e16,
+	17: 1e17,
+	18: 1e18,
+}

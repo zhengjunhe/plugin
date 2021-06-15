@@ -725,7 +725,7 @@ func opCall(pc *uint64, evm *EVM, callContext *callCtx) ([]byte, error) {
 	toAddr := common.Uint256ToAddress(&addr)
 	// Get the arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
-	log15.Info("evm contract opCall", "toAddr", toAddr.String(), "value:", value.Uint64())
+	log15.Info("evm contract opCall", "toAddr", toAddr.String(), "value:", value.Uint64(), "input len", len(args), "input", common.Bytes2Hex(args))
 	if !value.IsZero() {
 		gas += params.CallStipend
 	}

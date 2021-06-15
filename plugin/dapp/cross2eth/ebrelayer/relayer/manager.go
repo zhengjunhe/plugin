@@ -731,6 +731,21 @@ func (manager *Manager) GetBalance(balanceAddr relayerTypes.BalanceAddr, result 
 	return nil
 }
 
+func (manager *Manager) ShowMultiBalance(balanceAddr relayerTypes.BalanceAddr, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	balance, err := manager.ethRelayer.ShowMultiBalance(balanceAddr.TokenAddr, balanceAddr.Owner)
+	if nil != err {
+		return err
+	}
+
+	*result = relayerTypes.ReplyBalance{
+		IsOK:    true,
+		Balance: balance,
+	}
+	return nil
+}
+
 //ShowBridgeBankAddr ...
 func (manager *Manager) ShowBridgeBankAddr(para interface{}, result *interface{}) error {
 	manager.mtx.Lock()
@@ -949,4 +964,106 @@ func (manager *Manager) GetDecimals(tokenAddr string) (int64, error) {
 	mlog.Info("GetDecimals", "from Node", d)
 
 	return int64(d), nil
+}
+
+func (manager *Manager) DeployMulsign2Eth(param interface{}, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	mulSign, err := manager.ethRelayer.DeployMulsign()
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  mulSign,
+	}
+	return nil
+}
+
+func (manager *Manager) SetupOwner4Eth(setupMulSign relayerTypes.SetupMulSign, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	mulSign, err := manager.ethRelayer.SetupMulSign(setupMulSign)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  mulSign,
+	}
+	return nil
+}
+
+func (manager *Manager) SafeTransfer4Eth(para relayerTypes.SafeTransfer, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	mulSign, err := manager.ethRelayer.SafeTransfer(para)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  mulSign,
+	}
+	return nil
+}
+
+// ConfigOfflineSaveAccount
+func (manager *Manager) ConfigOfflineSaveAccount(addr string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.ConfigOfflineSaveAccount(addr)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
+// ConfigLockedTokenOfflineSave
+func (manager *Manager) ConfigLockedTokenOfflineSave(config relayerTypes.ETHConfigLockedTokenOffline, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	txhash, err := manager.ethRelayer.ConfigLockedTokenOfflineSave(config.Address, config.Symbol, config.Threshold, config.Percents)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
+}
+
+//TransferEth ...
+func (manager *Manager) TransferEth(transfer relayerTypes.TransferToken, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	txhash, err := manager.ethRelayer.TransferEth(transfer.FromKey, transfer.ToAddr, transfer.Amount)
+	if nil != err {
+		return err
+	}
+	*result = rpctypes.Reply{
+		IsOk: true,
+		Msg:  txhash,
+	}
+	return nil
 }

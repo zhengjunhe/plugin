@@ -14,6 +14,7 @@ import (
 type EthClientSpec interface {
 	bind.ContractBackend
 	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
+	NetworkID(ctx context.Context) (*big.Int, error)
 	BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error)
 	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
 }
@@ -26,6 +27,11 @@ type SimExtend struct {
 //HeaderByNumber ...
 func (sim *SimExtend) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 	return sim.Blockchain().CurrentBlock().Header(), nil
+}
+
+//NetworkID ...
+func (sim *SimExtend) NetworkID(ctx context.Context) (*big.Int, error) {
+	return nil, nil
 }
 
 //func (sim *SimExtend) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {

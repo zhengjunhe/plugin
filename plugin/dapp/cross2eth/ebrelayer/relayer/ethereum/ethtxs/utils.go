@@ -82,9 +82,19 @@ func PrepareAuth(client ethinterface.EthClientSpec, privateKey *ecdsa.PrivateKey
 	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {
 		txslog.Error("PrepareAuth", "Failed to SuggestGasPrice due to:", err.Error())
-		return nil, errors.New("failed to get suggest gas price")
+		return nil, errors.New("failed to get suggest gas price " + err.Error())
 	}
-	auth := bind.NewKeyedTransactor(privateKey)
+
+	chainID, err := client.NetworkID(ctx)
+	if err != nil {
+		txslog.Error("PrepareAuth NetworkID", "err", err)
+		return nil, err
+	}
+	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
+	if err != nil {
+		txslog.Error("PrepareAuth NewKeyedTransactorWithChainID", "err", err)
+		return nil, err
+	}
 	auth.Value = big.NewInt(0) // in wei
 	auth.GasLimit = GasLimit4Deploy
 	auth.GasPrice = gasPrice
@@ -103,6 +113,7 @@ func waitEthTxFinished(client ethinterface.EthClientSpec, txhash common.Hash, tx
 	for {
 		select {
 		case <-timeout.C:
+			txslog.Info(txName, "tx", "eth tx timeout")
 			return errors.New("eth tx timeout")
 		case <-oneSecondtimeout.C:
 			_, err := client.TransactionReceipt(context.Background(), txhash)
