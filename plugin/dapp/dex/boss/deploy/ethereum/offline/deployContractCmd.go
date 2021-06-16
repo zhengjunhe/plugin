@@ -41,8 +41,6 @@ func (s *SignCmd) signCmd() *cobra.Command {
 }
 
 func (s *SignCmd) addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("file", "f", "accountinfo.txt", "multi params")
-	cmd.MarkFlagRequired("file")
 	cmd.Flags().StringP("fee2stter", "", "", "fee2stter addr")
 	cmd.MarkFlagRequired("fee2stter")
 	cmd.Flags().StringP("priv", "p", "", "private key")
@@ -50,16 +48,22 @@ func (s *SignCmd) addFlags(cmd *cobra.Command) {
 	cmd.MarkFlagRequired("reward")
 	cmd.Flags().Int64P("start", "", -1, "Set effective height")
 	cmd.MarkFlagRequired("start")
+	cmd.Flags().Int64P("interval", "i", 5, "interval time for send")
+	cmd.Flags().Int64P("nonce", "n", -1, "transaction count")
+	cmd.MarkFlagRequired("nonce")
+	cmd.Flags().Int64P("gasprice", "g", 1000000000, "gas price") // 1Gwei=1e9wei
+	cmd.MarkFlagRequired("gasprice")
 
 }
 
 func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
-	filePath, _ := cmd.Flags().GetString("file")
 	fee2setter, _ := cmd.Flags().GetString("fee2stter")
 	key, _ := cmd.Flags().GetString("priv")
 	reward, _ := cmd.Flags().GetInt64("reward")
 	startBlock, _ := cmd.Flags().GetInt64("start")
-
+	interval, _ := cmd.Flags().GetInt64("interval")
+	gasprice, _ := cmd.Flags().GetInt64("gasprice")
+	nonce, _ := cmd.Flags().GetInt64("nonce")
 	if startBlock <= 0 {
 		panic("startBlock  err")
 	}
@@ -69,27 +73,19 @@ func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 	fmt.Println("recover addr", addr)
-	//解析文件数据
-	err = paraseFile(filePath, s)
-	if err != nil {
-		return
-	}
+
+	s.GasPrice = uint64(gasprice)
+	s.Nonce = uint64(nonce)
 	s.Reward = uint64(reward)
 	s.StartBlock = uint64(startBlock)
-	//check is timeout
-	t, err := time.Parse(time.RFC3339, s.Timestamp)
-	if err != nil {
-		panic(err)
-	}
-	if time.Now().After(t.Add(time.Hour)) {
-		panic("after 60 minutes timeout,the accountinfo.txt invalid,please reQuery")
-	}
-	if !strings.EqualFold(s.From, addr.String()) {
-		panic("deployed address mismatch!!!")
-	}
 	gasPrice := big.NewInt(int64(s.GasPrice))
-	//fmt.Println("nonce:",s.Nonce,"gasprice:",s.GasPrice)
-	err = s.signContractTx(fee2setter, priv, gasPrice, s.Nonce)
+	var timewait time.Duration
+	if interval > 0 {
+		timewait = time.Duration(interval) * time.Second
+	} else {
+		timewait = time.Second * 5
+	}
+	err = s.signContractTx(fee2setter, priv, gasPrice, s.Nonce, timewait)
 	if nil != err {
 		fmt.Println("Failed to deploy contracts due to:", err.Error())
 		return
@@ -98,7 +94,7 @@ func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
 	fmt.Println("Succeed to signed deploy contracts")
 }
 
-func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPrice *big.Int, nonce uint64) error {
+func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPrice *big.Int, nonce uint64, timewait time.Duration) error {
 	fee2setterAddr := common.HexToAddress(fee2setter)
 	from := crypto.PubkeyToAddress(key.PublicKey)
 	//--------------------
@@ -112,6 +108,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	factoryAddr := crypto.CreateAddress(from, nonce)
 	var signData = make([]*DeployContract, 0)
 	var factData DeployContract
+	factData.Interval = timewait
 	factData.TxHash = txHash
 	factData.SignedRawTx = signedTx
 	factData.Nonce = s.Nonce
@@ -126,8 +123,10 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	if nil != err {
 		panic(fmt.Sprintf("Failed to DeployPancakeFactory with err:%s", err.Error()))
 	}
+
 	weth9Addr := crypto.CreateAddress(from, factData.Nonce+1)
 	var weth9Data DeployContract
+	weth9Data.Interval = timewait
 	weth9Data.Nonce = s.Nonce + 1
 	weth9Data.TxHash = hash
 	weth9Data.SignedRawTx = wsignedTx
@@ -143,7 +142,9 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 		panic(fmt.Sprintf("Failed to reWriteDeployPanCakeRout with err:%s", err.Error()))
 	}
 	panrouterAddr := crypto.CreateAddress(from, weth9Data.Nonce+1)
+
 	var panData DeployContract
+	panData.Interval = timewait
 	panData.Nonce = weth9Data.Nonce + 1
 	panData.SignedRawTx = rSignedTx
 	panData.ContractAddr = panrouterAddr.String()
@@ -162,7 +163,9 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	if nil != err {
 		panic(fmt.Sprintf("Failed to reWriteDeployCakeToken with err:%s", err.Error()))
 	}
+
 	cakeContractAddr := crypto.CreateAddress(from, farmNonce)
+	cakeData.Interval = timewait
 	cakeData.Nonce = farmNonce
 	cakeData.SignedRawTx = cakeSignedtx
 	cakeData.TxHash = hash
@@ -179,7 +182,9 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	if err != nil {
 		panic(err)
 	}
+
 	syupContractAddr := crypto.CreateAddress(from, syrupBarNonce)
+	syrupBarData.Interval = timewait
 	syrupBarData.Nonce = syrupBarNonce
 	syrupBarData.TxHash = hash
 	syrupBarData.ContractName = "syrupbar"
@@ -198,7 +203,9 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	if err != nil {
 		panic(err)
 	}
+
 	mChefContractAddr := crypto.CreateAddress(from, masterChefNonce)
+	mChefData.Interval = timewait
 	mChefData.Nonce = masterChefNonce
 	mChefData.TxHash = hash
 	mChefData.ContractName = "masterchef"

@@ -29,7 +29,6 @@ func (a *AddPool) AddPoolCmd() *cobra.Command {
 	}
 
 	a.addAddPoolCmdFlags(cmd)
-
 	return cmd
 }
 func (a *AddPool) addAddPoolCmdFlags(cmd *cobra.Command) {
@@ -50,6 +49,10 @@ func (a *AddPool) addAddPoolCmdFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("file", "f", "accountinfo.txt", "account info")
 	_ = cmd.MarkFlagRequired("file")
+	cmd.Flags().Uint64P("nonce", "n", 0, "transaction count")
+	cmd.MarkFlagRequired("nonce")
+	cmd.Flags().Uint64P("gasprice", "g", 1000000000, "gas price")
+	cmd.MarkFlagRequired("gasprice")
 
 }
 
@@ -59,8 +62,9 @@ func (a *AddPool) AddPool2Farm(cmd *cobra.Command, args []string) {
 	lpToken, _ := cmd.Flags().GetString("lptoken")
 	update, _ := cmd.Flags().GetBool("update")
 	key, _ := cmd.Flags().GetString("priv")
-	filePath, _ := cmd.Flags().GetString("file")
-	priv, _, err := recoverBinancePrivateKey(key)
+	nonce, _ := cmd.Flags().GetUint64("nonce")
+	price, _ := cmd.Flags().GetUint64("gasprice")
+	priv, from, err := recoverBinancePrivateKey(key)
 	if err != nil {
 		panic(err)
 	}
@@ -70,15 +74,10 @@ func (a *AddPool) AddPool2Farm(cmd *cobra.Command, args []string) {
 	a.withUpdate = update
 	var signData = make([]*DeployContract, 0)
 	var signInfo SignCmd
-	paraseFile(filePath, &signInfo)
-	//check is timeout
-	t, err := time.Parse(time.RFC3339, signInfo.Timestamp)
-	if err != nil {
-		panic(err)
-	}
-	if time.Now().After(t.Add(time.Hour)) {
-		panic("after 60 minutes timeout,the accountinfo.txt invalid,please reQuery")
-	}
+	signInfo.Nonce = nonce
+	signInfo.GasPrice = price
+	signInfo.From = from.String()
+
 	//--------------------
 	//sign addpool
 	//--------------------
@@ -124,7 +123,6 @@ func (u *updateAllocPoint) UpdateAllocPointCmd() *cobra.Command {
 	}
 
 	u.updateAllocPointCmdFlags(cmd)
-
 	return cmd
 }
 
@@ -133,8 +131,9 @@ func (u *updateAllocPoint) UpdateAllocPoint(cmd *cobra.Command, args []string) {
 	pid, _ := cmd.Flags().GetInt64("pid")
 	allocPoint, _ := cmd.Flags().GetInt64("alloc")
 	update, _ := cmd.Flags().GetBool("update")
-	filePath, _ := cmd.Flags().GetString("file")
 	key, _ := cmd.Flags().GetString("priv")
+	nonce, _ := cmd.Flags().GetUint64("nonce")
+	price, _ := cmd.Flags().GetUint64("gasprice")
 	priv, from, err := recoverBinancePrivateKey(key)
 	if err != nil {
 		panic(err)
@@ -144,9 +143,9 @@ func (u *updateAllocPoint) UpdateAllocPoint(cmd *cobra.Command, args []string) {
 	u.withUpdate = update
 	var signInfo SignCmd
 	var signData = make([]*DeployContract, 0)
-	paraseFile(filePath, &signInfo)
-	checkFile(signInfo.From, from.String(), signInfo.Timestamp)
-
+	signInfo.Nonce = nonce
+	signInfo.GasPrice = price
+	signInfo.From = from.String()
 	signedtx, hash, err := u.rewriteUpdateAllocPoint(masterChefAddrStr, signInfo.Nonce, big.NewInt(int64(signInfo.GasPrice)), priv)
 	if err != nil {
 		panic(err)
@@ -176,8 +175,11 @@ func (u *updateAllocPoint) updateAllocPointCmdFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("update")
 	cmd.Flags().StringP("priv", "p", "", "private key")
 	_ = cmd.MarkFlagRequired("priv")
-	cmd.Flags().StringP("file", "f", "accountinfo.txt", "account info")
-	_ = cmd.MarkFlagRequired("file")
+
+	cmd.Flags().Uint64P("nonce", "n", 0, "transaction count")
+	cmd.MarkFlagRequired("nonce")
+	cmd.Flags().Uint64P("gasprice", "g", 1000000000, "gas price")
+	cmd.MarkFlagRequired("gasprice")
 
 }
 
