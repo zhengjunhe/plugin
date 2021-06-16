@@ -3,6 +3,10 @@ package offline
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
+	"strings"
+	"time"
+
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeFactory"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-swap-periphery/src/pancakeRouter"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -10,9 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/spf13/cobra"
-	"math/big"
-	"strings"
-	"time"
 )
 
 //SignFactoryCmd 构造部署factory 合约的交易，并对其签名输出到文件中
@@ -25,8 +26,8 @@ type SignCmd struct {
 	Fee2Addr    string
 	Timestamp   string
 	SignedTx    string
-	Reward uint64
-	StartBlock uint64
+	Reward      uint64
+	StartBlock  uint64
 }
 
 func (s *SignCmd) signCmd() *cobra.Command {
@@ -40,27 +41,30 @@ func (s *SignCmd) signCmd() *cobra.Command {
 }
 
 func (s *SignCmd) addFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("file", "f", "accountinfo.txt", "multi params")
-	cmd.MarkFlagRequired("file")
-	cmd.Flags().StringP("feeaddr", "", "", "fee2stter")
-	cmd.MarkFlagRequired("feeaddr")
+	cmd.Flags().StringP("fee2stter", "", "", "fee2stter addr")
+	cmd.MarkFlagRequired("fee2stter")
 	cmd.Flags().StringP("priv", "p", "", "private key")
-	cmd.Flags().Int64P("reward","",5,"Set the reward for each block")
+	cmd.Flags().Int64P("reward", "", 5, "Set the reward for each block")
 	cmd.MarkFlagRequired("reward")
-	cmd.Flags().Int64P("start","",-1,"Set effective height")
+	cmd.Flags().Int64P("start", "", -1, "Set effective height")
 	cmd.MarkFlagRequired("start")
-
+	cmd.Flags().Int64P("interval", "i", 5, "interval time for send")
+	cmd.Flags().Int64P("nonce", "n", -1, "transaction count")
+	cmd.MarkFlagRequired("nonce")
+	cmd.Flags().Int64P("gasprice", "g", 1000000000, "gas price") // 1Gwei=1e9wei
+	cmd.MarkFlagRequired("gasprice")
 
 }
 
 func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
-	filePath, _ := cmd.Flags().GetString("file")
-	fee2setter, _ := cmd.Flags().GetString("feeaddr")
+	fee2setter, _ := cmd.Flags().GetString("fee2stter")
 	key, _ := cmd.Flags().GetString("priv")
-	reward,_:=cmd.Flags().GetInt64("reward")
-	startBlock,_:=cmd.Flags().GetInt64("start")
-
-	if startBlock<=0{
+	reward, _ := cmd.Flags().GetInt64("reward")
+	startBlock, _ := cmd.Flags().GetInt64("start")
+	interval, _ := cmd.Flags().GetInt64("interval")
+	gasprice, _ := cmd.Flags().GetInt64("gasprice")
+	nonce, _ := cmd.Flags().GetInt64("nonce")
+	if startBlock <= 0 {
 		panic("startBlock  err")
 	}
 
@@ -69,27 +73,19 @@ func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 	fmt.Println("recover addr", addr)
-	//解析文件数据
-	err = paraseFile(filePath, s)
-	if err != nil {
-		return
-	}
-	s.Reward= uint64(reward)
-	s.StartBlock= uint64(startBlock)
-	//check is timeout
-	t,err:=time.Parse(time.RFC3339,s.Timestamp)
-	if err!=nil{
-		panic(err)
-	}
-	if time.Now().After(t.Add(time.Hour)){
-		panic("after 60 minutes timeout,the accountinfo.txt invalid,please reQuery")
-	}
-	if !strings.EqualFold(s.From, addr.String()) {
-		panic("deployed address mismatch!!!")
-	}
+
+	s.GasPrice = uint64(gasprice)
+	s.Nonce = uint64(nonce)
+	s.Reward = uint64(reward)
+	s.StartBlock = uint64(startBlock)
 	gasPrice := big.NewInt(int64(s.GasPrice))
-	//fmt.Println("nonce:",s.Nonce,"gasprice:",s.GasPrice)
-	err = s.signContractTx(fee2setter, priv, gasPrice, s.Nonce)
+	var timewait time.Duration
+	if interval > 0 {
+		timewait = time.Duration(interval) * time.Second
+	} else {
+		timewait = time.Second * 5
+	}
+	err = s.signContractTx(fee2setter, priv, gasPrice, s.Nonce, timewait)
 	if nil != err {
 		fmt.Println("Failed to deploy contracts due to:", err.Error())
 		return
@@ -98,7 +94,7 @@ func (s *SignCmd) signContract(cmd *cobra.Command, args []string) {
 	fmt.Println("Succeed to signed deploy contracts")
 }
 
-func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPrice *big.Int, nonce uint64) error {
+func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPrice *big.Int, nonce uint64, timewait time.Duration) error {
 	fee2setterAddr := common.HexToAddress(fee2setter)
 	from := crypto.PubkeyToAddress(key.PublicKey)
 	//--------------------
@@ -110,8 +106,9 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	}
 
 	factoryAddr := crypto.CreateAddress(from, nonce)
-	var signData = make([]*deploayContract, 0)
-	var factData deploayContract
+	var signData = make([]*DeployContract, 0)
+	var factData DeployContract
+	factData.Interval = timewait
 	factData.TxHash = txHash
 	factData.SignedRawTx = signedTx
 	factData.Nonce = s.Nonce
@@ -126,8 +123,10 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	if nil != err {
 		panic(fmt.Sprintf("Failed to DeployPancakeFactory with err:%s", err.Error()))
 	}
-	weth9Addr := crypto.CreateAddress(from, factData.Nonce +1)
-	var weth9Data deploayContract
+
+	weth9Addr := crypto.CreateAddress(from, factData.Nonce+1)
+	var weth9Data DeployContract
+	weth9Data.Interval = timewait
 	weth9Data.Nonce = s.Nonce + 1
 	weth9Data.TxHash = hash
 	weth9Data.SignedRawTx = wsignedTx
@@ -143,7 +142,9 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 		panic(fmt.Sprintf("Failed to reWriteDeployPanCakeRout with err:%s", err.Error()))
 	}
 	panrouterAddr := crypto.CreateAddress(from, weth9Data.Nonce+1)
-	var panData deploayContract
+
+	var panData DeployContract
+	panData.Interval = timewait
 	panData.Nonce = weth9Data.Nonce + 1
 	panData.SignedRawTx = rSignedTx
 	panData.ContractAddr = panrouterAddr.String()
@@ -155,56 +156,62 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	//--------------------let's begain Farm contract^_^--------------------
 	//Sign Farm Contractor
 	//--------------------
-	farmNonce:=panData.Nonce+1
-	var cakeToken=new(SignCakeToken)
-	var cakeData=new(deploayContract)
-	cakeSignedtx,hash,err:=cakeToken.reWriteDeployCakeToken(farmNonce,gasPrice,key)
+	farmNonce := panData.Nonce + 1
+	var cakeToken = new(SignCakeToken)
+	var cakeData = new(DeployContract)
+	cakeSignedtx, hash, err := cakeToken.reWriteDeployCakeToken(farmNonce, gasPrice, key)
 	if nil != err {
 		panic(fmt.Sprintf("Failed to reWriteDeployCakeToken with err:%s", err.Error()))
 	}
-	cakeContractAddr:=crypto.CreateAddress(from,farmNonce)
-	cakeData.Nonce=farmNonce
-	cakeData.SignedRawTx=cakeSignedtx
-	cakeData.TxHash=hash
-	cakeData.ContractName="caketoken"
-	cakeData.ContractAddr=cakeContractAddr.String()
+
+	cakeContractAddr := crypto.CreateAddress(from, farmNonce)
+	cakeData.Interval = timewait
+	cakeData.Nonce = farmNonce
+	cakeData.SignedRawTx = cakeSignedtx
+	cakeData.TxHash = hash
+	cakeData.ContractName = "caketoken"
+	cakeData.ContractAddr = cakeContractAddr.String()
 	signData = append(signData, cakeData)
 	//--------------------
 	//Sign syrupBar Contractor
 	//--------------------
-	syrupBarNonce:=farmNonce+1
-	var syrupBar=new(signsyrupBar)
-	var syrupBarData=new(deploayContract)
-	syupSignedTx,hash,err:=	syrupBar.reWriteDeploysyrupBar(syrupBarNonce,gasPrice,key,cakeContractAddr)
-	if err!=nil{
+	syrupBarNonce := farmNonce + 1
+	var syrupBar = new(signsyrupBar)
+	var syrupBarData = new(DeployContract)
+	syupSignedTx, hash, err := syrupBar.reWriteDeploysyrupBar(syrupBarNonce, gasPrice, key, cakeContractAddr)
+	if err != nil {
 		panic(err)
 	}
-	syupContractAddr:=crypto.CreateAddress(from,syrupBarNonce)
-	syrupBarData.Nonce=syrupBarNonce
-	syrupBarData.TxHash=hash
-	syrupBarData.ContractName="syrupbar"
-	syrupBarData.ContractAddr=syupContractAddr.String()
-	syrupBarData.SignedRawTx=syupSignedTx
-	signData=append(signData,syrupBarData)
+
+	syupContractAddr := crypto.CreateAddress(from, syrupBarNonce)
+	syrupBarData.Interval = timewait
+	syrupBarData.Nonce = syrupBarNonce
+	syrupBarData.TxHash = hash
+	syrupBarData.ContractName = "syrupbar"
+	syrupBarData.ContractAddr = syupContractAddr.String()
+	syrupBarData.SignedRawTx = syupSignedTx
+	signData = append(signData, syrupBarData)
 	//--------------------
 	//Sign masterChef Contractor
 	//--------------------
-	masterChefNonce:=syrupBarNonce+1
-	var mChefData=new(deploayContract)
-	var mChef=new(signMasterChef)
-	reward:=big.NewInt(int64(s.Reward * 1e18))
-	startBlockHeight:=big.NewInt(int64(s.StartBlock))
-	mchefSignedTx,hash,err:=mChef.reWriteDeployMasterChef(masterChefNonce,gasPrice,key,cakeContractAddr,syupContractAddr,from,reward,startBlockHeight)
-	if err!=nil{
+	masterChefNonce := syrupBarNonce + 1
+	var mChefData = new(DeployContract)
+	var mChef = new(signMasterChef)
+	reward := big.NewInt(int64(s.Reward * 1e18))
+	startBlockHeight := big.NewInt(int64(s.StartBlock))
+	mchefSignedTx, hash, err := mChef.reWriteDeployMasterChef(masterChefNonce, gasPrice, key, cakeContractAddr, syupContractAddr, from, reward, startBlockHeight)
+	if err != nil {
 		panic(err)
 	}
-	mChefContractAddr:=crypto.CreateAddress(from,masterChefNonce)
-	mChefData.Nonce=masterChefNonce
-	mChefData.TxHash=hash
-	mChefData.ContractName="masterchef"
-	mChefData.SignedRawTx=mchefSignedTx
-	mChefData.ContractAddr=mChefContractAddr.String()
-	signData=append(signData,mChefData)
+
+	mChefContractAddr := crypto.CreateAddress(from, masterChefNonce)
+	mChefData.Interval = timewait
+	mChefData.Nonce = masterChefNonce
+	mChefData.TxHash = hash
+	mChefData.ContractName = "masterchef"
+	mChefData.SignedRawTx = mchefSignedTx
+	mChefData.ContractAddr = mChefContractAddr.String()
+	signData = append(signData, mChefData)
 
 	//write signedtx to spec file
 	writeToFile("signed.txt", &signData)
@@ -212,7 +219,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 }
 
 //构造交易，签名交易 factory
-func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey, fee2addr common.Address,param...interface{}) (signedTx, hash string, err error) {
+func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey, fee2addr common.Address, param ...interface{}) (signedTx, hash string, err error) {
 	parsed, err := abi.JSON(strings.NewReader(pancakeFactory.PancakeFactoryABI))
 	if err != nil {
 		return
@@ -224,17 +231,16 @@ func (s *SignCmd) reWriteDeplopyPancakeFactory(nonce uint64, gasPrice *big.Int, 
 	abiBin := pancakeFactory.PancakeFactoryBin
 	data := append(common.FromHex(abiBin), input...)
 	var amount = new(big.Int)
-	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
+	ntx := types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	//ntx := types.NewTransaction(nonce, common.Address{}, amount, gasLimit, gasPrice, data)
 	return SignTx(key, ntx)
 }
-
 
 type SignWeth9Cmd struct {
 }
 
 //only sign Weth9
-func (s *SignWeth9Cmd) reWriteDeployWETH9(nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey,param...interface{}) (signedTx, hash string, err error) {
+func (s *SignWeth9Cmd) reWriteDeployWETH9(nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey, param ...interface{}) (signedTx, hash string, err error) {
 	parsed, err := abi.JSON(strings.NewReader(pancakeRouter.WETH9ABI))
 	if err != nil {
 		return "", "", err
@@ -243,7 +249,7 @@ func (s *SignWeth9Cmd) reWriteDeployWETH9(nonce uint64, gasPrice *big.Int, key *
 	abiBin := pancakeRouter.WETH9Bin
 	data := append(common.FromHex(abiBin), input...)
 	var amount = new(big.Int)
-	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
+	ntx := types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	return SignTx(key, ntx)
 }
 
@@ -262,12 +268,12 @@ func (s *SignPanCakeRout) reWriteDeployPanCakeRout(nonce uint64, gasPrice *big.I
 	abiBin := pancakeRouter.PancakeRouterBin
 	data := append(common.FromHex(abiBin), input...)
 	var amount = new(big.Int)
-	ntx:=types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
+	ntx := types.NewContractCreation(nonce, amount, gasLimit, gasPrice, data)
 	return SignTx(key, ntx)
 
 }
 
-func SignTx(key *ecdsa.PrivateKey, tx *types.Transaction) (signedTx, hash  string, err error) {
+func SignTx(key *ecdsa.PrivateKey, tx *types.Transaction) (signedTx, hash string, err error) {
 	signer := types.HomesteadSigner{}
 	txhash := signer.Hash(tx)
 	signature, err := crypto.Sign(txhash.Bytes(), key)

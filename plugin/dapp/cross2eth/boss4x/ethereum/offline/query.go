@@ -4,16 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	tml "github.com/BurntSushi/toml"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"time"
-
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/spf13/cobra"
 )
-
+//查询deploy 私钥的nonce信息，并输出到文件中
 type queryCmd struct {
 }
 
@@ -28,7 +27,7 @@ func (q *queryCmd) queryCmd() *cobra.Command {
 }
 
 func (q *queryCmd) addQueryFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("address", "a", "", "account address")
+	cmd.Flags().StringP("address", "a", "", "deploy address")
 	cmd.MarkFlagRequired("address")
 }
 
@@ -37,6 +36,7 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	addr, _ := cmd.Flags().GetString("address")
 
 	client, err := ethclient.Dial(url)
+
 	ctx := context.Background()
 	price, err := client.SuggestGasPrice(ctx)
 	if err != nil {
@@ -57,66 +57,6 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 
 }
 
-//deploay Factory contractor
-
-type DeployContract struct {
-	ContractAddr string
-	TxHash       string
-	Nonce        uint64
-	SignedRawTx  string
-	ContractName string
-	Interval     time.Duration
-}
-
-func (d *DeployContract) DeployCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "send tx", //first step
-		Short: " send signed raw tx",
-		Run:   d.send, //对要部署的factory合约进行签名
-	}
-	d.addSendFlags(cmd)
-	return cmd
-}
-
-func (d *DeployContract) addSendFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("file", "f", "", "*.txt signed tx")
-	cmd.MarkFlagRequired("file")
-}
-
-func (d *DeployContract) send(cmd *cobra.Command, args []string) {
-	filePath, _ := cmd.Flags().GetString("file")
-	url, _ := cmd.Flags().GetString("rpc_laddr")
-	//解析文件数据
-	fmt.Println("file", filePath)
-	var rdata = make([]*DeployContract, 0)
-	err := paraseFile(filePath, &rdata)
-	if err != nil {
-		fmt.Println("paraseFile,err", err.Error())
-		return
-	}
-	fmt.Println("parase ready total tx num.", len(rdata))
-	for i, deployInfo := range rdata {
-		if deployInfo.Interval != 0 {
-			time.Sleep(deployInfo.Interval)
-		}
-		tx := new(types.Transaction)
-		err = tx.UnmarshalBinary(common.FromHex(deployInfo.SignedRawTx))
-		if err != nil {
-			panic(err)
-		}
-		client, err := ethclient.Dial(url)
-		err = client.SendTransaction(context.Background(), tx)
-		if err != nil {
-			fmt.Println("err:", err)
-			panic(err)
-		}
-		fmt.Println("deplay contract Index Tx", i+1, "TxHash", tx.Hash().String(), "contractName", deployInfo.ContractName, "contractAddr", deployInfo.ContractAddr)
-		time.Sleep(time.Second)
-	}
-
-	fmt.Println("All tx send ...")
-
-}
 
 func paraseFile(file string, result interface{}) error {
 	_, err := os.Stat(file)
@@ -147,4 +87,11 @@ func writeToFile(fileName string, content interface{}) {
 		fmt.Println("Failed to write to file:", fileName)
 	}
 	fmt.Println("tx is written to file: ", fileName, "writeContent:", string(jbytes))
+}
+func InitCfg(filepath string, cfg interface{}) {
+	if _, err := tml.DecodeFile(filepath, cfg); err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+	return
 }

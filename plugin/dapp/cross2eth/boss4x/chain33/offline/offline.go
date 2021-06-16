@@ -39,10 +39,9 @@ func createBridgeBankCmd() *cobra.Command {
 }
 
 func addCreateBridgeBankFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
@@ -61,7 +60,7 @@ func createBridgeBank(cmd *cobra.Command, args []string) {
 	oracle, _ := cmd.Flags().GetString("oracle")
 	ethereumBridge, _ := cmd.Flags().GetString("eth-bridge")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -83,7 +82,7 @@ func createBridgeBank(cmd *cobra.Command, args []string) {
 	//)
 	createPara := fmt.Sprintf("%s,%s,%s", operator, oracle, ethereumBridge)
 	content, err := utils.CreateContractAndSign(info, generated.BridgeBankBin, generated.BridgeBankABI, createPara, "bridgeBank")
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./bridgeBank", content)
 	}
 }
@@ -99,21 +98,20 @@ func createValSetCmd() *cobra.Command {
 }
 
 func addCreateValsetFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	_ = cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	_ = cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
-	cmd.Flags().StringP("contructParameter", "r", "", "contruct parameter, as: (addr, [addr, addr, addr, addr], [25, 25, 25, 25])")
+	cmd.Flags().StringP("contructParameter", "r", "", "contruct parameter, as: 'addr, [addr, addr, addr, addr], [25, 25, 25, 25]'")
 	_ = cmd.MarkFlagRequired("contructParameter")
 }
 
 func createValset(cmd *cobra.Command, args []string) {
 	contructParameter, _ := cmd.Flags().GetString("contructParameter")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -136,7 +134,7 @@ func createValset(cmd *cobra.Command, args []string) {
 	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
 	createPara := contructParameter
 	content, err := utils.CreateContractAndSign(info, generated.ValsetBin, generated.ValsetABI, createPara, "valset")
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./valset", content)
 	}
 }
@@ -152,10 +150,9 @@ func createEthereumBridgeCmd() *cobra.Command {
 }
 
 func addCreateEthereumBridgeFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	_ = cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
@@ -170,7 +167,7 @@ func createEthereumBridge(cmd *cobra.Command, args []string) {
 	operator, _ := cmd.Flags().GetString("operator")
 	valset, _ := cmd.Flags().GetString("valset")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -192,7 +189,7 @@ func createEthereumBridge(cmd *cobra.Command, args []string) {
 	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
 	createPara := fmt.Sprintf("%s,%s", operator, valset)
 	content, err := utils.CreateContractAndSign(info, generated.EthereumBridgeBin, generated.EthereumBridgeABI, createPara, "EthereumBridge")
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./EthereumBridge", content)
 	}
 }
@@ -208,10 +205,9 @@ func createOracleCmd() *cobra.Command {
 }
 
 func addCreateOracleFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	_ = cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	_ = cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
@@ -230,7 +226,7 @@ func createOracle(cmd *cobra.Command, args []string) {
 	valset, _ := cmd.Flags().GetString("valset")
 	ethereumBridge, _ := cmd.Flags().GetString("eth-bridge")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -253,7 +249,7 @@ func createOracle(cmd *cobra.Command, args []string) {
 	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
 	createPara := fmt.Sprintf("%s,%s,%s", operator, valset, ethereumBridge)
 	content, err := utils.CreateContractAndSign(info, generated.OracleBin, generated.OracleABI, createPara, "oralce")
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./oracle", content)
 	}
 }
@@ -269,10 +265,9 @@ func setBridgeBank2EthBridgeCmd() *cobra.Command {
 }
 
 func addSetBridgeBank2EthBridgeFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	_ = cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	_ = cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
@@ -287,7 +282,7 @@ func setBridgeBank2EthBridge(cmd *cobra.Command, args []string) {
 	bridgebank, _ := cmd.Flags().GetString("bridgebank")
 	ethbridge, _ := cmd.Flags().GetString("ethbridge")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -313,7 +308,7 @@ func setBridgeBank2EthBridge(cmd *cobra.Command, args []string) {
 	}
 	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
 	content, err := utils.CallContractAndSign(info, action, ethbridge)
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./addPool", content)
 	}
 }
@@ -329,10 +324,9 @@ func setOracle2EthBridgeCmd() *cobra.Command {
 }
 
 func addSetOracle2EthBridgeFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	_ = cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	_ = cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
@@ -347,7 +341,7 @@ func setOracle2EthBridge(cmd *cobra.Command, args []string) {
 	oracle, _ := cmd.Flags().GetString("oracle")
 	ethbridge, _ := cmd.Flags().GetString("ethbridge")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -373,7 +367,7 @@ func setOracle2EthBridge(cmd *cobra.Command, args []string) {
 	}
 	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
 	content, err := utils.CallContractAndSign(info, action, ethbridge)
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./setOracle", content)
 	}
 }
@@ -389,10 +383,9 @@ func createBridgeRegistryCmd() *cobra.Command {
 }
 
 func addCreateBridgeRegistryFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("caller", "c", "", "the caller address")
-	_ = cmd.MarkFlagRequired("caller")
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	_ = cmd.MarkFlagRequired("key")
 
-	cmd.Flags().StringP("expire", "", "120s", "transaction expire time (optional)")
 	cmd.Flags().StringP("note", "n", "", "transaction note info (optional)")
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 
@@ -415,7 +408,7 @@ func createBridgeRegistry(cmd *cobra.Command, args []string) {
 	bridgeBank, _ := cmd.Flags().GetString("bridgeBank")
 	oracle, _ := cmd.Flags().GetString("oracle")
 
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -439,7 +432,7 @@ func createBridgeRegistry(cmd *cobra.Command, args []string) {
 	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
 	createPara := fmt.Sprintf("%s,%s,%s,%s", ethereumBridge, bridgeBank, oracle, valset)
 	content, err := utils.CreateContractAndSign(info, generated.BridgeRegistryBin, generated.BridgeRegistryABI, createPara, "BridgeRegistry")
-	if nil != err {
+	if nil == err {
 		utils.WriteContractFile("./BridgeRegistry", content)
 	}
 }

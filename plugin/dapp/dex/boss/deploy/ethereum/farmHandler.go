@@ -3,21 +3,17 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum/offline"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/cakeToken"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/masterChef"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/syrupBar"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
-	"strings"
 	"time"
 )
 
-func GetCakeBalance(owner string, pid int64) (string, error) {
+func GetCakeBalance(owner  string, pid int64) (string, error) {
 	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress("0xD88654a6aAc42a7192d697a8250a93246De882C6"), ethClient)
 	if nil != err {
 		return "", err
@@ -34,8 +30,8 @@ func GetCakeBalance(owner string, pid int64) (string, error) {
 	return amount.String(), nil
 }
 
-func DeployFarm() error {
-	_ = recoverEthTestNetPrivateKey()
+func DeployFarm(key string ) error {
+	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -139,94 +135,55 @@ deployMasterchef:
 	return nil
 }
 
-func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
+func AddPool2FarmHandle(masterChefAddrStr ,key string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
 		return err
 	}
 
-	_ = recoverEthTestNetPrivateKey()
+	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
 	}
-
+	auth.GasLimit = gasLimit
 	AddPool2FarmTx, err := masterChefInt.Add(auth, big.NewInt(int64(allocPoint)), common.HexToAddress(lpToken), withUpdate)
 	if err != nil {
-		if strings.Contains(err.Error(), "failed to estimate gas needed") {
-			fmt.Println("specific gas to create tx...")
-			//指定gas大小，手动构建签名交易
-			if gasLimit == 0 {
-				gasLimit = 10000 * 80
-			}
-
-			parsed, err := abi.JSON(strings.NewReader(masterChef.MasterChefABI))
-			input, err := parsed.Pack("add", big.NewInt(allocPoint), common.HexToAddress(lpToken), withUpdate)
-			if err != nil {
-				panic(err)
-			}
-			gasPrice, err := ethClient.SuggestGasPrice(context.Background())
-			if err != nil {
-				panic(err)
-			}
-			ntx := types.NewTransaction(auth.Nonce.Uint64(), masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
-			signedTx, _, err := offline.SignTx(privateKey, ntx)
-			if err != nil {
-				panic(err)
-			}
-			AddPool2FarmTx = new(types.Transaction)
-			err = AddPool2FarmTx.UnmarshalBinary(common.FromHex(signedTx))
-			if err != nil {
-				panic(err)
-			}
-			//send
-			err = ethClient.SendTransaction(context.Background(), AddPool2FarmTx)
-			if err != nil {
-				fmt.Println("auth nonce", auth.Nonce.Uint64())
-				panic(err)
-			}
-
-		} else {
-			panic(fmt.Sprintf("Failed to AddPool2FarmTx with err:%s", err.Error()))
-
-		}
-
+		panic(fmt.Sprintf("Failed to AddPool2FarmTx with err:%s", err.Error()))
 	}
 
-	{
-		fmt.Println("\nAddPool2FarmTx tx hash:", AddPool2FarmTx.Hash().String())
-		timeout := time.NewTimer(300 * time.Second)
-		oneSecondtimeout := time.NewTicker(5 * time.Second)
-		for {
-			select {
-			case <-timeout.C:
-				panic("AddPool2FarmTx timeout")
-			case <-oneSecondtimeout.C:
-				_, err := ethClient.TransactionReceipt(context.Background(), AddPool2FarmTx.Hash())
-				if err == ethereum.NotFound {
-					fmt.Println("\n No receipt received yet for AddPool2FarmTx tx and continue to wait")
-					continue
-				} else if err != nil {
-					panic("AddPool2FarmTx failed due to" + err.Error())
-				}
-				return nil
+	fmt.Println("\nAddPool2FarmTx tx hash:", AddPool2FarmTx.Hash().String())
+	timeout := time.NewTimer(300 * time.Second)
+	oneSecondtimeout := time.NewTicker(5 * time.Second)
+	for {
+		select {
+		case <-timeout.C:
+			panic("AddPool2FarmTx timeout")
+		case <-oneSecondtimeout.C:
+			_, err := ethClient.TransactionReceipt(context.Background(), AddPool2FarmTx.Hash())
+			if err == ethereum.NotFound {
+				fmt.Println("\n No receipt received yet for AddPool2FarmTx tx and continue to wait")
+				continue
+			} else if err != nil {
+				panic("AddPool2FarmTx failed due to" + err.Error())
 			}
+			return nil
 		}
 	}
 
 	return nil
 }
 
-func UpdateAllocPointHandle(masterChefAddrStr string, pid, allocPoint int64, withUpdate bool) (err error) {
+func UpdateAllocPointHandle(masterChefAddrStr,key string, pid, allocPoint int64, withUpdate bool) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
 		return err
 	}
 
-	_ = recoverEthTestNetPrivateKey()
+	_ = recoverEthTestNetPrivateKey(key)
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
@@ -262,14 +219,14 @@ func UpdateAllocPointHandle(masterChefAddrStr string, pid, allocPoint int64, wit
 	return nil
 }
 
-func TransferOwnerShipHandle(newOwner, contract string) (err error) {
+func TransferOwnerShipHandle(newOwner, contract ,key string) (err error) {
 	contractAddr := common.HexToAddress(contract)
 	contractInt, err := syrupBar.NewSyrupBar(contractAddr, ethClient)
 	if nil != err {
 		return err
 	}
 
-	_ = recoverEthTestNetPrivateKey()
+	_ = recoverEthTestNetPrivateKey(key)
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
@@ -308,8 +265,8 @@ func TransferOwnerShipHandle(newOwner, contract string) (err error) {
 	return nil
 }
 
-func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef string) (err error) {
-	_ = recoverEthTestNetPrivateKey()
+func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef ,key string) (err error) {
+	_ = recoverEthTestNetPrivateKey(key)
 	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress(masterchef), ethClient)
 	if nil != err {
 		return err

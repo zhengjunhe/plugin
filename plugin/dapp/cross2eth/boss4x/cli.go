@@ -8,7 +8,7 @@ import (
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/boss4x/buildFlags"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/boss4x/chain33"
-
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/boss4x/ethereum"
 	"github.com/spf13/cobra"
 )
 
@@ -43,6 +43,8 @@ func RootCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		chain33.Chain33Cmd(),
+		ethereum.EthCmd(),
+
 	)
 	return cmd
 }
