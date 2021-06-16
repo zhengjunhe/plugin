@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"time"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
-	"io/ioutil"
-	"os"
-	"time"
 )
 
 type queryCmd struct {
@@ -58,16 +59,16 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 
 //deploay Factory contractor
 
-type DeploayContract struct {
+type DeployContract struct {
 	ContractAddr string
 	TxHash       string
 	Nonce        uint64
 	SignedRawTx  string
 	ContractName string
-	Interval time.Duration
+	Interval     time.Duration
 }
 
-func (d *DeploayContract) DeployCmd() *cobra.Command {
+func (d *DeployContract) DeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "send tx", //first step
 		Short: " send signed raw tx",
@@ -77,25 +78,25 @@ func (d *DeploayContract) DeployCmd() *cobra.Command {
 	return cmd
 }
 
-func (d *DeploayContract) addSendFlags(cmd *cobra.Command) {
+func (d *DeployContract) addSendFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("file", "f", "", "*.txt signed tx")
 	cmd.MarkFlagRequired("file")
 }
 
-func (d *DeploayContract) send(cmd *cobra.Command, args []string) {
+func (d *DeployContract) send(cmd *cobra.Command, args []string) {
 	filePath, _ := cmd.Flags().GetString("file")
 	url, _ := cmd.Flags().GetString("rpc_laddr")
 	//解析文件数据
-	fmt.Println("file",filePath)
-	var rdata = make([]*DeploayContract,0)
+	fmt.Println("file", filePath)
+	var rdata = make([]*DeployContract, 0)
 	err := paraseFile(filePath, &rdata)
 	if err != nil {
-		fmt.Println("paraseFile,err",err.Error())
+		fmt.Println("paraseFile,err", err.Error())
 		return
 	}
-	fmt.Println("parase ready total tx num.",len(rdata))
+	fmt.Println("parase ready total tx num.", len(rdata))
 	for i, deployInfo := range rdata {
-		if deployInfo.Interval!=0{
+		if deployInfo.Interval != 0 {
 			time.Sleep(deployInfo.Interval)
 		}
 		tx := new(types.Transaction)
@@ -109,7 +110,7 @@ func (d *DeploayContract) send(cmd *cobra.Command, args []string) {
 			fmt.Println("err:", err)
 			panic(err)
 		}
-		fmt.Println("deplay contract Index Tx", i+1, "TxHash", tx.Hash().String(),"contractName",deployInfo.ContractName,"contractAddr",deployInfo.ContractAddr)
+		fmt.Println("deplay contract Index Tx", i+1, "TxHash", tx.Hash().String(), "contractName", deployInfo.ContractName, "contractAddr", deployInfo.ContractAddr)
 		time.Sleep(time.Second)
 	}
 
