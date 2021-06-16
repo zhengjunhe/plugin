@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func GetCakeBalance(owner string, pid int64) (string, error) {
+func GetCakeBalance(owner  string, pid int64) (string, error) {
 	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress("0xD88654a6aAc42a7192d697a8250a93246De882C6"), ethClient)
 	if nil != err {
 		return "", err
@@ -30,8 +30,8 @@ func GetCakeBalance(owner string, pid int64) (string, error) {
 	return amount.String(), nil
 }
 
-func DeployFarm() error {
-	_ = recoverEthTestNetPrivateKey()
+func DeployFarm(key string ) error {
+	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -135,14 +135,14 @@ deployMasterchef:
 	return nil
 }
 
-func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
+func AddPool2FarmHandle(masterChefAddrStr ,key string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
 		return err
 	}
 
-	_ = recoverEthTestNetPrivateKey()
+	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -176,14 +176,14 @@ func AddPool2FarmHandle(masterChefAddrStr string, allocPoint int64, lpToken stri
 	return nil
 }
 
-func UpdateAllocPointHandle(masterChefAddrStr string, pid, allocPoint int64, withUpdate bool) (err error) {
+func UpdateAllocPointHandle(masterChefAddrStr,key string, pid, allocPoint int64, withUpdate bool) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
 		return err
 	}
 
-	_ = recoverEthTestNetPrivateKey()
+	_ = recoverEthTestNetPrivateKey(key)
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
@@ -219,14 +219,14 @@ func UpdateAllocPointHandle(masterChefAddrStr string, pid, allocPoint int64, wit
 	return nil
 }
 
-func TransferOwnerShipHandle(newOwner, contract string) (err error) {
+func TransferOwnerShipHandle(newOwner, contract ,key string) (err error) {
 	contractAddr := common.HexToAddress(contract)
 	contractInt, err := syrupBar.NewSyrupBar(contractAddr, ethClient)
 	if nil != err {
 		return err
 	}
 
-	_ = recoverEthTestNetPrivateKey()
+	_ = recoverEthTestNetPrivateKey(key)
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
 		return err
@@ -265,8 +265,8 @@ func TransferOwnerShipHandle(newOwner, contract string) (err error) {
 	return nil
 }
 
-func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef string) (err error) {
-	_ = recoverEthTestNetPrivateKey()
+func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef ,key string) (err error) {
+	_ = recoverEthTestNetPrivateKey(key)
 	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress(masterchef), ethClient)
 	if nil != err {
 		return err

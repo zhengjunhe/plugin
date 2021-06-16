@@ -1,4 +1,4 @@
-###  离线部署ethereum 跨链合约
+###  离线部署ethereum Dex合约
 *** 
 #### 步骤一： 查询deployer地址的nonce信息
 ```

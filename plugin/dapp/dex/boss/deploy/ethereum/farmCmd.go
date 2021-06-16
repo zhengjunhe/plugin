@@ -119,6 +119,7 @@ func ShowBalanceFlags(cmd *cobra.Command) {
 
 	cmd.Flags().Int64P("pid", "d", 0, "id of pool")
 	_ = cmd.MarkFlagRequired("pid")
+
 }
 
 //GetBalance ...
@@ -126,7 +127,6 @@ func ShowCakeBalance(cmd *cobra.Command, args []string) {
 	owner, _ := cmd.Flags().GetString("owner")
 	pid, _ := cmd.Flags().GetInt64("pid")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-
 	setupWebsocketEthClient(ethNodeAddr)
 	balance, err := GetCakeBalance(owner, pid)
 	if nil != err {
@@ -141,14 +141,16 @@ func DeployFarmCmd() *cobra.Command {
 		Short: "deploy farm to bsc ",
 		Run:   DeployContracts,
 	}
+	cmd.Flags().StringP("key","k","","private key")
 	return cmd
 }
 
 func DeployContracts(cmd *cobra.Command, args []string) {
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	privkey,_:=cmd.Flags().GetString("key")
 
 	setupWebsocketEthClient(ethNodeAddr)
-	err := DeployFarm()
+	err := DeployFarm(privkey)
 	if nil != err {
 		fmt.Println("Failed to deploy contracts due to:", err.Error())
 		return
@@ -181,6 +183,8 @@ func addAddPoolCmdFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolP("update", "u", true, "with update")
 	_ = cmd.MarkFlagRequired("update")
 	cmd.Flags().Uint64P("gasLimit", "g", 80*10000, "set gas limit")
+
+	cmd.Flags().StringP("key","k","","private key")
 }
 
 func AddPool2Farm(cmd *cobra.Command, args []string) {
@@ -190,10 +194,11 @@ func AddPool2Farm(cmd *cobra.Command, args []string) {
 	update, _ := cmd.Flags().GetBool("update")
 	gasLimit, _ := cmd.Flags().GetUint64("gaslimit")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	privkey,_:=cmd.Flags().GetString("key")
 
 	setupWebsocketEthClient(ethNodeAddr)
 
-	err := AddPool2FarmHandle(masterChefAddrStr, allocPoint, lpToken, update, gasLimit)
+	err := AddPool2FarmHandle(masterChefAddrStr,privkey, allocPoint, lpToken, update, gasLimit)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return
@@ -225,6 +230,8 @@ func updateAllocPointCmdFlags(cmd *cobra.Command) {
 
 	cmd.Flags().BoolP("update", "u", true, "with update")
 	_ = cmd.MarkFlagRequired("update")
+
+	cmd.Flags().StringP("key","k","","private key")
 }
 
 func UpdateAllocPoint(cmd *cobra.Command, args []string) {
@@ -233,10 +240,10 @@ func UpdateAllocPoint(cmd *cobra.Command, args []string) {
 	allocPoint, _ := cmd.Flags().GetInt64("alloc")
 	update, _ := cmd.Flags().GetBool("update")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-
+	privkey,_:=cmd.Flags().GetString("key")
 	setupWebsocketEthClient(ethNodeAddr)
 
-	err := UpdateAllocPointHandle(masterChefAddrStr, pid, allocPoint, update)
+	err := UpdateAllocPointHandle(masterChefAddrStr,privkey, pid, allocPoint, update)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return
@@ -262,16 +269,18 @@ func TransferOwnerShipFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("contract", "c", "", "contract address")
 	_ = cmd.MarkFlagRequired("contract")
+
+	cmd.Flags().StringP("key","k","","private key")
 }
 
 func TransferOwnerShip(cmd *cobra.Command, args []string) {
 	newOwner, _ := cmd.Flags().GetString("new")
 	contract, _ := cmd.Flags().GetString("contract")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-
+	privkey,_:=cmd.Flags().GetString("key")
 	setupWebsocketEthClient(ethNodeAddr)
 
-	err := TransferOwnerShipHandle(newOwner, contract)
+	err := TransferOwnerShipHandle(newOwner, contract,privkey)
 	if nil != err {
 		fmt.Println("Failed to TransferOwnerShip due to:", err.Error())
 		return
@@ -300,6 +309,8 @@ func AddUpdateCakePerBlockFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("masterChef", "m", "", "masterChef address")
 	_ = cmd.MarkFlagRequired("masterChef")
+
+	cmd.Flags().StringP("key","k","","private key")
 }
 
 func UpdateCakePerBlock(cmd *cobra.Command, args []string) {
@@ -307,12 +318,13 @@ func UpdateCakePerBlock(cmd *cobra.Command, args []string) {
 	startBlock, _ := cmd.Flags().GetInt64("startBlock")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 	masterChef, _ := cmd.Flags().GetString("masterChef")
+	privkey,_:=cmd.Flags().GetString("key")
 	cakePerBlock := big.NewInt(int64(cakePerBlockFloat*1e4) * 1e14)
 
 	setupWebsocketEthClient(ethNodeAddr)
 
 	//owner string, spender string, amount int64
-	err := updateCakePerBlockHandle(cakePerBlock, startBlock, masterChef)
+	err := updateCakePerBlockHandle(cakePerBlock, startBlock, masterChef,privkey)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return

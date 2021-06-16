@@ -64,14 +64,15 @@ func DeployPancakeCmd() *cobra.Command {
 		Short: "deploy pancake router to ethereum ",
 		Run:   DeployContractsCake,
 	}
+	cmd.Flags().StringP("key", "k", "", "private key for deploy")
 	return cmd
 }
 
 func DeployContractsCake(cmd *cobra.Command, args []string) {
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-
+	key,_:=cmd.Flags().GetString("key")
 	setupWebsocketEthClient(ethNodeAddr)
-	err := DeployPancake()
+	err := DeployPancake(key)
 	if nil != err {
 		fmt.Println("Failed to deploy contracts due to:", err.Error())
 		return
@@ -100,6 +101,9 @@ func AddAllowance4LPFlags(cmd *cobra.Command) {
 
 	cmd.Flags().Int64P("amount", "p", 0, "amount to approve")
 	_ = cmd.MarkFlagRequired("amount")
+
+	cmd.Flags().StringP("key","k","","private key")
+
 }
 
 func AddAllowance4LP(cmd *cobra.Command, args []string) {
@@ -107,11 +111,11 @@ func AddAllowance4LP(cmd *cobra.Command, args []string) {
 	amount, _ := cmd.Flags().GetInt64("amount")
 	lpToken, _ := cmd.Flags().GetString("lptoken")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-
+	privkey,_:=cmd.Flags().GetString("key")
 	setupWebsocketEthClient(ethNodeAddr)
 
 	//owner string, spender string, amount int64
-	err := AddAllowance4LPHandle(lpToken, masterChefAddrStr, amount)
+	err := AddAllowance4LPHandle(lpToken, masterChefAddrStr,privkey, amount)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return
@@ -137,18 +141,22 @@ func CheckAllowance4LPFlags(cmd *cobra.Command) {
 
 	cmd.Flags().StringP("lptoken", "l", "", "lp Addr ")
 	_ = cmd.MarkFlagRequired("lptoken")
+
+	cmd.Flags().StringP("key","k","","private key")
+
+
 }
 
 func CheckAllowance4LP(cmd *cobra.Command, args []string) {
 	masterChefAddrStr, _ := cmd.Flags().GetString("masterchef")
 	lpToken, _ := cmd.Flags().GetString("lptoken")
-
+	privkey,_:=cmd.Flags().GetString("key")
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 
 	setupWebsocketEthClient(ethNodeAddr)
 
 	//owner string, spender string, amount int64
-	err := CheckAllowance4LPHandle(lpToken, masterChefAddrStr)
+	err := CheckAllowance4LPHandle(lpToken, masterChefAddrStr,privkey)
 	if nil != err {
 		fmt.Println("Failed to CheckAllowance4LP due to:", err.Error())
 		return
@@ -171,17 +179,18 @@ func showPairInitCodeHashCmd() *cobra.Command {
 func showPairInitCodeHashFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("factory", "f", "", "factory address")
 	_ = cmd.MarkFlagRequired("factory")
+	cmd.Flags().StringP("key","k","","private key")
 }
 
 func showPairInitCodeHash(cmd *cobra.Command, args []string) {
 	factory, _ := cmd.Flags().GetString("factory")
 
 	ethNodeAddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
-
+	privkey,_:=cmd.Flags().GetString("key")
 	setupWebsocketEthClient(ethNodeAddr)
 
 	//owner string, spender string, amount int64
-	err := showPairInitCodeHashHandle(factory)
+	err := showPairInitCodeHashHandle(factory,privkey)
 	if nil != err {
 		fmt.Println("Failed to showPairInitCodeHash due to:", err.Error())
 		return
