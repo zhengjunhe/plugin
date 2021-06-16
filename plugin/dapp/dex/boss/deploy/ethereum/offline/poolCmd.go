@@ -3,22 +3,25 @@ package offline
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
+	"strings"
+	"time"
+
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/masterChef"
 	"github.com/33cn/plugin/plugin/dapp/dex/contracts/pancake-farm/src/syrupBar"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/spf13/cobra"
-	"math/big"
-	"strings"
-	"time"
 )
+
 type AddPool struct {
 	allocPoint int64
-	lpToken string
+	lpToken    string
 	withUpdate bool
 }
-func (a *AddPool)AddPoolCmd() *cobra.Command {
+
+func (a *AddPool) AddPoolCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "add pool",
 		Short: "add pool to farm ",
@@ -29,7 +32,7 @@ func (a *AddPool)AddPoolCmd() *cobra.Command {
 
 	return cmd
 }
-func (a *AddPool)addAddPoolCmdFlags(cmd *cobra.Command) {
+func (a *AddPool) addAddPoolCmdFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("masterchef", "m", "", "master Chef Addr ")
 	_ = cmd.MarkFlagRequired("masterchef")
 
@@ -45,13 +48,12 @@ func (a *AddPool)addAddPoolCmdFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("priv", "p", "", "private key")
 	_ = cmd.MarkFlagRequired("priv")
 
-	cmd.Flags().StringP("file","f","accountinfo.txt","account info")
+	cmd.Flags().StringP("file", "f", "accountinfo.txt", "account info")
 	_ = cmd.MarkFlagRequired("file")
-
 
 }
 
-func (a *AddPool)AddPool2Farm(cmd *cobra.Command, args []string) {
+func (a *AddPool) AddPool2Farm(cmd *cobra.Command, args []string) {
 	masterChefAddrStr, _ := cmd.Flags().GetString("masterchef")
 	allocPoint, _ := cmd.Flags().GetInt64("alloc")
 	lpToken, _ := cmd.Flags().GetString("lptoken")
@@ -63,61 +65,58 @@ func (a *AddPool)AddPool2Farm(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	a.allocPoint=allocPoint
-	a.lpToken=lpToken
-	a.withUpdate=update
-	var signData = make([]*DeploayContract, 0)
+	a.allocPoint = allocPoint
+	a.lpToken = lpToken
+	a.withUpdate = update
+	var signData = make([]*DeployContract, 0)
 	var signInfo SignCmd
-	paraseFile(filePath,&signInfo)
+	paraseFile(filePath, &signInfo)
 	//check is timeout
-	t,err:=time.Parse(time.RFC3339,signInfo.Timestamp)
-	if err!=nil{
+	t, err := time.Parse(time.RFC3339, signInfo.Timestamp)
+	if err != nil {
 		panic(err)
 	}
-	if time.Now().After(t.Add(time.Hour)){
+	if time.Now().After(t.Add(time.Hour)) {
 		panic("after 60 minutes timeout,the accountinfo.txt invalid,please reQuery")
 	}
 	//--------------------
 	//sign addpool
 	//--------------------
-	signedtx,hash,err := a.reWriteAddPool2Farm(signInfo.Nonce ,masterChefAddrStr,big.NewInt(int64(signInfo.GasPrice)),priv)
+	signedtx, hash, err := a.reWriteAddPool2Farm(signInfo.Nonce, masterChefAddrStr, big.NewInt(int64(signInfo.GasPrice)), priv)
 	if nil != err {
 		fmt.Println("Failed to AddPool2Farm due to:", err.Error())
 		return
 	}
-	var addPoolData=new(DeploayContract)
-	addPoolData.Nonce=signInfo.Nonce
-	addPoolData.SignedRawTx=signedtx
-	addPoolData.TxHash=hash
-	addPoolData.ContractName="addpool"
-	signData=append(signData,addPoolData)
-	writeToFile("addPool.txt",signData)
+	var addPoolData = new(DeployContract)
+	addPoolData.Nonce = signInfo.Nonce
+	addPoolData.SignedRawTx = signedtx
+	addPoolData.TxHash = hash
+	addPoolData.ContractName = "addpool"
+	signData = append(signData, addPoolData)
+	writeToFile("addPool.txt", signData)
 	fmt.Println("Succeed to sign AddPool")
 }
 
-
-func (a *AddPool)reWriteAddPool2Farm(nonce uint64,masterChefAddrStr string,gasPrice *big.Int,key *ecdsa.PrivateKey)(signedTx, hash  string, err error) {
+func (a *AddPool) reWriteAddPool2Farm(nonce uint64, masterChefAddrStr string, gasPrice *big.Int, key *ecdsa.PrivateKey) (signedTx, hash string, err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	parsed, err := abi.JSON(strings.NewReader(masterChef.MasterChefABI))
-	input,err:=parsed.Pack("add", big.NewInt(a.allocPoint),common.HexToAddress(a.lpToken),a.withUpdate)
-	if err!=nil{
+	input, err := parsed.Pack("add", big.NewInt(a.allocPoint), common.HexToAddress(a.lpToken), a.withUpdate)
+	if err != nil {
 		panic(err)
 	}
 	ntx := types.NewTransaction(nonce, masterChefAddr, new(big.Int), gasLimit, gasPrice, input)
 	return SignTx(key, ntx)
 }
 
-
-
 //------------
 //update
 
-type updateAllocPoint struct{
+type updateAllocPoint struct {
 	pid, allocPoint int64
-	withUpdate bool
+	withUpdate      bool
 }
 
-func (u*updateAllocPoint)UpdateAllocPointCmd() *cobra.Command {
+func (u *updateAllocPoint) UpdateAllocPointCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update alloc point",
 		Short: "Update the given pool's CAKE allocation point",
@@ -129,7 +128,7 @@ func (u*updateAllocPoint)UpdateAllocPointCmd() *cobra.Command {
 	return cmd
 }
 
-func (u *updateAllocPoint)UpdateAllocPoint(cmd *cobra.Command, args []string) {
+func (u *updateAllocPoint) UpdateAllocPoint(cmd *cobra.Command, args []string) {
 	masterChefAddrStr, _ := cmd.Flags().GetString("masterchef")
 	pid, _ := cmd.Flags().GetInt64("pid")
 	allocPoint, _ := cmd.Flags().GetInt64("alloc")
@@ -140,30 +139,30 @@ func (u *updateAllocPoint)UpdateAllocPoint(cmd *cobra.Command, args []string) {
 	if err != nil {
 		panic(err)
 	}
-	u.pid=pid
-	u.allocPoint=allocPoint
-	u.withUpdate=update
+	u.pid = pid
+	u.allocPoint = allocPoint
+	u.withUpdate = update
 	var signInfo SignCmd
-	var signData = make([]*DeploayContract, 0)
-	paraseFile(filePath,&signInfo)
-	checkFile(signInfo.From,from.String(),signInfo.Timestamp)
+	var signData = make([]*DeployContract, 0)
+	paraseFile(filePath, &signInfo)
+	checkFile(signInfo.From, from.String(), signInfo.Timestamp)
 
-	signedtx,hash,err:=	u.rewriteUpdateAllocPoint(masterChefAddrStr,signInfo.Nonce,big.NewInt(int64(signInfo.GasPrice)),priv)
-	if err!=nil{
+	signedtx, hash, err := u.rewriteUpdateAllocPoint(masterChefAddrStr, signInfo.Nonce, big.NewInt(int64(signInfo.GasPrice)), priv)
+	if err != nil {
 		panic(err)
 	}
 
-	var updateAllocData=new(DeploayContract)
-	updateAllocData.Nonce=signInfo.Nonce
-	updateAllocData.SignedRawTx=signedtx
-	updateAllocData.TxHash=hash
-	updateAllocData.ContractName="updateAllocPoint"
-	signData=append(signData,updateAllocData)
-	writeToFile("updateAllocPoint.txt",signData)
+	var updateAllocData = new(DeployContract)
+	updateAllocData.Nonce = signInfo.Nonce
+	updateAllocData.SignedRawTx = signedtx
+	updateAllocData.TxHash = hash
+	updateAllocData.ContractName = "updateAllocPoint"
+	signData = append(signData, updateAllocData)
+	writeToFile("updateAllocPoint.txt", signData)
 	fmt.Println("Succeed to sign updateAllocPoint")
 
 }
-func (u*updateAllocPoint)updateAllocPointCmdFlags(cmd *cobra.Command) {
+func (u *updateAllocPoint) updateAllocPointCmdFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("masterchef", "m", "", "master Chef Addr ")
 	_ = cmd.MarkFlagRequired("masterchef")
 
@@ -177,13 +176,12 @@ func (u*updateAllocPoint)updateAllocPointCmdFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("update")
 	cmd.Flags().StringP("priv", "p", "", "private key")
 	_ = cmd.MarkFlagRequired("priv")
-	cmd.Flags().StringP("file","f","accountinfo.txt","account info")
+	cmd.Flags().StringP("file", "f", "accountinfo.txt", "account info")
 	_ = cmd.MarkFlagRequired("file")
-
 
 }
 
-func (u*updateAllocPoint)rewriteUpdateAllocPoint(masterChefAddrStr string,nonce uint64,gasPrice *big.Int,key *ecdsa.PrivateKey) (signedTx, hash  string, err error) {
+func (u *updateAllocPoint) rewriteUpdateAllocPoint(masterChefAddrStr string, nonce uint64, gasPrice *big.Int, key *ecdsa.PrivateKey) (signedTx, hash string, err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	parsed, err := abi.JSON(strings.NewReader(masterChef.MasterChefABI))
 	input, err := parsed.Pack("set", big.NewInt(u.pid), big.NewInt(u.allocPoint), u.withUpdate)
@@ -195,11 +193,10 @@ func (u*updateAllocPoint)rewriteUpdateAllocPoint(masterChefAddrStr string,nonce 
 
 }
 
-
-type transferOwnerShip struct{
-
+type transferOwnerShip struct {
 }
-func (t*transferOwnerShip)TransferOwnerShipCmd() *cobra.Command {
+
+func (t *transferOwnerShip) TransferOwnerShipCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "transfer OwnerShip",
 		Short: "transfer OwnerShip",
@@ -210,24 +207,22 @@ func (t*transferOwnerShip)TransferOwnerShipCmd() *cobra.Command {
 	return cmd
 }
 
-func  (t*transferOwnerShip)TransferOwnerShipFlags(cmd *cobra.Command) {
+func (t *transferOwnerShip) TransferOwnerShipFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("new", "n", "", "new owner")
 	_ = cmd.MarkFlagRequired("new")
 
 	cmd.Flags().StringP("contract", "c", "", "contract address")
 	_ = cmd.MarkFlagRequired("contract")
 
-	cmd.Flags().StringP("file","f","accountinfo.txt","account info")
+	cmd.Flags().StringP("file", "f", "accountinfo.txt", "account info")
 	_ = cmd.MarkFlagRequired("file")
 
 	cmd.Flags().StringP("priv", "p", "", "private key")
 	_ = cmd.MarkFlagRequired("priv")
 
-
 }
 
-
-func  (t*transferOwnerShip)TransferOwnerShip(cmd *cobra.Command, args []string) {
+func (t *transferOwnerShip) TransferOwnerShip(cmd *cobra.Command, args []string) {
 	newOwner, _ := cmd.Flags().GetString("new")
 	contract, _ := cmd.Flags().GetString("contract")
 	key, _ := cmd.Flags().GetString("priv")
@@ -238,47 +233,46 @@ func  (t*transferOwnerShip)TransferOwnerShip(cmd *cobra.Command, args []string) 
 	}
 
 	var signInfo SignCmd
-	paraseFile(filePath,&signInfo)
-	checkFile(signInfo.From,from.String(),signInfo.Timestamp)
+	paraseFile(filePath, &signInfo)
+	checkFile(signInfo.From, from.String(), signInfo.Timestamp)
 
-	signedtx,hash,err := TransferOwnerShipHandle(signInfo.Nonce,big.NewInt(int64(signInfo.GasPrice)),newOwner, contract,priv)
+	signedtx, hash, err := TransferOwnerShipHandle(signInfo.Nonce, big.NewInt(int64(signInfo.GasPrice)), newOwner, contract, priv)
 	if nil != err {
 		fmt.Println("Failed to TransferOwnerShip due to:", err.Error())
 		return
 	}
 
-	var transferOwner=new(DeploayContract)
-	var signData = make([]*DeploayContract, 0)
-	transferOwner.Nonce=signInfo.Nonce
-	transferOwner.SignedRawTx=signedtx
-	transferOwner.TxHash=hash
-	transferOwner.ContractName="transferOwnership"
-	signData=append(signData,transferOwner)
-	writeToFile("transferOwner.txt",signData)
+	var transferOwner = new(DeployContract)
+	var signData = make([]*DeployContract, 0)
+	transferOwner.Nonce = signInfo.Nonce
+	transferOwner.SignedRawTx = signedtx
+	transferOwner.TxHash = hash
+	transferOwner.ContractName = "transferOwnership"
+	signData = append(signData, transferOwner)
+	writeToFile("transferOwner.txt", signData)
 	fmt.Println("Succeed to sign TransferOwnerShip")
 }
 
-
-func TransferOwnerShipHandle(nonce uint64,gasPrice *big.Int,newOwner, contract string,key *ecdsa.PrivateKey) (signedtx,hash string,err error) {
+func TransferOwnerShipHandle(nonce uint64, gasPrice *big.Int, newOwner, contract string, key *ecdsa.PrivateKey) (signedtx, hash string, err error) {
 	contractAddr := common.HexToAddress(contract)
 	newOwnerAddr := common.HexToAddress(newOwner)
 	parsed, err := abi.JSON(strings.NewReader(syrupBar.SyrupBarABI))
-	input,err:=parsed.Pack("transferOwnership", newOwnerAddr)
+	input, err := parsed.Pack("transferOwnership", newOwnerAddr)
 	if err != nil {
 		return
 	}
-	ntx:= types.NewTransaction(nonce, contractAddr, big.NewInt(0), gasLimit, gasPrice, input)
-	return  SignTx(key,ntx)
+	ntx := types.NewTransaction(nonce, contractAddr, big.NewInt(0), gasLimit, gasPrice, input)
+	return SignTx(key, ntx)
 
 }
 
-func checkFile(from,keyaddr,timestamp string){
+func checkFile(from, keyaddr, timestamp string) {
 	//check is timeout
 	tim, err := time.Parse(time.RFC3339, timestamp)
-	if err!=nil{
+	if err != nil {
 		panic(err)
 	}
-	if time.Now().After(tim.Add(time.Hour)){
+	if time.Now().After(tim.Add(time.Hour)) {
 		panic("after 60 minutes timeout,the accountinfo.txt invalid,please reQuery")
 	}
 	if !strings.EqualFold(from, keyaddr) {
