@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  ganachetest:
+    entrypoint: ["node", "/app/ganache-core.docker.cli.js", "-a", "20", "-b", "2", "--debug", "-m", "coast bar giraffe art venue decide symbol law visual crater vital fold"]
+    image: trufflesuite/ganache-cli:latest
+
+  ebrelayera:
+    build:
+      context: .
+      dockerfile: Dockerfile-cross2eth
+
+  ebrelayerb:
+    build:
+      context: .
+      dockerfile: Dockerfile-cross2eth
+
+  ebrelayerc:
+    build:
+      context: .
+      dockerfile: Dockerfile-cross2eth
+
+  ebrelayerd:
+    build:
+      context: .
+      dockerfile: Dockerfile-cross2eth

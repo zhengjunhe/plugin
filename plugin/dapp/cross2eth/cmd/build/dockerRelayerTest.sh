@@ -16,6 +16,7 @@ ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d532721046
 
 # chain33 部署合约者的私钥 用于部署合约时签名使用
 chain33DeployAddr="1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
+#chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
 
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
@@ -25,7 +26,6 @@ ethReceiverAddr1="0xa4ea64a583f6e51c3799335b28a8f0529570a635"
 
 maturityDegree=10
 
-Chain33Cli="../../chain33-cli"
 chain33BridgeBank=""
 ethBridgeBank=""
 chain33BtyTokenAddr="1111111111111111111114oLvT2"
@@ -33,9 +33,132 @@ chain33EthTokenAddr=""
 ethereumBtyTokenAddr=""
 chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
+BridgeRegistryOnChain33=""
+chain33YccErc20Addr=""
+BridgeRegistryOnEth=""
+ethBridgeToeknYccAddr=""
 
-CLIA="./ebcli_A"
+# validatorsAddr=["0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
+#ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
+# shellcheck disable=SC2034
+{
+ethValidatorAddrKeyb="a5f3063552f4483cfc20ac4f40f45b798791379862219de9e915c64722c1d400"
+ethValidatorAddrKeyc="bbf5e65539e9af0eb0cfac30bad475111054b09c11d668fc0731d54ea777471e"
+ethValidatorAddrKeyd="c9fa31d7984edf81b8ef3b40c761f1847f6fcd5711ab2462da97dc458f1f896b"
 
+# 新增地址 chain33 需要导入地址 转入 10 bty当收费费
+chain33Validatora="1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
+chain33Validatorb="155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6"
+chain33Validatorc="13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv"
+chain33Validatord="113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG"
+#chain33ValidatorKeya="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
+chain33ValidatorKeyb="0x9d539bc5fd084eb7fe86ad631dba9aa086dba38418725c38d9751459f567da66"
+chain33ValidatorKeyc="0x0a6671f101e30a2cc2d79d77436b62cdf2664ed33eb631a9c9e3f3dd348a23be"
+chain33ValidatorKeyd="0x3818b257b05ee75b6e43ee0e3cfc2d8502342cf67caed533e3756966690b62a5"
+}
+
+#CLIA="./ebcli_A"
+
+ethUrl=""
+
+
+function start_docker_ebrelayerA() {
+    # shellcheck disable=SC2154
+    docker cp "./relayer.toml" "${dockerNamePrefix}_ebrelayera_1":/root/relayer.toml
+    start_docker_ebrelayer "${dockerNamePrefix}_ebrelayera_1" "/root/ebrelayer" "./ebrelayera.log"
+    sleep 5
+}
+
+# start ebrelayer B C D
+function updata_toml_start_bcd() {
+    for name in b c d; do
+        local file="./relayer$name.toml"
+        cp './relayer.toml' "${file}"
+
+        # 删除配置文件中不需要的字段
+        for deleteName in "deploy4chain33" "deployerPrivateKey" "operatorAddr" "validatorsAddr" "initPowers" "deploy" "deployerPrivateKey" "operatorAddr" "validatorsAddr" "initPowers"; do
+            delete_line "${file}" "${deleteName}"
+        done
+
+        pushNameChange "${file}"
+
+        pushHost=$(get_docker_addr "${dockerNamePrefix}_ebrelayer${name}_1")
+        line=$(delete_line_show "${file}" "pushHost")
+        sed -i ''"${line}"' a pushHost="http://'"${pushHost}"':20000"' "${file}"
+
+        line=$(delete_line_show "${file}" "pushBind")
+        sed -i ''"${line}"' a pushBind="'"${pushHost}"':20000"' "${file}"
+
+        docker cp "${file}" "${dockerNamePrefix}_ebrelayer${name}_1":/root/relayer.toml
+        start_docker_ebrelayer "${dockerNamePrefix}_ebrelayer${name}_1" "/root/ebrelayer" "./ebrelayer${name}.log"
+
+        CLI="docker exec ${dockerNamePrefix}_ebrelayer${name}_1 /root/ebcli_A"
+        result=$(${CLI} set_pwd -p 123456hzj)
+        cli_ret "${result}" "set_pwd"
+
+        result=$(${CLI} unlock -p 123456hzj)
+        cli_ret "${result}" "unlock"
+
+        eval chain33ValidatorKey=\$chain33ValidatorKey${name}
+        # shellcheck disable=SC2154
+        result=$(${CLI} chain33 import_privatekey -k "${chain33ValidatorKey}")
+        cli_ret "${result}" "chain33 import_privatekey"
+
+        eval ethValidatorAddrKey=\$ethValidatorAddrKey${name}
+        # shellcheck disable=SC2154
+        result=$(${CLI} ethereum import_privatekey -k "${ethValidatorAddrKey}")
+        cli_ret "${result}" "ethereum import_privatekey"
+    done
+}
+
+function StartDockerRelayerDeploy() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    # 修改 relayer.toml 配置文件 pushName 字段
+    pushNameChange "./relayer.toml"
+    # 修改 relayer.toml 配置文件 initPowers
+    validators_config
+
+    # change EthProvider url
+    dockerAddr=$(get_docker_addr "${dockerNamePrefix}_ganachetest_1")
+    ethUrl="http://${dockerAddr}:8545"
+
+    # 修改 relayer.toml 配置文件
+    updata_relayer_a_toml "${dockerAddr}" "${dockerNamePrefix}_ebrelayera_1" "./relayer.toml"
+
+    # 启动 ebrelayer
+    start_docker_ebrelayerA
+
+    # 导入私钥 部署合约 设置 bridgeRegistry 地址
+    InitAndDeploy
+
+    docker cp "${BridgeRegistryOnChain33}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${BridgeRegistryOnChain33}.abi
+    docker cp "${chain33BridgeBank}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${chain33BridgeBank}.abi
+    docker cp "${BridgeRegistryOnEth}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${BridgeRegistryOnEth}.abi
+    docker cp "${ethBridgeBank}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${ethBridgeBank}.abi
+
+    # 重启
+    # kill ebrelayer A
+    kill_docker_ebrelayer "${dockerNamePrefix}_ebrelayera_1"
+    sleep 1
+#    kill_ebrelayer ebrelayer
+    start_docker_ebrelayerA
+
+    result=$(${CLIA} unlock -p 123456hzj)
+    cli_ret "${result}" "unlock"
+
+    # start ebrelayer B C D
+    updata_toml_start_bcd
+
+    # 设置 token 地址
+    InitTokenAddr
+    docker cp "${chain33EthTokenAddr}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${chain33EthTokenAddr}.abi
+    docker cp "${chain33YccTokenAddr}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${chain33YccTokenAddr}.abi
+    docker cp "${chain33YccErc20Addr}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${chain33YccErc20Addr}.abi
+    docker cp "${ethBridgeToeknYccAddr}.abi" "${dockerNamePrefix}_ebrelayera_1":/root/${ethBridgeToeknYccAddr}.abi
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
 # chain33 lock BTY, eth burn BTY
 function TestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
@@ -59,7 +182,7 @@ function TestChain33ToEthAssets() {
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
     balance_ret "${result}" "5.0000"
 
-    eth_block_wait 2
+    eth_block_wait 2 "${ethUrl}"
 
     # eth 这端 金额是否增加了 5
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -69,7 +192,7 @@ function TestChain33ToEthAssets() {
     result=$(${CLIA} ethereum burn -m 3 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
 
-    eth_block_wait 2
+    eth_block_wait 2 "${ethUrl}"
 
     # eth 这端 金额是否减少了 3
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -100,7 +223,7 @@ function TestETH2Chain33Assets() {
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
-    eth_block_wait 2
+    eth_block_wait 2 "${ethUrl}"
 
     # 查询 ETH 这端 bridgeBank 地址 11
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
@@ -149,7 +272,7 @@ function TestETH2Chain33Ycc() {
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
-    eth_block_wait 2
+    eth_block_wait 2 "${ethUrl}"
 
     # 查询 ETH 这端 bridgeBank 地址 7 YCC
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
@@ -187,15 +310,35 @@ function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-function mainTest() {
-    StartChain33
-    start_trufflesuite
-    AllRelayerStart
+function AllRelayerMainTest() {
+    set +e
+    docker_chain33_ip=$(get_docker_addr "${dockerNamePrefix}_chain33_1")
+    Chain33Cli="./chain33-cli --rpc_laddr http://${docker_chain33_ip}:8801"
+    # shellcheck disable=SC2034
+    {
+        CLIA="docker exec ${dockerNamePrefix}_ebrelayera_1 /root/ebcli_A"
+        CLIB="docker exec ${dockerNamePrefix}_ebrelayerb_1 /root/ebcli_A"
+        CLIC="docker exec ${dockerNamePrefix}_ebrelayerc_1 /root/ebcli_A"
+        CLID="docker exec ${dockerNamePrefix}_ebrelayerd_1 /root/ebcli_A"
+    }
 
+    echo "${CLIA}"
+
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    if [[ ${1} != "" ]]; then
+        maturityDegree=${1}
+        echo -e "${GRE}maturityDegree is ${maturityDegree} ${NOC}"
+    fi
+
+    # init
+    StartDockerRelayerDeploy
+    InitChain33Validator
+
+    # test
     TestChain33ToEthAssets
     TestETH2Chain33Assets
-    TestETH2Chain33Ycc
+    TestETH2Chain33Erc20
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
-
-mainTest
-
