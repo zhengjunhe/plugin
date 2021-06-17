@@ -182,7 +182,8 @@ function TestChain33ToEthAssets() {
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
     balance_ret "${result}" "5.0000"
 
-    eth_block_wait 2 "${ethUrl}"
+    sleep 2
+#    eth_block_wait 2 "${ethUrl}"
 
     # eth 这端 金额是否增加了 5
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -192,7 +193,8 @@ function TestChain33ToEthAssets() {
     result=$(${CLIA} ethereum burn -m 3 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
 
-    eth_block_wait 2 "${ethUrl}"
+    sleep 2
+#    eth_block_wait 2 "${ethUrl}"
 
     # eth 这端 金额是否减少了 3
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -223,7 +225,8 @@ function TestETH2Chain33Assets() {
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
-    eth_block_wait 2 "${ethUrl}"
+    sleep 2
+#    eth_block_wait 2 "${ethUrl}"
 
     # 查询 ETH 这端 bridgeBank 地址 11
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
@@ -272,7 +275,8 @@ function TestETH2Chain33Ycc() {
     cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
-    eth_block_wait 2 "${ethUrl}"
+    sleep 2
+#    eth_block_wait 2 "${ethUrl}"
 
     # 查询 ETH 这端 bridgeBank 地址 7 YCC
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
@@ -332,13 +336,13 @@ function AllRelayerMainTest() {
     fi
 
     # init
-    StartDockerRelayerDeploy
     InitChain33Validator
+    StartDockerRelayerDeploy
 
     # test
     TestChain33ToEthAssets
     TestETH2Chain33Assets
-    TestETH2Chain33Erc20
+    TestETH2Chain33Ycc
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

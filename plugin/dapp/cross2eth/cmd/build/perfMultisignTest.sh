@@ -12,7 +12,7 @@ ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 
 # chain33 部署合约者的私钥 用于部署合约时签名使用
-chain33DeployAddr="14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
+chain33DeployAddr="1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
 #chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
 
 #maturityDegree=10

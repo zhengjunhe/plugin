@@ -14,7 +14,7 @@ function cross2eth() {
         echo "========================== cross2eth test =========================="
         set +e
         set -x
-        AllRelayerMainTest 1
+        AllRelayerMainTest 20
 #        perf_test_main 1
         echo "========================== cross2eth test end =========================="
     fi

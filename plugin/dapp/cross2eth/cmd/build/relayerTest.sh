@@ -16,7 +16,7 @@ ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 
 # validatorsAddr=["0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
-ethValidatorAddrA="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
+#ethValidatorAddrA="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
@@ -141,13 +141,6 @@ function TestETH2Chain33Assets() {
 
 function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
-#    # eth 铸币
-#    result=$(${CLIA} ethereum deploy_erc20 -c "${ethDeployAddr}" -n YCC -s YCC -m 33000000000000000000)
-#    cli_ret "${result}" "ethereum deploy_erc20 -s YCC"
-#    ethereumYccTokenAddr=$(echo "${result}" | jq -r .msg)
-#
-#    result=$(${CLIA} ethereum token add_lock_list -s YCC -t "${ethereumYccTokenAddr}")
-#    cli_ret "${result}" "add_lock_list"
 
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")

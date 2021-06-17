@@ -320,7 +320,8 @@ function InitChain33() {
     ${Chain33Cli}  wallet unlock -p 1314fuzamei -t 0
     ${Chain33Cli}  account import_key -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944 -l returnAddr
     ${Chain33Cli}  account import_key -k "${chain33ReceiverAddrKey}" -l minerAddr
-    ${Chain33Cli}  send coins transfer -a 10000 -n test -t "${chain33ReceiverAddr}" -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944
+    hash=$(${Chain33Cli}  send coins transfer -a 10000 -n test -t "${chain33ReceiverAddr}" -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944)
+    check_tx "${Chain33Cli}" "${hash}"
 
     InitChain33Validator
 
@@ -333,14 +334,15 @@ function InitChain33Validator() {
 
     result=$(${Chain33Cli} account import_key -k "${chain33DeployKey}" -l "DeployAddr")
     check_addr "${result}" "${chain33DeployAddr}"
-    ${Chain33Cli}  send coins transfer -a 2000 -n test -t "${chain33DeployAddr}" -k 4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01
+    hash=$(${Chain33Cli}  send coins transfer -a 2000 -n test -t "${chain33DeployAddr}" -k 4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01)
+    check_tx "${Chain33Cli}" "${hash}"
 
     # 转账到 EVM  合约中
-    hash=$(${Chain33Cli} send coins send_exec -e evm -a 1000 -k "${chain33DeployAddr}")
+    hash=$(${Chain33Cli} send coins send_exec -e evm -a 100 -k "${chain33DeployAddr}")
     check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} account balance -a "${chain33DeployAddr}" -e evm)
-    balance_ret "${result}" "1000.0000"
+    balance_ret "${result}" "100.0000"
 
     # 导入 chain33Validators 私钥生成地址
     for name in B C D; do
@@ -351,10 +353,10 @@ function InitChain33Validator() {
         check_addr "${result}" "${chain33Validator}"
 
         # chain33Validator 要有手续费
-        hash=$(${Chain33Cli} send coins transfer -a 10 -t "${chain33Validator}" -k "${chain33DeployAddr}")
+        hash=$(${Chain33Cli} send coins transfer -a 100 -t "${chain33Validator}" -k "${chain33DeployAddr}")
         check_tx "${Chain33Cli}" "${hash}"
         result=$(${Chain33Cli} account balance -a "${chain33Validator}" -e coins)
-        balance_ret "${result}" "10.0000"
+        balance_ret "${result}" "100.0000"
     done
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
@@ -379,8 +381,12 @@ function AllRelayerStart() {
     StartRelayerAndDeploy
 }
 
-function StartRelayer_A() {
+function StartOneRelayer() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    kill_ebrelayer ebrelayer
+    sleep 10
+    rm datadir/ logs/ -rf
 
     # 修改 relayer.toml 配置文件 pushName 字段
     pushNameChange "./relayer.toml"
@@ -397,18 +403,6 @@ function StartRelayer_A() {
 
     result=$(${CLIA} unlock -p 123456hzj)
     cli_ret "${result}" "unlock"
-
-    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
-}
-
-function StartOneRelayer() {
-    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
-
-    kill_ebrelayer ebrelayer
-    sleep 10
-    rm datadir/ logs/ -rf
-
-    StartRelayer_A
 
     # 设置 token 地址
     InitTokenAddr
