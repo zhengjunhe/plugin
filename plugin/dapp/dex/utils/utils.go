@@ -47,8 +47,6 @@ func CreateContractAndSign(txCreateInfo *TxCreateInfo, code, abi, parameter, con
 	if err != nil {
 		return "", nil, errors.New(contractName + " create contract error:" + err.Error())
 	}
-	fmt.Println("The created tx is as below:")
-	fmt.Println(data)
 
 	return data, txHash, nil
 }
@@ -116,7 +114,7 @@ func CallContractAndSign(txCreateInfo *TxCreateInfo, action *evmtypes.EVMContrac
 	return data, txHash, nil
 }
 
-func ParaseFileInJson(file string, result interface{}) error {
+func ParseFileInJson(file string, result interface{}) error {
 	_, err := os.Stat(file)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -144,5 +142,4 @@ func WriteToFileInJson(fileName string, content interface{}) {
 	if err != nil {
 		fmt.Println("Failed to write to file:", fileName)
 	}
-	fmt.Println("tx is written to file: ", fileName, "writeContent:", string(jbytes))
 }

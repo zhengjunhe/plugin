@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/33cn/chain33/rpc/jsonclient"
+	rpctypes "github.com/33cn/chain33/rpc/types"
+
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/system/crypto/secp256k1"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
@@ -24,6 +27,8 @@ type Chain33OfflineTx struct {
 	Interval      time.Duration
 }
 
+var crossXfileName = "deployCrossX2Chain33.txt"
+
 func OfflineCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "offline",
@@ -31,6 +36,7 @@ func OfflineCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		createCrossBridgeCmd(),
+		sendSignTxs2Chain33Cmd(),
 	)
 	return cmd
 }
@@ -134,9 +140,8 @@ func createCrossBridge(cmd *cobra.Command, args []string) {
 	}
 	txs = append(txs, createBridgeRegistryTx)
 
-	fileName := "deployCrossX2Chain33.txt"
-	fmt.Printf("%d: Write all the txs to file:%s \n", i, fileName)
-	utils.WriteToFileInJson(fileName, txs)
+	fmt.Printf("%d: Write all the txs to file:   %s \n", i, crossXfileName)
+	utils.WriteToFileInJson(crossXfileName, txs)
 }
 
 func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethereumBridge, valset, bridgeBank, oracle string) (*Chain33OfflineTx, error) {
@@ -295,7 +300,7 @@ func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, 
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
-		OperationName: "bridgeBank",
+		OperationName: "deploy bridgeBank",
 		Interval:      time.Second * 5,
 	}
 	return bridgeBankTx, nil
@@ -334,7 +339,7 @@ func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethe
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
-		OperationName: "oracle",
+		OperationName: "deploy oracle",
 		Interval:      time.Second * 5,
 	}
 	return oracleTx, nil
@@ -376,7 +381,7 @@ func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*Chain33Off
 
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
-		OperationName: "valset",
+		OperationName: "deploy valset",
 		Interval:      time.Second * 5,
 	}
 	return valsetTx, nil
@@ -415,8 +420,68 @@ func createEthereumBridgeAndSign(cmd *cobra.Command, from common.Address, valset
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
-		OperationName: "ethereumBridge",
+		OperationName: "deploy ethereumBridge",
 		Interval:      time.Second * 5,
 	}
 	return ethereumBridgeTx, nil
+}
+
+func sendSignTxs2Chain33Cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "send",
+		Short: "send all the crossX txs to chain33 in serial",
+		Run:   sendSignTxs2Chain33,
+	}
+	addSendSignTxs2Chain33Flags(cmd)
+	return cmd
+}
+
+func addSendSignTxs2Chain33Flags(cmd *cobra.Command) {
+	usage := fmt.Sprintf("(optional)path of txs file,default to current directroy ./, and file name is:%s", crossXfileName)
+	cmd.Flags().StringP("path", "p", "./", usage)
+}
+
+func sendSignTxs2Chain33(cmd *cobra.Command, args []string) {
+	filePath, _ := cmd.Flags().GetString("path")
+	url, _ := cmd.Flags().GetString("rpc_laddr")
+	//解析文件数据
+	filePath += crossXfileName
+	var rdata []*Chain33OfflineTx
+	err := utils.ParseFileInJson(filePath, &rdata)
+	if err != nil {
+		fmt.Printf("parse file with error:%s, make sure file:%s exist", err.Error(), filePath)
+		return
+	}
+	for i, deployInfo := range rdata {
+		txhash, err := sendTransactionRpc(deployInfo.SignedRawTx, url)
+		if nil != err {
+			fmt.Printf("Failed to send %s to chain33 due to error:%s", deployInfo.OperationName, err.Error())
+			return
+		}
+		fmt.Printf("   %d:Succeed to send %s to chain33 with tx hash:%s\n", i+1, deployInfo.OperationName, txhash)
+		if deployInfo.Interval != 0 {
+			time.Sleep(deployInfo.Interval)
+		}
+	}
+
+	fmt.Println("All txs are sent successfully.^-^ ^-^")
+}
+
+func sendTransactionRpc(data, rpcLaddr string) (string, error) {
+	params := rpctypes.RawParm{
+		Data: data,
+	}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.SendTransaction", params, nil)
+	var txhex string
+	rpc, err := jsonclient.NewJSONClient(ctx.Addr)
+	if err != nil {
+		return "", err
+	}
+
+	err = rpc.Call(ctx.Method, ctx.Params, &txhex)
+	if err != nil {
+		return "", err
+	}
+
+	return txhex, nil
 }

@@ -11,7 +11,7 @@ func Chain33Cmd() *cobra.Command {
 		Short: "deploy to chain33",
 	}
 	cmd.AddCommand(
-		deployCrossContractsCmd(),
+		//deployCrossContractsCmd(),
 		offline.OfflineCmd(),
 	)
 	return cmd
