@@ -109,8 +109,8 @@ func PrepareAuth(privateKey *ecdsa.PrivateKey, transactor common.Address) (*bind
 	return auth, nil
 }
 
-func DeployPancake() error {
-	_ = recoverEthTestNetPrivateKey()
+func DeployPancake(key string ) error {
+	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
 	if nil != err {
@@ -217,10 +217,14 @@ deployPancakeRouter:
 	return nil
 }
 
-func recoverEthTestNetPrivateKey() (err error) {
+func recoverEthTestNetPrivateKey(key string ) (err error) {
 	//louyuqi: f726c7c704e57ec5d59815dda23ddd794f71ae15f7e0141f00f73eff35334ac6
 	//hzj: 2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9 --->addr:0x21B5f4C2F6Ff418fa0067629D9D76AE03fB4a2d2
-	privateKey, err = crypto.ToECDSA(common.FromHex("2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9"))
+	defaultkey:="2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9"
+	if key!=""{
+		defaultkey=key
+	}
+	privateKey, err = crypto.ToECDSA(common.FromHex(defaultkey))
 	if nil != err {
 		panic("Failed to recover private key")
 		return err
@@ -241,8 +245,8 @@ func recoverEthTestNetPrivateKey() (err error) {
 //   last Vault Addr is 0x0183661e6b9288ebF98De625B4501bCF05c7b4cD
 //Succeed to deploy contracts
 
-func AddAllowance4LPHandle(lp string, spender string, amount int64) (err error) {
-	_ = recoverEthTestNetPrivateKey()
+func AddAllowance4LPHandle(lp string, spender ,key string, amount int64) (err error) {
+	_ = recoverEthTestNetPrivateKey(key)
 	pairInt, err := pancakeFactory.NewPancakePair(common.HexToAddress(lp), ethClient)
 	if nil != err {
 		return err
@@ -296,7 +300,7 @@ checkAllowance:
 }
 
 func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit uint64) (err error) {
-	_ = recoverEthTestNetPrivateKey()
+	//_ = recoverEthTestNetPrivateKey()
 
 	feeToSetterPrivateKey, err := crypto.ToECDSA(common.FromHex(feeToSetterPrivateKeyStr))
 	if nil != err {
@@ -342,8 +346,8 @@ func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit ui
 	}
 }
 
-func CheckAllowance4LPHandle(lp string, spender string) (err error) {
-	_ = recoverEthTestNetPrivateKey()
+func CheckAllowance4LPHandle(lp string, spender,key  string) (err error) {
+	_ = recoverEthTestNetPrivateKey(key)
 	pairInt, err := pancakeFactory.NewPancakePair(common.HexToAddress(lp), ethClient)
 	if nil != err {
 		return err
@@ -363,8 +367,8 @@ func CheckAllowance4LPHandle(lp string, spender string) (err error) {
 	return nil
 }
 
-func showPairInitCodeHashHandle(factory string) (err error) {
-	_ = recoverEthTestNetPrivateKey()
+func showPairInitCodeHashHandle(factory ,key string) (err error) {
+	_ = recoverEthTestNetPrivateKey(key)
 	factoryInt, err := pancakeFactory.NewPancakeFactory(common.HexToAddress(factory), ethClient)
 	if nil != err {
 		return err

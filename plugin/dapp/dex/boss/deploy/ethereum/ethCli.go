@@ -53,8 +53,8 @@ func DeployERC20Flags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("symbol")
 	cmd.Flags().StringP("amount", "m", "0", "amount")
 	_ = cmd.MarkFlagRequired("amount")
-	cmd.Flags().StringP("priv", "p", "", "private key")
-	_ = cmd.MarkFlagRequired("priv")
+	cmd.Flags().StringP("key", "k", "", "private key")
+	_ = cmd.MarkFlagRequired("key")
 	cmd.Flags().Uint8P("decimals", "d", 18, "token decimals")
 	_ = cmd.MarkFlagRequired("decimals")
 
@@ -67,7 +67,7 @@ func deplayErc20(cmd *cobra.Command, args []string) {
 	symbol, _ := cmd.Flags().GetString("symbol")
 	amount, _ := cmd.Flags().GetString("amount")
 	decimals, _ := cmd.Flags().GetUint8("decimals")
-	key, _ := cmd.Flags().GetString("priv")
+	key, _ := cmd.Flags().GetString("key")
 	fmt.Println("owner", owner, "name", name, "symbol:", symbol, "amount", amount)
 	priv, err := crypto.ToECDSA(common.FromHex(key))
 	if nil != err {

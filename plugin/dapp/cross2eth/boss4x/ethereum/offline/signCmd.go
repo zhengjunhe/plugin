@@ -46,17 +46,21 @@ func (s *SignCmd) signCmd() *cobra.Command {
 func (s *SignCmd) addSignFlag(cmd *cobra.Command) {
 	cmd.Flags().StringP("conf", "c", "", "config file")
 	cmd.MarkFlagRequired("conf")
-	cmd.Flags().StringP("queryf", "q", "", "query deployer file")
-	cmd.MarkFlagRequired("queryf")
+	cmd.Flags().Uint64P("nonce","n",-1,"transaction count")
+	cmd.MarkFlagRequired("nonce")
+	cmd.Flags().Uint64P("gasprice","g",1000000000,"gas price")// 1Gwei=1e9wei
+	cmd.MarkFlagRequired("gasprice")
 
 }
 
 func (s *SignCmd) SignContractTx(cmd *cobra.Command, args []string) {
 	cfgpath, _ := cmd.Flags().GetString("conf")
-	queryF, _ := cmd.Flags().GetString("queryf")
-	var deployCfg DepolyInfo
+	gasprice,_:=cmd.Flags().GetUint64("gasprice")
+	nonce,_:=cmd.Flags().GetUint64("nonce")
+	var deployCfg  DepolyInfo
 	InitCfg(cfgpath, &deployCfg)
-	paraseFile(queryF, s) //解析query	查询到的from地址的nonce,gasprice等信息
+
+
 
 	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(deployCfg.DeployerPrivateKey))
 	if err != nil {
@@ -65,9 +69,12 @@ func (s *SignCmd) SignContractTx(cmd *cobra.Command, args []string) {
 	}
 
 	deployerAddr := crypto.PubkeyToAddress(deployPrivateKey.PublicKey)
-	s.deployerAddr = deployerAddr
+	s.deployerAddr=deployerAddr
+	s.Nonce=nonce
+	s.GasPrice=gasprice
+	s.From=deployerAddr.String()
+	s.key=deployPrivateKey
 
-	s.key = deployPrivateKey
 	if len(deployCfg.InitPowers) != len(deployCfg.ValidatorsAddr) {
 		panic("not same number for validator address and power")
 	}

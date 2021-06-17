@@ -13,6 +13,7 @@ ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 
 # chain33 部署合约者的私钥 用于部署合约时签名使用
 chain33DeployAddr="1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
+#chain33DeployKey="0xcc38546e9e659d15e6b4893f0ab32a06d103931a8230b0bde71459d2b27d6944"
 
 #maturityDegree=10
 
@@ -52,32 +53,47 @@ ethMultisignKeyC=0x0c61f5a879d70807686e43eccc1f52987a15230ae0472902834af4d193367
 ethMultisignKeyD=0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80697
 }
 
+chain33BridgeBank=16A3uxgPqCv5pVkKqtdVnv2As6DbfRVZRH
+multisignChain33Addr=1b193HbfvVUunUL2DVXrqt9jnbAWwLjcT
+
 function lockBty() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
-#    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,100000000000,50)")
+#    echo '2:#配置自动转离线钱包(bty, 100, 50%)'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,10000000000,50)")
     check_tx "${Chain33Cli}" "${hash}"
 
-    lock_bty_multisign 330 "330.0000" "0.0000"
-    lock_bty_multisign 800 "565.0000" "565.0000"
-    lock_bty_multisign 500 "532.5000" "1097.5000"
-
-    # transfer test
-    hash=$(${CLIA} chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
-    check_tx "${Chain33Cli}" "${hash}"
-    sleep 2
-    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
-    balance_ret "${result}" "997.5000"
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-    balance_ret "${result}" "632.5000"
-
-    hash=$(${CLIA} chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
-    check_tx "${Chain33Cli}" "${hash}"
-    sleep 2
+#    balance_ret "${result}" "0"
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
-    balance_ret "${result}" "897.5000"
-    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
-    balance_ret "${result}" "100.0000"
+#    balance_ret "${result}" "0"
+
+    for (( i = 0; i < 1000; i++ )); do
+        echo "${i}"
+        lock_bty_multisign 1
+        sleep 1
+    done
+
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+#    balance_ret "${result}" "50"
+    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+#    balance_ret "${result}" "950"
+
+#    # transfer test
+#    hash=$(${CLIA} chain33 multisign transfer -a 100 -r "${chain33BridgeBank}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
+#    check_tx "${Chain33Cli}" "${hash}"
+#    sleep 2
+#    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+#    balance_ret "${result}" "997.5000"
+#    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+#    balance_ret "${result}" "632.5000"
+#
+#    hash=$(${CLIA} chain33 multisign transfer -a 100 -r "${chain33MultisignA}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
+#    check_tx "${Chain33Cli}" "${hash}"
+#    sleep 2
+#    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e evm)
+#    balance_ret "${result}" "897.5000"
+#    result=$(${Chain33Cli} account balance -a "${chain33MultisignA}" -e evm)
+#    balance_ret "${result}" "100.0000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -204,9 +220,10 @@ function mainTest() {
     deployMultisign
 
     lockBty
-    lockChain33Ycc
-    lockEth
-    lockEthYcc
+#    lockChain33Ycc
+#    lockEth
+#    lockEthYcc
 }
 
 mainTest
+#lockBty
