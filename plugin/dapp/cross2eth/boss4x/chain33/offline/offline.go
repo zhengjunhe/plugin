@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/33cn/chain33/rpc/jsonclient"
-	rpctypes "github.com/33cn/chain33/rpc/types"
-
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/system/crypto/secp256k1"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
@@ -18,14 +15,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/dex/utils"
 	"github.com/spf13/cobra"
 )
-
-type Chain33OfflineTx struct {
-	ContractAddr  string
-	TxHash        string
-	SignedRawTx   string
-	OperationName string
-	Interval      time.Duration
-}
 
 var crossXfileName = "deployCrossX2Chain33.txt"
 
@@ -63,7 +52,7 @@ func addCreateCrossBridgeFlags(cmd *cobra.Command) {
 }
 
 func createCrossBridge(cmd *cobra.Command, args []string) {
-	var txs []*Chain33OfflineTx
+	var txs []*utils.Chain33OfflineTx
 	privateKeyStr, _ := cmd.Flags().GetString("key")
 	var driver secp256k1.Driver
 	privateKeySli := common.FromHex(privateKeyStr)
@@ -144,7 +133,7 @@ func createCrossBridge(cmd *cobra.Command, args []string) {
 	utils.WriteToFileInJson(crossXfileName, txs)
 }
 
-func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethereumBridge, valset, bridgeBank, oracle string) (*Chain33OfflineTx, error) {
+func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethereumBridge, valset, bridgeBank, oracle string) (*utils.Chain33OfflineTx, error) {
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
@@ -174,7 +163,7 @@ func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethe
 	}
 
 	newContractAddr := common.NewContractAddress(from, txHash).String()
-	bridgeRegistryTx := &Chain33OfflineTx{
+	bridgeRegistryTx := &utils.Chain33OfflineTx{
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
@@ -184,7 +173,7 @@ func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethe
 	return bridgeRegistryTx, nil
 }
 
-func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) (*Chain33OfflineTx, error) {
+func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) (*utils.Chain33OfflineTx, error) {
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
@@ -215,7 +204,7 @@ func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) 
 		return nil, err
 	}
 
-	setOracle2EthBridgeTx := &Chain33OfflineTx{
+	setOracle2EthBridgeTx := &utils.Chain33OfflineTx{
 		ContractAddr:  ethbridge,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
@@ -225,7 +214,7 @@ func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) 
 	return setOracle2EthBridgeTx, nil
 }
 
-func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank string) (*Chain33OfflineTx, error) {
+func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank string) (*utils.Chain33OfflineTx, error) {
 
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
@@ -257,7 +246,7 @@ func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank 
 		return nil, err
 	}
 
-	setBridgeBank2EthBridgeTx := &Chain33OfflineTx{
+	setBridgeBank2EthBridgeTx := &utils.Chain33OfflineTx{
 		ContractAddr:  ethbridge,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
@@ -267,7 +256,7 @@ func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank 
 	return setBridgeBank2EthBridgeTx, nil
 }
 
-func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, ethereumBridge string) (*Chain33OfflineTx, error) {
+func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, ethereumBridge string) (*utils.Chain33OfflineTx, error) {
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
@@ -296,7 +285,7 @@ func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, 
 	}
 
 	newContractAddr := common.NewContractAddress(from, txHash).String()
-	bridgeBankTx := &Chain33OfflineTx{
+	bridgeBankTx := &utils.Chain33OfflineTx{
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
@@ -306,7 +295,7 @@ func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, 
 	return bridgeBankTx, nil
 }
 
-func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethereumBridge string) (*Chain33OfflineTx, error) {
+func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethereumBridge string) (*utils.Chain33OfflineTx, error) {
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
@@ -335,7 +324,7 @@ func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethe
 	}
 
 	newContractAddr := common.NewContractAddress(from, txHash).String()
-	oracleTx := &Chain33OfflineTx{
+	oracleTx := &utils.Chain33OfflineTx{
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
@@ -345,7 +334,7 @@ func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethe
 	return oracleTx, nil
 }
 
-func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*Chain33OfflineTx, error) {
+func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*utils.Chain33OfflineTx, error) {
 	contructParameter, _ := cmd.Flags().GetString("valset")
 
 	privateKeyStr, _ := cmd.Flags().GetString("key")
@@ -376,9 +365,8 @@ func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*Chain33Off
 	}
 
 	newContractAddr := common.NewContractAddress(from, txHash).String()
-	valsetTx := &Chain33OfflineTx{
-		ContractAddr: newContractAddr,
-
+	valsetTx := &utils.Chain33OfflineTx{
+		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
 		OperationName: "deploy valset",
@@ -387,7 +375,7 @@ func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*Chain33Off
 	return valsetTx, nil
 }
 
-func createEthereumBridgeAndSign(cmd *cobra.Command, from common.Address, valset string) (*Chain33OfflineTx, error) {
+func createEthereumBridgeAndSign(cmd *cobra.Command, from common.Address, valset string) (*utils.Chain33OfflineTx, error) {
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
@@ -416,7 +404,7 @@ func createEthereumBridgeAndSign(cmd *cobra.Command, from common.Address, valset
 	}
 
 	newContractAddr := common.NewContractAddress(from, txHash).String()
-	ethereumBridgeTx := &Chain33OfflineTx{
+	ethereumBridgeTx := &utils.Chain33OfflineTx{
 		ContractAddr:  newContractAddr,
 		TxHash:        common.Bytes2Hex(txHash),
 		SignedRawTx:   content,
@@ -444,44 +432,6 @@ func addSendSignTxs2Chain33Flags(cmd *cobra.Command) {
 func sendSignTxs2Chain33(cmd *cobra.Command, args []string) {
 	filePath, _ := cmd.Flags().GetString("path")
 	url, _ := cmd.Flags().GetString("rpc_laddr")
-	//解析文件数据
 	filePath += crossXfileName
-	var rdata []*Chain33OfflineTx
-	err := utils.ParseFileInJson(filePath, &rdata)
-	if err != nil {
-		fmt.Printf("parse file with error:%s, make sure file:%s exist", err.Error(), filePath)
-		return
-	}
-	for i, deployInfo := range rdata {
-		txhash, err := sendTransactionRpc(deployInfo.SignedRawTx, url)
-		if nil != err {
-			fmt.Printf("Failed to send %s to chain33 due to error:%s", deployInfo.OperationName, err.Error())
-			return
-		}
-		fmt.Printf("   %d:Succeed to send %s to chain33 with tx hash:%s\n", i+1, deployInfo.OperationName, txhash)
-		if deployInfo.Interval != 0 {
-			time.Sleep(deployInfo.Interval)
-		}
-	}
-
-	fmt.Println("All txs are sent successfully.^-^ ^-^")
-}
-
-func sendTransactionRpc(data, rpcLaddr string) (string, error) {
-	params := rpctypes.RawParm{
-		Data: data,
-	}
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.SendTransaction", params, nil)
-	var txhex string
-	rpc, err := jsonclient.NewJSONClient(ctx.Addr)
-	if err != nil {
-		return "", err
-	}
-
-	err = rpc.Call(ctx.Method, ctx.Params, &txhex)
-	if err != nil {
-		return "", err
-	}
-
-	return txhex, nil
+	utils.SendSignTxs2Chain33(filePath, url)
 }

@@ -9,6 +9,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/33cn/chain33/rpc/jsonclient"
+	rpctypes "github.com/33cn/chain33/rpc/types"
+
 	"github.com/33cn/chain33/system/crypto/secp256k1"
 	"github.com/33cn/chain33/types"
 	"github.com/golang/protobuf/proto"
@@ -26,6 +29,14 @@ type TxCreateInfo struct {
 	Fee        int64
 	ParaName   string
 	ChainID    int32
+}
+
+type Chain33OfflineTx struct {
+	ContractAddr  string
+	TxHash        string
+	SignedRawTx   string
+	OperationName string
+	Interval      time.Duration
 }
 
 func CreateContractAndSign(txCreateInfo *TxCreateInfo, code, abi, parameter, contractName string) (string, []byte, error) {
@@ -142,4 +153,45 @@ func WriteToFileInJson(fileName string, content interface{}) {
 	if err != nil {
 		fmt.Println("Failed to write to file:", fileName)
 	}
+}
+
+func SendSignTxs2Chain33(filePath, rpc_url string) {
+	var rdata []*Chain33OfflineTx
+	err := ParseFileInJson(filePath, &rdata)
+	if err != nil {
+		fmt.Printf("parse file with error:%s, make sure file:%s exist", err.Error(), filePath)
+		return
+	}
+	for i, deployInfo := range rdata {
+		txhash, err := sendTransactionRpc(deployInfo.SignedRawTx, rpc_url)
+		if nil != err {
+			fmt.Printf("Failed to send %s to chain33 due to error:%s", deployInfo.OperationName, err.Error())
+			return
+		}
+		fmt.Printf("   %d:Succeed to send %s to chain33 with tx hash:%s\n", i+1, deployInfo.OperationName, txhash)
+		if deployInfo.Interval != 0 {
+			time.Sleep(deployInfo.Interval)
+		}
+	}
+
+	fmt.Println("All txs are sent successfully.^-^ ^-^")
+}
+
+func sendTransactionRpc(data, rpcLaddr string) (string, error) {
+	params := rpctypes.RawParm{
+		Data: data,
+	}
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Chain33.SendTransaction", params, nil)
+	var txhex string
+	rpc, err := jsonclient.NewJSONClient(ctx.Addr)
+	if err != nil {
+		return "", err
+	}
+
+	err = rpc.Call(ctx.Method, ctx.Params, &txhex)
+	if err != nil {
+		return "", err
+	}
+
+	return txhex, nil
 }
