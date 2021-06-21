@@ -125,7 +125,9 @@ func createRouterContract(cmd *cobra.Command, args []string) {
 		fmt.Println("Failed to createWeth9 due to cause:", err.Error())
 		return
 	}
+	txs = append(txs, weth9Tx)
 
+	fmt.Printf("%d: Going to create router\n", i)
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")

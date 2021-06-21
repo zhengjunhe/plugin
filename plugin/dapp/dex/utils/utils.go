@@ -153,6 +153,7 @@ func WriteToFileInJson(fileName string, content interface{}) {
 	if err != nil {
 		fmt.Println("Failed to write to file:", fileName)
 	}
+	fmt.Println("Txs are written to file", fileName)
 }
 
 func SendSignTxs2Chain33(filePath, rpc_url string) {

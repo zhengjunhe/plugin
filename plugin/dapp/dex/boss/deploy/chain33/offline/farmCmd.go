@@ -33,7 +33,7 @@ func farmofflineCmd() *cobra.Command {
 }
 
 func createCakeToken(cmd *cobra.Command, from common.Address) (*utils.Chain33OfflineTx, error) {
-	privateKey, _ := cmd.Flags().GetString("caller")
+	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
 	fee, _ := cmd.Flags().GetFloat64("fee")
@@ -51,7 +51,6 @@ func createCakeToken(cmd *cobra.Command, from common.Address) (*utils.Chain33Off
 	createPara := ""
 	content, txHash, err := utils.CreateContractAndSign(info, cakeToken.CakeTokenBin, cakeToken.CakeTokenABI, createPara, "cakeToken")
 	if nil != err {
-		fmt.Println("Failed to create cake token due to cause:", err.Error())
 		return nil, err
 	}
 
@@ -99,6 +98,48 @@ func createSyrupBar(cmd *cobra.Command, from common.Address, cakeToken string) (
 		Interval:      time.Second * 5,
 	}
 	return cakeTokenTx, nil
+}
+
+func TransferOwnerShip(cmd *cobra.Command, from common.Address, masterChef, contractAddr, operationName string) (*utils.Chain33OfflineTx, error) {
+	privateKey, _ := cmd.Flags().GetString("key")
+	expire, _ := cmd.Flags().GetString("expire")
+	note, _ := cmd.Flags().GetString("note")
+	fee, _ := cmd.Flags().GetFloat64("fee")
+	paraName, _ := cmd.Flags().GetString("paraName")
+	chainID, _ := cmd.Flags().GetInt32("chainID")
+	feeInt64 := int64(fee*1e4) * 1e4
+	info := &utils.TxCreateInfo{
+		PrivateKey: privateKey,
+		Expire:     expire,
+		Note:       note,
+		Fee:        feeInt64,
+		ParaName:   paraName,
+		ChainID:    chainID,
+	}
+
+	//function transferOwnership(address newOwner) public onlyOwner
+	parameter := fmt.Sprintf("transferOwnership(%s)", masterChef)
+	_, packData, err := evmAbi.Pack(parameter, syrupBar.OwnableABI, false)
+	if nil != err {
+		fmt.Println("TransferOwnerShip", "Failed to do abi.Pack due to:", err.Error())
+		return nil, err
+	}
+
+	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
+	content, txHash, err := utils.CallContractAndSign(info, action, contractAddr)
+	if nil != err {
+		return nil, err
+	}
+
+	newContractAddr := common.NewContractAddress(from, txHash).String()
+	transferOwnerShipTx := &utils.Chain33OfflineTx{
+		ContractAddr:  newContractAddr,
+		TxHash:        common.Bytes2Hex(txHash),
+		SignedRawTx:   content,
+		OperationName: operationName,
+		Interval:      time.Second * 5,
+	}
+	return transferOwnerShipTx, nil
 }
 
 func createMasterChefCmd() *cobra.Command {
@@ -161,6 +202,8 @@ func createMasterChef(cmd *cobra.Command, args []string) {
 	}
 	txs = append(txs, syrupBarTx)
 
+	fmt.Printf("%d: Going to create materchef\n", i)
+	i += 1
 	devaddr, _ := cmd.Flags().GetString("devaddr")
 	cakePerBlock, _ := cmd.Flags().GetInt64("cakePerBlock")
 	startBlock, _ := cmd.Flags().GetInt64("startBlock")
@@ -202,6 +245,25 @@ func createMasterChef(cmd *cobra.Command, args []string) {
 		Interval:      time.Second * 5,
 	}
 	txs = append(txs, masterChefTx)
+
+	fmt.Printf("%d: Going to transfer OwnerShip from cake token to masterchef\n", i)
+	i += 1
+	cakeTokenOwnerShipTransferTx, err := TransferOwnerShip(cmd, from, masterChefTx.ContractAddr, cakeTokenTx.ContractAddr, "transfer cakeToken's ownership to masterchef")
+	if nil != err {
+		fmt.Println("Failed to Transfer OwnerShip from cake token:", err.Error())
+		return
+	}
+	txs = append(txs, cakeTokenOwnerShipTransferTx)
+
+	fmt.Printf("%d: Going to transfer OwnerShip from syrupBar to masterchef\n", i)
+	i += 1
+	syrupBarOwnerShipTransferTx, err := TransferOwnerShip(cmd, from, masterChefTx.ContractAddr, syrupBarTx.ContractAddr, "transfer syrupBar's ownership to masterchef")
+	if nil != err {
+		fmt.Println("Failed to Transfer OwnerShip:", err.Error())
+		return
+	}
+	txs = append(txs, syrupBarOwnerShipTransferTx)
+
 	utils.WriteToFileInJson("./farm.txt", txs)
 }
 
@@ -225,8 +287,7 @@ func addPoolFlags(cmd *cobra.Command) {
 	cmd.Flags().Int64P("alloc", "p", 0, "allocation point ")
 	_ = cmd.MarkFlagRequired("alloc")
 
-	cmd.Flags().BoolP("update", "u", true, "with update")
-	_ = cmd.MarkFlagRequired("update")
+	cmd.Flags().BoolP("update", "u", true, "(Optional)with update")
 
 	cmd.Flags().Float64P("fee", "f", 0, "contract gas fee (optional)")
 	cmd.MarkFlagRequired("fee")
