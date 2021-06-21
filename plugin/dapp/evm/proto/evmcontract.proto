@@ -95,6 +95,7 @@ message EVMContractStatistic {
     repeated  string     caller        = 2;
     uint64               succseccTimes = 3;
     map<string, uint64>  failReason    = 4;
+    string               prevAddr      = 5;
 }
 
 // 合约统计数据日志

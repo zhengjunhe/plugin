@@ -194,6 +194,23 @@ func (evm *EVMExecutor) Query_GetNonce(in *evmtypes.EvmGetNonceReq) (types.Messa
 	return &evmtypes.EvmGetNonceRespose{Nonce: int64(nonce)}, nil
 }
 
+func calcAddressCount(callers []string) uint64 {
+	tmp := make([]string, 0)
+	for i := 0; i < len(callers); i++ {
+		repeat := false
+		for j := i + 1; j < len(callers); j++ {
+			if callers[i] == callers[j] {
+				repeat = true
+				break
+			}
+		}
+		if !repeat {
+			tmp = append(tmp, callers[i])
+		}
+	}
+	return uint64(len(tmp))
+}
+
 func (evm *EVMExecutor) Query_QueryStatistic(in *evmtypes.EvmQueryStatisticReq) (types.Message, error) {
 	evm.CheckInit();
 
@@ -202,30 +219,44 @@ func (evm *EVMExecutor) Query_QueryStatistic(in *evmtypes.EvmQueryStatisticReq) 
 		return nil, fmt.Errorf("invalid address: %v", in.GetAddr())
 	}
 
-	statisticDataByte, err := evm.mStateDB.LocalDB.Get(GetStatisticKey(addr.String()))
-	if err != nil {
-		return nil, fmt.Errorf("QueryStatistic.get address: %v, error:%s", in.GetAddr(), err.Error())
+	var totalStatisticData evmtypes.EVMContractStatistic
+	totalStatisticData.FailReason = make(map[string]uint64, 3)
+	var statKey = GetStatisticKey(addr.String())
+	for {
+		statisticDataByte, err := evm.mStateDB.LocalDB.Get(statKey)
+		if err != nil {
+			return nil, fmt.Errorf("QueryStatistic.get address: %v, error:%s", in.GetAddr(), err.Error())
+		}
+
+		var statisticData evmtypes.EVMContractStatistic
+		err = types.Decode(statisticDataByte, &statisticData)
+		if err != nil {
+			return nil, fmt.Errorf("QueryStatistic.decode address: %v, error:%s", in.GetAddr(), err.Error())
+		}
+
+		totalStatisticData.CallTimes += statisticData.CallTimes
+		totalStatisticData.SuccseccTimes += statisticData.SuccseccTimes
+		totalStatisticData.Caller = append(totalStatisticData.Caller, statisticData.Caller...)
+		totalStatisticData.FailReason[model.StatisticEVMError] += statisticData.FailReason[model.StatisticEVMError]
+		totalStatisticData.FailReason[model.StatisticExecError] += statisticData.FailReason[model.StatisticExecError]
+		totalStatisticData.FailReason[model.StatisticGasError] += statisticData.FailReason[model.StatisticGasError]
+		if statisticData.PrevAddr == "" {
+			break
+		}
+
+		statKey = GetStatisticKey(statisticData.PrevAddr)
 	}
 
-	var statisticData evmtypes.EVMContractStatistic
-	err = types.Decode(statisticDataByte, &statisticData)
-	if err != nil {
-		return nil, fmt.Errorf("QueryStatistic.decode address: %v, error:%s", in.GetAddr(), err.Error())
-	}
-
-	if statisticData.CallTimes == 0 {
-	    return &evmtypes.EvmQueryStatisticRep{}, nil
-	}
 
 	var res evmtypes.EvmQueryStatisticRep
-	res.Amount = statisticData.CallTimes
-	res.Callers = uint64(len(statisticData.Caller))
-	res.SuccessTimes = statisticData.SuccseccTimes
+	res.Amount = totalStatisticData.CallTimes
+	res.Callers = calcAddressCount(totalStatisticData.Caller)
+	res.SuccessTimes = totalStatisticData.SuccseccTimes
 	res.Ratio = float32(res.SuccessTimes)/float32(res.Amount)
 	res.FailedTimes = res.Amount - res.SuccessTimes
-	res.EvmErrNum = statisticData.FailReason[model.StatisticEVMError]
-	res.ExecErrNum = statisticData.FailReason[model.StatisticExecError]
-	res.GasErrNum = statisticData.FailReason[model.StatisticGasError]
+	res.EvmErrNum = totalStatisticData.FailReason[model.StatisticEVMError]
+	res.ExecErrNum = totalStatisticData.FailReason[model.StatisticExecError]
+	res.GasErrNum = totalStatisticData.FailReason[model.StatisticGasError]
 
 	return &res, nil
 }
