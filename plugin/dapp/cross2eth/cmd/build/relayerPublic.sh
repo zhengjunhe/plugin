@@ -152,8 +152,8 @@ function InitTokenAddr() {
     ethereumBtyTokenAddr=$(echo "${result}" | jq -r .addr)
 
     # 在 chain33 上创建 bridgeToken ETH
-    ${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(ETH)"
-    sleep 1
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(ETH)")
+    check_tx "${Chain33Cli}" "${hash}"
     chain33EthTokenAddr=$(${Chain33Cli} evm abi call -a "${chain33BridgeBank}" -c "${chain33DeployAddr}" -b "getToken2address(ETH)")
     echo "ETH Token Addr= ${chain33EthTokenAddr}"
     cp BridgeToken.abi "${chain33EthTokenAddr}.abi"
@@ -162,8 +162,8 @@ function InitTokenAddr() {
     is_equal "${result}" "ETH"
 
     # 在chain33上创建bridgeToken YCC
-    ${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(YCC)"
-    sleep 1
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(YCC)")
+    check_tx "${Chain33Cli}" "${hash}"
     chain33YccTokenAddr=$(${Chain33Cli} evm abi call -a "${chain33BridgeBank}" -c "${chain33DeployAddr}" -b "getToken2address(YCC)")
     echo "YCC Token Addr = ${chain33YccTokenAddr}"
     cp BridgeToken.abi "${chain33YccTokenAddr}.abi"

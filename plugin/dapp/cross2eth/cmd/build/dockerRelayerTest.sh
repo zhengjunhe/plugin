@@ -176,28 +176,27 @@ function TestChain33ToEthAssets() {
     cli_ret "${result}" "balance" ".balance" "0"
 
     # 原来的地址金额
-    result=$(${Chain33Cli} account balance -a "${chain33DeployAddr}" -e evm)
-#    balance=$(cli_ret "${result}" "balance" ".balance")
+    result=$(${Chain33Cli} asset balance -a "${chain33DeployAddr}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
+    is_equal "${result}" "100.0000"
 
     # chain33 lock bty
     hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)")
-#    check_tx "${Chain33Cli}" "${hash}"
+    check_tx "${Chain33Cli}" "${hash}"
 
     # 原来的地址金额 减少了 5
-    result=$(${Chain33Cli} account balance -a "${chain33DeployAddr}" -e evm)
-#    cli_ret "${result}" "balance" ".balance" "$(echo "${balance}-5" | bc)"
-    #balance_ret "${result}" "195.0000"
+    result=$(${Chain33Cli} asset balance -a "${chain33DeployAddr}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
+    is_equal "${result}" "95.0000"
 
     # chain33BridgeBank 是否增加了 5
-    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-#    balance_ret "${result}" "5.0000"
+    result=$(${Chain33Cli} asset balance -a "${chain33BridgeBank}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
+    is_equal "${result}" "5.0000"
 
     sleep 2
 #    eth_block_wait 2 "${ethUrl}"
 
     # eth 这端 金额是否增加了 5
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
-#    cli_ret "${result}" "balance" ".balance" "5"
+    cli_ret "${result}" "balance" ".balance" "5"
 
     # eth burn
     result=$(${CLIA} ethereum burn -m 3 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
@@ -208,17 +207,17 @@ function TestChain33ToEthAssets() {
 
     # eth 这端 金额是否减少了 3
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
-#    cli_ret "${result}" "balance" ".balance" "2"
+    cli_ret "${result}" "balance" ".balance" "2"
 
     sleep ${maturityDegree}
 
-     # 接收的地址金额 变成了 3
-    result=$(${Chain33Cli} account balance -a "${chain33ReceiverAddr}" -e evm)
-#    balance_ret "${result}" "3.0000"
+    # 接收的地址金额 变成了 3
+    result=$(${Chain33Cli} asset balance -a "${chain33ReceiverAddr}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
+    is_equal "${result}" "3.0000"
 
     # chain33BridgeBank 是否减少了 3
-    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
-#    balance_ret "${result}" "2.0000"
+    result=$(${Chain33Cli} asset balance -a "${chain33BridgeBank}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
+    is_equal "${result}" "2.0000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -324,13 +323,38 @@ function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+function initPara() {
+    # para add
+    hash=$(${Para8901Cli}  send coins transfer -a 10000 -n test -t "${chain33ReceiverAddr}" -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944)
+    check_tx "${Para8901Cli}" "${hash}"
+
+    Chain33Cli=${Para8901Cli}
+    InitChain33Validator
+
+    # 先把 bty 转入到 paracross 合约中
+    hash=$(${MainCli} send coins send_exec -e paracross -a 1000 -k "${chain33DeployKey}")
+    check_tx "${MainCli}" "${hash}"
+
+    # 主链中的 bty 夸链到 平行链中
+    hash=$(${Para8801Cli} send para cross_transfer -a 200 -e coins -s bty -t "${chain33DeployAddr}" -k "${chain33DeployKey}")
+    check_tx "${Para8801Cli}" "${hash}"
+    check_tx "${Para8901Cli}" "${hash}"
+    result=$(${Para8901Cli} asset balance -a "${chain33DeployAddr}" --asset_exec paracross --asset_symbol coins.bty | jq -r .balance)
+    is_equal "${result}" "200.0000"
+
+    # 把平行链中的 bty 转入 平行链中的 evm 合约
+    hash=$(${Para8901Cli} send para transfer_exec -a 100 -e user.p.para.evm -s coins.bty -k "${chain33DeployKey}")
+    check_tx "${Para8901Cli}" "${hash}"
+    result=$(${Para8901Cli} asset balance -a "${chain33DeployAddr}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
+    is_equal "${result}" "100.0000"
+}
+
 function AllRelayerMainTest() {
     set +e
     docker_chain33_ip=$(get_docker_addr "${dockerNamePrefix}_chain33_1")
     MainCli="./chain33-cli --rpc_laddr http://${docker_chain33_ip}:8801"
     Para8801Cli="./chain33-cli --rpc_laddr http://${docker_chain33_ip}:8901 --paraName user.p.para."
     Para8901Cli="./chain33-cli --rpc_laddr http://${docker_chain33_ip}:8901 --paraName user.p.para."
-    Chain33Cli=${MainCli}
 
     # shellcheck disable=SC2034
     {
@@ -350,31 +374,10 @@ function AllRelayerMainTest() {
     fi
 
     # init
+    Chain33Cli=${MainCli}
     InitChain33Validator
     # para add
-    Chain33Cli=${Para8901Cli}
-    hash=$(${Chain33Cli}  send coins transfer -a 10000 -n test -t "${chain33ReceiverAddr}" -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944)
-    check_tx "${Chain33Cli}" "${hash}"
-    InitChain33Validator
-
-    # 先把 bty 转入到 paracross 合约中
-    hash=$(${MainCli} send coins send_exec -e paracross -a 1000 -k "${chain33DeployKey}")
-    check_tx "${MainCli}" "${hash}"
-
-    # 主链中的 bty 夸链到 平行链中
-    hash=$(${Para8801Cli} send para cross_transfer -a 200 -e coins -s bty -t "${chain33DeployAddr}" -k "${chain33DeployKey}")
-    check_tx "${Para8801Cli}" "${hash}"
-    check_tx "${Para8901Cli}" "${hash}"
-    result=$(${Para8901Cli} asset balance -a "${chain33DeployAddr}" --asset_exec paracross --asset_symbol coins.bty | jq -r .balance)
-    is_equal "${result}" "200.0000"
-#    cli_ret "${result}" "balance" ".balance" "200.0000"
-
-    # 把平行链中的 bty 转入 平行链中的 evm 合约
-    hash=$(${Para8901Cli} send para transfer_exec -a 100 -e user.p.para.evm -s coins.bty -k "${chain33DeployKey}")
-    check_tx "${Para8901Cli}" "${hash}"
-    result=$(${Para8901Cli} asset balance -a "${chain33DeployAddr}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
-    is_equal "${result}" "100.0000"
-#    cli_ret "${result}" "balance" ".balance" "100.0000"
+    initPara
 
     Chain33Cli=${Para8901Cli}
     StartDockerRelayerDeploy
