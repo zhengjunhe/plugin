@@ -12,6 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	evmtypes "github.com/33cn/plugin/plugin/dapp/evm/types"
+
 	"github.com/33cn/chain33/common"
 	"github.com/33cn/chain33/common/address"
 	chain33Crypto "github.com/33cn/chain33/common/crypto"
@@ -207,8 +209,21 @@ func (chain33Relayer *Relayer4Chain33) onNewHeightProc(currentHeight int64) {
 			tx := txAndLog.Tx
 
 			//确认订阅的evm交易类型和合约地址
-			if !strings.Contains(string(tx.Execer), "evm") || tx.To != chain33Relayer.bridgeBankAddr {
-				relayerLog.Error("onNewHeightProc received logs not expected", "tx.Execer", string(tx.Execer), "tx.To", tx.To)
+			if !strings.Contains(string(tx.Execer), "evm") {
+				relayerLog.Error("onNewHeightProc received logs not from evm tx", "tx.Execer", string(tx.Execer))
+				continue
+			}
+
+			var evmAction evmtypes.EVMContractAction
+			err := chain33Types.Decode(tx.Payload, &evmAction)
+			if nil != err {
+				relayerLog.Error("onNewHeightProc", "Failed to decode action for tx with hash", common.ToHex(tx.Hash()))
+				continue
+			}
+
+			//确认监听的合约地址
+			if evmAction.ContractAddr != chain33Relayer.bridgeBankAddr {
+				relayerLog.Error("onNewHeightProc received logs not from bridgeBank", "evmAction.ContractAddr", evmAction.ContractAddr)
 				continue
 			}
 
