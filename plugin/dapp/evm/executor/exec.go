@@ -193,7 +193,7 @@ func (evm *EVMExecutor) GetMessage(tx *types.Transaction, index int) (msg *commo
 	}
 	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
 	from := getCaller(tx)
-	to := getReceiver(tx)
+	to := getReceiver(&action)
 	if to == nil {
 		return msg, types.ErrInvalidAddress
 	}
@@ -270,9 +270,9 @@ func getCaller(tx *types.Transaction) common.Address {
 }
 
 // 从交易信息中获取交易目标地址，在创建合约交易中，此地址为空
-func getReceiver(tx *types.Transaction) *common.Address {
-	if tx.To == "" {
+func getReceiver(action *evmtypes.EVMContractAction) *common.Address {
+	if action.ContractAddr == "" {
 		return nil
 	}
-	return common.StringToAddress(tx.To)
+	return common.StringToAddress(action.ContractAddr)
 }

@@ -82,6 +82,7 @@ func NewEVMExecutor() *EVMExecutor {
 	)
 
 	exec.SetChild(exec)
+	exec.SetExecutorType(types.LoadExecutorType(driverName))
 	return exec
 }
 
