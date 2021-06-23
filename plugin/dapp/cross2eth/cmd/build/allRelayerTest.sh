@@ -33,12 +33,15 @@ chain33EthTokenAddr=""
 ethereumBtyTokenAddr=""
 chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
+chain33ZBCErc20Addr=""
+ethBridgeToeknZBCAddr=""
 
 CLIA="./ebcli_A"
 
 # chain33 lock BTY, eth burn BTY
 function TestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== chain33 lock BTY, eth burn BTY ===========${NOC}"
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
@@ -88,9 +91,66 @@ function TestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+# chain33 lock ZBC, eth burn ZBC
+function TestChain33ToEthZBCAssets() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== chain33 lock ZBC, eth burn ZBC ===========${NOC}"
+    #    echo 'ZBC.0:增加allowance的设置,或者使用relayer工具进行'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33ZBCErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    # echo 'ZBC.2:#执行add lock操作:addToken2LockList'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33ZBCErc20Addr}, ZBC)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
+    cli_ret "${result}" "balance" ".balance" "0"
+
+    # 原来的地址金额
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "0"
+
+    # chain33 lock ZBC
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33ZBCErc20Addr}, 900000000)")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    # chain33BridgeBank 是否增加了 9
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "900000000"
+
+    eth_block_wait 2
+
+    # eth 这端 金额是否增加了 9
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
+    cli_ret "${result}" "balance" ".balance" "9"
+
+    # eth burn
+    result=$(${CLIA} ethereum burn -m 8 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethBridgeToeknZBCAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
+    cli_ret "${result}" "burn"
+
+    eth_block_wait 2
+
+    # eth 这端 金额是否减少了 1
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
+    cli_ret "${result}" "balance" ".balance" "1"
+
+    sleep ${maturityDegree}
+
+     # 接收的地址金额 变成了 8
+     result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33ReceiverAddr}" -b "balanceOf(${chain33ReceiverAddr})")
+    is_equal "${result}" "800000000"
+
+    # chain33BridgeBank 是否减少了 1
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "100000000"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
 # eth to chain33 在以太坊上锁定 ETH 资产,然后在 chain33 上 burn
 function TestETH2Chain33Assets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== eth to chain33 在以太坊上锁定 ETH 资产,然后在 chain33 上 burn ===========${NOC}"
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
     cli_ret "${result}" "balance" ".balance" "0"
@@ -140,6 +200,7 @@ function TestETH2Chain33Assets() {
 
 function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== eth to chain33 在以太坊上锁定 ycc 资产,然后在 chain33 上 burn ===========${NOC}"
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
@@ -192,9 +253,10 @@ function mainTest() {
     start_trufflesuite
     AllRelayerStart
 
-    TestChain33ToEthAssets
-    TestETH2Chain33Assets
-    TestETH2Chain33Ycc
+#    TestChain33ToEthAssets
+    TestChain33ToEthZBCAssets
+#    TestETH2Chain33Assets
+#    TestETH2Chain33Ycc
 }
 
 mainTest
