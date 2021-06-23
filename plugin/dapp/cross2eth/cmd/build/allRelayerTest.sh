@@ -114,13 +114,13 @@ function TestChain33ToEthZBCAssets() {
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33ZBCErc20Addr}, 900000000)")
     check_tx "${Chain33Cli}" "${hash}"
 
-    # chain33BridgeBank 是否增加了 5
+    # chain33BridgeBank 是否增加了 9
     result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
-    is_equal "${result}" "9"
+    is_equal "${result}" "900000000"
 
     eth_block_wait 2
 
-    # eth 这端 金额是否增加了 5
+    # eth 这端 金额是否增加了 9
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
     cli_ret "${result}" "balance" ".balance" "9"
 
@@ -138,14 +138,11 @@ function TestChain33ToEthZBCAssets() {
 
      # 接收的地址金额 变成了 8
      result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33ReceiverAddr}" -b "balanceOf(${chain33ReceiverAddr})")
-    is_equal "${result}" "8"
-
-    result=$(${Chain33Cli} account balance -a "${chain33ReceiverAddr}" -e evm)
-#    balance_ret "${result}" "3.0000"
+    is_equal "${result}" "800000000"
 
     # chain33BridgeBank 是否减少了 1
     result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
-    is_equal "${result}" "1"
+    is_equal "${result}" "100000000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
