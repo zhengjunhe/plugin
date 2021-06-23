@@ -4,6 +4,8 @@
 set -x
 set +e
 
+# 只测试 lock 操作，不测试 burn
+
 source "./publicTest.sh"
 source "./relayerPublic.sh"
 

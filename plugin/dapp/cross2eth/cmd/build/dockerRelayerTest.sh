@@ -172,6 +172,7 @@ function StartDockerRelayerDeploy() {
 # chain33 lock BTY, eth burn BTY
 function TestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== chain33 lock BTY, eth burn BTY ===========${NOC}"
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
@@ -225,6 +226,7 @@ function TestChain33ToEthAssets() {
 # eth to chain33 在以太坊上锁定 ETH 资产,然后在 chain33 上 burn
 function TestETH2Chain33Assets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== eth to chain33 在以太坊上锁定 ETH 资产,然后在 chain33 上 burn ===========${NOC}"
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
     cli_ret "${result}" "balance" ".balance" "0"
@@ -246,11 +248,11 @@ function TestETH2Chain33Assets() {
     # chain33 chain33EthTokenAddr（ETH合约中）查询 lock 金额
     result=$(${Chain33Cli} evm abi call -a "${chain33EthTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
     # 结果是 11 * le8
-#    is_equal "${result}" "1100000000"
+    is_equal "${result}" "1100000000"
 
     # 原来的数额
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}")
-#    cli_ret "${result}" "balance" ".balance" "100"
+    cli_ret "${result}" "balance" ".balance" "100"
 
     echo '#5.burn ETH from Chain33 ETH(Chain33)-----> Ethereum'
     ${CLIA} chain33 burn -m 5 -k "${chain33ReceiverAddrKey}" -r "${ethReceiverAddr1}" -t "${chain33EthTokenAddr}"
@@ -260,28 +262,29 @@ function TestETH2Chain33Assets() {
     echo "check the balance on chain33"
     result=$(${Chain33Cli} evm abi call -a "${chain33EthTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
     # 结果是 11-5 * le8
-#    is_equal "${result}" "600000000"
+    is_equal "${result}" "600000000"
 
     # 查询 ETH 这端 bridgeBank 地址 0
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
-#    cli_ret "${result}" "balance" ".balance" "6"
+    cli_ret "${result}" "balance" ".balance" "6"
 
     # 比之前多 5
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}")
-#    cli_ret "${result}" "balance" ".balance" "105"
+    cli_ret "${result}" "balance" ".balance" "105"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
 function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== eth to chain33 在以太坊上锁定 ycc 资产,然后在 chain33 上 burn ===========${NOC}"
     # 查询 ETH 这端 bridgeBank 地址原来是 0
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
-#    cli_ret "${result}" "balance" ".balance" "0"
+    cli_ret "${result}" "balance" ".balance" "0"
 
     # ETH 这端 lock 7个 YCC
     result=$(${CLIA} ethereum lock -m 7 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
-#    cli_ret "${result}" "lock"
+    cli_ret "${result}" "lock"
 
      # eth 等待 10 个区块
     sleep 2
@@ -289,14 +292,14 @@ function TestETH2Chain33Ycc() {
 
     # 查询 ETH 这端 bridgeBank 地址 7 YCC
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
-#    cli_ret "${result}" "balance" ".balance" "7"
+    cli_ret "${result}" "balance" ".balance" "7"
 
     sleep ${maturityDegree}
 
     # chain33 chain33EthTokenAddr（ETH合约中）查询 lock 金额
     result=$(${Chain33Cli} evm abi call -a "${chain33YccTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
     # 结果是 7 * le8
-#    is_equal "${result}" "700000000"
+    is_equal "${result}" "700000000"
 
     # 原来的数额 0
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}" -t "${ethereumYccTokenAddr}")
@@ -310,15 +313,15 @@ function TestETH2Chain33Ycc() {
     echo "check the balance on chain33"
     result=$(${Chain33Cli} evm abi call -a "${chain33YccTokenAddr}" -c "${chain33DeployAddr}" -b "balanceOf(${chain33ReceiverAddr})")
     # 结果是 7-5 * le8
-#    is_equal "${result}" "200000000"
+    is_equal "${result}" "200000000"
 
     # 查询 ETH 这端 bridgeBank 地址 2
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
-#    cli_ret "${result}" "balance" ".balance" "2"
+    cli_ret "${result}" "balance" ".balance" "2"
 
     # 更新后的金额 5
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}" -t "${ethereumYccTokenAddr}")
-#    cli_ret "${result}" "balance" ".balance" "5"
+    cli_ret "${result}" "balance" ".balance" "5"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

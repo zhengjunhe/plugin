@@ -191,6 +191,18 @@ function InitTokenAddr() {
     ethBridgeToeknYccAddr=$(echo "${result}" | jq -r .addr)
     cp BridgeToken.abi "${ethBridgeToeknYccAddr}.abi"
 
+    # chain33 token create ZBC
+    result=$(${CLIA} chain33 token create -s ZBC -o "${chain33DeployAddr}")
+    cli_ret "${result}" "chain33 token create -s ZBC"
+    chain33ZBCErc20Addr=$(echo "${result}" | jq -r .msg)
+    cp ERC20.abi "${chain33ZBCErc20Addr}.abi"
+
+    # ethereum create-bridge-token ZBC
+    result=$(${CLIA} ethereum token create-bridge-token -s ZBC)
+    cli_ret "${result}" "ethereum token create -s ZBC"
+    ethBridgeToeknZBCAddr=$(echo "${result}" | jq -r .addr)
+    cp BridgeToken.abi "${ethBridgeToeknZBCAddr}.abi"
+
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
