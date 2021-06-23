@@ -369,13 +369,24 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebTypes.Eth
 	}
 
 	var tokenAddr string
-	if int32(events.ClaimTypeBurn) == claim.ClaimType && ebTypes.SYMBOL_BTY == claim.Symbol {
-		tokenAddr = ebTypes.BTYAddrChain33
+	if int32(events.ClaimTypeBurn) == claim.ClaimType {
+		//burn 分支
+		if ebTypes.SYMBOL_BTY == claim.Symbol {
+			tokenAddr = ebTypes.BTYAddrChain33
+		} else {
+			tokenAddr = getLockedTokenAddress(chain33Relayer.bridgeBankAddr, claim.Symbol, chain33Relayer.rpcLaddr)
+			if "" == tokenAddr {
+				relayerLog.Error("relayLockBurnToChain33", "No locked token address created for symbol", claim.Symbol)
+				return
+			}
+		}
+
 	} else {
+		//lock 分支
 		var exist bool
 		tokenAddr, exist = chain33Relayer.symbol2Addr[claim.Symbol]
 		if !exist {
-			tokenAddr = getToken2address(chain33Relayer.bridgeBankAddr, claim.Symbol, chain33Relayer.rpcLaddr)
+			tokenAddr = getBridgeToken2address(chain33Relayer.bridgeBankAddr, claim.Symbol, chain33Relayer.rpcLaddr)
 			if "" == tokenAddr {
 				relayerLog.Error("relayLockBurnToChain33", "No bridge token address created for symbol", claim.Symbol)
 				return
@@ -394,6 +405,7 @@ func (chain33Relayer *Relayer4Chain33) relayLockBurnToChain33(claim *ebTypes.Eth
 		}
 	}
 
+	//因为发行的合约的精度为8，所以需要缩小，在进行burn的时候，再进行倍乘,在函数ParseBurnLock4chain33进行
 	if ebTypes.SYMBOL_ETH == claim.Symbol {
 		bigAmount.Div(bigAmount, big.NewInt(int64(1e10)))
 		claim.Amount = bigAmount.String()

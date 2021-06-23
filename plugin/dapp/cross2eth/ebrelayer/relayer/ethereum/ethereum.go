@@ -488,7 +488,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 		tokenAddr, exist = ethRelayer.symbol2Addr[prophecyClaim.Symbol]
 		if !exist {
 			relayerLog.Info("handleChain33Msg", "Query address from ethereum for symbol", prophecyClaim.Symbol)
-			//Try to query token's address from ethereum node
+			//因为是lock操作，则需要从创建的bridgeToken中进行查询
 			addr, err := ethRelayer.ShowTokenAddrBySymbol(prophecyClaim.Symbol)
 			if err != nil {
 				panic(fmt.Sprintf("Pls create bridge token in advance for token:%s", prophecyClaim.Symbol))
@@ -508,6 +508,7 @@ func (ethRelayer *Relayer4Ethereum) handleChain33Msg(chain33Msg *events.Chain33M
 	} else {
 		tokenAddr, exist = ethRelayer.symbol2LockAddr[prophecyClaim.Symbol]
 		if !exist {
+			//因为是burn操作，必须从允许lock的token地址中进行查询
 			addr, err := ethRelayer.ShowLockedTokenAddress(prophecyClaim.Symbol)
 			if err != nil {
 				panic(fmt.Sprintf("Pls create lock token in advance for token:%s", prophecyClaim.Symbol))

@@ -551,7 +551,17 @@ func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, b
 	return
 }
 
-func getToken2address(bridgeBank, symbol, rpcLaddr string) string {
+func getLockedTokenAddress(bridgeBank, symbol, rpcLaddr string) string {
+	parameter := fmt.Sprintf("getLockedTokenAddress(%s)", symbol)
+
+	result := query(bridgeBank, parameter, bridgeBank, rpcLaddr, generated.BridgeBankABI)
+	if nil == result {
+		return ""
+	}
+	return result.(string)
+}
+
+func getBridgeToken2address(bridgeBank, symbol, rpcLaddr string) string {
 	parameter := fmt.Sprintf("getToken2address(%s)", symbol)
 
 	result := query(bridgeBank, parameter, bridgeBank, rpcLaddr, generated.BridgeBankABI)
