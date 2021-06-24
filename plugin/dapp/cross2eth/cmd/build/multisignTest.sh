@@ -29,37 +29,9 @@ chain33YccErc20Addr=""
 CLIA="./ebcli_A"
 chain33ID=33
 
-# shellcheck disable=SC2034
-{
-chain33MultisignA="168Sn1DXnLrZHTcAM9stD6t2P49fNuJfJ9"
-chain33MultisignB="13KTf57aCkVVJYNJBXBBveiA5V811SrLcT"
-chain33MultisignC="1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe"
-chain33MultisignD="1NHuKqoKe3hyv52PF8XBAyaTmJWAqA2Jbb"
-chain33MultisignKeyA="0xcd284cd17456b73619fa609bb9e3105e8eff5d059c5e0b6eb1effbebd4d64144"
-chain33MultisignKeyB="0xe892212221b3b58211b90194365f4662764b6d5474ef2961ef77c909e31eeed3"
-chain33MultisignKeyC="0x9d19a2e9a440187010634f4f08ce36e2bc7b521581436a99f05568be94dc66ea"
-chain33MultisignKeyD="0x45d4ce009e25e6d5e00d8d3a50565944b2e3604aa473680a656b242d9acbff35"
-
-ethMultisignA=0x4c85848a7E2985B76f06a7Ed338FCB3aF94a7DCf
-ethMultisignB=0x6F163E6daf0090D897AD7016484f10e0cE844994
-ethMultisignC=0xbc333839E37bc7fAAD0137aBaE2275030555101f
-ethMultisignD=0x495953A743ef169EC5D4aC7b5F786BF2Bd56aFd5
-ethMultisignKeyA=0x5e8aadb91eaa0fce4df0bcc8bd1af9e703a1d6db78e7a4ebffd6cf045e053574
-ethMultisignKeyB=0x0504bcb22b21874b85b15f1bfae19ad62fc2ad89caefc5344dc669c57efa60db
-ethMultisignKeyC=0x0c61f5a879d70807686e43eccc1f52987a15230ae0472902834af4d1933674f2
-ethMultisignKeyD=0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80697
-}
-
 function lockBty() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     echo -e "${GRE}===== chain33 端 lock BTY ======${NOC}"
-#    # init 转帐到 chain33DeployAddr
-#    hash=$(${Chain33Cli}  send coins transfer -a 10000 -n test -t "${chain33DeployAddr}" -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944)
-#    check_tx "${Chain33Cli}" "${hash}"
-#    # 转账到 EVM  合约中
-#    hash=$(${Chain33Cli} send coins send_exec -e evm -a 2000 -k "${chain33DeployAddr}")
-#    check_tx "${Chain33Cli}" "${hash}"
-
 #    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,100000000000,50)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"

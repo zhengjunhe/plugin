@@ -476,8 +476,10 @@ ethMultisignKeyC=0x0c61f5a879d70807686e43eccc1f52987a15230ae0472902834af4d193367
 ethMultisignKeyD=0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80697
 }
 
-function deployMultisign() {
+
+function initMultisignAddr() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
     for name in A B C D; do
         eval chain33MultisignKey=\$chain33MultisignKey${name}
         eval chain33Multisign=\$chain33Multisign${name}
@@ -493,6 +495,12 @@ function deployMultisign() {
         balance_ret "${result}" "10.0000"
     done
 
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function deployChain33AndEthMultisign() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
     echo -e "${GRE}=========== 部署 chain33 离线钱包合约 ===========${NOC}"
     result=$(${CLIA} chain33 multisign deploy)
     cli_ret "${result}" "chain33 multisign deploy"
@@ -500,12 +508,6 @@ function deployMultisign() {
 
     result=$(${CLIA} chain33 multisign setup -k "${chain33DeployKey}" -o "${chain33MultisignA},${chain33MultisignB},${chain33MultisignC},${chain33MultisignD}")
     cli_ret "${result}" "chain33 multisign setup"
-
-    # multisignChain33Addr 要有手续费
-    hash=$(${Chain33Cli} send coins transfer -a 10 -t "${multisignChain33Addr}" -k "${chain33DeployAddr}")
-    check_tx "${Chain33Cli}" "${hash}"
-    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e coins)
-    balance_ret "${result}" "10.0000"
 
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "configOfflineSaveAccount(${multisignChain33Addr})" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
@@ -521,6 +523,26 @@ function deployMultisign() {
     result=$(${CLIA} ethereum multisign set_offline_addr -s "${multisignEthAddr}")
     cli_ret "${result}" "set_offline_addr"
 
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function transferChain33MultisignFee() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    # multisignChain33Addr 要有手续费
+    hash=$(${Chain33Cli} send coins transfer -a 10 -t "${multisignChain33Addr}" -k "${chain33DeployAddr}")
+    check_tx "${Chain33Cli}" "${hash}"
+    result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e coins)
+    balance_ret "${result}" "10.0000"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function deployMultisign() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    initMultisignAddr
+    deployChain33AndEthMultisign
+    transferChain33MultisignFee
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
