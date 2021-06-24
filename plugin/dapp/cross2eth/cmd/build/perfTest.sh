@@ -61,6 +61,7 @@ chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 function loop_send_lock_bty() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
@@ -71,7 +72,7 @@ function loop_send_lock_bty() {
     while [[ i -lt ${#privateKeys[@]} ]]; do
         preEthBalance[$i]=$(${CLIA} ethereum balance -o "${ethAddress[i]}" -t "${ethereumBtyTokenAddr}" | jq -r ".balance")
 
-        hash=$(${Chain33Cli} evm call -f 1 -a 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethAddress[i]}, ${chain33BtyTokenAddr}, 100000000)")
+        hash=$(${Chain33Cli} evm call -f 1 -a 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethAddress[i]}, ${chain33BtyTokenAddr}, 100000000)" --chainID "${chain33ID}")
         check_tx "${Chain33Cli}" "${hash}"
 
         i=$((i+1))

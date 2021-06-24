@@ -16,15 +16,10 @@ ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 # chain33 部署合约者的私钥 用于部署合约时签名使用
 chain33DeployAddr="1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
 
-#maturityDegree=10
-
 Chain33Cli="../../chain33-cli"
 chain33BridgeBank=""
 ethBridgeBank=""
 chain33BtyTokenAddr="1111111111111111111114oLvT2"
-#chain33EthTokenAddr=""
-#ethereumBtyTokenAddr=""
-#chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
 multisignChain33Addr=""
 multisignEthAddr=""
@@ -32,6 +27,7 @@ ethBridgeToeknYccAddr=""
 chain33YccErc20Addr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 # shellcheck disable=SC2034
 {
@@ -56,8 +52,16 @@ ethMultisignKeyD=0x2809477ede1261da21270096776ba7dc68b89c9df5f029965eaa5fe7f0b80
 
 function lockBty() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}===== chain33 端 lock BTY ======${NOC}"
+#    # init 转帐到 chain33DeployAddr
+#    hash=$(${Chain33Cli}  send coins transfer -a 10000 -n test -t "${chain33DeployAddr}" -k CC38546E9E659D15E6B4893F0AB32A06D103931A8230B0BDE71459D2B27D6944)
+#    check_tx "${Chain33Cli}" "${hash}"
+#    # 转账到 EVM  合约中
+#    hash=$(${Chain33Cli} send coins send_exec -e evm -a 2000 -k "${chain33DeployAddr}")
+#    check_tx "${Chain33Cli}" "${hash}"
+
 #    echo '2:#配置自动转离线钱包(bty, 1000, 50%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,100000000000,50)")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,100000000000,50)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     lock_bty_multisign 330 "330.0000" "0.0000"
@@ -86,16 +90,9 @@ function lockBty() {
 
 function lockChain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}===== chain33 端 lock ERC20 YCC ======${NOC}"
 #    echo '2:#配置自动转离线钱包(YCC, 100, 60%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,10000000000,60)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-#    echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    # echo 'YCC.2:#执行add lock操作:addToken2LockList'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,10000000000,60)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     lock_chain33_ycc_multisign 30 30 0
@@ -129,6 +126,7 @@ function lockChain33Ycc() {
 
 function lockEth() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}===== ethereum 端 lock ETH ======${NOC}"
     # echo '2:#配置自动转离线钱包(eth, 20, 50%)'
     result=$(${CLIA} ethereum multisign set_offline_token -s ETH -m 20)
     cli_ret "${result}" "set_offline_token -s ETH -m 20"
@@ -163,6 +161,7 @@ function lockEth() {
 
 function lockEthYcc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}===== ethereum 端 lock ERC20 YCC ======${NOC}"
     # echo '2:#配置自动转离线钱包(ycc, 100, 40%)'
     result=$(${CLIA} ethereum multisign set_offline_token -s YCC -m 100 -p 40 -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "set_offline_token -s YCC -m 100"
@@ -178,7 +177,8 @@ function lockEthYcc() {
 
     # transfer
     # multisignEthAddr 要有手续费
-    ./ebcli_A ethereum transfer -k "${ethDeployKey}" -m 10 -r "${multisignEthAddr}"
+    ${CLIA} ethereum transfer -k "${ethDeployKey}" -m 10 -r "${multisignEthAddr}"
+    sleep 2
 
      # transfer
     ${CLIA} ethereum multisign transfer -a 8 -r "${ethBridgeBank}" -t "${ethereumYccTokenAddr}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
@@ -198,7 +198,11 @@ function lockEthYcc() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+# shellcheck disable=SC2120
 function mainTest() {
+    if [[ $# -ge 1 && "${1}" != "" ]]; then
+        chain33ID="${1}"
+    fi
     StartChain33
     start_trufflesuite
     AllRelayerStart
@@ -211,4 +215,4 @@ function mainTest() {
     lockEthYcc
 }
 
-mainTest
+mainTest "${1}"

@@ -41,6 +41,7 @@ multisignChain33Addr=""
 multisignEthAddr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 # shellcheck disable=SC2034
 {
@@ -93,7 +94,7 @@ function deployMultisign() {
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e coins)
     balance_ret "${result}" "10.0000"
 
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
 #    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
@@ -208,7 +209,11 @@ function StartRelayerOnBsc() {
     ethBridgeBank=0xC65B02a22B714b55D708518E2426a22ffB79113d
     multisignEthAddr=0xbf271b2B23DA4fA8Dc93Ce86D27dd09796a7Bf54
 
+# shellcheck disable=SC2120
 function mainTest() {
+    if [[ $# -ge 1 && "${1}" != "" ]]; then
+        chain33ID="${1}"
+    fi
     StartChain33
 
     pid=$(ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}' | xargs)
@@ -304,6 +309,6 @@ function mainTest() {
 #    lockEthYcc
 }
 
-mainTest
+mainTest "${1}"
 
 #lockEth

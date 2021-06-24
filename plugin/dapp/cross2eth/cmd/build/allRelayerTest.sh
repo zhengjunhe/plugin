@@ -37,6 +37,7 @@ chain33ZBCErc20Addr=""
 ethBridgeToeknZBCAddr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 # chain33 lock BTY, eth burn BTY
 function TestChain33ToEthAssets() {
@@ -50,7 +51,7 @@ function TestChain33ToEthAssets() {
 #    balance=$(cli_ret "${result}" "balance" ".balance")
 
     # chain33 lock bty
-    hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)")
+    hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     # 原来的地址金额 减少了 5
@@ -95,14 +96,6 @@ function TestChain33ToEthAssets() {
 function TestChain33ToEthZBCAssets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     echo -e "${GRE}=========== chain33 lock ZBC, eth burn ZBC ===========${NOC}"
-    #    echo 'ZBC.0:增加allowance的设置,或者使用relayer工具进行'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33ZBCErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    # echo 'ZBC.2:#执行add lock操作:addToken2LockList'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33ZBCErc20Addr}, ZBC)")
-    check_tx "${Chain33Cli}" "${hash}"
-
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
     cli_ret "${result}" "balance" ".balance" "0"
 
@@ -111,7 +104,7 @@ function TestChain33ToEthZBCAssets() {
     is_equal "${result}" "0"
 
     # chain33 lock ZBC
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33ZBCErc20Addr}, 900000000)")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33ZBCErc20Addr}, 900000000)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     # chain33BridgeBank 是否增加了 9
@@ -248,16 +241,21 @@ function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+# shellcheck disable=SC2120
 function mainTest() {
+    if [[ $# -ge 1 && "${1}" != "" ]]; then
+        chain33ID="${1}"
+    fi
+
     StartChain33
     start_trufflesuite
     AllRelayerStart
 
-#    TestChain33ToEthAssets
+    TestChain33ToEthAssets
     TestChain33ToEthZBCAssets
-#    TestETH2Chain33Assets
-#    TestETH2Chain33Ycc
+    TestETH2Chain33Assets
+    TestETH2Chain33Ycc
 }
 
-mainTest
+mainTest "${1}"
 

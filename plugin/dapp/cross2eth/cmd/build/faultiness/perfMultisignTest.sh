@@ -31,6 +31,7 @@ ethBridgeToeknYccAddr=""
 chain33YccErc20Addr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 # shellcheck disable=SC2034
 {
@@ -59,7 +60,7 @@ multisignChain33Addr=1b193HbfvVUunUL2DVXrqt9jnbAWwLjcT
 function lockBty() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 #    echo '2:#配置自动转离线钱包(bty, 100, 50%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,10000000000,50)")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33BtyTokenAddr},BTY,10000000000,50)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
@@ -101,15 +102,7 @@ function lockBty() {
 function lockChain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
 #    echo '2:#配置自动转离线钱包(YCC, 100, 60%)'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,10000000000,60)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-#    echo 'YCC.0:增加allowance的设置,或者使用relayer工具进行'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)")
-    check_tx "${Chain33Cli}" "${hash}"
-
-    # echo 'YCC.2:#执行add lock操作:addToken2LockList'
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "addToken2LockList(${chain33YccErc20Addr}, YCC)")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configLockedTokenOfflineSave(${chain33YccErc20Addr},YCC,10000000000,60)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     lock_chain33_ycc_multisign 30 30 0
@@ -212,7 +205,11 @@ function lockEthYcc() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+# shellcheck disable=SC2120
 function mainTest() {
+    if [[ $# -ge 1 && "${1}" != "" ]]; then
+        chain33ID="${1}"
+    fi
     StartChain33
     start_trufflesuite
     AllRelayerStart
@@ -225,5 +222,5 @@ function mainTest() {
 #    lockEthYcc
 }
 
-mainTest
+mainTest "${1}"
 #lockBty

@@ -37,6 +37,9 @@ BridgeRegistryOnChain33=""
 chain33YccErc20Addr=""
 BridgeRegistryOnEth=""
 ethBridgeToeknYccAddr=""
+chain33ZBCErc20Addr=""
+ethBridgeToeknZBCAddr=""
+chain33ID=33
 
 # validatorsAddr=["0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a", "0x0df9a824699bc5878232c9e612fe1a5346a5a368", "0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1", "0xd9dab021e74ecf475788ed7b61356056b2095830"]
 #ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
@@ -57,9 +60,7 @@ chain33ValidatorKeyc="0x0a6671f101e30a2cc2d79d77436b62cdf2664ed33eb631a9c9e3f3dd
 chain33ValidatorKeyd="0x3818b257b05ee75b6e43ee0e3cfc2d8502342cf67caed533e3756966690b62a5"
 }
 
-#CLIA="./ebcli_A"
-
-ethUrl=""
+#ethUrl=""
 
 
 function start_docker_ebrelayerA() {
@@ -127,11 +128,13 @@ function StartDockerRelayerDeploy() {
     updata_relayer_a_toml "${dockerAddr}" "${dockerNamePrefix}_ebrelayera_1" "./relayer.toml"
 
     # para
+    # shellcheck disable=SC2155
     local line=$(delete_line_show "./relayer.toml" "chain33Host")
     # 在第 line 行后面 新增合约地址
     docker_chain33_ip=$(get_docker_addr "${dockerNamePrefix}_chain33_1")
     sed -i ''"${line}"' a chain33Host="http://'"${docker_chain33_ip}"':8901"' "./relayer.toml"
 
+    # shellcheck disable=SC2155
     local line=$(delete_line_show "./relayer.toml" "ChainName")
     # 在第 line 行后面 新增合约地址
     sed -i ''"${line}"' a ChainName="user.p.para."' "./relayer.toml"
@@ -181,7 +184,7 @@ function TestChain33ToEthAssets() {
     is_equal "${result}" "100.0000"
 
     # chain33 lock bty
-    hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)")
+    hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     # 原来的地址金额 减少了 5
@@ -219,6 +222,56 @@ function TestChain33ToEthAssets() {
     # chain33BridgeBank 是否减少了 3
     result=$(${Chain33Cli} asset balance -a "${chain33BridgeBank}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
     is_equal "${result}" "2.0000"
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+# chain33 lock ZBC, eth burn ZBC
+function TestChain33ToEthZBCAssets() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    echo -e "${GRE}=========== chain33 lock ZBC, eth burn ZBC ===========${NOC}"
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
+    cli_ret "${result}" "balance" ".balance" "0"
+
+    # 原来的地址金额
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "0"
+
+    # chain33 lock ZBC
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33ZBCErc20Addr}, 900000000)" --chainID "${chain33ID}")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    # chain33BridgeBank 是否增加了 9
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "900000000"
+
+    sleep 2
+#    eth_block_wait 2
+
+    # eth 这端 金额是否增加了 9
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
+    cli_ret "${result}" "balance" ".balance" "9"
+
+    # eth burn
+    result=$(${CLIA} ethereum burn -m 8 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethBridgeToeknZBCAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
+    cli_ret "${result}" "burn"
+
+    sleep 2
+#    eth_block_wait 2
+
+    # eth 这端 金额是否减少了 1
+    result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
+    cli_ret "${result}" "balance" ".balance" "1"
+
+    sleep ${maturityDegree}
+
+    # 接收的地址金额 变成了 8
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33ReceiverAddr}" -b "balanceOf(${chain33ReceiverAddr})")
+    is_equal "${result}" "800000000"
+
+    # chain33BridgeBank 是否减少了 1
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "100000000"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -376,6 +429,11 @@ function AllRelayerMainTest() {
         echo -e "${GRE}maturityDegree is ${maturityDegree} ${NOC}"
     fi
 
+    # shellcheck disable=SC2120
+    if [[ $# -ge 2 ]]; then
+        chain33ID="${2}"
+    fi
+
     # init
     Chain33Cli=${MainCli}
     InitChain33Validator
@@ -387,35 +445,11 @@ function AllRelayerMainTest() {
 
     # test
     TestChain33ToEthAssets
+    TestChain33ToEthZBCAssets
     TestETH2Chain33Assets
     TestETH2Chain33Ycc
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
-
-## 先把 bty 转入到 paracross 合约中
-#./chain33-cli --rpc_laddr http://172.20.0.3:8801 send coins send_exec -e paracross -a 100 -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae
-#
-#
-## 主链中的 bty 夸链到 平行链中
-#./chain33-cli --rpc_laddr http://172.20.0.3:8801 --paraName user.p.para. send para cross_transfer -a 9 -e coins -s bty -t 1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae
-#./chain33-cli --rpc_laddr http://172.20.0.8:8801 --paraName user.p.para. tx query -s 0x0a7cb8d295faf3b37095283d9e71256105cee649dca381fbe54cf2c3b05a8416
-#./chain33-cli --rpc_laddr http://172.20.0.8:8901 --paraName user.p.para. tx query -s 0x0a7cb8d295faf3b37095283d9e71256105cee649dca381fbe54cf2c3b05a8416
-#./chain33-cli --rpc_laddr http://172.20.0.8:8901 asset balance -a 1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ --asset_exec paracross --asset_symbol coins.bty
-#{
-#    "balance": "6.0000",
-#    "frozen": "0.0000",
-#    "addr": "1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
-#}
-#
-## 把平行链中的 bty 转入 平行链中的 evm 合约
-#./chain33-cli --rpc_laddr http://172.20.0.8:8901 --paraName user.p.para.  send para transfer_exec -a 3 -e user.p.para.evm -s coins.bty -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae
-#./chain33-cli --rpc_laddr http://172.20.0.8:8901 asset balance -a 1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm
-#{
-#    "balance": "3.0000",
-#    "frozen": "0.0000",
-#    "addr": "1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ"
-#}
-
 
 
