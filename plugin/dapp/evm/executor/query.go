@@ -173,20 +173,6 @@ func (evm *EVMExecutor) Query_Query(in *evmtypes.EvmQueryReq) (types.Message, er
 	return ret, nil
 }
 
-// Query_QueryABI 此方法用来查询合约绑定的ABI数据，不修改原有执行器的状态数据
-func (evm *EVMExecutor) Query_QueryABI(in *evmtypes.EvmQueryAbiReq) (types.Message, error) {
-	evm.CheckInit()
-
-	addr := common.StringToAddress(in.GetAddress())
-	if addr == nil {
-		return nil, fmt.Errorf("invalid address: %v", in.GetAddress())
-	}
-
-	abiData := evm.mStateDB.GetAbi(addr.String())
-
-	return &evmtypes.EvmQueryAbiResp{Address: in.GetAddress(), Abi: abiData}, nil
-}
-
 func (evm *EVMExecutor) Query_GetNonce(in *evmtypes.EvmGetNonceReq) (types.Message, error) {
 	evm.CheckInit()
 	nonce := evm.mStateDB.GetNonce(in.Address)
