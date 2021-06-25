@@ -16,7 +16,7 @@ function cross2eth() {
         set +e
         set -x
         para_create_nodegroup
-        AllRelayerMainTest 20
+        AllRelayerMainTest 30
 #        perf_test_main 1
         echo "========================== cross2eth test end =========================="
     fi
