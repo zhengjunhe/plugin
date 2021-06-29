@@ -192,3 +192,22 @@ message EvmCalcNewContractAddrReq {
     string txhash     = 2;
 }
 
+message EvmGetPackDataReq {
+    string abi          = 1;
+    string parameter    = 2;
+}
+
+message EvmGetPackDataRespose {
+    string packData     = 1;
+}
+
+message EvmGetUnpackDataReq {
+    string abi          = 1;
+    string parameter    = 2;
+    string data         = 3;
+}
+
+message EvmGetUnpackDataRespose {
+    repeated string unpackData     = 1;
+}
+
