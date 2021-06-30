@@ -352,7 +352,7 @@ func (evm *EVMExecutor) CheckInit() {
 func (evm *EVMExecutor) GetMessageExec(payload *evmtypes.EVMContractExec, tx *types.Transaction, index int) (msg *common.Message, err error) {
 	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
 	from := getCaller(tx)
-	to := getReceiver(tx)
+	to := getReceiver(payload.ContractAddr)
 	if to == nil {
 		return msg, types.ErrInvalidAddress
 	}
@@ -375,7 +375,7 @@ func (evm *EVMExecutor) GetMessageExec(payload *evmtypes.EVMContractExec, tx *ty
 func (evm *EVMExecutor) GetMessageUpdate(payload *evmtypes.EVMContractUpdate, tx *types.Transaction, index int) (msg *common.Message, err error) {
 	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
 	from := getCaller(tx)
-	to := getReceiver(tx)
+	to := getReceiver(payload.Addr)
 	if to == nil {
 		return msg, types.ErrInvalidAddress
 	}
@@ -466,9 +466,9 @@ func getCaller(tx *types.Transaction) common.Address {
 }
 
 // 从交易信息中获取交易目标地址，在创建合约交易中，此地址为空
-func getReceiver(tx *types.Transaction) *common.Address {
-	if tx.To == "" {
+func getReceiver(contractAddr string) *common.Address {
+	if contractAddr == "" {
 		return nil
 	}
-	return common.StringToAddress(tx.To)
+	return common.StringToAddress(contractAddr)
 }

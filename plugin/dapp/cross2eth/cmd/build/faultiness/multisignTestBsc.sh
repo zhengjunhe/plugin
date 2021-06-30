@@ -41,18 +41,10 @@ multisignChain33Addr=""
 multisignEthAddr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 # shellcheck disable=SC2034
 {
-chain33MultisignA="168Sn1DXnLrZHTcAM9stD6t2P49fNuJfJ9"
-chain33MultisignB="13KTf57aCkVVJYNJBXBBveiA5V811SrLcT"
-chain33MultisignC="1JQwQWsShTHC4zxHzbUfYQK4kRBriUQdEe"
-chain33MultisignD="1NHuKqoKe3hyv52PF8XBAyaTmJWAqA2Jbb"
-chain33MultisignKeyA="0xcd284cd17456b73619fa609bb9e3105e8eff5d059c5e0b6eb1effbebd4d64144"
-chain33MultisignKeyB="0xe892212221b3b58211b90194365f4662764b6d5474ef2961ef77c909e31eeed3"
-chain33MultisignKeyC="0x9d19a2e9a440187010634f4f08ce36e2bc7b521581436a99f05568be94dc66ea"
-chain33MultisignKeyD="0x45d4ce009e25e6d5e00d8d3a50565944b2e3604aa473680a656b242d9acbff35"
-
 bseMultisignA=0x0f2e821517D4f64a012a04b668a6b1aa3B262e08
 bseMultisignB=0x21B5f4C2F6Ff418fa0067629D9D76AE03fB4a2d2
 bseMultisignC=0xee760B2E502244016ADeD3491948220B3b1dd789
@@ -93,7 +85,7 @@ function deployMultisign() {
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e coins)
     balance_ret "${result}" "10.0000"
 
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})")
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
 #    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
@@ -208,7 +200,11 @@ function StartRelayerOnBsc() {
     ethBridgeBank=0xC65B02a22B714b55D708518E2426a22ffB79113d
     multisignEthAddr=0xbf271b2B23DA4fA8Dc93Ce86D27dd09796a7Bf54
 
+# shellcheck disable=SC2120
 function mainTest() {
+    if [[ $# -ge 1 && "${1}" != "" ]]; then
+        chain33ID="${1}"
+    fi
     StartChain33
 
     pid=$(ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}' | xargs)
@@ -304,6 +300,6 @@ function mainTest() {
 #    lockEthYcc
 }
 
-mainTest
+mainTest "${1}"
 
 #lockEth

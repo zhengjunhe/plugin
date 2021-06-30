@@ -27,6 +27,7 @@ maturityDegree=10
 Chain33Cli="../../chain33-cli"
 
 CLIA="./ebcli_A"
+chain33ID=33
 #BridgeRegistryOnChain33=""
 chain33BridgeBank=""
 #BridgeRegistryOnEth=""
@@ -48,7 +49,7 @@ function TestChain33ToEthAssets() {
 #    balance=$(cli_ret "${result}" "balance" ".balance")
 
     # chain33 lock bty
-    hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)")
+    hash=$(${Chain33Cli} evm call -f 1 -a 5 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethDeployAddr}, ${chain33BtyTokenAddr}, 500000000)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
     # 原来的地址金额 减少了 5
@@ -189,7 +190,11 @@ function TestETH2Chain33Ycc() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
+# shellcheck disable=SC2120
 function mainTest() {
+    if [[ $# -ge 1 && "${1}" != "" ]]; then
+        chain33ID="${1}"
+    fi
     StartChain33
     start_trufflesuite
     StartOneRelayer
@@ -199,4 +204,4 @@ function mainTest() {
     TestETH2Chain33Ycc
 }
 
-mainTest
+mainTest "${1}"

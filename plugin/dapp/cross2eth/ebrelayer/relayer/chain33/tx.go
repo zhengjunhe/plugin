@@ -86,13 +86,12 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 		return "", ebrelayerTypes.ErrPack
 	}
 
-	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: packData}
+	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: packData, ContractAddr: oracleAddr}
 
 	//TODO: 交易费超大问题需要调查，hezhengjun on 20210420
 	feeInt64 := int64(5 * 1e7)
-	toAddr := oracleAddr
-
 	wholeEvm := getExecerName(claim.ChainName)
+	toAddr := address.ExecAddress(wholeEvm)
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
@@ -174,9 +173,11 @@ func getContractAddr(caller, txhex string) address.Address {
 
 func deploySingleContract(code []byte, abi, constructorPara, contractName, paraChainName, deployer, rpcLaddr string) (string, error) {
 	note := "deploy " + contractName
+	exector := paraChainName + "evm"
+	to := address.ExecAddress(exector)
 
 	var action evmtypes.EVMContractAction
-	action = evmtypes.EVMContractAction{Amount: 0, Code: code, GasLimit: 0, GasPrice: 0, Note: note, Alias: contractName}
+	action = evmtypes.EVMContractAction{Amount: 0, Code: code, GasLimit: 0, GasPrice: 0, Note: note, Alias: contractName, ContractAddr: to}
 	if constructorPara != "" {
 		packData, err := evmAbi.PackContructorPara(constructorPara, abi)
 		if err != nil {
@@ -185,8 +186,6 @@ func deploySingleContract(code []byte, abi, constructorPara, contractName, paraC
 		action.Code = append(action.Code, packData...)
 	}
 
-	exector := paraChainName + "evm"
-	to := address.ExecAddress(exector)
 	data, err := createSignedEvmTx(&action, exector, deployer, rpcLaddr, to)
 	if err != nil {
 		return "", errors.New(contractName + " create contract error:" + err.Error())
@@ -249,11 +248,12 @@ func sendTransactionRpc(data, rpcLaddr string) (string, error) {
 	return txhex, nil
 }
 
-func sendTx2Evm(parameter []byte, rpcURL, toAddr, chainName, caller string) (string, error) {
+func sendTx2Evm(parameter []byte, rpcURL, evmContractAddr, chainName, caller string) (string, error) {
 	note := fmt.Sprintf("sendTx2Evm by caller:%s", caller)
 
-	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: parameter}
+	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: parameter, ContractAddr: evmContractAddr}
 	wholeEvm := chainName + "evm"
+	toAddr := address.ExecAddress(wholeEvm)
 	data, err := createSignedEvmTx(&action, wholeEvm, caller, rpcURL, toAddr)
 	if err != nil {
 		return "", errors.New(toAddr + " createSignedEvmTx error:" + err.Error())
@@ -313,11 +313,11 @@ func lockBty(privateKey chain33Crypto.PrivKey, contractAddr, ethereumReceiver, c
 }
 
 func sendEvmTx(privateKey chain33Crypto.PrivKey, contractAddr, chainName, rpcURL, note string, parameter []byte, amount int64) (string, error) {
-	action := evmtypes.EVMContractAction{Amount: uint64(amount), GasLimit: 0, GasPrice: 0, Note: note, Para: parameter}
+	action := evmtypes.EVMContractAction{Amount: uint64(amount), GasLimit: 0, GasPrice: 0, Note: note, Para: parameter, ContractAddr: contractAddr}
 
 	feeInt64 := int64(1e7)
-	toAddr := contractAddr
 	wholeEvm := getExecerName(chainName)
+	toAddr := address.ExecAddress(wholeEvm)
 	//name表示发给哪个执行器
 	data := createEvmTx(privateKey, &action, wholeEvm, toAddr, feeInt64)
 	params := rpctypes.RawParm{
@@ -551,7 +551,17 @@ func recoverContractAddrFromRegistry(bridgeRegistry, rpcLaddr string) (oracle, b
 	return
 }
 
-func getToken2address(bridgeBank, symbol, rpcLaddr string) string {
+func getLockedTokenAddress(bridgeBank, symbol, rpcLaddr string) string {
+	parameter := fmt.Sprintf("getLockedTokenAddress(%s)", symbol)
+
+	result := query(bridgeBank, parameter, bridgeBank, rpcLaddr, generated.BridgeBankABI)
+	if nil == result {
+		return ""
+	}
+	return result.(string)
+}
+
+func getBridgeToken2address(bridgeBank, symbol, rpcLaddr string) string {
 	parameter := fmt.Sprintf("getToken2address(%s)", symbol)
 
 	result := query(bridgeBank, parameter, bridgeBank, rpcLaddr, generated.BridgeBankABI)

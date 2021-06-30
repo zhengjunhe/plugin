@@ -36,12 +36,13 @@ chain33YccTokenAddr=""
 ethereumYccTokenAddr=""
 
 CLIA="./ebcli_A"
+chain33ID=33
 
 # chain33 lock BTY, eth burn BTY
 function LockTestChain33ToEthAssets() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     # chain33 lock bty
-    hash=$(${Chain33Cli} evm call -f 1 -a 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethSendAddress}, ${chain33BtyTokenAddr}, 100000000)")
+    hash=$(${Chain33Cli} evm call -f 1 -a 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "lock(${ethSendAddress}, ${chain33BtyTokenAddr}, 100000000)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

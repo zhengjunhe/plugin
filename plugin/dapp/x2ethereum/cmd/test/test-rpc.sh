@@ -410,22 +410,22 @@ function rpc_test() {
     dockerNamePrefix="$2"
     echo "main_ip=$MAIN_HTTP"
 
-    ispara=$(echo '"'"${MAIN_HTTP}"'"' | jq '.|contains("8901")')
-    if [ "$ispara" == false ]; then
-        # init
-        StartRelayerAndDeploy
-        InitChain33Vilators
-        EthImportKey
-
-        # test
-        TestChain33ToEthAssets
-        TestETH2Chain33Assets
-        TestETH2Chain33Erc20
-
-        copyErrLogs
-
-        docker-compose -f ./x2ethereum/docker-compose-x2ethereum.yml down
-    fi
+#    ispara=$(echo '"'"${MAIN_HTTP}"'"' | jq '.|contains("8901")')
+#    if [ "$ispara" == false ]; then
+#        # init
+#        StartRelayerAndDeploy
+#        InitChain33Vilators
+#        EthImportKey
+#
+#        # test
+#        TestChain33ToEthAssets
+#        TestETH2Chain33Assets
+#        TestETH2Chain33Erc20
+#
+#        copyErrLogs
+#
+#        docker-compose -f ./x2ethereum/docker-compose-x2ethereum.yml down
+#    fi
     chain33_RpcTestRst x2ethereum "$CASE_ERR"
 }
 
