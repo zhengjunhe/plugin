@@ -8,8 +8,9 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
-	"math"
 	"math/big"
+
+	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/math"
 
 	"github.com/33cn/chain33/common/address"
 	"github.com/33cn/chain33/common/log/log15"
@@ -20,7 +21,6 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto/bn256"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/params"
 
-	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/model"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -102,13 +102,20 @@ var PrecompiledContractsBerlin = map[common.Hash160Address]PrecompiledContract{
 }
 
 // RunPrecompiledContract 调用预编译的合约逻辑并返回结果
-func RunPrecompiledContract(p PrecompiledContract, input []byte, contract *Contract) (ret []byte, err error) {
-	gas := p.RequiredGas(input)
-	log15.Info("RunPrecompiledContract", "RequiredGas", gas, "avaliableGas", contract.Gas)
-	if contract.UseGas(gas) {
-		return p.Run(input)
+// It returns
+// - the returned bytes,
+// - the _remaining_ gas,
+// - any error that occurred
+func RunPrecompiledContract(p PrecompiledContract, input []byte, suppliedGas uint64) (ret []byte, remainingGas uint64, err error) {
+	gasCost := p.RequiredGas(input)
+	//log15.Info("RunPrecompiledContract", "RequiredGas", gasCost, "avaliableGas", suppliedGas)
+	if suppliedGas < gasCost {
+		return nil, 0, ErrOutOfGas
+
 	}
-	return nil, model.ErrOutOfGas
+	suppliedGas -= gasCost
+	output, err := p.Run(input)
+	return output, suppliedGas, err
 }
 
 // 预编译合约 ECRECOVER 椭圆曲线算法支持
@@ -121,8 +128,8 @@ func (c *ecrecover) RequiredGas(input []byte) uint64 {
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
 	const ecRecoverInputLength = 128
-	log15.Info("ecrecover", "run input", common.Bytes2Hex(input))
 	input = common.RightPadBytes(input, ecRecoverInputLength)
+	//log15.Info("ecrecover::Run", "input", common.Bytes2Hex(input))
 	// "input" is (hash, v, r, s), each 32 bytes
 	// but for ecrecover we want (r, s, v)
 
@@ -132,6 +139,7 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 
 	// tighter sig s values input homestead only apply to tx sigs
 	if !common.AllZero(input[32:63]) || !crypto.ValidateSignatureValues(r, s) {
+		//if !crypto.ValidateSignatureValues(r, s) {
 		log15.Info("ecrecover", "failed due to", "ValidateSignatureValues")
 		return nil, nil
 	}
@@ -148,11 +156,11 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 		return nil, nil
 	}
 
-	log15.Info("ecrecover::input", "hash", common.Bytes2Hex(input[:32]))
-	log15.Info("ecrecover::signature", "signature", common.Bytes2Hex(sig))
+	//log15.Info("ecrecover::Run", "hash", common.Bytes2Hex(input[:32]))
+	//log15.Info("ecrecover::Run", "signature", common.Bytes2Hex(sig))
 
-	log15.Info("ecrecover::pubkey", "pubkey", common.Bytes2Hex(pubKey))
-	log15.Info("ecrecover::address", "address", address.PubKeyToAddress(pubKey).String())
+	//log15.Info("ecrecover::pubkey", "pubkey", common.Bytes2Hex(pubKey))
+	//log15.Info("ecrecover::address", "address", address.PubKeyToAddress(pubKey).String())
 	// the first byte of pubkey is bitcoin heritage
 	return common.LeftPadBytes(address.PubKeyToAddress(pubKey).Hash160[:], 32), nil
 }
@@ -209,7 +217,9 @@ func (c *dataCopy) Run(in []byte) ([]byte, error) {
 }
 
 // bigModExp implements a native big integer exponential modular Operation.
-type bigModExp struct{}
+type bigModExp struct {
+	eip2565 bool
+}
 
 var (
 	big0      = big.NewInt(0)
@@ -228,6 +238,34 @@ var (
 	big3072   = big.NewInt(3072)
 	big199680 = big.NewInt(199680)
 )
+
+// modexpMultComplexity implements bigModexp multComplexity formula, as defined in EIP-198
+//
+// def mult_complexity(x):
+//    if x <= 64: return x ** 2
+//    elif x <= 1024: return x ** 2 // 4 + 96 * x - 3072
+//    else: return x ** 2 // 16 + 480 * x - 199680
+//
+// where is x is max(length_of_MODULUS, length_of_BASE)
+func modexpMultComplexity(x *big.Int) *big.Int {
+	switch {
+	case x.Cmp(big64) <= 0:
+		x.Mul(x, x) // x ** 2
+	case x.Cmp(big1024) <= 0:
+		// (x ** 2 // 4 ) + ( 96 * x - 3072)
+		x = new(big.Int).Add(
+			new(big.Int).Div(new(big.Int).Mul(x, x), big4),
+			new(big.Int).Sub(new(big.Int).Mul(big96, x), big3072),
+		)
+	default:
+		// (x ** 2 // 16) + (480 * x - 199680)
+		x = new(big.Int).Add(
+			new(big.Int).Div(new(big.Int).Mul(x, x), big16),
+			new(big.Int).Sub(new(big.Int).Mul(big480, x), big199680),
+		)
+	}
+	return x
+}
 
 // RequiredGas Returns the gas required to Execute the pre-compiled contract.
 func (c *bigModExp) RequiredGas(input []byte) uint64 {
@@ -266,20 +304,32 @@ func (c *bigModExp) RequiredGas(input []byte) uint64 {
 
 	// Calculate the gas cost of the Operation
 	gas := new(big.Int).Set(common.BigMax(modLen, baseLen))
-	switch {
-	case gas.Cmp(big64) <= 0:
+	if c.eip2565 {
+		// EIP-2565 has three changes
+		// 1. Different multComplexity (inlined here)
+		// in EIP-2565 (https://eips.ethereum.org/EIPS/eip-2565):
+		//
+		// def mult_complexity(x):
+		//    ceiling(x/8)^2
+		//
+		//where is x is max(length_of_MODULUS, length_of_BASE)
+		gas = gas.Add(gas, big7)
+		gas = gas.Div(gas, big8)
 		gas.Mul(gas, gas)
-	case gas.Cmp(big1024) <= 0:
-		gas = new(big.Int).Add(
-			new(big.Int).Div(new(big.Int).Mul(gas, gas), big4),
-			new(big.Int).Sub(new(big.Int).Mul(big96, gas), big3072),
-		)
-	default:
-		gas = new(big.Int).Add(
-			new(big.Int).Div(new(big.Int).Mul(gas, gas), big16),
-			new(big.Int).Sub(new(big.Int).Mul(big480, gas), big199680),
-		)
+
+		gas.Mul(gas, math.BigMax(adjExpLen, big1))
+		// 2. Different divisor (`GQUADDIVISOR`) (3)
+		gas.Div(gas, big3)
+		if gas.BitLen() > 64 {
+			return math.MaxUint64
+		}
+		// 3. Minimum price of 200 gas
+		if gas.Uint64() < 200 {
+			return 200
+		}
+		return gas.Uint64()
 	}
+	gas = modexpMultComplexity(gas)
 	gas.Mul(gas, common.BigMax(adjExpLen, big1))
 	gas.Div(gas, big20)
 
