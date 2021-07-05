@@ -124,7 +124,7 @@ func test_Lockbty(t *testing.T) {
 	//2nd：订阅事件
 	eventName := "LogNewBridgeToken"
 	bridgeBankABI := ethtxs.LoadABI(ethtxs.BridgeBankABI)
-	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID().Hex()
+	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID.Hex()
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{x2EthDeployInfo.BridgeBank.Address},
 	}
@@ -162,7 +162,7 @@ func test_Lockbty(t *testing.T) {
 	case vLog := <-logs:
 		// Check if the event is a 'LogLock' event
 		if vLog.Topics[0].Hex() == logNewBridgeTokenSig {
-			err = bridgeBankABI.Unpack(logEvent, eventName, vLog.Data)
+			_, err = bridgeBankABI.Unpack(eventName, vLog.Data)
 			require.Nil(t, err)
 			require.Equal(t, symbol, logEvent.Symbol)
 

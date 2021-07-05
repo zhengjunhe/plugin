@@ -32,7 +32,7 @@ func TestBrigeTokenCreat(t *testing.T) {
 	//2nd：订阅事件
 	eventName := "LogNewBridgeToken"
 	bridgeBankABI := ethtxs.LoadABI(ethtxs.BridgeBankABI)
-	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID().Hex()
+	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID.Hex()
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{x2EthDeployInfo.BridgeBank.Address},
 	}
@@ -86,7 +86,8 @@ func TestBrigeTokenCreat(t *testing.T) {
 				t.Logf("Witnessed new event:%s, Block number:%d, Tx hash:%s", eventName,
 					vLog.BlockNumber, vLog.TxHash.Hex())
 				logEvent := &events.LogNewBridgeToken{}
-				err = bridgeBankABI.Unpack(logEvent, eventName, vLog.Data)
+				//err = bridgeBankABI.Unpack(logEvent, eventName, vLog.Data)
+				_, err = bridgeBankABI.Unpack(eventName, vLog.Data)
 				require.Nil(t, err)
 				t.Logf("token addr:%s, symbol:%s", logEvent.Token.String(), logEvent.Symbol)
 				require.Equal(t, symbol, logEvent.Symbol)
@@ -117,7 +118,7 @@ func TestBrigeTokenMint(t *testing.T) {
 	//2nd：订阅事件
 	eventName := "LogNewBridgeToken"
 	bridgeBankABI := ethtxs.LoadABI(ethtxs.BridgeBankABI)
-	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID().Hex()
+	logNewBridgeTokenSig := bridgeBankABI.Events[eventName].ID.Hex()
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{x2EthDeployInfo.BridgeBank.Address},
 	}
@@ -161,7 +162,7 @@ func TestBrigeTokenMint(t *testing.T) {
 			t.Logf("Witnessed new event:%s, Block number:%d, Tx hash:%s", eventName,
 				vLog.BlockNumber, vLog.TxHash.Hex())
 
-			err = bridgeBankABI.Unpack(logEvent, eventName, vLog.Data)
+			_, err = bridgeBankABI.Unpack(eventName, vLog.Data)
 			require.Nil(t, err)
 			t.Logf("token addr:%s, symbol:%s", logEvent.Token.String(), logEvent.Symbol)
 			require.Equal(t, symbol, logEvent.Symbol)

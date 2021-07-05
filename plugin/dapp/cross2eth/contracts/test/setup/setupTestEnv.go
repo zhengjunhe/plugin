@@ -3,12 +3,15 @@ package setup
 import (
 	"context"
 	"crypto/ecdsa"
+	"github.com/ethereum/go-ethereum/params"
 	"math/big"
+	"strings"
 
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/contracts/generated"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/ethinterface"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/ethtxs"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/contracts4eth/generated"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethtxs"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -64,7 +67,7 @@ func PrepareTestEnvironment(deployerPrivateKey string, ethValidatorAddrKeys []st
 	alloc := make(core.GenesisAlloc)
 	genesisAddr := crypto.PubkeyToAddress(genesiskey.PublicKey)
 	genesisAccount := core.GenesisAccount{
-		Balance:    big.NewInt(10000000000 * 10000),
+		Balance:    big.NewInt(params.Ether),
 		PrivateKey: crypto.FromECDSA(genesiskey),
 	}
 	alloc[genesisAddr] = genesisAccount
@@ -78,13 +81,14 @@ func PrepareTestEnvironment(deployerPrivateKey string, ethValidatorAddrKeys []st
 		ValidatorPriKey = append(ValidatorPriKey, key)
 
 		account := core.GenesisAccount{
-			Balance:    big.NewInt(100000000 * 100),
+			Balance:    big.NewInt(params.Ether),
 			PrivateKey: crypto.FromECDSA(key),
 		}
 		alloc[addr] = account
 	}
 
 	gasLimit := uint64(100000000)
+	//sim := backends.NewSimulatedBackend(core.GenesisAlloc{addr: {Balance: big.NewInt(params.Ether)}}, 10000000)
 	sim := backends.NewSimulatedBackend(alloc, gasLimit)
 
 	InitPowers := []*big.Int{big.NewInt(80), big.NewInt(10), big.NewInt(10), big.NewInt(10)}
@@ -106,8 +110,14 @@ func DeployContracts() (*ethtxs.DeployPara, *ethinterface.SimExtend, *ethtxs.X2E
 	ctx := context.Background()
 	sim, para := PrepareTestEnv()
 
+	opts, _ := bind.NewKeyedTransactorWithChainID(para.DeployPrivateKey, big.NewInt(1337))
+	parsed, _ := abi.JSON(strings.NewReader(generated.BridgeBankBin))
+	contractAddr, _, _, _ := bind.DeployContract(opts, parsed, common.FromHex(generated.BridgeBankBin), sim)
+	sim.Commit()
+
 	callMsg := ethereum.CallMsg{
 		From: para.Deployer,
+		To:   &contractAddr,
 		Data: common.FromHex(generated.BridgeBankBin),
 	}
 

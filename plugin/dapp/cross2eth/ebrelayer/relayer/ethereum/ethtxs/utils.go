@@ -90,9 +90,15 @@ func PrepareAuth(client ethinterface.EthClientSpec, privateKey *ecdsa.PrivateKey
 		txslog.Error("PrepareAuth NetworkID", "err", err)
 		return nil, err
 	}
+
+	_, isSim := client.(*ethinterface.SimExtend)
+	if isSim {
+		chainID = big.NewInt(1337)
+	}
+
 	auth, err := bind.NewKeyedTransactorWithChainID(privateKey, chainID)
 	if err != nil {
-		txslog.Error("PrepareAuth NewKeyedTransactorWithChainID", "err", err)
+		txslog.Error("PrepareAuth NewKeyedTransactorWithChainID", "err", err, "chainID", chainID)
 		return nil, err
 	}
 	auth.Value = big.NewInt(0) // in wei
