@@ -593,8 +593,9 @@ function lock_eth_multisign() {
     if [[ $# -eq 3 ]]; then
         local bridgeBankBalance=$2
         local multisignBalance=$3
-        # eth 等待 10 个区块
-        eth_block_wait 2
+        # eth 等待 2 个区块
+        sleep 4
+#        eth_block_wait 2
 
         result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
         cli_ret "${result}" "balance" ".balance" "${bridgeBankBalance}"
@@ -613,8 +614,9 @@ function lock_ethereum_ycc_multisign() {
         local bridgeBankBalance=$2
         local multisignBalance=$3
 
-        # eth 等待 10 个区块
-        eth_block_wait 2
+        # eth 等待 2 个区块
+        sleep 4
+#        eth_block_wait 2
 
         result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
         cli_ret "${result}" "balance" ".balance" "${bridgeBankBalance}"

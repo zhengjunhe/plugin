@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 	"math/big"
 	"os"
 	"testing"
@@ -22,8 +21,8 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	ebTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
+	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 	tml "github.com/BurntSushi/toml"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -35,8 +34,8 @@ import (
 
 var (
 	configPath       = flag.String("f", "./../../relayer.toml", "configfile")
-	ethPrivateKeyStr = "3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e"
-	ethAccountAddr   = "0x92C8b16aFD6d423652559C6E266cBE1c29Bfd84f"
+	ethPrivateKeyStr = "0x3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e"
+	ethAccountAddr   = "0x92c8b16afd6d423652559c6e266cbe1c29bfd84f"
 	passphrase       = "123456hzj"
 	chainTestCfg     = chain33Types.NewChain33Config(chain33Types.GetDefaultCfgstring())
 
@@ -49,7 +48,8 @@ var (
 	ethValidatorAddrKeyD = "c9fa31d7984edf81b8ef3b40c761f1847f6fcd5711ab2462da97dc458f1f896b"
 )
 
-func Test_LockAndBurn(t *testing.T) {
+func init() {
+	fmt.Println("======================= init =======================")
 	var tx chain33Types.Transaction
 	var ret chain33Types.Reply
 	ret.IsOk = true
@@ -69,13 +69,6 @@ func Test_LockAndBurn(t *testing.T) {
 	// 这里必须设置监听端口，默认的是无效值
 	rpcCfg.JrpcBindAddr = "127.0.0.1:8801"
 	mock33.GetRPC().Listen()
-
-	fmt.Println("======================= testLockEth =======================")
-	testLockEth(t)
-	fmt.Println("======================= testCreateERC20Token =======================")
-	testCreateERC20Token(t)
-	fmt.Println("======================= testBurnBty =======================")
-	testBurnBty(t)
 }
 
 func Test_GetValidatorAddr(t *testing.T) {
@@ -237,7 +230,7 @@ func Test_CreateBridgeToken(t *testing.T) {
 	require.Error(t, err)
 }
 
-func testLockEth(t *testing.T) {
+func Test_LockEth(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
@@ -279,7 +272,7 @@ func testLockEth(t *testing.T) {
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 }
 
-func testCreateERC20Token(t *testing.T) {
+func Test_CreateERC20Token(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
@@ -367,19 +360,23 @@ func testCreateERC20Token(t *testing.T) {
 	time.Sleep(time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 }
 
-func testBurnBty(t *testing.T) {
+func Test_BurnBty(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	addr, err := ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
+	_, err = ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
 	require.Nil(t, err)
-	fmt.Println(addr)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	tokenAddrbty, err := ethRelayer.CreateBridgeToken("bty")
 	require.Nil(t, err)
 	require.NotEmpty(t, tokenAddrbty)
 	sim.Commit()
+
+	symbol := ebTypes.TokenAddress{Symbol: "bty"}
+	token, err := ethRelayer.ShowTokenAddress(symbol)
+	require.Nil(t, err)
+	require.Equal(t, token.TokenAddress[0].Address, tokenAddrbty)
 
 	chain33Sender := []byte("14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
 	amount := int64(100)
@@ -406,26 +403,31 @@ func testBurnBty(t *testing.T) {
 	balanceNew, err := ethRelayer.GetBalance(tokenAddrbty, ethReceiver.String())
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "100")
+	fmt.Println("balanceNew", balanceNew)
 
-	_, err = ethRelayer.Burn(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, ethAccountAddr, "10")
+	chain33ReceiverAddr := "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
+
+	_, err = ethRelayer.Burn(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, chain33ReceiverAddr, "10")
 	require.NoError(t, err)
 	sim.Commit()
 
 	balanceNew, err = ethRelayer.GetBalance(tokenAddrbty, ethReceiver.String())
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "90")
+	fmt.Println("balanceNew", balanceNew)
 
 	_, err = ethRelayer.ApproveAllowance(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, "10")
 	require.Nil(t, err)
 	sim.Commit()
 
-	_, err = ethRelayer.BurnAsync(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, ethAccountAddr, "10")
+	_, err = ethRelayer.BurnAsync(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, chain33ReceiverAddr, "10")
 	require.NoError(t, err)
 	sim.Commit()
 
 	balanceNew, err = ethRelayer.GetBalance(tokenAddrbty, ethReceiver.String())
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "80")
+	fmt.Println("balanceNew", balanceNew)
 
 	fetchCnt := int32(10)
 	logs, err := ethRelayer.getNextValidEthTxEventLogs(ethRelayer.eventLogIndex.Height, ethRelayer.eventLogIndex.Index, fetchCnt)

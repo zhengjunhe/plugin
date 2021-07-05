@@ -138,6 +138,14 @@ function StartDockerRelayerDeploy() {
     # 在第 line 行后面 新增合约地址
     sed -i ''"${line}"' a ChainName="user.p.para."' "./relayer.toml"
 
+    # shellcheck disable=SC2155
+    local line=$(delete_line_show "./relayer.toml" "maturityDegree=10")
+    sed -i ''"${line}"' a maturityDegree=1' "./relayer.toml"
+
+    # shellcheck disable=SC2155
+    local line=$(delete_line_show "./relayer.toml" "EthMaturityDegree=10")
+    sed -i ''"${line}"' a EthMaturityDegree=1' "./relayer.toml"
+
     # 启动 ebrelayer
     start_docker_ebrelayerA
 
@@ -194,8 +202,7 @@ function TestChain33ToEthAssets() {
     result=$(${Chain33Cli} asset balance -a "${chain33BridgeBank}" --asset_exec paracross --asset_symbol coins.bty -e user.p.para.evm | jq -r .balance)
     is_equal "${result}" "5.0000"
 
-    sleep 2
-#    eth_block_wait 2 "${ethUrl}"
+    sleep 4
 
     # eth 这端 金额是否增加了 5
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -205,8 +212,7 @@ function TestChain33ToEthAssets() {
     result=$(${CLIA} ethereum burn -m 3 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
 
-    sleep 2
-#    eth_block_wait 2 "${ethUrl}"
+    sleep 4
 
     # eth 这端 金额是否减少了 3
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -226,8 +232,7 @@ function TestChain33ToEthAssets() {
     result=$(${CLIA} ethereum burn -m 2 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
 
-    sleep 2
-#    eth_block_wait 2 "${ethUrl}"
+    sleep 4
 
     # eth 这端 金额是否减少了
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethereumBtyTokenAddr}")
@@ -265,8 +270,7 @@ function TestChain33ToEthZBCAssets() {
     result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
     is_equal "${result}" "900000000"
 
-    sleep 2
-#    eth_block_wait 2
+    sleep 4
 
     # eth 这端 金额是否增加了 9
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
@@ -276,8 +280,7 @@ function TestChain33ToEthZBCAssets() {
     result=$(${CLIA} ethereum burn -m 8 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethBridgeToeknZBCAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
 
-    sleep 2
-#    eth_block_wait 2
+    sleep 4
 
     # eth 这端 金额是否减少了 1
     result=$(${CLIA} ethereum balance -o "${ethDeployAddr}" -t "${ethBridgeToeknZBCAddr}")
@@ -308,9 +311,8 @@ function TestETH2Chain33Assets() {
     result=$(${CLIA} ethereum lock -m 11 -k "${ethValidatorAddrKeyA}" -r "${chain33ReceiverAddr}")
     cli_ret "${result}" "lock"
 
-     # eth 等待 10 个区块
-    sleep 2
-#    eth_block_wait 2 "${ethUrl}"
+     # eth 等待 2 个区块
+    sleep 4
 
     # 查询 ETH 这端 bridgeBank 地址 11
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
@@ -377,9 +379,8 @@ function TestETH2Chain33Ycc() {
     result=$(${CLIA} ethereum lock -m 7 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "lock"
 
-     # eth 等待 10 个区块
-    sleep 2
-#    eth_block_wait 2 "${ethUrl}"
+     # eth 等待 2 个区块
+    sleep 4
 
     # 查询 ETH 这端 bridgeBank 地址 7 YCC
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
