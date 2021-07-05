@@ -91,7 +91,8 @@ clean: ## remove all the bins
 	@rm -rf $(CLI_C)
 	@rm -rf $(CLI_D)
 	@rm -rf $(EBRELAER)
-	@rm -rf build/*.toml
+	@rm -rf build/*
+
 
 proto:protobuf
 
