@@ -6,13 +6,14 @@ package runtime
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
 )
 
 // precompiledTest defines the input/output pairs for precompiled contract tests.
@@ -33,26 +34,26 @@ type precompiledFailureTest struct {
 
 // allPrecompiles does not map to the actual set of precompiles, as it also contains
 // repriced versions of precompiles at certain slots
-var allPrecompiles = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}):    &ecrecover{},
-	common.BytesToAddress([]byte{2}):    &sha256hash{},
-	common.BytesToAddress([]byte{3}):    &ripemd160hash{},
-	common.BytesToAddress([]byte{4}):    &dataCopy{},
-	common.BytesToAddress([]byte{5}):    &bigModExp{eip2565: false},
-	common.BytesToAddress([]byte{0xf5}): &bigModExp{eip2565: true},
-	common.BytesToAddress([]byte{6}):    &bn256AddIstanbul{},
-	common.BytesToAddress([]byte{7}):    &bn256ScalarMulIstanbul{},
-	common.BytesToAddress([]byte{8}):    &bn256PairingIstanbul{},
-	common.BytesToAddress([]byte{9}):    &blake2F{},
-	common.BytesToAddress([]byte{10}):   &bls12381G1Add{},
-	common.BytesToAddress([]byte{11}):   &bls12381G1Mul{},
-	common.BytesToAddress([]byte{12}):   &bls12381G1MultiExp{},
-	common.BytesToAddress([]byte{13}):   &bls12381G2Add{},
-	common.BytesToAddress([]byte{14}):   &bls12381G2Mul{},
-	common.BytesToAddress([]byte{15}):   &bls12381G2MultiExp{},
-	common.BytesToAddress([]byte{16}):   &bls12381Pairing{},
-	common.BytesToAddress([]byte{17}):   &bls12381MapG1{},
-	common.BytesToAddress([]byte{18}):   &bls12381MapG2{},
+var allPrecompiles = map[common.Hash160Address]PrecompiledContract{
+	common.BytesToAddress(common.RightPadBytes([]byte{1}, 20)).ToHash160():    &ecrecover{},
+	common.BytesToAddress(common.RightPadBytes([]byte{2}, 20)).ToHash160():    &sha256hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{3}, 20)).ToHash160():    &ripemd160hash{},
+	common.BytesToAddress(common.RightPadBytes([]byte{4}, 20)).ToHash160():    &dataCopy{},
+	common.BytesToAddress(common.RightPadBytes([]byte{5}, 20)).ToHash160():    &bigModExp{eip2565: false},
+	common.BytesToAddress(common.RightPadBytes([]byte{0xf5}, 20)).ToHash160(): &bigModExp{eip2565: true},
+	common.BytesToAddress(common.RightPadBytes([]byte{6}, 20)).ToHash160():    &bn256AddIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{7}, 20)).ToHash160():    &bn256ScalarMulIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{8}, 20)).ToHash160():    &bn256PairingIstanbul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{9}, 20)).ToHash160():    &blake2F{},
+	common.BytesToAddress(common.RightPadBytes([]byte{10}, 20)).ToHash160():   &bls12381G1Add{},
+	common.BytesToAddress(common.RightPadBytes([]byte{11}, 20)).ToHash160():   &bls12381G1Mul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{12}, 20)).ToHash160():   &bls12381G1MultiExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{13}, 20)).ToHash160():   &bls12381G2Add{},
+	common.BytesToAddress(common.RightPadBytes([]byte{14}, 20)).ToHash160():   &bls12381G2Mul{},
+	common.BytesToAddress(common.RightPadBytes([]byte{15}, 20)).ToHash160():   &bls12381G2MultiExp{},
+	common.BytesToAddress(common.RightPadBytes([]byte{16}, 20)).ToHash160():   &bls12381Pairing{},
+	common.BytesToAddress(common.RightPadBytes([]byte{17}, 20)).ToHash160():   &bls12381MapG1{},
+	common.BytesToAddress(common.RightPadBytes([]byte{18}, 20)).ToHash160():   &bls12381MapG2{},
 }
 
 // EIP-152 test vectors
@@ -80,14 +81,22 @@ var blake2FMalformedInputTests = []precompiledFailureTest{
 }
 
 func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
-	p := allPrecompiles[common.HexToAddress(addr)]
+	//hash160_0 := common.BytesToAddress(common.RightPadBytes([]byte{5}, 20)).ToHash160()
+	//hash160_1 := common.BytesToAddress(common.RightPadBytes(common.FromHex(addr), 20)).ToHash160()
+	//
+	//fmt.Println("hash160_0", common.Bytes2Hex(hash160_0[:]))
+	//fmt.Println("hash160_1", common.Bytes2Hex(hash160_1[:]))
+
+	p := allPrecompiles[common.BytesToAddress(common.RightPadBytes(common.FromHex(addr), 20)).ToHash160()]
+	//p := allPrecompiles[common.HexToAddress(addr).ToAddress().ToHash160()]
 	in := common.Hex2Bytes(test.Input)
+	//fmt.Println("testPrecompiled", "in", common.Bytes2Hex(in), "p", p)
 	gas := p.RequiredGas(in)
 	t.Run(fmt.Sprintf("%s-Gas=%d", test.Name, gas), func(t *testing.T) {
 		if res, _, err := RunPrecompiledContract(p, in, gas); err != nil {
 			t.Error(err)
-		} else if common.Bytes2Hex(res) != test.Expected {
-			t.Errorf("Expected %v, got %v", test.Expected, common.Bytes2Hex(res))
+		} else if hex.EncodeToString(res) != test.Expected {
+			t.Errorf("Expected %v, got %v", test.Expected, hex.EncodeToString(res))
 		}
 		if expGas := test.Gas; expGas != gas {
 			t.Errorf("%v: gas wrong, expected %d, got %d", test.Name, expGas, gas)
@@ -101,7 +110,7 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
-	p := allPrecompiles[common.HexToAddress(addr)]
+	p := allPrecompiles[common.BytesToAddress(common.RightPadBytes(common.FromHex(addr), 20)).ToHash160()]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in) - 1
 
@@ -119,7 +128,7 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 }
 
 func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing.T) {
-	p := allPrecompiles[common.HexToAddress(addr)]
+	p := allPrecompiles[common.BytesToAddress(common.RightPadBytes(common.FromHex(addr), 20)).ToHash160()]
 	in := common.Hex2Bytes(test.Input)
 	gas := p.RequiredGas(in)
 	t.Run(test.Name, func(t *testing.T) {
@@ -139,7 +148,7 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 	if test.NoBenchmark {
 		return
 	}
-	p := allPrecompiles[common.HexToAddress(addr)]
+	p := allPrecompiles[common.BytesToAddress(common.RightPadBytes(common.FromHex(addr), 20)).ToHash160()]
 	in := common.Hex2Bytes(test.Input)
 	reqGas := p.RequiredGas(in)
 
@@ -172,8 +181,8 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 			bench.Error(err)
 			return
 		}
-		if common.Bytes2Hex(res) != test.Expected {
-			bench.Error(fmt.Sprintf("Expected %v, got %v", test.Expected, common.Bytes2Hex(res)))
+		if hex.EncodeToString(res) != test.Expected {
+			bench.Error(fmt.Sprintf("Expected %v, got %v", test.Expected, hex.EncodeToString(res)))
 			return
 		}
 	})

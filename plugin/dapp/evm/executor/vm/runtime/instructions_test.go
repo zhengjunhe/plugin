@@ -18,6 +18,7 @@ package runtime
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -26,8 +27,8 @@ import (
 	"github.com/33cn/chain33/types"
 	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/state"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common"
+	"github.com/33cn/plugin/plugin/dapp/evm/executor/vm/common/crypto"
 	"github.com/holiman/uint256"
 )
 
@@ -531,13 +532,14 @@ func TestOpMstore(t *testing.T) {
 	v := "abcdef00000000000000abba000000000deaf000000c0de00100000000133700"
 	stack.pushN(*new(uint256.Int).SetBytes(common.Hex2Bytes(v)), *new(uint256.Int))
 	opMstore(&pc, env, &callCtx{mem, stack, nil})
-	if got := common.Bytes2Hex(mem.GetCopy(0, 32)); got != v {
+	if got := hex.EncodeToString(mem.GetCopy(0, 32)); got != v {
 		t.Fatalf("Mstore fail, got %v, expected %v", got, v)
 	}
 	stack.pushN(*new(uint256.Int).SetUint64(0x1), *new(uint256.Int))
 	opMstore(&pc, env, &callCtx{mem, stack, nil})
-	if common.Bytes2Hex(mem.GetCopy(0, 32)) != "0000000000000000000000000000000000000000000000000000000000000001" {
-		t.Fatalf("Mstore failed to overwrite previous value")
+	v = "0000000000000000000000000000000000000000000000000000000000000001"
+	if got := hex.EncodeToString(mem.GetCopy(0, 32)); got != v {
+		t.Fatalf("Mstore failed to overwrite previous value, got %v, expected %v", got, v)
 	}
 }
 
@@ -594,43 +596,43 @@ func TestCreate2Addreses(t *testing.T) {
 			origin:   "0x0000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "0x4d1a2e2bb4f88f0250f26ffff098b0b30b26bf38",
+			expected: "0x0734b9fb138DD4e5E6Ca85ee4d1A2E2bB4f88F02",
 		},
 		{
 			origin:   "0xdeadbeef00000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "0xB928f69Bb1D91Cd65274e3c79d8986362984fDA3",
+			expected: "0x4c68996C7a7c9BCfcA7F1485b928F69Bb1d91Cd6",
 		},
 		{
 			origin:   "0xdeadbeef00000000000000000000000000000000",
 			salt:     "0xfeed000000000000000000000000000000000000",
 			code:     "0x00",
-			expected: "0xD04116cDd17beBE565EB2422F2497E06cC1C9833",
+			expected: "0x6c9468c60779cD4Cdb81AF56D04116CdD17Bebe5",
 		},
 		{
 			origin:   "0x0000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0xdeadbeef",
-			expected: "0x70f2b2914A2a4b783FaEFb75f459A580616Fcb5e",
+			expected: "0x7c389b77881A0016fACE428070f2B2914A2a4B78",
 		},
 		{
 			origin:   "0x00000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeef",
-			expected: "0x60f3f640a8508fC6a86d45DF051962668E1e8AC7",
+			expected: "0xe9d4e29FEca240e42eD1D3d360F3F640A8508fC6",
 		},
 		{
 			origin:   "0x00000000000000000000000000000000deadbeef",
 			salt:     "0xcafebabe",
 			code:     "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-			expected: "0x1d8bfDC5D46DC4f61D6b6115972536eBE6A8854C",
+			expected: "0x9eFFCd6a98282bB11FdB27851D8bfDC5D46dC4f6",
 		},
 		{
 			origin:   "0x0000000000000000000000000000000000000000",
 			salt:     "0x0000000000000000000000000000000000000000",
 			code:     "0x",
-			expected: "0xE33C0C7F7df4809055C3ebA6c09CFe4BaF1BD9e0",
+			expected: "0xDf190018eD932c8aba3DA0d7e33c0c7F7dF48090",
 		},
 	} {
 		origin := common.BytesToAddress(common.FromHex(tt.origin))
@@ -649,7 +651,8 @@ func TestCreate2Addreses(t *testing.T) {
 		*/
 		expected := common.BytesToAddress(common.FromHex(tt.expected))
 		if !bytes.Equal(expected.Bytes(), address.Bytes()) {
-			t.Errorf("test %d: expected %s, got %s", i, expected.String(), address.String())
+			t.Errorf("test %d: expected %s, got %s, hash160=%s", i, expected.String(), address.String(), address.ToHash160().Hex())
+
 		}
 	}
 }

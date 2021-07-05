@@ -87,6 +87,7 @@ var PrecompiledContractsYoloV1 = map[common.Hash160Address]PrecompiledContract{
 	common.BytesToAddress(common.RightPadBytes([]byte{18}, 20)).ToHash160(): &bls12381MapG2{},
 }
 
+//因为common.Address结构体中定义的是指针，map中的key值不能使用address作为key值来使用，于是使用Hash160Address作为key来进行索引
 // PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
 // contracts used in the Berlin release.
 var PrecompiledContractsBerlin = map[common.Hash160Address]PrecompiledContract{

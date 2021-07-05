@@ -35,7 +35,7 @@ type (
 func run(evm *EVM, contract *Contract, input []byte, readOnly bool) (ret []byte, err error) {
 	if contract.CodeAddr != nil {
 		// 预编译合约以拜占庭分支为初始版本，后继如有分叉，需要在此处理
-		precompiles := PrecompiledContractsByzantium
+		precompiles := PrecompiledContractsBerlin
 		//预编译分叉处理： chain33中目前只存在拜占庭和最新的黄皮书v1版本（兼容伊斯坦布尔版本）
 		if evm.cfg.IsDappFork(evm.StateDB.GetBlockHeight(), "evm", evmtypes.ForkEVMYoloV1) {
 			//precompiles = PrecompiledContractsYoloV1
