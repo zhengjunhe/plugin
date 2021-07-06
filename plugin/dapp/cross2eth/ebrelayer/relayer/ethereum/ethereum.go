@@ -326,21 +326,21 @@ func (ethRelayer *Relayer4Ethereum) AddToken2LockList(symbol, token string) (str
 	return txhash, err
 }
 
-//CreateERC20Token ...
-func (ethRelayer *Relayer4Ethereum) CreateERC20Token(symbol string) (string, error) {
-	ethRelayer.rwLock.RLock()
-	defer ethRelayer.rwLock.RUnlock()
-	return ethtxs.CreateERC20Token(symbol, ethRelayer.clientSpec, ethRelayer.operatorInfo)
-}
-
-//MintERC20Token ...
-func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount string) (string, error) {
-	bn := big.NewInt(1)
-	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
-	ethRelayer.rwLock.RLock()
-	defer ethRelayer.rwLock.RUnlock()
-	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
-}
+////CreateERC20Token ...
+//func (ethRelayer *Relayer4Ethereum) CreateERC20Token(symbol string) (string, error) {
+//	ethRelayer.rwLock.RLock()
+//	defer ethRelayer.rwLock.RUnlock()
+//	return ethtxs.CreateERC20Token(symbol, ethRelayer.clientSpec, ethRelayer.operatorInfo)
+//}
+//
+////MintERC20Token ...
+//func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount string) (string, error) {
+//	bn := big.NewInt(1)
+//	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
+//	ethRelayer.rwLock.RLock()
+//	defer ethRelayer.rwLock.RUnlock()
+//	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
+//}
 
 //DeployERC20 ...
 func (ethRelayer *Relayer4Ethereum) DeployERC20(ownerAddr, name, symbol, amount string) (string, error) {

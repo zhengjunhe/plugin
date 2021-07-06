@@ -478,41 +478,41 @@ func (manager *Manager) AddToken2LockList(token relayerTypes.ETHTokenLockAddress
 	return nil
 }
 
-//CreateERC20Token ...
-func (manager *Manager) CreateERC20Token(symbol string, result *interface{}) error {
-	manager.mtx.Lock()
-	defer manager.mtx.Unlock()
-	if err := manager.checkPermission(); nil != err {
-		return err
-	}
-	tokenAddr, err := manager.ethRelayer.CreateERC20Token(symbol)
-	if nil != err {
-		return err
-	}
-	*result = relayerTypes.ReplyAddr{
-		IsOK: true,
-		Addr: tokenAddr,
-	}
-	return nil
-}
+////CreateERC20Token ...
+//func (manager *Manager) CreateERC20Token(symbol string, result *interface{}) error {
+//	manager.mtx.Lock()
+//	defer manager.mtx.Unlock()
+//	if err := manager.checkPermission(); nil != err {
+//		return err
+//	}
+//	tokenAddr, err := manager.ethRelayer.CreateERC20Token(symbol)
+//	if nil != err {
+//		return err
+//	}
+//	*result = relayerTypes.ReplyAddr{
+//		IsOK: true,
+//		Addr: tokenAddr,
+//	}
+//	return nil
+//}
 
-//MintErc20 ...
-func (manager *Manager) MintErc20(mintToken relayerTypes.MintToken, result *interface{}) error {
-	manager.mtx.Lock()
-	defer manager.mtx.Unlock()
-	if err := manager.checkPermission(); nil != err {
-		return err
-	}
-	txhash, err := manager.ethRelayer.MintERC20Token(mintToken.TokenAddr, mintToken.Owner, mintToken.Amount)
-	if nil != err {
-		return err
-	}
-	*result = rpctypes.Reply{
-		IsOk: true,
-		Msg:  txhash,
-	}
-	return nil
-}
+////MintErc20 ...
+//func (manager *Manager) MintErc20(mintToken relayerTypes.MintToken, result *interface{}) error {
+//	manager.mtx.Lock()
+//	defer manager.mtx.Unlock()
+//	if err := manager.checkPermission(); nil != err {
+//		return err
+//	}
+//	txhash, err := manager.ethRelayer.MintERC20Token(mintToken.TokenAddr, mintToken.Owner, mintToken.Amount)
+//	if nil != err {
+//		return err
+//	}
+//	*result = rpctypes.Reply{
+//		IsOk: true,
+//		Msg:  txhash,
+//	}
+//	return nil
+//}
 
 //DeployERC20 ...
 func (manager *Manager) DeployERC20(Erc20Token relayerTypes.ERC20Token, result *interface{}) error {
