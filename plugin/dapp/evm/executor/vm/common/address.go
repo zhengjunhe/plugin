@@ -180,7 +180,6 @@ func Uint256ToAddress(b *uint256.Int) Address {
 
 	copy(out[:], b.Bytes())
 	a.SetBytes(out)
-	log15.Info("Uint256ToAddress", "b.Bytes", common.Bytes2Hex(a.Hash160[:]), "addr", a.String())
 	return Address{Addr: a}
 }
 

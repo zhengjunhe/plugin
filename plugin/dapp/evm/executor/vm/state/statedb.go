@@ -612,8 +612,7 @@ func (mdb *MemoryStateDB) PrintLogs() {
 	items := mdb.logs[mdb.txHash]
 	log15.Debug("PrintLogs", "item number:", len(items), "txhash", mdb.txHash.Hex())
 	for _, item := range items {
-		routerAbiStr := mdb.GetAbi("1GMsmmzUPuQUkCJinuEyfkJoBoyJbiQKg")
-		item.PrintLog(routerAbiStr)
+		item.PrintLog()
 	}
 }
 

@@ -7,6 +7,7 @@ package commands
 import (
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"time"
@@ -814,4 +815,19 @@ func showTimeNowCmd() *cobra.Command {
 
 func showNow(cmd *cobra.Command, args []string) {
 	fmt.Println(time.Now().Unix())
+}
+
+func readFile(fileName string) (string, error) {
+	f, err := os.Open(fileName)
+	defer f.Close()
+	if err != nil {
+		return "", err
+	}
+
+	fileContent, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+
+	return string(fileContent), nil
 }
