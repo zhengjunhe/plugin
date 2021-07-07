@@ -33,11 +33,8 @@ func EthereumRelayerCmd() *cobra.Command {
 		DeployContrctsCmd(),
 		ShowTxReceiptCmd(),
 		//////auxiliary///////
-		//CreateBridgeTokenCmd(),
-		//CreateEthereumTokenCmd(),
 		GetBalanceCmd(),
 		IsProphecyPendingCmd(),
-		MintErc20Cmd(),
 		ApproveCmd(),
 		BurnCmd(),
 		BurnAsyncCmd(),
@@ -54,7 +51,7 @@ func EthereumRelayerCmd() *cobra.Command {
 	return cmd
 }
 
-//TokenAddressCmd...
+// TokenCmd TokenAddressCmd...
 func TokenCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "token",
@@ -63,7 +60,6 @@ func TokenCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		CreateBridgeTokenCmd(),
-		CreateEthereumTokenCmd(),
 		SetTokenAddress4EthCmd(),
 		ShowTokenAddress4EthCmd(),
 		AddToken2LockListCmd(),
@@ -146,7 +142,6 @@ func ShowTokenAddress4LockEth(cmd *cobra.Command, args []string) {
 	ctx.Run()
 }
 
-//ImportChain33PrivateKeyCmd ...
 func ImportEthPrivateKeyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import_privatekey",
@@ -159,7 +154,7 @@ func ImportEthPrivateKeyCmd() *cobra.Command {
 
 func addImportEthPrivateKeyFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("key", "k", "", "ethereum private key")
-	cmd.MarkFlagRequired("key")
+	_ = cmd.MarkFlagRequired("key")
 }
 
 func importEthereumPrivatekey(cmd *cobra.Command, args []string) {
@@ -401,7 +396,6 @@ func AddToken2LockListCmd() *cobra.Command {
 	return cmd
 }
 
-//CreateBridgeTokenFlags ...
 func AddToken2LockListFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("symbol", "s", "", "token symbol")
 	_ = cmd.MarkFlagRequired("symbol")
@@ -409,7 +403,6 @@ func AddToken2LockListFlags(cmd *cobra.Command) {
 	_ = cmd.MarkFlagRequired("token")
 }
 
-//CreateBridgeToken ...
 func AddToken2LockList(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
 	symbol, _ := cmd.Flags().GetString("symbol")
@@ -421,79 +414,6 @@ func AddToken2LockList(cmd *cobra.Command, args []string) {
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.AddToken2LockList", para, &res)
-	ctx.Run()
-}
-
-//CreateEthereumTokenCmd ...
-func CreateEthereumTokenCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "create-ERC20-token",
-		Short: "create new ERC20 token on Ethereum",
-		Run:   CreateEthereumTokenToken,
-	}
-	CreateEthereumTokenFlags(cmd)
-	return cmd
-}
-
-//CreateEthereumTokenFlags ...
-func CreateEthereumTokenFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("symbol", "s", "", "token symbol")
-	_ = cmd.MarkFlagRequired("symbol")
-}
-
-//CreateEthereumTokenToken ...
-func CreateEthereumTokenToken(cmd *cobra.Command, args []string) {
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	token, _ := cmd.Flags().GetString("symbol")
-	para := token
-	var res ebTypes.ReplyAddr
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.CreateERC20Token", para, &res)
-	ctx.Run()
-}
-
-//MintErc20Cmd ...
-func MintErc20Cmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "mint",
-		Short: "mint erc20 asset on Ethereum, but only for operator",
-		Run:   MintErc20,
-	}
-	MintErc20Flags(cmd)
-	return cmd
-}
-
-//MintErc20Flags ...
-func MintErc20Flags(cmd *cobra.Command) {
-	cmd.Flags().StringP("token", "t", "", "token address")
-	_ = cmd.MarkFlagRequired("token")
-	cmd.Flags().StringP("owner", "o", "", "owner address")
-	_ = cmd.MarkFlagRequired("owner")
-	cmd.Flags().Float64P("amount", "m", float64(0), "amount")
-	_ = cmd.MarkFlagRequired("amount")
-}
-
-//MintErc20 ...
-func MintErc20(cmd *cobra.Command, args []string) {
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	tokenAddr, _ := cmd.Flags().GetString("token")
-	owner, _ := cmd.Flags().GetString("owner")
-	amount, _ := cmd.Flags().GetFloat64("amount")
-	nodeAddr, _ := cmd.Flags().GetString("node_addr")
-
-	d, err := utils.GetDecimalsFromNode(tokenAddr, nodeAddr)
-	if err != nil {
-		fmt.Println("get decimals error")
-		return
-	}
-
-	realAmount := utils.ToWei(amount, d)
-	para := ebTypes.MintToken{
-		Owner:     owner,
-		TokenAddr: tokenAddr,
-		Amount:    realAmount.String(),
-	}
-	var res rpctypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.MintErc20", para, &res)
 	ctx.Run()
 }
 
@@ -1038,10 +958,10 @@ func ConfigOfflineSaveAccountFlags(cmd *cobra.Command) {
 //ConfigOfflineSaveAccount ...
 func ConfigOfflineSaveAccount(cmd *cobra.Command, args []string) {
 	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
-	address, _ := cmd.Flags().GetString("address")
+	addr, _ := cmd.Flags().GetString("address")
 
 	var res rpctypes.Reply
-	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigOfflineSaveAccount", address, &res)
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.ConfigOfflineSaveAccount", addr, &res)
 	ctx.Run()
 }
 

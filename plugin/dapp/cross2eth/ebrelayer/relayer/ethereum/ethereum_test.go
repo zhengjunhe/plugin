@@ -14,7 +14,6 @@ import (
 	_ "github.com/33cn/chain33/system"
 	chain33Types "github.com/33cn/chain33/types"
 	"github.com/33cn/chain33/util/testnode"
-	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/contracts4eth/generated"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/test/setup"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethtxs"
@@ -23,7 +22,6 @@ import (
 	relayerTypes "github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/types"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/utils"
 	tml "github.com/BurntSushi/toml"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -155,7 +153,8 @@ func Test_ShowAddr(t *testing.T) {
 }
 
 func Test_DeployContrcts(t *testing.T) {
-	_, sim, _, _ := deployContracts()
+	_, sim, _, _, err := deployContracts()
+	require.NoError(t, err)
 	cfg := initCfg(*configPath)
 	cfg.SyncTxConfig.Dbdriver = "memdb"
 
@@ -180,7 +179,7 @@ func Test_DeployContrcts(t *testing.T) {
 		Address:    deployerAddr,
 	}
 
-	_, err := relayer.DeployContrcts()
+	_, err = relayer.DeployContrcts()
 	require.NoError(t, err)
 }
 
@@ -272,94 +271,6 @@ func Test_LockEth(t *testing.T) {
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 }
 
-func Test_CreateERC20Token(t *testing.T) {
-	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
-	require.NoError(t, err)
-	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	addr, err := ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
-	require.Nil(t, err)
-	fmt.Println(addr)
-	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
-
-	tokenErc20Addr, err := ethRelayer.CreateERC20Token("testcc")
-	require.Nil(t, err)
-	require.NotEmpty(t, tokenErc20Addr)
-	sim.Commit()
-
-	_, err = ethRelayer.MintERC20Token(tokenErc20Addr, para.Deployer.String(), "20000000000000")
-	require.Nil(t, err)
-	sim.Commit()
-
-	balance, err := ethRelayer.ShowDepositStatics(tokenErc20Addr)
-	require.Nil(t, err)
-	assert.Equal(t, balance, "20000000000000")
-
-	claimID := crypto.Keccak256Hash(big.NewInt(50).Bytes())
-	bret, err := ethRelayer.IsProphecyPending(claimID)
-	require.Nil(t, err)
-	assert.Equal(t, bret, false)
-
-	txhash, err := ethRelayer.TransferToken(tokenErc20Addr, hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), ethRelayer.deployInfo.ValidatorsAddr[0], "100")
-	require.Nil(t, err)
-	sim.Commit()
-
-	_, err = ethRelayer.ShowTxReceipt(txhash)
-	require.Nil(t, err)
-
-	balance, err = ethRelayer.GetBalance(tokenErc20Addr, ethRelayer.deployInfo.ValidatorsAddr[0])
-	require.Nil(t, err)
-	assert.Equal(t, balance, "100")
-
-	balance, err = ethRelayer.GetBalance(tokenErc20Addr, para.Deployer.String())
-	require.Nil(t, err)
-	assert.Equal(t, balance, "19999999999900")
-
-	//tx1 := ethRelayer.QueryTxhashRelay2Eth()
-	//require.Empty(t, tx1)
-
-	tx2 := ethRelayer.QueryTxhashRelay2Chain33()
-	require.Empty(t, tx2)
-
-	tokenErc20Addrtestc, err := ethRelayer.CreateERC20Token("testc")
-	require.Nil(t, err)
-	require.NotEmpty(t, tokenErc20Addrtestc)
-	sim.Commit()
-
-	_, err = ethRelayer.MintERC20Token(tokenErc20Addrtestc, para.Deployer.String(), "10000000000000")
-	require.Nil(t, err)
-	sim.Commit()
-
-	balance, err = ethRelayer.ShowDepositStatics(tokenErc20Addrtestc)
-	require.Nil(t, err)
-	assert.Equal(t, balance, "10000000000000")
-
-	chain33Receiver := "14KEKbYtKKQm4wMthSK9J4La4nAiidGozt"
-	_, err = ethRelayer.LockEthErc20Asset(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "100", chain33Receiver)
-	require.Nil(t, err)
-	sim.Commit()
-
-	balance, err = ethRelayer.GetBalance(tokenErc20Addrtestc, para.Deployer.String())
-	require.Nil(t, err)
-	assert.Equal(t, balance, "9999999999900")
-
-	_, err = ethRelayer.ApproveAllowance(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "500")
-	require.Nil(t, err)
-	sim.Commit()
-
-	_, err = ethRelayer.LockEthErc20AssetAsync(hexutil.Encode(crypto.FromECDSA(para.DeployPrivateKey)), tokenErc20Addrtestc, "100", chain33Receiver)
-	require.Nil(t, err)
-	sim.Commit()
-
-	balance, err = ethRelayer.GetBalance(tokenErc20Addrtestc, para.Deployer.String())
-	require.Nil(t, err)
-	assert.Equal(t, balance, "9999999999800")
-
-	for i := 0; i < 11; i++ {
-		sim.Commit()
-	}
-	time.Sleep(time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
-}
-
 func Test_BurnBty(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
@@ -403,7 +314,6 @@ func Test_BurnBty(t *testing.T) {
 	balanceNew, err := ethRelayer.GetBalance(tokenAddrbty, ethReceiver.String())
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "100")
-	fmt.Println("balanceNew", balanceNew)
 
 	chain33ReceiverAddr := "12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 
@@ -414,7 +324,6 @@ func Test_BurnBty(t *testing.T) {
 	balanceNew, err = ethRelayer.GetBalance(tokenAddrbty, ethReceiver.String())
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "90")
-	fmt.Println("balanceNew", balanceNew)
 
 	_, err = ethRelayer.ApproveAllowance(hexutil.Encode(crypto.FromECDSA(para.ValidatorPriKey[2])), tokenAddrbty, "10")
 	require.Nil(t, err)
@@ -427,15 +336,18 @@ func Test_BurnBty(t *testing.T) {
 	balanceNew, err = ethRelayer.GetBalance(tokenAddrbty, ethReceiver.String())
 	require.Nil(t, err)
 	require.Equal(t, balanceNew, "80")
-	fmt.Println("balanceNew", balanceNew)
 
 	fetchCnt := int32(10)
 	logs, err := ethRelayer.getNextValidEthTxEventLogs(ethRelayer.eventLogIndex.Height, ethRelayer.eventLogIndex.Index, fetchCnt)
 	require.NoError(t, err)
+	fmt.Println("logs", logs)
 
 	for _, vLog := range logs {
+		fmt.Println("*vLog", *vLog)
 		ethRelayer.procBridgeBankLogs(*vLog)
 	}
+
+	fmt.Println("ethRelayer.fetchHeightPeriodMs", ethRelayer.fetchHeightPeriodMs)
 
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 }
@@ -488,6 +400,8 @@ func newEthRelayer(para *ethtxs.DeployPara, sim *ethinterface.SimExtend, x2EthCo
 	cfg.SyncTxConfig.DbPath = "datadirEth"
 
 	db := dbm.NewDB("relayer_db_service", cfg.SyncTxConfig.Dbdriver, cfg.SyncTxConfig.DbPath, cfg.SyncTxConfig.DbCache)
+	ethBridgeClaimchan := make(chan *relayerTypes.EthBridgeClaim, 100)
+	chain33Msgchan := make(chan *events.Chain33Msg, 100)
 
 	relayer := &Relayer4Ethereum{
 		provider:            cfg.EthProvider,
@@ -499,6 +413,9 @@ func newEthRelayer(para *ethtxs.DeployPara, sim *ethinterface.SimExtend, x2EthCo
 		totalTx4Eth2Chain33: 0,
 		symbol2Addr:         make(map[string]common.Address),
 		symbol2LockAddr:     make(map[string]common.Address),
+
+		ethBridgeClaimChan: ethBridgeClaimchan,
+		chain33MsgChan:     chain33Msgchan,
 	}
 
 	relayer.deployInfo = &ebTypes.Deploy{}
@@ -532,34 +449,18 @@ func newEthRelayer(para *ethtxs.DeployPara, sim *ethinterface.SimExtend, x2EthCo
 	return relayer
 }
 
-func deployContracts() (*ethtxs.DeployPara, *ethinterface.SimExtend, *ethtxs.X2EthContracts, *ethtxs.X2EthDeployInfo) {
+func deployContracts() (*ethtxs.DeployPara, *ethinterface.SimExtend, *ethtxs.X2EthContracts, *ethtxs.X2EthDeployInfo, error) {
 	ethValidatorAddrKeys := make([]string, 0)
 	ethValidatorAddrKeys = append(ethValidatorAddrKeys, ethValidatorAddrKeyA)
 	ethValidatorAddrKeys = append(ethValidatorAddrKeys, ethValidatorAddrKeyB)
 	ethValidatorAddrKeys = append(ethValidatorAddrKeys, ethValidatorAddrKeyC)
 	ethValidatorAddrKeys = append(ethValidatorAddrKeys, ethValidatorAddrKeyD)
-
-	ctx := context.Background()
-	backend, para := setup.PrepareTestEnvironment(deployerPrivateKey, ethValidatorAddrKeys)
-	sim := new(ethinterface.SimExtend)
-	sim.SimulatedBackend = backend.(*backends.SimulatedBackend)
-
-	callMsg := ethereum.CallMsg{
-		From: para.Deployer,
-		Data: common.FromHex(generated.BridgeBankBin),
-	}
-
-	_, _ = sim.EstimateGas(ctx, callMsg)
-	x2EthContracts, x2EthDeployInfo, _ := ethtxs.DeployAndInit(sim, para)
-	sim.Commit()
-
-	return para, sim, x2EthContracts, x2EthDeployInfo
+	return setup.DeploySpecificContracts(deployerPrivateKey, ethValidatorAddrKeys)
 }
 
 func initCfg(path string) *relayerTypes.RelayerConfig {
 	var cfg relayerTypes.RelayerConfig
 	if _, err := tml.DecodeFile(path, &cfg); err != nil {
-		//fmt.Println(err)
 		os.Exit(-1)
 	}
 	return &cfg
