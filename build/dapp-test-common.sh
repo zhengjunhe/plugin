@@ -222,7 +222,6 @@ chain33_applyCoins() {
 
     local poolAddr="1PcGKYYoLn1PLLJJodc1UpgWGeFAQasAkx"
     chain33_SendToAddress "${poolAddr}" "${targetAddr}" "$count" "${ip}"
-
 }
 
 chain33_RpcTestBegin() {
