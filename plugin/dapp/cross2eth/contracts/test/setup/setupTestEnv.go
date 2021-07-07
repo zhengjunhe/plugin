@@ -3,7 +3,6 @@ package setup
 import (
 	"context"
 	"crypto/ecdsa"
-	"github.com/ethereum/go-ethereum/params"
 	"math/big"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 //PrepareTestEnv ...
@@ -109,6 +109,37 @@ func PrepareTestEnvironment(deployerPrivateKey string, ethValidatorAddrKeys []st
 func DeployContracts() (*ethtxs.DeployPara, *ethinterface.SimExtend, *ethtxs.X2EthContracts, *ethtxs.X2EthDeployInfo, error) {
 	ctx := context.Background()
 	sim, para := PrepareTestEnv()
+
+	opts, _ := bind.NewKeyedTransactorWithChainID(para.DeployPrivateKey, big.NewInt(1337))
+	parsed, _ := abi.JSON(strings.NewReader(generated.BridgeBankBin))
+	contractAddr, _, _, _ := bind.DeployContract(opts, parsed, common.FromHex(generated.BridgeBankBin), sim)
+	sim.Commit()
+
+	callMsg := ethereum.CallMsg{
+		From: para.Deployer,
+		To:   &contractAddr,
+		Data: common.FromHex(generated.BridgeBankBin),
+	}
+
+	_, err := sim.EstimateGas(ctx, callMsg)
+	if nil != err {
+		panic("failed to estimate gas due to:" + err.Error())
+	}
+	x2EthContracts, x2EthDeployInfo, err := ethtxs.DeployAndInit(sim, para)
+	if nil != err {
+		return nil, nil, nil, nil, err
+	}
+	sim.Commit()
+
+	return para, sim, x2EthContracts, x2EthDeployInfo, nil
+}
+
+//DeploySpecificContracts ...
+func DeploySpecificContracts(deployerPrivateKey string, ethValidatorAddrKeys []string) (*ethtxs.DeployPara, *ethinterface.SimExtend, *ethtxs.X2EthContracts, *ethtxs.X2EthDeployInfo, error) {
+	ctx := context.Background()
+	backend, para := PrepareTestEnvironment(deployerPrivateKey, ethValidatorAddrKeys)
+	sim := new(ethinterface.SimExtend)
+	sim.SimulatedBackend = backend.(*backends.SimulatedBackend)
 
 	opts, _ := bind.NewKeyedTransactorWithChainID(para.DeployPrivateKey, big.NewInt(1337))
 	parsed, _ := abi.JSON(strings.NewReader(generated.BridgeBankBin))

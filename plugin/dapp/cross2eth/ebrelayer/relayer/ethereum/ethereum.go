@@ -79,7 +79,6 @@ var (
 	relayerLog = log.New("module", "ethereum_relayer")
 )
 
-//const ...
 const (
 	DefaultBlockPeriod = 5000
 )
@@ -294,7 +293,6 @@ func (ethRelayer *Relayer4Ethereum) ShowTokenAddrBySymbol(tokenSymbol string) (s
 	return ethtxs.GetToken2address(ethRelayer.x2EthContracts.BridgeBank, tokenSymbol)
 }
 
-//ShowTokenAddrBySymbol ...
 func (ethRelayer *Relayer4Ethereum) ShowLockedTokenAddress(tokenSymbol string) (string, error) {
 	return ethtxs.GetLockedTokenAddress(ethRelayer.x2EthContracts.BridgeBank, tokenSymbol)
 }
@@ -325,22 +323,6 @@ func (ethRelayer *Relayer4Ethereum) AddToken2LockList(symbol, token string) (str
 	txhash, err := ethtxs.AddToken2LockList(symbol, token, ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthContracts)
 	return txhash, err
 }
-
-////CreateERC20Token ...
-//func (ethRelayer *Relayer4Ethereum) CreateERC20Token(symbol string) (string, error) {
-//	ethRelayer.rwLock.RLock()
-//	defer ethRelayer.rwLock.RUnlock()
-//	return ethtxs.CreateERC20Token(symbol, ethRelayer.clientSpec, ethRelayer.operatorInfo)
-//}
-//
-////MintERC20Token ...
-//func (ethRelayer *Relayer4Ethereum) MintERC20Token(tokenAddr, ownerAddr, amount string) (string, error) {
-//	bn := big.NewInt(1)
-//	bn, _ = bn.SetString(utils.TrimZeroAndDot(amount), 10)
-//	ethRelayer.rwLock.RLock()
-//	defer ethRelayer.rwLock.RUnlock()
-//	return ethtxs.MintERC20Token(tokenAddr, ownerAddr, bn, ethRelayer.clientSpec, ethRelayer.operatorInfo)
-//}
 
 //DeployERC20 ...
 func (ethRelayer *Relayer4Ethereum) DeployERC20(ownerAddr, name, symbol, amount string) (string, error) {

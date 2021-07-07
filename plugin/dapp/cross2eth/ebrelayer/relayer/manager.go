@@ -460,7 +460,6 @@ func (manager *Manager) CreateBridgeToken(symbol string, result *interface{}) er
 	return nil
 }
 
-// AddToken2LockList
 func (manager *Manager) AddToken2LockList(token relayerTypes.ETHTokenLockAddress, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -477,42 +476,6 @@ func (manager *Manager) AddToken2LockList(token relayerTypes.ETHTokenLockAddress
 	}
 	return nil
 }
-
-////CreateERC20Token ...
-//func (manager *Manager) CreateERC20Token(symbol string, result *interface{}) error {
-//	manager.mtx.Lock()
-//	defer manager.mtx.Unlock()
-//	if err := manager.checkPermission(); nil != err {
-//		return err
-//	}
-//	tokenAddr, err := manager.ethRelayer.CreateERC20Token(symbol)
-//	if nil != err {
-//		return err
-//	}
-//	*result = relayerTypes.ReplyAddr{
-//		IsOK: true,
-//		Addr: tokenAddr,
-//	}
-//	return nil
-//}
-
-////MintErc20 ...
-//func (manager *Manager) MintErc20(mintToken relayerTypes.MintToken, result *interface{}) error {
-//	manager.mtx.Lock()
-//	defer manager.mtx.Unlock()
-//	if err := manager.checkPermission(); nil != err {
-//		return err
-//	}
-//	txhash, err := manager.ethRelayer.MintERC20Token(mintToken.TokenAddr, mintToken.Owner, mintToken.Amount)
-//	if nil != err {
-//		return err
-//	}
-//	*result = rpctypes.Reply{
-//		IsOk: true,
-//		Msg:  txhash,
-//	}
-//	return nil
-//}
 
 //DeployERC20 ...
 func (manager *Manager) DeployERC20(Erc20Token relayerTypes.ERC20Token, result *interface{}) error {
@@ -587,7 +550,7 @@ func (manager *Manager) BurnAsync(burn relayerTypes.Burn, result *interface{}) e
 	return nil
 }
 
-//SimBurnFromEth: 模拟从eth销毁资产，提币回到chain33,使用LockBTY仅为测试使用
+// SimBurnFromEth : 模拟从eth销毁资产，提币回到chain33,使用LockBTY仅为测试使用
 func (manager *Manager) SimBurnFromEth(burn relayerTypes.Burn, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -604,7 +567,7 @@ func (manager *Manager) SimBurnFromEth(burn relayerTypes.Burn, result *interface
 	return nil
 }
 
-//SimLockFromEth: 模拟从eth锁住eth/erc20，转移到chain33
+// SimLockFromEth : 模拟从eth锁住eth/erc20，转移到chain33
 func (manager *Manager) SimLockFromEth(lock relayerTypes.LockEthErc20, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -845,7 +808,6 @@ func (manager *Manager) ShowTokenAddress(token2show relayerTypes.TokenAddress, r
 	return nil
 }
 
-// ShowETHLockTokenAddress
 func (manager *Manager) ShowETHLockTokenAddress(token2show relayerTypes.TokenAddress, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -885,7 +847,7 @@ func (manager *Manager) checkPermission() error {
 	return nil
 }
 
-//ShowEthRelayer2Chain33Txs ...
+// ShowTokenStatics ShowEthRelayer2Chain33Txs ...
 func (manager *Manager) ShowTokenStatics(request relayerTypes.TokenStaticsRequest, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -1017,7 +979,6 @@ func (manager *Manager) SafeTransfer4Eth(para relayerTypes.SafeTransfer, result 
 	return nil
 }
 
-// ConfigOfflineSaveAccount
 func (manager *Manager) ConfigOfflineSaveAccount(addr string, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
@@ -1035,7 +996,6 @@ func (manager *Manager) ConfigOfflineSaveAccount(addr string, result *interface{
 	return nil
 }
 
-// ConfigLockedTokenOfflineSave
 func (manager *Manager) ConfigLockedTokenOfflineSave(config relayerTypes.ETHConfigLockedTokenOffline, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
