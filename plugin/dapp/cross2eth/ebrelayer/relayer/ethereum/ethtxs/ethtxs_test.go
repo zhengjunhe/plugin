@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"math/big"
+	"strings"
 	"testing"
 
 	chain33Common "github.com/33cn/chain33/common"
@@ -11,6 +12,7 @@ import (
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/ethereum/ethinterface"
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/ebrelayer/relayer/events"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -64,36 +66,26 @@ func Test_RelayOracleClaimToEthereum(t *testing.T) {
 	para, sim, x2EthContracts, _, err := deployContracts()
 	require.NoError(t, err)
 
-	claimType := events.MsgBurn
 	privateKeySlice, err := chain33Common.FromHex("0x3fa21584ae2e4fd74db9b58e2386f5481607dfa4d7ba0617aaa7858e5025dc1e")
 	require.Nil(t, err)
 	privateKey, err := crypto.ToECDSA(privateKeySlice)
 	require.Nil(t, err)
 
 	prophecyClaim := ProphecyClaim{
-		ClaimType:            events.MsgBurn,
+		ClaimType:            events.ClaimTypeBurn,
 		Chain33Sender:        []byte("12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"),
 		EthereumReceiver:     common.HexToAddress("0x0C05bA5c230fDaA503b53702aF1962e08D0C60BF"),
 		TokenContractAddress: common.HexToAddress("0x0000000000000000000000000000000000000000"),
 		Symbol:               "eth",
 		Amount:               big.NewInt(100000000000000000),
+		chain33TxHash:        common.Hex2Bytes("fd5747c43d1460bb6f8a7a26c66b4ccab5500d05668278efe5c0fd5951dfd909"),
 	}
 
-	chain33TxHash := common.Hex2Bytes("fd5747c43d1460bb6f8a7a26c66b4ccab5500d05668278efe5c0fd5951dfd909")
-	txhash, err := RelayOracleClaimToEthereum(x2EthContracts.Oracle, sim, para.InitValidators[0], claimType, prophecyClaim, privateKey, chain33TxHash)
+	_, err = RelayOracleClaimToEthereum(x2EthContracts.Oracle, sim, para.InitValidators[0], common.HexToAddress("0x0000000000000000000000000000000000000000"), prophecyClaim, privateKey)
 	require.Nil(t, err)
-	assert.Equal(t, txhash, "0x6fa087c7a2a8a4421f6e269fbc6c0838e99fa59d5760155a71cd7eb1c01aafad")
-
-	//hash := "0xc0c22aa6198fdde0dbe47ddadbe449f736b82ed4a498871de5d5f4ad9ae122a0"
-	//status := GetEthTxStatus(sim, common.HexToHash(hash))
-	//assert.Equal(t, status, EthTxPending.String())
 
 	_, err = revokeNonce(para.Operator)
 	require.Nil(t, err)
-}
-
-func Test_revokeNonce(t *testing.T) {
-
 }
 
 func deployContracts() (*DeployPara, *ethinterface.SimExtend, *X2EthContracts, *X2EthDeployInfo, error) {
@@ -117,8 +109,14 @@ func deployContracts() (*DeployPara, *ethinterface.SimExtend, *X2EthContracts, *
 	sim := new(ethinterface.SimExtend)
 	sim.SimulatedBackend = backend.(*backends.SimulatedBackend)
 
+	opts, _ := bind.NewKeyedTransactorWithChainID(para.DeployPrivateKey, big.NewInt(1337))
+	parsed, _ := abi.JSON(strings.NewReader(generated.BridgeBankBin))
+	contractAddr, _, _, _ := bind.DeployContract(opts, parsed, common.FromHex(generated.BridgeBankBin), sim)
+	sim.Commit()
+
 	callMsg := ethereum.CallMsg{
 		From: para.Deployer,
+		To:   &contractAddr,
 		Data: common.FromHex(generated.BridgeBankBin),
 	}
 

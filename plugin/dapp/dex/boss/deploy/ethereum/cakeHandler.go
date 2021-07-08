@@ -109,7 +109,7 @@ func PrepareAuth(privateKey *ecdsa.PrivateKey, transactor common.Address) (*bind
 	return auth, nil
 }
 
-func DeployPancake(key string ) error {
+func DeployPancake(key string) error {
 	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
@@ -121,7 +121,6 @@ func DeployPancake(key string ) error {
 	factoryAddr, deployFactoryTx, _, err := pancakeFactory.DeployPancakeFactory(auth, ethClient, fee2setterAddr)
 	if nil != err {
 		panic(fmt.Sprintf("Failed to DeployPancakeFactory with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -156,7 +155,6 @@ deployWeth9:
 	weth9Addr, deployWeth9Tx, _, err := pancakeRouter.DeployWETH9(auth, ethClient)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to DeployWETH9 with err:%s", err.Error()))
-		return err
 	}
 	{
 		fmt.Println("\nDeployWETH9 tx hash:", deployWeth9Tx.Hash().String())
@@ -189,7 +187,6 @@ deployPancakeRouter:
 	pancakeRouterAddr, deploypancakeTx, _, err := pancakeRouter.DeployPancakeRouter(auth, ethClient, factoryAddr, weth9Addr)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to DeployPancakeRouter with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -213,21 +210,18 @@ deployPancakeRouter:
 			}
 		}
 	}
-
-	return nil
 }
 
-func recoverEthTestNetPrivateKey(key string ) (err error) {
+func recoverEthTestNetPrivateKey(key string) (err error) {
 	//louyuqi: f726c7c704e57ec5d59815dda23ddd794f71ae15f7e0141f00f73eff35334ac6
 	//hzj: 2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9 --->addr:0x21B5f4C2F6Ff418fa0067629D9D76AE03fB4a2d2
-	defaultkey:="2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9"
-	if key!=""{
-		defaultkey=key
+	defaultkey := "2bcf3e23a17d3f3b190a26a098239ad2d20267a673440e0f57a23f44f94b77b9"
+	if key != "" {
+		defaultkey = key
 	}
 	privateKey, err = crypto.ToECDSA(common.FromHex(defaultkey))
 	if nil != err {
 		panic("Failed to recover private key")
-		return err
 	}
 	deployerAddr = crypto.PubkeyToAddress(privateKey.PublicKey)
 	fmt.Println("The address is:", deployerAddr.String())
@@ -245,7 +239,7 @@ func recoverEthTestNetPrivateKey(key string ) (err error) {
 //   last Vault Addr is 0x0183661e6b9288ebF98De625B4501bCF05c7b4cD
 //Succeed to deploy contracts
 
-func AddAllowance4LPHandle(lp string, spender ,key string, amount int64) (err error) {
+func AddAllowance4LPHandle(lp string, spender, key string, amount int64) (err error) {
 	_ = recoverEthTestNetPrivateKey(key)
 	pairInt, err := pancakeFactory.NewPancakePair(common.HexToAddress(lp), ethClient)
 	if nil != err {
@@ -258,7 +252,6 @@ func AddAllowance4LPHandle(lp string, spender ,key string, amount int64) (err er
 	approveTx, err := pairInt.Approve(auth, common.HexToAddress(spender), big.NewInt(amount))
 	if nil != err {
 		panic(fmt.Sprintf("Failed to Approve with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -279,7 +272,6 @@ func AddAllowance4LPHandle(lp string, spender ,key string, amount int64) (err er
 				}
 				fmt.Println("\n Succeed to do the approve operation")
 				goto checkAllowance
-				return nil
 			}
 		}
 	}
@@ -305,7 +297,6 @@ func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit ui
 	feeToSetterPrivateKey, err := crypto.ToECDSA(common.FromHex(feeToSetterPrivateKeyStr))
 	if nil != err {
 		panic("Failed to recover private key")
-		return err
 	}
 	feeToSetter := crypto.PubkeyToAddress(feeToSetterPrivateKey.PublicKey)
 	fmt.Println("The address is:", deployerAddr.String())
@@ -346,7 +337,7 @@ func setFeeToHandle(factory, feeTo, feeToSetterPrivateKeyStr string, gasLimit ui
 	}
 }
 
-func CheckAllowance4LPHandle(lp string, spender,key  string) (err error) {
+func CheckAllowance4LPHandle(lp string, spender, key string) (err error) {
 	_ = recoverEthTestNetPrivateKey(key)
 	pairInt, err := pancakeFactory.NewPancakePair(common.HexToAddress(lp), ethClient)
 	if nil != err {
@@ -367,7 +358,7 @@ func CheckAllowance4LPHandle(lp string, spender,key  string) (err error) {
 	return nil
 }
 
-func showPairInitCodeHashHandle(factory ,key string) (err error) {
+func showPairInitCodeHashHandle(factory, key string) (err error) {
 	_ = recoverEthTestNetPrivateKey(key)
 	factoryInt, err := pancakeFactory.NewPancakeFactory(common.HexToAddress(factory), ethClient)
 	if nil != err {

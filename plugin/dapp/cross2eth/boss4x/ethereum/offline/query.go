@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 )
+
 //查询deploy 私钥的nonce信息，并输出到文件中
 type queryCmd struct {
 }
@@ -36,6 +37,9 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	addr, _ := cmd.Flags().GetString("address")
 
 	client, err := ethclient.Dial(url)
+	if err != nil {
+		panic(err)
+	}
 
 	ctx := context.Background()
 	price, err := client.SuggestGasPrice(ctx)
@@ -56,7 +60,6 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	return
 
 }
-
 
 func paraseFile(file string, result interface{}) error {
 	_, err := os.Stat(file)

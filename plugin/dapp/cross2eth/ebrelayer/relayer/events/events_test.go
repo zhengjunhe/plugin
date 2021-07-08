@@ -1,13 +1,11 @@
 package events
 
 import (
-	"math/big"
 	"strings"
 	"testing"
 
 	"github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/contracts4eth/generated"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,11 +22,6 @@ func Test_UnpackLogLock(t *testing.T) {
 
 	_, err = UnpackLogBurn(contractABI, eventName, eventData)
 	require.NotNil(t, err)
-}
-
-func Test_NewChain33Msg(t *testing.T) {
-	_ = NewChain33Msg(MsgBurn, []byte("12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"), common.HexToAddress("0x0C05bA5c230fDaA503b53702aF1962e08D0C60BF"),
-		"eth", big.NewInt(100000000000000000), common.HexToAddress("0x0000000000000000000000000000000000000000"))
 }
 
 func Test_Chain33MsgAttributeKey(t *testing.T) {

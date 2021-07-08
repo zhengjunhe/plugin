@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func GetCakeBalance(owner  string, pid int64) (string, error) {
+func GetCakeBalance(owner string, pid int64) (string, error) {
 	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress("0xD88654a6aAc42a7192d697a8250a93246De882C6"), ethClient)
 	if nil != err {
 		return "", err
@@ -30,7 +30,7 @@ func GetCakeBalance(owner  string, pid int64) (string, error) {
 	return amount.String(), nil
 }
 
-func DeployFarm(key string ) error {
+func DeployFarm(key string) error {
 	_ = recoverEthTestNetPrivateKey(key)
 	//1st step to deploy factory
 	auth, err := PrepareAuth(privateKey, deployerAddr)
@@ -41,7 +41,6 @@ func DeployFarm(key string ) error {
 	cakeTokenAddr, deploycakeTokenTx, _, err := cakeToken.DeployCakeToken(auth, ethClient)
 	if nil != err {
 		panic(fmt.Sprintf("Failed to DeployCakeToken with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -74,7 +73,6 @@ deploySyrupBar:
 	SyrupBarAddr, deploySyrupBarTx, _, err := syrupBar.DeploySyrupBar(auth, ethClient, cakeTokenAddr)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to DeploySyrupBar with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -108,7 +106,6 @@ deployMasterchef:
 	MasterChefAddr, deployMasterChefTx, _, err := masterChef.DeployMasterChef(auth, ethClient, cakeTokenAddr, SyrupBarAddr, deployerAddr, big.NewInt(5*1e18), big.NewInt(100))
 	if err != nil {
 		panic(fmt.Sprintf("Failed to DeployMasterChef with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -132,10 +129,9 @@ deployMasterchef:
 			}
 		}
 	}
-	return nil
 }
 
-func AddPool2FarmHandle(masterChefAddrStr ,key string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
+func AddPool2FarmHandle(masterChefAddrStr, key string, allocPoint int64, lpToken string, withUpdate bool, gasLimit uint64) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
@@ -172,11 +168,9 @@ func AddPool2FarmHandle(masterChefAddrStr ,key string, allocPoint int64, lpToken
 			return nil
 		}
 	}
-
-	return nil
 }
 
-func UpdateAllocPointHandle(masterChefAddrStr,key string, pid, allocPoint int64, withUpdate bool) (err error) {
+func UpdateAllocPointHandle(masterChefAddrStr, key string, pid, allocPoint int64, withUpdate bool) (err error) {
 	masterChefAddr := common.HexToAddress(masterChefAddrStr)
 	masterChefInt, err := masterChef.NewMasterChef(masterChefAddr, ethClient)
 	if nil != err {
@@ -193,7 +187,6 @@ func UpdateAllocPointHandle(masterChefAddrStr,key string, pid, allocPoint int64,
 	SetPool2FarmTx, err := masterChefInt.Set(auth, big.NewInt(pid), big.NewInt(allocPoint), withUpdate)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to SetPool2FarmTx with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -216,10 +209,9 @@ func UpdateAllocPointHandle(masterChefAddrStr,key string, pid, allocPoint int64,
 			}
 		}
 	}
-	return nil
 }
 
-func TransferOwnerShipHandle(newOwner, contract ,key string) (err error) {
+func TransferOwnerShipHandle(newOwner, contract, key string) (err error) {
 	contractAddr := common.HexToAddress(contract)
 	contractInt, err := syrupBar.NewSyrupBar(contractAddr, ethClient)
 	if nil != err {
@@ -238,7 +230,6 @@ func TransferOwnerShipHandle(newOwner, contract ,key string) (err error) {
 	TransferOwnershipTx, err := contractInt.TransferOwnership(auth, newOwnerAddr)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to TransferOwnership with err:%s", err.Error()))
-		return err
 	}
 
 	{
@@ -261,11 +252,9 @@ func TransferOwnerShipHandle(newOwner, contract ,key string) (err error) {
 			}
 		}
 	}
-
-	return nil
 }
 
-func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef ,key string) (err error) {
+func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterchef, key string) (err error) {
 	_ = recoverEthTestNetPrivateKey(key)
 	masterChefInt, err := masterChef.NewMasterChef(common.HexToAddress(masterchef), ethClient)
 	if nil != err {
@@ -278,7 +267,6 @@ func updateCakePerBlockHandle(cakePerBlock *big.Int, startBlock int64, masterche
 	updateCakePerBlockTx, err := masterChefInt.UpdateCakePerBlock(auth, cakePerBlock, big.NewInt(startBlock))
 	if nil != err {
 		panic(fmt.Sprintf("Failed to UpdateCakePerBlock with err:%s", err.Error()))
-		return err
 	}
 
 	{

@@ -73,7 +73,7 @@ func Test_GetValidatorAddr(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	addr, err := ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
+	_, err = ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
 	require.Nil(t, err)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
@@ -84,7 +84,7 @@ func Test_GetValidatorAddr(t *testing.T) {
 	require.Nil(t, err)
 	assert.NotEqual(t, privateKey, ethPrivateKeyStr)
 
-	privateKey, addr, err = ethRelayer.GetAccount(passphrase)
+	privateKey, addr, err := ethRelayer.GetAccount(passphrase)
 	require.Nil(t, err)
 	assert.Equal(t, privateKey, ethPrivateKeyStr)
 	assert.Equal(t, addr, ethAccountAddr)
@@ -134,12 +134,13 @@ func Test_ShowAddr(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	addr, err := ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
+	_, err = ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
+	require.NoError(t, err)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	ethRelayer.prePareSubscribeEvent()
 
-	addr, err = ethRelayer.ShowBridgeBankAddr()
+	addr, err := ethRelayer.ShowBridgeBankAddr()
 	require.Nil(t, err)
 	assert.Equal(t, addr, x2EthDeployInfo.BridgeBank.Address.String())
 
@@ -202,7 +203,8 @@ func Test_CreateBridgeToken(t *testing.T) {
 	para, sim, x2EthContracts, x2EthDeployInfo, err := setup.DeployContracts()
 	require.NoError(t, err)
 	ethRelayer := newEthRelayer(para, sim, x2EthContracts, x2EthDeployInfo)
-	addr, err := ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
+	_, err = ethRelayer.ImportPrivateKey(passphrase, ethPrivateKeyStr)
+	require.NoError(t, err)
 	time.Sleep(4 * time.Duration(ethRelayer.fetchHeightPeriodMs) * time.Millisecond)
 
 	balance, err := ethRelayer.GetBalance("", para.InitValidators[0].String())
@@ -214,7 +216,7 @@ func Test_CreateBridgeToken(t *testing.T) {
 	require.NotEmpty(t, tokenAddrbty)
 	sim.Commit()
 
-	addr, err = ethRelayer.ShowTokenAddrBySymbol("BTY")
+	addr, err := ethRelayer.ShowTokenAddrBySymbol("BTY")
 	require.Nil(t, err)
 	assert.Equal(t, addr, tokenAddrbty)
 

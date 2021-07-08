@@ -222,13 +222,6 @@ func createMasterChef(cmd *cobra.Command, args []string) {
 		ParaName:   paraName,
 		ChainID:    chainID,
 	}
-	//constructor(
-	//	CakeToken _cake,
-	//	SyrupBar _syrup,
-	//	address _devaddr,
-	//	uint256 _cakePerBlock,
-	//	uint256 _startBlock
-	//) public {
 	createPara := fmt.Sprintf("%s,%s,%s,%d,%d", cakeTokenTx.ContractAddr, syrupBarTx.ContractAddr, devaddr, cakePerBlock, startBlock)
 	content, txHash, err := utils.CreateContractAndSign(info, masterChef.MasterChefBin, masterChef.MasterChefABI, createPara, "masterChef")
 	if nil != err {
@@ -256,7 +249,7 @@ func createMasterChef(cmd *cobra.Command, args []string) {
 	txs = append(txs, cakeTokenOwnerShipTransferTx)
 
 	fmt.Printf("%d: Going to transfer OwnerShip from syrupBar to masterchef\n", i)
-	i += 1
+	//i += 1
 	syrupBarOwnerShipTransferTx, err := TransferOwnerShip(cmd, from, masterChefTx.ContractAddr, syrupBarTx.ContractAddr, "transfer syrupBar's ownership to masterchef")
 	if nil != err {
 		fmt.Println("Failed to Transfer OwnerShip:", err.Error())

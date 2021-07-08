@@ -46,21 +46,19 @@ func (s *SignCmd) signCmd() *cobra.Command {
 func (s *SignCmd) addSignFlag(cmd *cobra.Command) {
 	cmd.Flags().StringP("conf", "c", "", "config file")
 	cmd.MarkFlagRequired("conf")
-	cmd.Flags().Uint64P("nonce","n",-1,"transaction count")
+	cmd.Flags().Uint64P("nonce", "n", 0, "transaction count")
 	cmd.MarkFlagRequired("nonce")
-	cmd.Flags().Uint64P("gasprice","g",1000000000,"gas price")// 1Gwei=1e9wei
+	cmd.Flags().Uint64P("gasprice", "g", 1000000000, "gas price") // 1Gwei=1e9wei
 	cmd.MarkFlagRequired("gasprice")
 
 }
 
 func (s *SignCmd) SignContractTx(cmd *cobra.Command, args []string) {
 	cfgpath, _ := cmd.Flags().GetString("conf")
-	gasprice,_:=cmd.Flags().GetUint64("gasprice")
-	nonce,_:=cmd.Flags().GetUint64("nonce")
-	var deployCfg  DepolyInfo
+	gasprice, _ := cmd.Flags().GetUint64("gasprice")
+	nonce, _ := cmd.Flags().GetUint64("nonce")
+	var deployCfg DepolyInfo
 	InitCfg(cfgpath, &deployCfg)
-
-
 
 	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(deployCfg.DeployerPrivateKey))
 	if err != nil {
@@ -69,11 +67,11 @@ func (s *SignCmd) SignContractTx(cmd *cobra.Command, args []string) {
 	}
 
 	deployerAddr := crypto.PubkeyToAddress(deployPrivateKey.PublicKey)
-	s.deployerAddr=deployerAddr
-	s.Nonce=nonce
-	s.GasPrice=gasprice
-	s.From=deployerAddr.String()
-	s.key=deployPrivateKey
+	s.deployerAddr = deployerAddr
+	s.Nonce = nonce
+	s.GasPrice = gasprice
+	s.From = deployerAddr.String()
+	s.key = deployPrivateKey
 
 	if len(deployCfg.InitPowers) != len(deployCfg.ValidatorsAddr) {
 		panic("not same number for validator address and power")
@@ -118,7 +116,6 @@ func (s *SignCmd) SignContractTx(cmd *cobra.Command, args []string) {
 }
 
 func (s *SignCmd) signValSet(validators []common.Address, powers []*big.Int) *eoff.DeployContract {
-
 	parsed, err := abi.JSON(strings.NewReader(generated.ValsetABI))
 	if err != nil {
 		panic(err)
@@ -130,9 +127,18 @@ func (s *SignCmd) signValSet(validators []common.Address, powers []*big.Int) *eo
 		panic(err)
 	}
 	data := append(vbin, input...)
-	rawTx := types.NewContractCreation(s.Nonce, big.NewInt(0), gasLimit, big.NewInt(int64(s.GasPrice)), data)
+	rawTx := types.NewTx(&types.LegacyTx{
+		Nonce:    s.Nonce,
+		Value:    big.NewInt(0),
+		Gas:      gasLimit,
+		GasPrice: big.NewInt(int64(s.GasPrice)),
+		Data:     data,
+	})
 	//signedtx
 	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
+	if err != nil {
+		panic(err)
+	}
 	contractAddress := crypto.CreateAddress(s.deployerAddr, s.Nonce)
 	var valSet eoff.DeployContract
 	valSet.Nonce = s.Nonce
@@ -159,6 +165,9 @@ func (s *SignCmd) signChain33Bridge(nonce uint64, operater, valSetAddr common.Ad
 	rawTx := types.NewContractCreation(nonce, big.NewInt(0), gasLimit, big.NewInt(int64(s.GasPrice)), data)
 	//signedtx
 	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
+	if err != nil {
+		panic(err)
+	}
 	contractAddress := crypto.CreateAddress(operater, nonce)
 	var bridge eoff.DeployContract
 	bridge.Nonce = nonce
@@ -184,6 +193,9 @@ func (s *SignCmd) signOracle(nonce uint64, valsetAddr, bridgeAddr common.Address
 	rawTx := types.NewContractCreation(nonce, big.NewInt(0), gasLimit, big.NewInt(int64(s.GasPrice)), data)
 	//signedtx
 	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
+	if err != nil {
+		panic(err)
+	}
 	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
 	var oracle eoff.DeployContract
 	oracle.Nonce = nonce
@@ -195,7 +207,6 @@ func (s *SignCmd) signOracle(nonce uint64, valsetAddr, bridgeAddr common.Address
 }
 
 func (s *SignCmd) SignBridgeBank(nonce uint64, bridgeAddr, oracalAddr common.Address) *eoff.DeployContract {
-
 	parsed, err := abi.JSON(strings.NewReader(generated.BridgeBankABI))
 	if err != nil {
 		panic(err)
@@ -210,6 +221,9 @@ func (s *SignCmd) SignBridgeBank(nonce uint64, bridgeAddr, oracalAddr common.Add
 	rawTx := types.NewContractCreation(nonce, big.NewInt(0), gasLimit, big.NewInt(int64(s.GasPrice)), data)
 	//signedtx
 	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
+	if err != nil {
+		panic(err)
+	}
 	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
 	var bank eoff.DeployContract
 	bank.Nonce = nonce

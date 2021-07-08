@@ -106,6 +106,4 @@ deployMasterChef:
 			}
 		}
 	}
-
-	return nil
 }

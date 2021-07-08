@@ -37,6 +37,9 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	addr, _ := cmd.Flags().GetString("address")
 
 	client, err := ethclient.Dial(url)
+	if err != nil {
+		panic(err)
+	}
 	ctx := context.Background()
 	price, err := client.SuggestGasPrice(ctx)
 	if err != nil {
@@ -105,6 +108,9 @@ func (d *DeployContract) send(cmd *cobra.Command, args []string) {
 			panic(err)
 		}
 		client, err := ethclient.Dial(url)
+		if err != nil {
+			panic(err)
+		}
 		err = client.SendTransaction(context.Background(), tx)
 		if err != nil {
 			fmt.Println("err:", err)

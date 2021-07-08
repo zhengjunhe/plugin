@@ -72,11 +72,13 @@ func deplayErc20(cmd *cobra.Command, args []string) {
 	priv, err := crypto.ToECDSA(common.FromHex(key))
 	if nil != err {
 		panic("Failed to recover private key")
-
 	}
 	deployFrom := crypto.PubkeyToAddress(priv.PublicKey)
 
 	client, err := ethclient.Dial(rpcLaddr)
+	if nil != err {
+		panic(err)
+	}
 	ctx := context.Background()
 	gasPrice, err := client.SuggestGasPrice(ctx)
 	if err != nil {

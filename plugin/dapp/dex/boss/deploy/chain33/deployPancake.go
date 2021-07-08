@@ -45,7 +45,7 @@ func DeployMulticall(cmd *cobra.Command) error {
 				} else if data != "2" {
 					return errors.New("Deploy Multicall failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy Multicall with address =", getContractAddr(caller, txMulticall), "\n")
+				fmt.Println("Succeed to deploy Multicall with address =", getContractAddr(caller, txMulticall), "\\n")
 				return nil
 
 			}
@@ -79,7 +79,7 @@ func DeployERC20(cmd *cobra.Command) error {
 			} else if data != "2" {
 				return errors.New("Deploy ERC20 failed due to" + ", ty = " + data)
 			}
-			fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\n")
+			fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\\n")
 			return nil
 		}
 	}
@@ -110,7 +110,7 @@ func DeployPancake(cmd *cobra.Command) error {
 				} else if data != "2" {
 					return errors.New("Deploy ERC20 failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\n")
+				fmt.Println("Succeed to deploy ERC20 with address =", getContractAddr(caller, txhexERC20), "\\n")
 				goto deployPancakeFactory
 			}
 		}
@@ -137,7 +137,7 @@ deployPancakeFactory:
 				} else if data != "2" {
 					return errors.New("Deploy PancakeFactory failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy pancakeFactory with address =", getContractAddr(caller, txhexPancakeFactory), "\n")
+				fmt.Println("Succeed to deploy pancakeFactory with address =", getContractAddr(caller, txhexPancakeFactory), "\\n")
 				goto deployWeth9
 			}
 		}
@@ -164,7 +164,7 @@ deployWeth9:
 				} else if data != "2" {
 					return errors.New("Deploy Weth9 failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy Weth9 with address =", getContractAddr(caller, txhexWeth9), "\n")
+				fmt.Println("Succeed to deploy Weth9 with address =", getContractAddr(caller, txhexWeth9), "\\n")
 				goto deployPancakeRouter
 			}
 		}
@@ -192,13 +192,11 @@ deployPancakeRouter:
 				} else if data != "2" {
 					return errors.New("Deploy PancakeRouter failed due to" + ", ty = " + data)
 				}
-				fmt.Println("Succeed to deploy PancakeRouter with address =", getContractAddr(caller, txhexPancakeRouter), "\n")
+				fmt.Println("Succeed to deploy PancakeRouter with address =", getContractAddr(caller, txhexPancakeRouter), "\\n")
 				return nil
 			}
 		}
 	}
-
-	return nil
 }
 
 func getContractAddr(caller, txhex string) string {

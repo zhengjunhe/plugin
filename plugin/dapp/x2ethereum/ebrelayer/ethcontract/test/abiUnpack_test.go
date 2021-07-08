@@ -13,7 +13,7 @@ import (
 
 func TestUnpackEvent(t *testing.T) {
 	const abiJSON = `[{"constant":false,"inputs":[{"name":"memo","type":"bytes"}],"name":"receive","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"sender","type":"address"},{"indexed":false,"name":"amount","type":"uint256"},{"indexed":false,"name":"memo","type":"bytes"}],"name":"received","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"sender","type":"address"}],"name":"receivedAddr","type":"event"}]`
-	abi, err := abi.JSON(strings.NewReader(abiJSON))
+	abiData, err := abi.JSON(strings.NewReader(abiJSON))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,10 +34,11 @@ func TestUnpackEvent(t *testing.T) {
 	}
 	var ev ReceivedEvent
 
-	err = abi.Unpack(&ev, "received", data)
+	ret, err := abiData.Unpack("received", data)
 	if err != nil {
 		t.Error(err)
 	}
+	fmt.Println(ret)
 
 	fmt.Printf("\nReceivedEvent sender:%s", ev.Sender.String())
 
@@ -45,9 +46,10 @@ func TestUnpackEvent(t *testing.T) {
 		Sender common.Address
 	}
 	var receivedAddrEv ReceivedAddrEvent
-	err = abi.Unpack(&receivedAddrEv, "receivedAddr", data)
+	ret2, err := abiData.Unpack("receivedAddr", data)
 	if err != nil {
 		t.Error(err)
 	}
+	fmt.Println(ret2)
 	fmt.Printf("\nreceivedAddrEv=%s\n\n\n", receivedAddrEv.Sender.String())
 }
