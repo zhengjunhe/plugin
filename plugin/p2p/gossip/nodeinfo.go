@@ -19,6 +19,8 @@ import (
 // NodeInfo is interface object of the node
 type NodeInfo struct {
 	mtx            sync.Mutex
+	addrmtx 	sync.Mutex
+	lmtx sync.Mutex
 	externalAddr   *NetAddress
 	listenAddr     *NetAddress
 	monitorChan    chan *Peer
@@ -179,29 +181,29 @@ func (nf *NodeInfo) Get() *NodeInfo {
 
 // SetExternalAddr modidy address of the nodeinfo
 func (nf *NodeInfo) SetExternalAddr(addr *NetAddress) {
-	nf.mtx.Lock()
-	defer nf.mtx.Unlock()
+	nf.addrmtx.Lock()
+	defer nf.addrmtx.Unlock()
 	nf.externalAddr = addr
 }
 
 // GetExternalAddr return external address
 func (nf *NodeInfo) GetExternalAddr() *NetAddress {
-	nf.mtx.Lock()
-	defer nf.mtx.Unlock()
+	nf.addrmtx.Lock()
+	defer nf.addrmtx.Unlock()
 	return nf.externalAddr
 }
 
 // SetListenAddr modify listen address
 func (nf *NodeInfo) SetListenAddr(addr *NetAddress) {
-	nf.mtx.Lock()
-	defer nf.mtx.Unlock()
+	nf.lmtx.Lock()
+	defer nf.lmtx.Unlock()
 	nf.listenAddr = addr
 }
 
 // GetListenAddr return listen address
 func (nf *NodeInfo) GetListenAddr() *NetAddress {
-	nf.mtx.Lock()
-	defer nf.mtx.Unlock()
+	nf.lmtx.Lock()
+	defer nf.lmtx.Unlock()
 	return nf.listenAddr
 }
 
