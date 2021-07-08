@@ -265,7 +265,7 @@ func testPeer(t *testing.T, p2p *P2p, q queue.Queue) {
 
 	_, err = p2pcli.SendVersion(peer, localP2P.node.nodeInfo)
 	assert.Nil(t, err)
-	t.Log("nodeinfo", localP2P.node.nodeInfo)
+	//t.Log("nodeinfo", localP2P.node.nodeInfo)
 	t.Log(p2pcli.CheckPeerNatOk("localhost:53802", localP2P.node.nodeInfo))
 	t.Log("checkself:", p2pcli.CheckSelf("loadhost:43803", localP2P.node.nodeInfo))
 	_, err = p2pcli.GetAddr(peer)
