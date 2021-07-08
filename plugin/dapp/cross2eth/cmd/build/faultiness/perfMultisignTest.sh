@@ -90,6 +90,7 @@ function lockChain33Ycc() {
     lock_chain33_ycc_multisign 10 52 318
 
      # transfer test
+    # shellcheck disable=SC2154
     hash=$(${CLIA} chain33 multisign transfer -a 10 -r "${chain33BridgeBank}" -t "${chain33YccErc20Addr}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
     check_tx "${Chain33Cli}" "${hash}"
     sleep 2
@@ -98,6 +99,7 @@ function lockChain33Ycc() {
     result=$(${Chain33Cli} evm abi call -a "${chain33YccErc20Addr}" -c "${multisignChain33Addr}" -b "balanceOf(${multisignChain33Addr})")
     is_equal "${result}" "30800000000"
 
+    # shellcheck disable=SC2154
     hash=$(${CLIA} chain33 multisign transfer -a 5 -r "${chain33MultisignA}" -t "${chain33YccErc20Addr}" -k "${chain33MultisignKeyA},${chain33MultisignKeyB},${chain33MultisignKeyC},${chain33MultisignKeyD}" | jq -r ".msg")
     check_tx "${Chain33Cli}" "${hash}"
     sleep 2
@@ -129,6 +131,7 @@ function lockEth() {
     lock_eth_multisign 16 13 23
 
     # transfer
+    # shellcheck disable=SC2154
     ${CLIA} ethereum multisign transfer -a 3 -r "${ethBridgeBank}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
     sleep 2
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}")
@@ -137,6 +140,7 @@ function lockEth() {
     cli_ret "${result}" "balance" ".balance" "20"
 
     # transfer
+    # shellcheck disable=SC2154
     ${CLIA} ethereum multisign transfer -a 5 -r "${ethMultisignA}" -k "${ethMultisignKeyA},${ethMultisignKeyB},${ethMultisignKeyC},${ethMultisignKeyD}"
     sleep 2
     result=$(${CLIA} ethereum balance -o "${ethMultisignA}")

@@ -294,12 +294,12 @@ function updata_toml_start_BCD() {
 function validators_config() {
     # 修改 relayer.toml 配置文件 initPowers
     # shellcheck disable=SC2155
-    line=$(delete_line_show "./relayer.toml" "initPowers=\[96, 1, 1, 1\]")
+    line=$(delete_line_show "./relayer.toml" "initPowers=\\[96, 1, 1, 1\\]")
     if [ "${line}" ]; then
         sed -i ''"${line}"' a initPowers=[25, 25, 25, 25]' "./relayer.toml"
     fi
 
-    line=$(delete_line_show "./relayer.toml" "initPowers=\[96, 1, 1, 1\]")
+    line=$(delete_line_show "./relayer.toml" "initPowers=\\[96, 1, 1, 1\\]")
     if [ "${line}" ]; then
         sed -i ''"${line}"' a initPowers=[25, 25, 25, 25]' "./relayer.toml"
     fi
@@ -314,7 +314,7 @@ function validators_config() {
         sed -i ''"${line}"' a deployerPrivateKey='\""${chain33DeployKey}"\"'' "./relayer.toml"
     fi
 
-    line=$(delete_line_show "./relayer.toml" "validatorsAddr=\[\"14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
+    line=$(delete_line_show "./relayer.toml" "validatorsAddr=\\[\"14KEKbYtKKQm4wMthSK9J4La4nAiidGozt")
     if [ "${line}" ]; then
         sed -i ''"${line}"' a validatorsAddr=['\""${chain33ValidatorA}"\"', '\""${chain33ValidatorB}"\"', '\""${chain33ValidatorC}"\"', '\""${chain33ValidatorD}"\"']' "./relayer.toml"
     fi

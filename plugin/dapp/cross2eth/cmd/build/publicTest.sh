@@ -286,13 +286,13 @@ function kill_ebrelayer() {
         return
     fi
 
-    kill -9 ${pid}
+    kill -9 "${pid}"
     sleep 1
     # shellcheck disable=SC2009
     pid=$(ps -ef | grep "${1}" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" != "" ]; then
         echo "kill ${1} failed"
-        kill -9 ${pid}
+        kill -9 "${pid}"
     fi
     sleep 1
 }
@@ -549,7 +549,7 @@ function pushNameChange() {
     # 修改 relayer.toml 配置文件 pushName 字段
     line=$(delete_line_show "${file}" "pushName")
     local time=$(date "+%m-%d-%H:%M:%S")
-    sed -i ''"${line}"' a pushName="cross2eth_'${time}'"' "${file}"
+    sed -i ''"${line}"' a pushName="cross2eth_'"${time}"'"' "${file}"
 }
 
 # $1 keyName $2 newData $3 file

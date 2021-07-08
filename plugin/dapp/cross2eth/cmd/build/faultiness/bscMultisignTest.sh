@@ -8,7 +8,7 @@ source "./publicTest.sh"
 source "./relayerPublic.sh"
 
 # ETH 部署合约者的私钥 用于部署合约时签名使用
-ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
+#ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
 ethDeployKey="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230"
 
 
@@ -22,17 +22,10 @@ ethValidatorAddrKeyA="8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d532721046
 chain33ReceiverAddr="12qyocayNF7Lv6C9qW4avxs2E7U41fKSfv"
 #chain33ReceiverAddrKey="4257d8692ef7fe13c68b65d6a52f03933db2fa5ce8faf210b5b8b80c721ced01"
 
-#ethReceiverAddr1="0xa4ea64a583f6e51c3799335b28a8f0529570a635"
-#ethReceiverAddrKey1="355b876d7cbcb930d5dfab767f66336ce327e082cbaa1877210c1bae89b1df71"
-#ethReceiverAddr2="0x0c05ba5c230fdaa503b53702af1962e08d0c60bf"
-#ethReceiverAddrKey2="9dc6df3a8ab139a54d8a984f54958ae0661f880229bf3bdbb886b87d58b56a08"
-
-maturityDegree=10
-
 Chain33Cli="../../chain33-cli"
 chain33BridgeBank=""
 ethBridgeBank=""
-chain33BtyTokenAddr="1111111111111111111114oLvT2"
+#chain33BtyTokenAddr="1111111111111111111114oLvT2"
 #chain33EthTokenAddr=""
 #ethereumBtyTokenAddr=""
 #chain33YccTokenAddr=""
@@ -75,6 +68,7 @@ function deployMultisign() {
     cli_ret "${result}" "chain33 multisign deploy"
     multisignChain33Addr=$(echo "${result}" | jq -r ".msg")
 
+    # shellcheck disable=SC2154
     result=$(${CLIA} chain33 multisign setup -k "${chain33DeployKey}" -o "${chain33MultisignA},${chain33MultisignB},${chain33MultisignC},${chain33MultisignD}")
     cli_ret "${result}" "chain33 multisign setup"
 
@@ -84,7 +78,8 @@ function deployMultisign() {
     result=$(${Chain33Cli} account balance -a "${multisignChain33Addr}" -e coins)
     balance_ret "${result}" "10.0000"
 
-    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e ${chain33BridgeBank} -p "configOfflineSaveAccount(${multisignChain33Addr})" --chainID "${chain33ID}")
+    # shellcheck disable=SC2154
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "configOfflineSaveAccount(${multisignChain33Addr})" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
 #    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
@@ -202,6 +197,7 @@ function StartRelayerOnBsc() {
 function mainTest() {
     StartChain33
 
+    # shellcheck disable=SC2009
     pid=$(ps -ef | grep "ebrelayer" | grep -v 'grep' | awk '{print $2}' | xargs)
     if [ "${pid}" == "" ]; then
         kill_ebrelayer ebrelayer
