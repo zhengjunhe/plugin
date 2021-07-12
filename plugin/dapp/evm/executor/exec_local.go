@@ -65,6 +65,7 @@ func (evm *EVMExecutor) ExecLocal(tx *types.Transaction, receipt *types.ReceiptD
 			evmstat.FailReason[model.StatisticEVMError] = 0
 			evmstat.FailReason[model.StatisticExecError] = 0
 			evmstat.FailReason[model.StatisticGasError] = 0
+			evmstat.PrevAddr = changeItem.PreAddr
 			set.KV = append(set.KV, &types.KeyValue{Key: GetStatisticKey(changeItem.Addr), Value: types.Encode(&evmstat)})
 		} else if evmtypes.TyLogEVMStatisticData == logItem.Ty {
 			data := logItem.Log

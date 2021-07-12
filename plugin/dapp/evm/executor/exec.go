@@ -51,7 +51,7 @@ func (evm *EVMExecutor) Exec_Update(payload *evmtypes.EVMContractUpdate, tx *typ
 		return nil, err
 	}
 
-	msgDestory := common.NewMessage(msg.From(), common.StringToAddress(payload.Addr), tx.Nonce, payload.Amount, msg.GasLimit(), msg.GasPrice(), payload.Code, nil, payload.GetAlias())
+	msgDestory := common.NewMessage(msg.From(), common.StringToAddress(payload.Addr), tx.Nonce, payload.Amount, msg.GasLimit(), msg.GasPrice(), payload.Code, nil, payload.GetAlias(), "")
 	receiptDestory, err := evm.contractLifecycle(msgDestory, tx.Hash(), evmtypes.EvmDestroyAction)
 	if err != nil {
 		return nil, err
@@ -112,6 +112,8 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	env := runtime.NewEVM(context, evm.mStateDB, *evm.vmCfg, cfg)
 	isCreate := strings.Compare(msg.To().String(), EvmAddress) == 0 && len(msg.Data()) > 0
 	isTransferOnly := strings.Compare(msg.To().String(), EvmAddress) == 0 && 0 == len(msg.Data())
+	isUpdate := isCreate && ( len(msg.PreAddr()) != 0 )
+
 	var (
 		ret             []byte
 		vmerr           error
@@ -219,6 +221,9 @@ func (evm *EVMExecutor) innerExec(msg *common.Message, txHash []byte, index int,
 	if isCreate {
 		var evmstat evmtypes.ReceiptEvmStatistic
 		evmstat.Addr = contractAddrStr
+		if isUpdate {
+			evmstat.PreAddr = msg.PreAddr()
+		}
 		logs = append(logs,  &types.ReceiptLog{Ty: evmtypes.TyLogEVMStatisticDataInit, Log: types.Encode(&evmstat)})
 	} else {
 		var evmstat evmtypes.ReceiptEvmStatistic
@@ -367,7 +372,7 @@ func (evm *EVMExecutor) GetMessageExec(payload *evmtypes.EVMContractExec, tx *ty
 	}
 
 	// 合约的GasLimit即为调用者为本次合约调用准备支付的手续费
-	msg = common.NewMessage(from, to, tx.Nonce, payload.Amount, gasLimit, gasPrice, payload.Code, payload.Para, payload.GetAlias())
+	msg = common.NewMessage(from, to, tx.Nonce, payload.Amount, gasLimit, gasPrice, payload.Code, payload.Para, payload.GetAlias(), "")
 	return msg, err
 }
 
@@ -375,7 +380,7 @@ func (evm *EVMExecutor) GetMessageExec(payload *evmtypes.EVMContractExec, tx *ty
 func (evm *EVMExecutor) GetMessageUpdate(payload *evmtypes.EVMContractUpdate, tx *types.Transaction, index int) (msg *common.Message, err error) {
 	// 此处暂时不考虑消息发送签名的处理，chain33在mempool中对签名做了检查
 	from := getCaller(tx)
-	to := getReceiver(payload.Addr)
+	to := getReceiver(tx.To)
 	if to == nil {
 		return msg, types.ErrInvalidAddress
 	}
@@ -390,7 +395,7 @@ func (evm *EVMExecutor) GetMessageUpdate(payload *evmtypes.EVMContractUpdate, tx
 	}
 
 	// 合约的GasLimit即为调用者为本次合约调用准备支付的手续费
-	msg = common.NewMessage(from, to, tx.Nonce, payload.Amount, gasLimit, gasPrice, payload.Code, nil, payload.GetAlias())
+	msg = common.NewMessage(from, to, tx.Nonce, payload.Amount, gasLimit, gasPrice, payload.Code, nil, payload.GetAlias(), payload.Addr)
 	return msg, err
 }
 
@@ -404,7 +409,7 @@ func (evm *EVMExecutor) GetMessageLifecycle(addr string, tx *types.Transaction) 
 	}
 
 	// 合约的GasLimit即为调用者为本次合约调用准备支付的手续费
-	msg = common.NewMessage(from, to, tx.Nonce, 0, 0, 0, nil, nil, "")
+	msg = common.NewMessage(from, to, tx.Nonce, 0, 0, 0, nil, nil, "", "")
 	return msg, err
 }
 

@@ -106,6 +106,7 @@ message ReceiptEvmStatistic {
     uint64               callTimes     = 2;
     string               caller        = 3;
     uint64               succseccTimes = 4;
+    string               preAddr       = 5;
 }
 
 // 合约创建/调用日志

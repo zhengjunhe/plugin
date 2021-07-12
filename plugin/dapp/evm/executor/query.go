@@ -74,7 +74,7 @@ func (evm *EVMExecutor) Query_EstimateGas(in *evmtypes.EstimateEVMGasReq) (types
 	if to == nil {
 		to = evmCommon.StringToAddress(EvmAddress)
 	}
-	msg := evmCommon.NewMessage(caller, to, 0, in.Amount, evmtypes.MaxGasLimit, 1, nil, in.Para, "estimateGas")
+	msg := evmCommon.NewMessage(caller, to, 0, in.Amount, evmtypes.MaxGasLimit, 1, nil, in.Para, "estimateGas", "")
 	txHash := evmCommon.BigToHash(big.NewInt(evmtypes.MaxGasLimit)).Bytes()
 
 	receipt, err := evm.innerExec(msg, txHash, 1, evmtypes.MaxGasLimit, false)
@@ -155,7 +155,7 @@ func (evm *EVMExecutor) Query_Query(in *evmtypes.EvmQueryReq) (types.Message, er
 		caller = evmCommon.ExecAddress(cfg.ExecName(evmtypes.ExecutorName))
 	}
 
-	msg := evmCommon.NewMessage(caller, evmCommon.StringToAddress(in.Address), 0, 0, evmtypes.MaxGasLimit, 1, nil, evmCommon.FromHex(in.Input), "estimateGas")
+	msg := evmCommon.NewMessage(caller, evmCommon.StringToAddress(in.Address), 0, 0, evmtypes.MaxGasLimit, 1, nil, evmCommon.FromHex(in.Input), "estimateGas", "")
 	txHash := evmCommon.BigToHash(big.NewInt(evmtypes.MaxGasLimit)).Bytes()
 
 	receipt, err := evm.innerExec(msg, txHash, 1, evmtypes.MaxGasLimit, true)

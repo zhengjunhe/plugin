@@ -564,7 +564,7 @@ func estimateContract(cmd *cobra.Command, args []string) {
 
 	toAddr := address.ExecAddress("evm")
 	if len(name) > 0 {
-		toAddr = address.ExecAddress(name)
+		toAddr = name
 	}
 
 	amountInt64 := uint64(amount*1e4) * 1e4
