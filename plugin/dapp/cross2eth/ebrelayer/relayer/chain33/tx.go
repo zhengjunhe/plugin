@@ -89,7 +89,7 @@ func relayEvmTx2Chain33(privateKey chain33Crypto.PrivKey, claim *ebrelayerTypes.
 	action := evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: note, Para: packData, ContractAddr: oracleAddr}
 
 	//TODO: 交易费超大问题需要调查，hezhengjun on 20210420
-	feeInt64 := int64(5 * 1e6)
+	feeInt64 := int64(1 * 1e6)
 	wholeEvm := getExecerName(claim.ChainName)
 	toAddr := address.ExecAddress(wholeEvm)
 	//name表示发给哪个执行器

@@ -42,10 +42,14 @@ type Chain33OfflineTx struct {
 func CreateContractAndSign(txCreateInfo *TxCreateInfo, code, abi, parameter, contractName string) (string, []byte, error) {
 	var action evmtypes.EVMContractAction
 	bCode, err := common.FromHex(code)
+
+	exector := txCreateInfo.ParaName + "evm"
+	to := address.ExecAddress(exector)
+
 	if err != nil {
 		return "", nil, errors.New(contractName + " parse evm code error " + err.Error())
 	}
-	action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: txCreateInfo.Note, Alias: contractName}
+	action = evmtypes.EVMContractAction{Amount: 0, Code: bCode, GasLimit: 0, GasPrice: 0, Note: txCreateInfo.Note, Alias: contractName, ContractAddr: to}
 	if parameter != "" {
 		constructorPara := "constructor(" + parameter + ")"
 		packData, err := evmAbi.PackContructorPara(constructorPara, abi)
@@ -63,7 +67,7 @@ func CreateContractAndSign(txCreateInfo *TxCreateInfo, code, abi, parameter, con
 }
 
 func CreateAndSignEvmTx(chainID int32, action proto.Message, execer, privateKeyStr, contract2call, expire string, fee int64) (string, []byte, error) {
-	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: 0, To: contract2call}
+	tx := &types.Transaction{Execer: []byte(execer), Payload: types.Encode(action), Fee: fee, To: contract2call, ChainID: chainID}
 
 	expireInt64, err := types.ParseExpire(expire)
 	if nil != err {
@@ -158,24 +162,35 @@ func WriteToFileInJson(fileName string, content interface{}) {
 
 func SendSignTxs2Chain33(filePath, rpc_url string) {
 	var rdata []*Chain33OfflineTx
+	var txsRet []string
 	err := ParseFileInJson(filePath, &rdata)
 	if err != nil {
 		fmt.Printf("parse file with error:%s, make sure file:%s exist", err.Error(), filePath)
 		return
 	}
+
+	endtxhash := ""
 	for i, deployInfo := range rdata {
 		txhash, err := sendTransactionRpc(deployInfo.SignedRawTx, rpc_url)
 		if nil != err {
 			fmt.Printf("Failed to send %s to chain33 due to error:%s", deployInfo.OperationName, err.Error())
 			return
 		}
-		fmt.Printf("   %d:Succeed to send %s to chain33 with tx hash:%s\n", i+1, deployInfo.OperationName, txhash)
+		endtxhash = txhash
+		//fmt.Printf("   %d:Succeed to send %s to chain33 with tx hash: %s\n", i+1, deployInfo.OperationName, txhash)
+		txsRet = append(txsRet, fmt.Sprintf("%d:Succeed to send %s to chain33 with tx hash: %s", i+1, deployInfo.OperationName, txhash))
 		if deployInfo.Interval != 0 {
 			time.Sleep(deployInfo.Interval)
 		}
 	}
+	txsRet = append(txsRet, fmt.Sprintf("All txs are sent successfully."))
 
-	fmt.Println("All txs are sent successfully.^-^ ^-^")
+	jbytes, err := json.MarshalIndent(txsRet, "", "\t")
+	if err == nil {
+		_ = ioutil.WriteFile("deployCrossX2Chain33Txs.log", jbytes, 0666)
+	}
+
+	fmt.Println(endtxhash)
 }
 
 func sendTransactionRpc(data, rpcLaddr string) (string, error) {

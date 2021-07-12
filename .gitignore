@@ -47,4 +47,7 @@ build/parawallet/
 build/sendstock
 build/sendstock.toml
 build/*.csv
+plugin/dapp/cross2eth/boss4x/build/
+plugin/dapp/jvm/
+
 

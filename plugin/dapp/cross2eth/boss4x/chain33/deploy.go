@@ -12,7 +12,7 @@ func Chain33Cmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		//deployCrossContractsCmd(),
-		offline.OfflineCmd(),
+		offline.Boss4xOfflineCmd(),
 	)
 	return cmd
 

@@ -29,10 +29,11 @@ func (q *queryCmd) queryCmd() *cobra.Command {
 
 func (q *queryCmd) addQueryFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("address", "a", "", "account address")
-	cmd.MarkFlagRequired("address")
+	_ = cmd.MarkFlagRequired("address")
 }
 
 func (q *queryCmd) query(cmd *cobra.Command, args []string) {
+	_ = args
 	url, _ := cmd.Flags().GetString("rpc_laddr")
 	addr, _ := cmd.Flags().GetString("address")
 
@@ -83,10 +84,11 @@ func (d *DeployContract) DeployCmd() *cobra.Command {
 
 func (d *DeployContract) addSendFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("file", "f", "", "*.txt signed tx")
-	cmd.MarkFlagRequired("file")
+	_ = cmd.MarkFlagRequired("file")
 }
 
 func (d *DeployContract) send(cmd *cobra.Command, args []string) {
+	_ = args
 	filePath, _ := cmd.Flags().GetString("file")
 	url, _ := cmd.Flags().GetString("rpc_laddr")
 	//解析文件数据

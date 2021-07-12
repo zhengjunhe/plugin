@@ -18,7 +18,7 @@ import (
 
 var crossXfileName = "deployCrossX2Chain33.txt"
 
-func OfflineCmd() *cobra.Command {
+func Boss4xOfflineCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "offline",
 		Short: "create and sign offline tx to deploy and set cross contracts to chain33",
@@ -52,6 +52,7 @@ func addCreateCrossBridgeFlags(cmd *cobra.Command) {
 }
 
 func createCrossBridge(cmd *cobra.Command, args []string) {
+	_ = args
 	var txs []*utils.Chain33OfflineTx
 	privateKeyStr, _ := cmd.Flags().GetString("key")
 	var driver secp256k1.Driver
@@ -430,6 +431,7 @@ func addSendSignTxs2Chain33Flags(cmd *cobra.Command) {
 }
 
 func sendSignTxs2Chain33(cmd *cobra.Command, args []string) {
+	_ = args
 	filePath, _ := cmd.Flags().GetString("path")
 	url, _ := cmd.Flags().GetString("rpc_laddr")
 	filePath += crossXfileName

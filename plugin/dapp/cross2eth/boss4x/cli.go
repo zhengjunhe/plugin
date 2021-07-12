@@ -19,7 +19,7 @@ func main() {
 	buildFlags.RPCAddr4Chain33 = testTLS(buildFlags.RPCAddr4Chain33)
 
 	if buildFlags.RPCAddr4Ethereum == "" {
-		buildFlags.RPCAddr4Ethereum = "https://data-seed-prebsc-1-s1.binance.org:8545"
+		buildFlags.RPCAddr4Ethereum = "http://localhost:7545"
 	}
 
 	rootCmd := RootCmd()
@@ -44,7 +44,6 @@ func RootCmd() *cobra.Command {
 	cmd.AddCommand(
 		chain33.Chain33Cmd(),
 		ethereum.EthCmd(),
-
 	)
 	return cmd
 }
