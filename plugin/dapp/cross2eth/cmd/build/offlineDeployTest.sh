@@ -264,12 +264,17 @@ function InitAndOfflineDeploy() {
 #    cli_ret "${result}" "chain33 deploy"
 #    BridgeRegistryOnChain33=$(echo "${result}" | jq -r ".msg")
 
-#    ${Boss4xCLI} chain33 offline create -f 1 -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae -n "deploy crossx to chain33" -r "1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, [1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, 155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6, 13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv, 113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG], [25, 25, 25, 25]" --chainID 33
+#    ./boss4x chain33 offline create -f 1 -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae -n "deploy crossx to chain33" -r "1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, [1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, 155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6, 13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv, 113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG], [25, 25, 25, 25]" --chainID 33
     # shellcheck disable=SC2154
     ${Boss4xCLI} chain33 offline create -f 1 -k "${chain33DeployKey}" -n "deploy crossx to chain33" -r "${chain33ValidatorA}, [${chain33ValidatorA}, ${chain33ValidatorB}, ${chain33ValidatorC}, ${chain33ValidatorD}], [25, 25, 25, 25]" --chainID 33
-    hash=$(${Boss4xCLI} chain33 offline send)
+    result=$(${Boss4xCLI} chain33 offline send)
+    hash=$(echo "${result}" | jq -r ".[6].TxHash")
     check_tx "${Chain33Cli}" "${hash}"
-    BridgeRegistryOnChain33=$(${Chain33Cli} tx query -s "${hash}" | jq -r ".receipt.logs[7].log.contractAddr")
+    hash=$(echo "${result}" | jq -r ".[7].TxHash")
+    check_tx "${Chain33Cli}" "${hash}"
+    BridgeRegistryOnChain33=$(echo "${result}" | jq -r ".[6].ContractAddr")
+    # shellcheck disable=SC2034
+    multisignChain33Addr=$(echo "${result}" | jq -r ".[7].ContractAddr")
 
     # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
     cp BridgeRegistry.abi "${BridgeRegistryOnChain33}.abi"
@@ -339,6 +344,11 @@ function StartRelayerAndOfflineDeploy() {
 
     # 设置 token 地址
     InitTokenAddr
+
+    # 设置离线多签数据
+    initMultisignAddr
+    setupChain33AndEthMultisign
+    transferChain33MultisignFee
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

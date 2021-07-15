@@ -162,35 +162,34 @@ func WriteToFileInJson(fileName string, content interface{}) {
 
 func SendSignTxs2Chain33(filePath, rpc_url string) {
 	var rdata []*Chain33OfflineTx
-	var txsRet []string
+	var retdata []*Chain33OfflineTx
 	err := ParseFileInJson(filePath, &rdata)
 	if err != nil {
 		fmt.Printf("parse file with error:%s, make sure file:%s exist", err.Error(), filePath)
 		return
 	}
 
-	endtxhash := ""
-	for i, deployInfo := range rdata {
+	for _, deployInfo := range rdata {
 		txhash, err := sendTransactionRpc(deployInfo.SignedRawTx, rpc_url)
 		if nil != err {
 			fmt.Printf("Failed to send %s to chain33 due to error:%s", deployInfo.OperationName, err.Error())
 			return
 		}
-		endtxhash = txhash
 		//fmt.Printf("   %d:Succeed to send %s to chain33 with tx hash: %s\n", i+1, deployInfo.OperationName, txhash)
-		txsRet = append(txsRet, fmt.Sprintf("%d:Succeed to send %s to chain33 with tx hash: %s", i+1, deployInfo.OperationName, txhash))
 		if deployInfo.Interval != 0 {
 			time.Sleep(deployInfo.Interval)
 		}
-	}
-	txsRet = append(txsRet, fmt.Sprintf("All txs are sent successfully."))
-
-	jbytes, err := json.MarshalIndent(txsRet, "", "\t")
-	if err == nil {
-		_ = ioutil.WriteFile("deployCrossX2Chain33Txs.log", jbytes, 0666)
+		retdata = append(retdata, &Chain33OfflineTx{TxHash: txhash, ContractAddr: deployInfo.ContractAddr, OperationName: deployInfo.OperationName})
 	}
 
-	fmt.Println(endtxhash)
+	data, err := json.MarshalIndent(retdata, "", "    ")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	fmt.Println(string(data))
+
+	//fmt.Println("All txs are sent successfully.")
 }
 
 func sendTransactionRpc(data, rpcLaddr string) (string, error) {
