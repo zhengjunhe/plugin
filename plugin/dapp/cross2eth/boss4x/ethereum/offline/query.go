@@ -33,7 +33,7 @@ func (q *queryCmd) addQueryFlags(cmd *cobra.Command) {
 }
 
 func (q *queryCmd) query(cmd *cobra.Command, args []string) {
-	url, _ := cmd.Flags().GetString("rpc_laddr")
+	url, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 	addr, _ := cmd.Flags().GetString("address")
 
 	client, err := ethclient.Dial(url)
@@ -56,7 +56,14 @@ func (q *queryCmd) query(cmd *cobra.Command, args []string) {
 	info.GasPrice = price.Uint64()
 	info.Nonce = nonce
 	info.Timestamp = time.Now().Format(time.RFC3339)
-	writeToFile("accountinfo.txt", &info)
+
+	jbytes, err := json.MarshalIndent(&info, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(string(jbytes))
+	//writeToFile("accountinfo.txt", &info)
 	return
 
 }
@@ -76,7 +83,6 @@ func paraseFile(file string, result interface{}) error {
 		panic(err)
 	}
 	return json.Unmarshal(b, result)
-
 }
 
 func writeToFile(fileName string, content interface{}) {
@@ -89,8 +95,10 @@ func writeToFile(fileName string, content interface{}) {
 	if err != nil {
 		fmt.Println("Failed to write to file:", fileName)
 	}
-	fmt.Println("tx is written to file: ", fileName, "writeContent:", string(jbytes))
+	fmt.Println("tx is written to file: ", fileName)
+	//fmt.Println("tx is written to file: ", fileName, "writeContent:", string(jbytes))
 }
+
 func InitCfg(filepath string, cfg interface{}) {
 	if _, err := tml.DecodeFile(filepath, cfg); err != nil {
 		fmt.Println(err)

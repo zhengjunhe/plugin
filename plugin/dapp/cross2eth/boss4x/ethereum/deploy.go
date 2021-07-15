@@ -28,11 +28,11 @@ func EthCmd() *cobra.Command {
 	cmd.AddCommand(
 		DeployContrctsCmd(),
 		offline.OfflineDeployContractsCmd(),
+		//offline.Boss4xEthOfflineCmd(),
 	)
 	return cmd
 
 }
-
 
 //DeployContrctsCmd ...
 func DeployContrctsCmd() *cobra.Command {
@@ -56,7 +56,7 @@ func addDeployFlags(cmd *cobra.Command) {
 //DeployContrcts ...
 func DeployContrcts(cmd *cobra.Command, args []string) {
 	var deployKeystr string
-	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 	filepath, _ := cmd.Flags().GetString("file")
 	privkey, _ := cmd.Flags().GetString("privkey")
 	var deployCfg DepolyInfo
@@ -105,7 +105,6 @@ func DeployContrcts(cmd *cobra.Command, args []string) {
 	bridgeRegistry := x2EthDeployInfo.BridgeRegistry.Address.String()
 
 	fmt.Println("the BridgeRegistry address is:", bridgeRegistry)
-
 }
 
 func InitCfg(filepath string, cfg interface{}) {

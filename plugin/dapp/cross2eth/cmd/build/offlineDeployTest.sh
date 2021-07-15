@@ -276,18 +276,25 @@ function InitAndOfflineDeploy() {
     chain33BridgeBank=$(${Chain33Cli} evm abi call -c "${chain33DeployAddr}" -b "bridgeBank()" -a "${BridgeRegistryOnChain33}")
     cp Chain33BridgeBank.abi "${chain33BridgeBank}.abi"
 
-    exit 0
+#    exit 0
 
     # 在 Eth 上部署合约
-    result=$(${CLIA} ethereum deploy)
-    cli_ret "${result}" "ethereum deploy"
-    BridgeRegistryOnEth=$(echo "${result}" | jq -r ".msg")
+#    result=$(${CLIA} ethereum deploy)
+#    cli_ret "${result}" "ethereum deploy"
+#    BridgeRegistryOnEth=$(echo "${result}" | jq -r ".msg")
+
+#    ./boss4x ethereum offline create_sign -l 500000 -n 0 -g 20000000000 -p "25,25,25,25" -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830" -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
+    cp ../../../plugin/dapp/cross2eth/boss4x/ethereum/deploy.toml ./deploy.toml
+    ./boss4x ethereum offline sign -c ./deploy.toml -g 20000000000 -l 500000
+    result=$(./boss4x ethereum offline send -f signed_cross2eth.txt)
+    BridgeRegistryOnEth=$(echo "${result}" | jq -r ".[6].ContractAddr")
 
     # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
     cp BridgeRegistry.abi "${BridgeRegistryOnEth}.abi"
-    result=$(${CLIA} ethereum bridgeBankAddr)
-    ethBridgeBank=$(echo "${result}" | jq -r ".addr")
-    cp EthBridgeBank.abi "${ethBridgeBank}.abi"
+#    result=$(${CLIA} ethereum bridgeBankAddr)
+#    ethBridgeBank=$(echo "${result}" | jq -r ".addr")
+#    ethBridgeBank=$(echo "${result}" | jq -r ".[3].ContractAddr")
+#    cp EthBridgeBank.abi "${ethBridgeBank}.abi"
 
     # 修改 relayer.toml 字段
     updata_relayer "BridgeRegistryOnChain33" "${BridgeRegistryOnChain33}" "./relayer.toml"
@@ -307,6 +314,10 @@ function StartRelayerAndOfflineDeploy() {
     pushNameChange "./relayer.toml"
     validators_config
 
+    # 删除私钥
+#    delete_line "./relayer.toml" "deployerPrivateKey="
+#    delete_line "./relayer.toml" "deployerPrivateKey="
+
     # 启动 ebrelayer
     start_ebrelayerA
 
@@ -319,6 +330,9 @@ function StartRelayerAndOfflineDeploy() {
 
     result=$(${CLIA} unlock -p 123456hzj)
     cli_ret "${result}" "unlock"
+
+    ethBridgeBank=$(./ebcli_A ethereum bridgeBankAddr | jq -r ".addr")
+    cp EthBridgeBank.abi "${ethBridgeBank}.abi"
 
     # start ebrelayer B C D
     updata_toml_start_BCD

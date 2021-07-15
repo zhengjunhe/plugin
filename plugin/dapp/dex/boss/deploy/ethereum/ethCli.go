@@ -129,7 +129,6 @@ func rewriteDeployErc20(owner, name, symbol, amount string, decimals uint8, nonc
 	var gasLimit = 100 * 10000
 	tx := types.NewContractCreation(nonce, big.NewInt(0), uint64(gasLimit), gasPrice, input)
 	return offline.SignTx(key, tx)
-
 }
 
 //GetBalanceCmd ...

@@ -74,7 +74,7 @@ type DeployContract struct {
 
 func (d *DeployContract) DeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "send tx", //first step
+		Use:   "send", //first step
 		Short: " send signed raw tx",
 		Run:   d.send, //对要部署的factory合约进行签名
 	}

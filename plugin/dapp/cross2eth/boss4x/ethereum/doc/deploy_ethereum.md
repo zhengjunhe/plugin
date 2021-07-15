@@ -2,7 +2,7 @@
 *** 
 #### 步骤一： 查询deployer地址的nonce信息
 ```
-#./boss4x  ethereum offline query -a 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a  --rpc_laddr  wss://ws-testnet.hecochain.com
+#./boss4x ethereum offline query -a 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a --rpc_laddr wss://ws-testnet.hecochain.com
 -a: 指定要查询的部署合约的地址
 --rpc_laddr: 区块链节点地址
 ```
@@ -21,7 +21,7 @@
 #### 步骤二： 批量构造交易，并签名交易数据（离线操作）
 > 这一步是离线操作，需要使用到之前步骤一查询操作产生的**accountinfo.txt** 文件，同时要指定配置文件
 ```
-#./boss4x  ethereum offline sign -q accountinfo.txt -c ./ethereum/deploy.toml
+#./boss4x ethereum offline sign -c ./deploy.toml
 
 备注：
 -q：步骤一创建的accountinfo.txt 文件
@@ -52,7 +52,7 @@
 #### 步骤三：发送签名后的数据（在线操作）
 
 ```
-#./boss4x  ethereum offline send -f signed_cross2eth.txt --rpc_laddr  wss://ws-testnet.hecochain.com
+# ./boss4x ethereum offline send -f signed_cross2eth.txt --rpc_laddr http://localhost:7545
 
 备注：
 -f:指定要发送的签名后的文件

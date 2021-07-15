@@ -2,16 +2,26 @@ package offline
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	eoff "github.com/33cn/plugin/plugin/dapp/dex/boss/deploy/ethereum/offline"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/cobra"
 	"math/big"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
+
+type DeployContractRet struct {
+	ContractAddr string
+	TxHash       string
+	ContractName string
+}
 
 func Boss4xEthOfflineCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -21,6 +31,7 @@ func Boss4xEthOfflineCmd() *cobra.Command {
 	cmd.AddCommand(
 		getNonceCmd(),
 		createAndSignTxsCmd(),
+		sendTxsCmd(),
 	)
 	return cmd
 }
@@ -60,9 +71,9 @@ func getNonce(cmd *cobra.Command, args []string) {
 		fmt.Println("err:", err)
 	}
 
-	fmt.Println("Address: ", addr)
-	fmt.Println("GasPrice: ", price.Uint64())
-	fmt.Println("Nonce: ", nonce)
+	fmt.Println("    Address: ", addr)
+	fmt.Println("    GasPrice: ", price.Uint64())
+	fmt.Println("    Nonce: ", nonce)
 }
 
 func createAndSignTxsCmd() *cobra.Command {
@@ -76,9 +87,9 @@ func createAndSignTxsCmd() *cobra.Command {
 }
 
 func createAndSignTxsFlag(cmd *cobra.Command) {
-	cmd.Flags().StringP("validatorsAddrs", "v", "", "validatorsAddrs, as: 'addr, addr, addr, addr'")
+	cmd.Flags().StringP("validatorsAddrs", "v", "", "validatorsAddrs, as: 'addr,addr,addr,addr'")
 	_ = cmd.MarkFlagRequired("validatorsAddrs")
-	cmd.Flags().StringP("initPowers", "p", "", "initPowers, as: '25, 25, 25, 25'")
+	cmd.Flags().StringP("initPowers", "p", "", "initPowers, as: '25,25,25,25'")
 	_ = cmd.MarkFlagRequired("initPowers")
 	cmd.Flags().StringP("key", "k", "", "the deployer private key")
 	_ = cmd.MarkFlagRequired("key")
@@ -103,6 +114,11 @@ func createAndSignTxs(cmd *cobra.Command, args []string) {
 
 	validatorsAddrsArray := strings.Split(validatorsAddrs, ",")
 	initPowersArray := strings.Split(initPowers, ",")
+
+	if len(validatorsAddrsArray) != len(initPowersArray) {
+		fmt.Println("input validatorsAddrs initPowers error!")
+		return
+	}
 
 	var validators []common.Address
 	var initpowers []*big.Int
@@ -141,4 +157,62 @@ func createAndSignTxs(cmd *cobra.Command, args []string) {
 	signData = append(signData, bridgeRegistry)
 	//finsh write to file
 	writeToFile("signed_cross2eth.txt", signData)
+}
+
+func sendTxsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "send", //first step
+		Short: "send signed raw tx",
+		Run:   sendTxs,
+	}
+	sendTxsFlags(cmd)
+	return cmd
+}
+
+func sendTxsFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("file", "f", "", "*.txt signed tx")
+	_ = cmd.MarkFlagRequired("file")
+}
+
+func sendTxs(cmd *cobra.Command, args []string) {
+	_ = args
+	url, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	filePath, _ := cmd.Flags().GetString("file")
+	//解析文件数据
+	var rdata = make([]*eoff.DeployContract, 0)
+	err := paraseFile(filePath, &rdata)
+	if err != nil {
+		fmt.Println("paraseFile,err", err.Error())
+		return
+	}
+	var resData = make([]*DeployContractRet, 0)
+	for _, deployInfo := range rdata {
+		if deployInfo.Interval != 0 {
+			time.Sleep(deployInfo.Interval)
+		}
+		tx := new(types.Transaction)
+		err = tx.UnmarshalBinary(common.FromHex(deployInfo.SignedRawTx))
+		if err != nil {
+			panic(err)
+		}
+		client, err := ethclient.Dial(url)
+		if err != nil {
+			panic(err)
+		}
+		err = client.SendTransaction(context.Background(), tx)
+		if err != nil {
+			fmt.Println("err:", err)
+			panic(err)
+		}
+		ret := &DeployContractRet{ContractAddr: deployInfo.ContractAddr, TxHash: tx.Hash().String(), ContractName: deployInfo.ContractName}
+		resData = append(resData, ret)
+		time.Sleep(time.Second)
+	}
+
+	data, err := json.MarshalIndent(resData, "", "    ")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	fmt.Println(string(data))
 }
