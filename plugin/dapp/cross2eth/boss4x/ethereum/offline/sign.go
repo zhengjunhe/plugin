@@ -32,7 +32,7 @@ func signContractTx(contractName string, data []byte, deployerAddr common.Addres
 	var contract eoff.DeployContract
 	contract.Nonce = nonce
 	contract.ContractName = contractName
-	contract.SignedRawTx = signedtx
+	contract.RawTx = signedtx
 	contract.ContractAddr = contractAddress.String()
 	contract.TxHash = hash
 	return &contract
@@ -57,7 +57,7 @@ func signTransactionTx(contractName string, data []byte, deployerAddr, to common
 	contract.Interval = time.Second * 20
 	contract.Nonce = nonce
 	contract.ContractName = contractName
-	contract.SignedRawTx = signedtx
+	contract.RawTx = signedtx
 	contract.ContractAddr = contractAddress.String()
 	contract.TxHash = hash
 	return &contract

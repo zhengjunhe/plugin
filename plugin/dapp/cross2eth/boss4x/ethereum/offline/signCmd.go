@@ -1,9 +1,7 @@
 package offline
 
 import (
-	"crypto/ecdsa"
-	"time"
-
+	"fmt"
 	//"github.com/33cn/plugin/plugin/dapp/cross2eth/boss4x/ethereum"
 	"math/big"
 	"strings"
@@ -17,15 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type SignCmd struct {
-	From         string
-	Nonce        uint64
-	GasPrice     uint64
-	GasLimit     uint64
-	key          *ecdsa.PrivateKey
-	deployerAddr common.Address
-	Timestamp    string
-}
+
 
 type DepolyInfo struct {
 	//OperatorAddr       string   `toml:"operatorAddr"`
@@ -34,295 +24,159 @@ type DepolyInfo struct {
 	InitPowers         []int64  `toml:"initPowers"`
 }
 
-func (s *SignCmd) signCmd() *cobra.Command {
+func  SignCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sign", //first step
-		Short: "create contract ,and sign",
-		Run:   s.SignContractTx, //对要部署的factory合约进行签名
+		Short: "sign tx",
+		Run:   signTx,
 	}
-	s.addSignFlag(cmd)
+	addSignFlag(cmd)
 	return cmd
 }
 
-func (s *SignCmd) addSignFlag(cmd *cobra.Command) {
-	cmd.Flags().StringP("conf", "c", "", "config file")
-	cmd.MarkFlagRequired("conf")
-	cmd.Flags().Uint64P("nonce", "n", 0, "transaction count")
-	cmd.Flags().Uint64P("gasprice", "g", 1000000000, "gas price") // 1Gwei=1e9wei
-	cmd.Flags().Uint64P("gaslimit", "l", 21000, "gas limit")
+func  addSignFlag(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "private key ")
+	cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("file", "f", "deploytxs.txt", "tx file")
+
+
 }
 
-func (s *SignCmd) SignContractTx(cmd *cobra.Command, args []string) {
-	cfgpath, _ := cmd.Flags().GetString("conf")
-	gasprice, _ := cmd.Flags().GetUint64("gasprice")
-	gaslimit, _ := cmd.Flags().GetUint64("gaslimit")
-	nonce, _ := cmd.Flags().GetUint64("nonce")
-	var deployCfg DepolyInfo
-	InitCfg(cfgpath, &deployCfg)
-
-	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(deployCfg.DeployerPrivateKey))
+func signTx(cmd *cobra.Command, args []string) {
+	privatekey, _ := cmd.Flags().GetString("key")
+	txFilePath,_:=cmd.Flags().GetString("file")
+	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(privatekey))
 	if err != nil {
-		//fmt.Printf("privkey",deployCfg.DeployerPrivateKey,"configpath",cfgpath)
 		panic(err)
 	}
 
-	deployerAddr := crypto.PubkeyToAddress(deployPrivateKey.PublicKey)
-	s.deployerAddr = deployerAddr
-	s.Nonce = nonce
-	s.GasPrice = gasprice
-	s.GasLimit = gaslimit
-	s.From = deployerAddr.String()
-	s.key = deployPrivateKey
+	var deployTxInfos = make([]DeployInfo, 0)
+	err = paraseFile(txFilePath, &deployTxInfos)
+	if err != nil {
+		fmt.Println("paraseFile,err", err.Error())
+		return
+	}
+	fmt.Println("deployTxInfos size:",len(deployTxInfos))
+	for i ,info:=range deployTxInfos{
+		var tx types.Transaction
+		err= tx.UnmarshalBinary(common.FromHex(info.RawTx))
+		if err!=nil{
+			panic(err)
+		}
+		signedTx,txHash,err:=eoff.SignTx(deployPrivateKey,&tx)
+		if err!=nil{
+			panic(err)
+		}
+		deployTxInfos[i].RawTx=signedTx
+		deployTxInfos[i].TxHash=txHash
 
-	if len(deployCfg.InitPowers) != len(deployCfg.ValidatorsAddr) {
-		panic("not same number for validator address and power")
 	}
 
-	if len(deployCfg.ValidatorsAddr) < 3 {
-		panic("the number of validator must be not less than 3")
-	}
-
-	var validators []common.Address
-	var initPowers []*big.Int
-	var signData = make([]*eoff.DeployContract, 0)
-	for i, addr := range deployCfg.ValidatorsAddr {
-		validators = append(validators, common.HexToAddress(addr))
-		initPowers = append(initPowers, big.NewInt(deployCfg.InitPowers[i]))
-	}
-
-	//Step1 Sign ValSet Contractor
-	valSet := s.signValSet(validators, initPowers)
-	signData = append(signData, valSet)
-	//Step2 Sign chain33 bridge
-	bridge := s.signChain33Bridge(valSet.Nonce+1, deployerAddr, common.HexToAddress(valSet.ContractAddr))
-	signData = append(signData, bridge)
-	//step3 sign oracle
-	oracle := s.signOracle(bridge.Nonce+1, common.HexToAddress(valSet.ContractAddr), common.HexToAddress(bridge.ContractAddr))
-	signData = append(signData, oracle)
-	//step4  sign bridgebank
-	bank := s.SignBridgeBank(oracle.Nonce+1, common.HexToAddress(bridge.ContractAddr), common.HexToAddress(oracle.ContractAddr))
-	signData = append(signData, bank)
-	//step5 sign SetBridgeBank
-	setbank := s.SignSetBridgeBank(bank.Nonce+1, common.HexToAddress(bank.ContractAddr), common.HexToAddress(bridge.ContractAddr))
-	signData = append(signData, setbank)
-	//step6 Sign setOracle
-	setOracle := s.SignsetOracle(setbank.Nonce+1, common.HexToAddress(oracle.ContractAddr), common.HexToAddress(bridge.ContractAddr))
-	signData = append(signData, setOracle)
-	//step7 Sign BridgeRegistry
-	bridgeRegistry := s.SignBridgeRegistry(setOracle.Nonce+1, common.HexToAddress(bridge.ContractAddr), common.HexToAddress(bank.ContractAddr), common.HexToAddress(oracle.ContractAddr), common.HexToAddress(valSet.ContractAddr))
-	signData = append(signData, bridgeRegistry)
 	//finsh write to file
-	writeToFile("signed_cross2eth.txt", signData)
+	writeToFile("deploysigntxs.txt", deployTxInfos)
+
 }
 
-func (s *SignCmd) signValSet(validators []common.Address, powers []*big.Int) *eoff.DeployContract {
+//deploy contract step 1
+func deployValSetPackData(validators []common.Address, powers []*big.Int,deployerAddr common.Address)([]byte,error){
 	parsed, err := abi.JSON(strings.NewReader(generated.ValsetABI))
 	if err != nil {
 		panic(err)
 	}
-	vbin := common.FromHex(generated.ValsetBin)
-
-	input, err := parsed.Pack("", s.deployerAddr, validators, powers)
+	bin := common.FromHex(generated.ValsetBin)
+	packdata, err := parsed.Pack("", deployerAddr, validators, powers)
 	if err != nil {
 		panic(err)
 	}
-	data := append(vbin, input...)
-	rawTx := types.NewTx(&types.LegacyTx{
-		Nonce:    s.Nonce,
-		Value:    big.NewInt(0),
-		Gas:      s.GasLimit,
-		GasPrice: big.NewInt(int64(s.GasPrice)),
-		Data:     data,
-	})
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(s.deployerAddr, s.Nonce)
-	var valSet eoff.DeployContract
-	//timewait := time.Duration(5) * time.Second
-	//valSet.Interval = time.Duration(5) * time.Second
-	valSet.Nonce = s.Nonce
-	valSet.ContractName = "valset"
-	valSet.SignedRawTx = signedtx
-	valSet.ContractAddr = contractAddress.String()
-	valSet.TxHash = hash
-	return &valSet
+	return append(bin,packdata...),nil
 }
-
-func (s *SignCmd) signChain33Bridge(nonce uint64, operater, valSetAddr common.Address) *eoff.DeployContract {
+//deploy contract step 2
+func deploychain33BridgePackData(deployerAddr ,valSetAddr common.Address)([]byte,error){
 	parsed, err := abi.JSON(strings.NewReader(generated.Chain33BridgeABI))
 	if err != nil {
 		panic(err)
 	}
-	bridgebin := common.FromHex(generated.Chain33BridgeBin)
-	input, err := parsed.Pack("", operater, valSetAddr)
+	bin := common.FromHex(generated.Chain33BridgeBin)
+	input, err := parsed.Pack("", deployerAddr, valSetAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	data := append(bridgebin, input...)
-	rawTx := types.NewTx(&types.LegacyTx{
-		Nonce:    nonce,
-		Value:    big.NewInt(0),
-		Gas:      s.GasLimit,
-		GasPrice: big.NewInt(int64(s.GasPrice)),
-		Data:     data,
-	})
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(operater, nonce)
-	var bridge eoff.DeployContract
-	bridge.Nonce = nonce
-	bridge.ContractName = "chain33bridge"
-	bridge.SignedRawTx = signedtx
-	bridge.ContractAddr = contractAddress.String()
-	bridge.TxHash = hash
-	return &bridge
+	return append(bin, input...),nil
 }
-
-func (s *SignCmd) signOracle(nonce uint64, valsetAddr, bridgeAddr common.Address) *eoff.DeployContract {
+//deploy contract step 3
+func deployOraclePackData(deployerAddr,valSetAddr,bridgeAddr common.Address)([]byte,error){
 	parsed, err := abi.JSON(strings.NewReader(generated.OracleABI))
 	if err != nil {
 		panic(err)
 	}
 	bin := common.FromHex(generated.OracleBin)
-	input, err := parsed.Pack("", s.deployerAddr, valsetAddr, bridgeAddr)
+	packData, err := parsed.Pack("", deployerAddr, valSetAddr, bridgeAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	data := append(bin, input...)
-	rawTx := types.NewContractCreation(nonce, big.NewInt(0), s.GasLimit, big.NewInt(int64(s.GasPrice)), data)
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
-	var oracle eoff.DeployContract
-	oracle.Nonce = nonce
-	oracle.ContractName = "oracle"
-	oracle.SignedRawTx = signedtx
-	oracle.ContractAddr = contractAddress.String()
-	oracle.TxHash = hash
-	return &oracle
+	return  append(bin, packData...),nil
 }
 
-func (s *SignCmd) SignBridgeBank(nonce uint64, bridgeAddr, oracalAddr common.Address) *eoff.DeployContract {
+//deploy contract step 4
+func deployBridgeBankPackData(deployerAddr,bridgeAddr ,oracalAddr common.Address)([]byte,error){
 	parsed, err := abi.JSON(strings.NewReader(generated.BridgeBankABI))
 	if err != nil {
 		panic(err)
 	}
 	bin := common.FromHex(generated.BridgeBankBin)
-	input, err := parsed.Pack("", s.deployerAddr, oracalAddr, bridgeAddr)
+	packData, err := parsed.Pack("", deployerAddr, oracalAddr, bridgeAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	data := append(bin, input...)
-	rawTx := types.NewContractCreation(nonce, big.NewInt(0), s.GasLimit, big.NewInt(int64(s.GasPrice)), data)
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
-	var bank eoff.DeployContract
-	bank.Nonce = nonce
-	bank.ContractName = "bridgeBank"
-	bank.SignedRawTx = signedtx
-	bank.ContractAddr = contractAddress.String()
-	bank.TxHash = hash
-	return &bank
+	return append(bin, packData...),nil
 }
 
-//SignSetBridgeBank SetBridgeBank
-func (s *SignCmd) SignSetBridgeBank(nonce uint64, bridgebank, chain33bridge common.Address) *eoff.DeployContract {
+////deploy contract step 5
+func callSetBridgeBank(bridgeBankAddr common.Address)([]byte,error){
 	method := "setBridgeBank"
 	parsed, err := abi.JSON(strings.NewReader(generated.Chain33BridgeABI))
 	if err != nil {
 		panic(err)
 	}
-	input, err := parsed.Pack(method, bridgebank)
+	packData, err := parsed.Pack(method, bridgeBankAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	rawTx := types.NewTransaction(nonce, chain33bridge, big.NewInt(0), s.GasLimit, big.NewInt(int64(s.GasPrice)), input)
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
-	var setbank eoff.DeployContract
-	setbank.Interval = time.Second * 20
-	setbank.Nonce = nonce
-	setbank.ContractName = "setbridgebank"
-	setbank.SignedRawTx = signedtx
-	setbank.ContractAddr = contractAddress.String()
-	setbank.TxHash = hash
-	return &setbank
-
+	return packData,nil
 }
 
-func (s *SignCmd) SignsetOracle(nonce uint64, oracalAddr, chain33bridge common.Address) *eoff.DeployContract {
+//deploy contract step 6
+func callSetOracal(oracalAddr common.Address)([]byte,error){
 	method := "setOracle"
 	parsed, err := abi.JSON(strings.NewReader(generated.Chain33BridgeABI))
 	if err != nil {
 		panic(err)
 	}
-	input, err := parsed.Pack(method, oracalAddr)
+	packData, err := parsed.Pack(method, oracalAddr)
 	if err != nil {
 		panic(err)
 	}
-	rawTx := types.NewTransaction(nonce, chain33bridge, big.NewInt(0), s.GasLimit, big.NewInt(int64(s.GasPrice)), input)
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
-	var setoracle eoff.DeployContract
-	setoracle.Interval = time.Second * 20
-	setoracle.Nonce = nonce
-	setoracle.ContractName = "setOracle"
-	setoracle.SignedRawTx = signedtx
-	setoracle.ContractAddr = contractAddress.String()
-	setoracle.TxHash = hash
-	return &setoracle
-
+	return packData,nil
 }
 
-func (s *SignCmd) SignBridgeRegistry(nonce uint64, chain33Bridge, bridgebank, oracleAddr, valSetAddr common.Address) *eoff.DeployContract {
+//deploy contract step 7
+func deployBridgeRegistry(chain33BridgeAddr,bridgeBankAddr,oracleAddr,valSetAddr common.Address)([]byte,error){
 	parsed, err := abi.JSON(strings.NewReader(generated.BridgeRegistryABI))
 	if err != nil {
 		panic(err)
 	}
 	bin := common.FromHex(generated.BridgeRegistryBin)
-	input, err := parsed.Pack("", chain33Bridge, bridgebank, oracleAddr, valSetAddr)
+	packData, err := parsed.Pack("", chain33BridgeAddr, bridgeBankAddr, oracleAddr, valSetAddr)
 	if err != nil {
 		panic(err)
 	}
-	data := append(bin, input...)
-	rawTx := types.NewContractCreation(nonce, big.NewInt(0), s.GasLimit, big.NewInt(int64(s.GasPrice)), data)
-	//signedtx
-	signedtx, hash, err := eoff.SignTx(s.key, rawTx)
-	if err != nil {
-		panic(err)
-	}
-	contractAddress := crypto.CreateAddress(s.deployerAddr, nonce)
-	var bridgeRegistry eoff.DeployContract
-	bridgeRegistry.Nonce = nonce
-	bridgeRegistry.ContractName = "bridgeRegistry"
-	bridgeRegistry.SignedRawTx = signedtx
-	bridgeRegistry.ContractAddr = contractAddress.String()
-	bridgeRegistry.TxHash = hash
-	return &bridgeRegistry
+	return  append(bin, packData...),nil
+
 
 }
+
+
