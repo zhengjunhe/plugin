@@ -4,8 +4,6 @@
 set -x
 set +e
 
-# 主要在平行链上测试
-
 source "./publicTest.sh"
 source "./relayerPublic.sh"
 

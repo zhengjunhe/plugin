@@ -507,17 +507,25 @@ function deployChain33AndEthMultisign() {
     cli_ret "${result}" "chain33 multisign deploy"
     multisignChain33Addr=$(echo "${result}" | jq -r ".msg")
 
+    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
+    result=$(${CLIA} ethereum multisign deploy)
+    cli_ret "${result}" "ethereum multisign deploy"
+    multisignEthAddr=$(echo "${result}" | jq -r ".msg")
+
+    echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function setupChain33AndEthMultisign() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+
+    echo -e "${GRE}=========== 设置 chain33 离线钱包合约 ===========${NOC}"
     result=$(${CLIA} chain33 multisign setup -k "${chain33DeployKey}" -o "${chain33MultisignA},${chain33MultisignB},${chain33MultisignC},${chain33MultisignD}")
     cli_ret "${result}" "chain33 multisign setup"
 
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "configOfflineSaveAccount(${multisignChain33Addr})" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
 
-    echo -e "${GRE}=========== 部署 ETH 离线钱包合约 ===========${NOC}"
-    result=$(${CLIA} ethereum multisign deploy)
-    cli_ret "${result}" "ethereum multisign deploy"
-    multisignEthAddr=$(echo "${result}" | jq -r ".msg")
-
+    echo -e "${GRE}=========== 设置 ETH 离线钱包合约 ===========${NOC}"
     result=$(${CLIA} ethereum multisign setup -k "${ethDeployKey}" -o "${ethMultisignA},${ethMultisignB},${ethMultisignC},${ethMultisignD}")
     cli_ret "${result}" "ethereum multisign setup"
 
@@ -543,6 +551,7 @@ function deployMultisign() {
     echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
     initMultisignAddr
     deployChain33AndEthMultisign
+    setupChain33AndEthMultisign
     transferChain33MultisignFee
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }

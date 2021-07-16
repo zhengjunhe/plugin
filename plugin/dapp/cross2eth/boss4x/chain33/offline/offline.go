@@ -66,6 +66,7 @@ func createCrossBridge(cmd *cobra.Command, args []string) {
 	from := common.Address{
 		Addr: fromAddr,
 	}
+
 	i := 1
 	fmt.Printf("%d: Going to create Valset\n", i)
 	i += 1
@@ -130,11 +131,20 @@ func createCrossBridge(cmd *cobra.Command, args []string) {
 	}
 	txs = append(txs, createBridgeRegistryTx)
 
+	fmt.Printf("%d: Going to create MulSign2chain33 \n", i)
+	i += 1
+	createMulSign2chain33Tx, err := createMulSignAndSign(cmd, from)
+	if nil != err {
+		fmt.Println("Failed to createMulSign2chain33Tx due to cause:", err.Error())
+		return
+	}
+	txs = append(txs, createMulSign2chain33Tx)
+
 	fmt.Printf("%d: Write all the txs to file:   %s \n", i, crossXfileName)
 	utils.WriteToFileInJson(crossXfileName, txs)
 }
 
-func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethereumBridge, valset, bridgeBank, oracle string) (*utils.Chain33OfflineTx, error) {
+func getTxInfo(cmd *cobra.Command) *utils.TxCreateInfo {
 	privateKey, _ := cmd.Flags().GetString("key")
 	expire, _ := cmd.Flags().GetString("expire")
 	note, _ := cmd.Flags().GetString("note")
@@ -150,15 +160,13 @@ func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethe
 		ParaName:   paraName,
 		ChainID:    chainID,
 	}
-	//constructor(
-	//	address _ethereumBridge,
-	//	address _bridgeBank,
-	//	address _oracle,
-	//	address _valset
-	//)
-	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
+
+	return info
+}
+
+func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethereumBridge, valset, bridgeBank, oracle string) (*utils.Chain33OfflineTx, error) {
 	createPara := fmt.Sprintf("%s,%s,%s,%s", ethereumBridge, bridgeBank, oracle, valset)
-	content, txHash, err := utils.CreateContractAndSign(info, generated.BridgeRegistryBin, generated.BridgeRegistryABI, createPara, "BridgeRegistry")
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), generated.BridgeRegistryBin, generated.BridgeRegistryABI, createPara, "BridgeRegistry")
 	if nil != err {
 		return nil, err
 	}
@@ -175,21 +183,6 @@ func createBridgeRegistryTxAndSign(cmd *cobra.Command, from common.Address, ethe
 }
 
 func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) (*utils.Chain33OfflineTx, error) {
-	privateKey, _ := cmd.Flags().GetString("key")
-	expire, _ := cmd.Flags().GetString("expire")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
-	paraName, _ := cmd.Flags().GetString("paraName")
-	chainID, _ := cmd.Flags().GetInt32("chainID")
-	feeInt64 := int64(fee*1e4) * 1e4
-	info := &utils.TxCreateInfo{
-		PrivateKey: privateKey,
-		Expire:     expire,
-		Note:       note,
-		Fee:        feeInt64,
-		ParaName:   paraName,
-		ChainID:    chainID,
-	}
 	//function setOracle(
 	//	address _oracle
 	//)
@@ -200,7 +193,7 @@ func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) 
 		return nil, err
 	}
 	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
-	content, txHash, err := utils.CallContractAndSign(info, action, ethbridge)
+	content, txHash, err := utils.CallContractAndSign(getTxInfo(cmd), action, ethbridge)
 	if nil != err {
 		return nil, err
 	}
@@ -216,22 +209,6 @@ func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) 
 }
 
 func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank string) (*utils.Chain33OfflineTx, error) {
-
-	privateKey, _ := cmd.Flags().GetString("key")
-	expire, _ := cmd.Flags().GetString("expire")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
-	paraName, _ := cmd.Flags().GetString("paraName")
-	chainID, _ := cmd.Flags().GetInt32("chainID")
-	feeInt64 := int64(fee*1e4) * 1e4
-	info := &utils.TxCreateInfo{
-		PrivateKey: privateKey,
-		Expire:     expire,
-		Note:       note,
-		Fee:        feeInt64,
-		ParaName:   paraName,
-		ChainID:    chainID,
-	}
 	//function setBridgeBank(
 	//	address payable _bridgeBank
 	//)
@@ -242,7 +219,7 @@ func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank 
 		return nil, err
 	}
 	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
-	content, txHash, err := utils.CallContractAndSign(info, action, ethbridge)
+	content, txHash, err := utils.CallContractAndSign(getTxInfo(cmd), action, ethbridge)
 	if nil != err {
 		return nil, err
 	}
@@ -258,29 +235,9 @@ func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank 
 }
 
 func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, ethereumBridge string) (*utils.Chain33OfflineTx, error) {
-	privateKey, _ := cmd.Flags().GetString("key")
-	expire, _ := cmd.Flags().GetString("expire")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
-	paraName, _ := cmd.Flags().GetString("paraName")
-	chainID, _ := cmd.Flags().GetInt32("chainID")
-	feeInt64 := int64(fee*1e4) * 1e4
-	info := &utils.TxCreateInfo{
-		PrivateKey: privateKey,
-		Expire:     expire,
-		Note:       note,
-		Fee:        feeInt64,
-		ParaName:   paraName,
-		ChainID:    chainID,
-	}
-	//constructor (
-	//	address _operatorAddress,
-	//	address _oracleAddress,
-	//	address _ethereumBridgeAddress
-	//)
 	operator := from.String()
 	createPara := fmt.Sprintf("%s,%s,%s", operator, oracle, ethereumBridge)
-	content, txHash, err := utils.CreateContractAndSign(info, generated.BridgeBankBin, generated.BridgeBankABI, createPara, "bridgeBank")
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), generated.BridgeBankBin, generated.BridgeBankABI, createPara, "bridgeBank")
 	if nil != err {
 		return nil, err
 	}
@@ -297,29 +254,9 @@ func createBridgeBankTxAndSign(cmd *cobra.Command, from common.Address, oracle, 
 }
 
 func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethereumBridge string) (*utils.Chain33OfflineTx, error) {
-	privateKey, _ := cmd.Flags().GetString("key")
-	expire, _ := cmd.Flags().GetString("expire")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
-	paraName, _ := cmd.Flags().GetString("paraName")
-	chainID, _ := cmd.Flags().GetInt32("chainID")
-	feeInt64 := int64(fee*1e4) * 1e4
-	info := &utils.TxCreateInfo{
-		PrivateKey: privateKey,
-		Expire:     expire,
-		Note:       note,
-		Fee:        feeInt64,
-		ParaName:   paraName,
-		ChainID:    chainID,
-	}
-	//constructor(
-	//	address _operator,
-	//	address _valset,
-	//	address _ethereumBridge
-	//)
 	operator := from.String()
 	createPara := fmt.Sprintf("%s,%s,%s", operator, valset, ethereumBridge)
-	content, txHash, err := utils.CreateContractAndSign(info, generated.OracleBin, generated.OracleABI, createPara, "oralce")
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), generated.OracleBin, generated.OracleABI, createPara, "oralce")
 	if nil != err {
 		return nil, err
 	}
@@ -337,30 +274,8 @@ func createOracleTxAndSign(cmd *cobra.Command, from common.Address, valset, ethe
 
 func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*utils.Chain33OfflineTx, error) {
 	contructParameter, _ := cmd.Flags().GetString("valset")
-
-	privateKeyStr, _ := cmd.Flags().GetString("key")
-	expire, _ := cmd.Flags().GetString("expire")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
-	paraName, _ := cmd.Flags().GetString("paraName")
-	chainID, _ := cmd.Flags().GetInt32("chainID")
-	feeInt64 := int64(fee*1e4) * 1e4
-	info := &utils.TxCreateInfo{
-		PrivateKey: privateKeyStr,
-		Expire:     expire,
-		Note:       note,
-		Fee:        feeInt64,
-		ParaName:   paraName,
-		ChainID:    chainID,
-	}
-	//constructor(
-	//	address _operator,
-	//	address[] memory _initValidators,
-	//	uint256[] memory _initPowers
-	//)
-	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
 	createPara := contructParameter
-	content, txHash, err := utils.CreateContractAndSign(info, generated.ValsetBin, generated.ValsetABI, createPara, "valset")
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), generated.ValsetBin, generated.ValsetABI, createPara, "valset")
 	if nil != err {
 		return nil, err
 	}
@@ -377,29 +292,9 @@ func createValsetTxAndSign(cmd *cobra.Command, from common.Address) (*utils.Chai
 }
 
 func createEthereumBridgeAndSign(cmd *cobra.Command, from common.Address, valset string) (*utils.Chain33OfflineTx, error) {
-	privateKey, _ := cmd.Flags().GetString("key")
-	expire, _ := cmd.Flags().GetString("expire")
-	note, _ := cmd.Flags().GetString("note")
-	fee, _ := cmd.Flags().GetFloat64("fee")
-	paraName, _ := cmd.Flags().GetString("paraName")
-	chainID, _ := cmd.Flags().GetInt32("chainID")
-	feeInt64 := int64(fee*1e4) * 1e4
-	info := &utils.TxCreateInfo{
-		PrivateKey: privateKey,
-		Expire:     expire,
-		Note:       note,
-		Fee:        feeInt64,
-		ParaName:   paraName,
-		ChainID:    chainID,
-	}
-	//constructor(
-	//	address _operator,
-	//	address _valset
-	//)
-	//constructor(addr, [addr, addr, addr, addr], [25, 25, 25, 25])
 	operator := from.String()
 	createPara := fmt.Sprintf("%s,%s", operator, valset)
-	content, txHash, err := utils.CreateContractAndSign(info, generated.EthereumBridgeBin, generated.EthereumBridgeABI, createPara, "EthereumBridge")
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), generated.EthereumBridgeBin, generated.EthereumBridgeABI, createPara, "EthereumBridge")
 	if nil != err {
 		return nil, err
 	}
@@ -413,6 +308,23 @@ func createEthereumBridgeAndSign(cmd *cobra.Command, from common.Address, valset
 		Interval:      time.Second * 5,
 	}
 	return ethereumBridgeTx, nil
+}
+
+func createMulSignAndSign(cmd *cobra.Command, from common.Address) (*utils.Chain33OfflineTx, error) {
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), generated.GnosisSafeBin, generated.GnosisSafeABI, "", "mulSign2chain33")
+	if nil != err {
+		return nil, err
+	}
+
+	newContractAddr := common.NewContractAddress(from, txHash).String()
+	mulSign2chain33Tx := &utils.Chain33OfflineTx{
+		ContractAddr:  newContractAddr,
+		TxHash:        common.Bytes2Hex(txHash),
+		SignedRawTx:   content,
+		OperationName: "deploy mulSign2chain33",
+		Interval:      time.Second * 5,
+	}
+	return mulSign2chain33Tx, nil
 }
 
 func sendSignTxs2Chain33Cmd() *cobra.Command {
