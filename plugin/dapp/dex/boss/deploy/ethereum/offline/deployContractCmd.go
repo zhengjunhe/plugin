@@ -110,7 +110,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	var factData DeployContract
 	factData.Interval = timewait
 	factData.TxHash = txHash
-	factData.SignedRawTx = signedTx
+	factData.RawTx = signedTx
 	factData.Nonce = s.Nonce
 	factData.ContractAddr = factoryAddr.String()
 	factData.ContractName = "factory"
@@ -129,7 +129,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	weth9Data.Interval = timewait
 	weth9Data.Nonce = s.Nonce + 1
 	weth9Data.TxHash = hash
-	weth9Data.SignedRawTx = wsignedTx
+	weth9Data.RawTx = wsignedTx
 	weth9Data.ContractAddr = weth9Addr.String()
 	weth9Data.ContractName = "weth9"
 	signData = append(signData, &weth9Data)
@@ -146,7 +146,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	var panData DeployContract
 	panData.Interval = timewait
 	panData.Nonce = weth9Data.Nonce + 1
-	panData.SignedRawTx = rSignedTx
+	panData.RawTx = rSignedTx
 	panData.ContractAddr = panrouterAddr.String()
 	panData.TxHash = hash
 	panData.ContractName = "pancakerouter"
@@ -167,7 +167,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	cakeContractAddr := crypto.CreateAddress(from, farmNonce)
 	cakeData.Interval = timewait
 	cakeData.Nonce = farmNonce
-	cakeData.SignedRawTx = cakeSignedtx
+	cakeData.RawTx = cakeSignedtx
 	cakeData.TxHash = hash
 	cakeData.ContractName = "caketoken"
 	cakeData.ContractAddr = cakeContractAddr.String()
@@ -189,7 +189,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	syrupBarData.TxHash = hash
 	syrupBarData.ContractName = "syrupbar"
 	syrupBarData.ContractAddr = syupContractAddr.String()
-	syrupBarData.SignedRawTx = syupSignedTx
+	syrupBarData.RawTx = syupSignedTx
 	signData = append(signData, syrupBarData)
 	//--------------------
 	//Sign masterChef Contractor
@@ -209,7 +209,7 @@ func (s *SignCmd) signContractTx(fee2setter string, key *ecdsa.PrivateKey, gasPr
 	mChefData.Nonce = masterChefNonce
 	mChefData.TxHash = hash
 	mChefData.ContractName = "masterchef"
-	mChefData.SignedRawTx = mchefSignedTx
+	mChefData.RawTx = mchefSignedTx
 	mChefData.ContractAddr = mChefContractAddr.String()
 	signData = append(signData, mChefData)
 

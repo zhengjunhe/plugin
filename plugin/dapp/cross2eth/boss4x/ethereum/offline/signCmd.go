@@ -15,8 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 type DepolyInfo struct {
 	//OperatorAddr       string   `toml:"operatorAddr"`
 	DeployerPrivateKey string   `toml:"deployerPrivateKey"`
@@ -24,7 +22,7 @@ type DepolyInfo struct {
 	InitPowers         []int64  `toml:"initPowers"`
 }
 
-func  SignCmd() *cobra.Command {
+func SignCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sign", //first step
 		Short: "sign tx",
@@ -34,17 +32,16 @@ func  SignCmd() *cobra.Command {
 	return cmd
 }
 
-func  addSignFlag(cmd *cobra.Command) {
+func addSignFlag(cmd *cobra.Command) {
 	cmd.Flags().StringP("key", "k", "", "private key ")
 	cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("file", "f", "deploytxs.txt", "tx file")
-
 
 }
 
 func signTx(cmd *cobra.Command, args []string) {
 	privatekey, _ := cmd.Flags().GetString("key")
-	txFilePath,_:=cmd.Flags().GetString("file")
+	txFilePath, _ := cmd.Flags().GetString("file")
 	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(privatekey))
 	if err != nil {
 		panic(err)
@@ -56,19 +53,19 @@ func signTx(cmd *cobra.Command, args []string) {
 		fmt.Println("paraseFile,err", err.Error())
 		return
 	}
-	fmt.Println("deployTxInfos size:",len(deployTxInfos))
-	for i ,info:=range deployTxInfos{
+	fmt.Println("deployTxInfos size:", len(deployTxInfos))
+	for i, info := range deployTxInfos {
 		var tx types.Transaction
-		err= tx.UnmarshalBinary(common.FromHex(info.RawTx))
-		if err!=nil{
+		err = tx.UnmarshalBinary(common.FromHex(info.RawTx))
+		if err != nil {
 			panic(err)
 		}
-		signedTx,txHash,err:=eoff.SignTx(deployPrivateKey,&tx)
-		if err!=nil{
+		signedTx, txHash, err := eoff.SignTx(deployPrivateKey, &tx)
+		if err != nil {
 			panic(err)
 		}
-		deployTxInfos[i].RawTx=signedTx
-		deployTxInfos[i].TxHash=txHash
+		deployTxInfos[i].RawTx = signedTx
+		deployTxInfos[i].TxHash = txHash
 
 	}
 
@@ -78,7 +75,7 @@ func signTx(cmd *cobra.Command, args []string) {
 }
 
 //deploy contract step 1
-func deployValSetPackData(validators []common.Address, powers []*big.Int,deployerAddr common.Address)([]byte,error){
+func deployValSetPackData(validators []common.Address, powers []*big.Int, deployerAddr common.Address) ([]byte, error) {
 	parsed, err := abi.JSON(strings.NewReader(generated.ValsetABI))
 	if err != nil {
 		panic(err)
@@ -88,10 +85,11 @@ func deployValSetPackData(validators []common.Address, powers []*big.Int,deploye
 	if err != nil {
 		panic(err)
 	}
-	return append(bin,packdata...),nil
+	return append(bin, packdata...), nil
 }
+
 //deploy contract step 2
-func deploychain33BridgePackData(deployerAddr ,valSetAddr common.Address)([]byte,error){
+func deploychain33BridgePackData(deployerAddr, valSetAddr common.Address) ([]byte, error) {
 	parsed, err := abi.JSON(strings.NewReader(generated.Chain33BridgeABI))
 	if err != nil {
 		panic(err)
@@ -102,10 +100,11 @@ func deploychain33BridgePackData(deployerAddr ,valSetAddr common.Address)([]byte
 		panic(err)
 	}
 
-	return append(bin, input...),nil
+	return append(bin, input...), nil
 }
+
 //deploy contract step 3
-func deployOraclePackData(deployerAddr,valSetAddr,bridgeAddr common.Address)([]byte,error){
+func deployOraclePackData(deployerAddr, valSetAddr, bridgeAddr common.Address) ([]byte, error) {
 	parsed, err := abi.JSON(strings.NewReader(generated.OracleABI))
 	if err != nil {
 		panic(err)
@@ -116,11 +115,11 @@ func deployOraclePackData(deployerAddr,valSetAddr,bridgeAddr common.Address)([]b
 		panic(err)
 	}
 
-	return  append(bin, packData...),nil
+	return append(bin, packData...), nil
 }
 
 //deploy contract step 4
-func deployBridgeBankPackData(deployerAddr,bridgeAddr ,oracalAddr common.Address)([]byte,error){
+func deployBridgeBankPackData(deployerAddr, bridgeAddr, oracalAddr common.Address) ([]byte, error) {
 	parsed, err := abi.JSON(strings.NewReader(generated.BridgeBankABI))
 	if err != nil {
 		panic(err)
@@ -131,11 +130,11 @@ func deployBridgeBankPackData(deployerAddr,bridgeAddr ,oracalAddr common.Address
 		panic(err)
 	}
 
-	return append(bin, packData...),nil
+	return append(bin, packData...), nil
 }
 
 ////deploy contract step 5
-func callSetBridgeBank(bridgeBankAddr common.Address)([]byte,error){
+func callSetBridgeBank(bridgeBankAddr common.Address) ([]byte, error) {
 	method := "setBridgeBank"
 	parsed, err := abi.JSON(strings.NewReader(generated.Chain33BridgeABI))
 	if err != nil {
@@ -146,11 +145,11 @@ func callSetBridgeBank(bridgeBankAddr common.Address)([]byte,error){
 		panic(err)
 	}
 
-	return packData,nil
+	return packData, nil
 }
 
 //deploy contract step 6
-func callSetOracal(oracalAddr common.Address)([]byte,error){
+func callSetOracal(oracalAddr common.Address) ([]byte, error) {
 	method := "setOracle"
 	parsed, err := abi.JSON(strings.NewReader(generated.Chain33BridgeABI))
 	if err != nil {
@@ -160,11 +159,11 @@ func callSetOracal(oracalAddr common.Address)([]byte,error){
 	if err != nil {
 		panic(err)
 	}
-	return packData,nil
+	return packData, nil
 }
 
 //deploy contract step 7
-func deployBridgeRegistry(chain33BridgeAddr,bridgeBankAddr,oracleAddr,valSetAddr common.Address)([]byte,error){
+func deployBridgeRegistry(chain33BridgeAddr, bridgeBankAddr, oracleAddr, valSetAddr common.Address) ([]byte, error) {
 	parsed, err := abi.JSON(strings.NewReader(generated.BridgeRegistryABI))
 	if err != nil {
 		panic(err)
@@ -174,9 +173,6 @@ func deployBridgeRegistry(chain33BridgeAddr,bridgeBankAddr,oracleAddr,valSetAddr
 	if err != nil {
 		panic(err)
 	}
-	return  append(bin, packData...),nil
-
+	return append(bin, packData...), nil
 
 }
-
-

@@ -28,20 +28,20 @@ func TxCmd() *cobra.Command {
 	return cmd
 }
 
-func  addQueryFlags(cmd *cobra.Command) {
+func addQueryFlags(cmd *cobra.Command) {
 	cmd.Flags().StringP("conf", "c", "", "config file")
 	cmd.MarkFlagRequired("conf")
 }
-type DeployInfo struct{
-	Name string
-	PackData []byte
-	ContractorAddr common.Address `json:"contractorAddr,omitempty"`
-	Nonce uint64
-	To *common.Address
-	RawTx string
-	TxHash string
-	Gas uint64
 
+type DeployInfo struct {
+	Name           string
+	PackData       []byte
+	ContractorAddr common.Address
+	Nonce          uint64
+	To             *common.Address
+	RawTx          string
+	TxHash         string
+	Gas            uint64
 }
 
 func newTx(cmd *cobra.Command, args []string) {
@@ -81,96 +81,95 @@ func newTx(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	startNonce, err := client.PendingNonceAt(context.Background(), deployerAddr)
+	startNonce, err := client.PendingNonceAt(ctx, deployerAddr)
 	if nil != err {
 		panic(err)
 	}
 
-
 	var infos []*DeployInfo
 	//step1 valSet
-	packData,err:=deployValSetPackData(validators,initPowers,deployerAddr)
-	if err!=nil{
+	packData, err := deployValSetPackData(validators, initPowers, deployerAddr)
+	if err != nil {
 		panic(err)
 	}
-	valSetAddr:= crypto.CreateAddress(deployerAddr, startNonce)
-	infos=append(infos,&DeployInfo{PackData: packData,ContractorAddr: valSetAddr,Name: "valSet",Nonce: startNonce,To:nil})
+	valSetAddr := crypto.CreateAddress(deployerAddr, startNonce)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: valSetAddr, Name: "valSet", Nonce: startNonce, To: nil})
 
 	//step2 chain33bridge
-	packData,err=deploychain33BridgePackData(deployerAddr,valSetAddr)
-	if err!=nil{
+	packData, err = deploychain33BridgePackData(deployerAddr, valSetAddr)
+	if err != nil {
 		panic(err)
 	}
-	chain33BridgeAddr:=crypto.CreateAddress(deployerAddr, startNonce+1)
-	infos=append(infos,&DeployInfo{PackData: packData,ContractorAddr: chain33BridgeAddr,Name: "chain33Bridge", Nonce: startNonce+1,To:nil})
+	chain33BridgeAddr := crypto.CreateAddress(deployerAddr, startNonce+1)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: chain33BridgeAddr, Name: "chain33Bridge", Nonce: startNonce + 1, To: nil})
 
 	//step3 oracle
-	packData,err=deployOraclePackData(deployerAddr,valSetAddr,chain33BridgeAddr)
-	if err!=nil{
+	packData, err = deployOraclePackData(deployerAddr, valSetAddr, chain33BridgeAddr)
+	if err != nil {
 		panic(err)
 	}
-	oracleAddr:= crypto.CreateAddress(deployerAddr, startNonce+2)
-	infos=append(infos,&DeployInfo{PackData: packData,ContractorAddr: oracleAddr,Name: "oracle",Nonce: startNonce+2,To: nil})
+	oracleAddr := crypto.CreateAddress(deployerAddr, startNonce+2)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: oracleAddr, Name: "oracle", Nonce: startNonce + 2, To: nil})
 
 	//step4 bridgebank
-	packData,err= deployBridgeBankPackData(deployerAddr,chain33BridgeAddr,oracleAddr)
-	if err!=nil{
+	packData, err = deployBridgeBankPackData(deployerAddr, chain33BridgeAddr, oracleAddr)
+	if err != nil {
 		panic(err)
 	}
-	bridgeBankAddr:=crypto.CreateAddress(deployerAddr, startNonce+3)
-	infos=append(infos,&DeployInfo{PackData: packData,ContractorAddr: bridgeBankAddr,Name: "bridgebank",Nonce: startNonce+3,To:nil})
+	bridgeBankAddr := crypto.CreateAddress(deployerAddr, startNonce+3)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeBankAddr, Name: "bridgebank", Nonce: startNonce + 3, To: nil})
 
 	//step5
-	packData,err= callSetBridgeBank(bridgeBankAddr)
-	if err!=nil{
+	packData, err = callSetBridgeBank(bridgeBankAddr)
+	if err != nil {
 		panic(err)
 	}
-	infos=append(infos,&DeployInfo{PackData:packData,ContractorAddr: common.Address{},Name: "setbridgebank",Nonce: startNonce+4,To:&chain33BridgeAddr})
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: common.Address{}, Name: "setbridgebank", Nonce: startNonce + 4, To: &chain33BridgeAddr})
 
 	//step6
-	packData,err=callSetOracal(oracleAddr)
-	if err!=nil{
+	packData, err = callSetOracal(oracleAddr)
+	if err != nil {
 		panic(err)
 	}
-	infos=append(infos,&DeployInfo{PackData: packData,ContractorAddr: common.Address{},Name: "setoracle",Nonce: startNonce+5,To:&chain33BridgeAddr})
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: common.Address{}, Name: "setoracle", Nonce: startNonce + 5, To: &chain33BridgeAddr})
 
 	//step7 bridgeRegistry
-	packData,err=deployBridgeRegistry(chain33BridgeAddr,bridgeBankAddr,oracleAddr,valSetAddr)
-	if err!=nil{
+	packData, err = deployBridgeRegistry(chain33BridgeAddr, bridgeBankAddr, oracleAddr, valSetAddr)
+	if err != nil {
 		panic(err)
 	}
-	bridgeRegAddr:=crypto.CreateAddress(deployerAddr, startNonce+6)
-	infos=append(infos,&DeployInfo{PackData: packData,ContractorAddr: bridgeRegAddr,Name: "bridgeRegistry",Nonce: startNonce+6,To: nil})
+	bridgeRegAddr := crypto.CreateAddress(deployerAddr, startNonce+6)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeRegAddr, Name: "bridgeRegistry", Nonce: startNonce + 6, To: nil})
 
 	//预估gas,批量构造交易
-	for i,info:=range infos{
+	for i, info := range infos {
 		var msg ethereum.CallMsg
-		msg.From=deployerAddr
-		msg.To=info.To
-		msg.Value=big.NewInt(0)
-		msg.Data=info.PackData
+		msg.From = deployerAddr
+		msg.To = info.To
+		msg.Value = big.NewInt(0)
+		msg.Data = info.PackData
 		//估算gas
-		gasLimit,err:=client.EstimateGas(context.Background(),msg)
-		if err!=nil{
+		gasLimit, err := client.EstimateGas(ctx, msg)
+		if err != nil {
 			panic(err)
 		}
-		if gasLimit<100*10000{
-			gasLimit=100*10000
+		if gasLimit < 100*10000 {
+			gasLimit = 100 * 10000
 		}
-		ntx:= types.NewTx(&types.LegacyTx{
-			Nonce: info.Nonce,
-			Gas: gasLimit,
+		ntx := types.NewTx(&types.LegacyTx{
+			Nonce:    info.Nonce,
+			Gas:      gasLimit,
 			GasPrice: price,
-			Data: info.PackData,
-			To: info.To,
+			Data:     info.PackData,
+			To:       info.To,
 		})
 
-		infos[i].Gas=gasLimit
-		txBytes,err:=ntx.MarshalBinary()
-		if err!=nil{
+		txBytes, err := ntx.MarshalBinary()
+		if err != nil {
 			panic(err)
 		}
-		infos[i].RawTx=common.Bytes2Hex(txBytes)
+		infos[i].RawTx = common.Bytes2Hex(txBytes)
+		infos[i].Gas = gasLimit
 	}
 
 	jbytes, err := json.MarshalIndent(&infos, "", "\t")

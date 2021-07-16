@@ -67,7 +67,7 @@ type DeployContract struct {
 	ContractAddr string
 	TxHash       string
 	Nonce        uint64
-	SignedRawTx  string
+	RawTx        string
 	ContractName string
 	Interval     time.Duration
 }
@@ -105,7 +105,7 @@ func (d *DeployContract) send(cmd *cobra.Command, args []string) {
 			time.Sleep(deployInfo.Interval)
 		}
 		tx := new(types.Transaction)
-		err = tx.UnmarshalBinary(common.FromHex(deployInfo.SignedRawTx))
+		err = tx.UnmarshalBinary(common.FromHex(deployInfo.RawTx))
 		if err != nil {
 			panic(err)
 		}

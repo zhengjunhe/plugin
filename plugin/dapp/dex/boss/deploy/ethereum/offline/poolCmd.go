@@ -88,7 +88,7 @@ func (a *AddPool) AddPool2Farm(cmd *cobra.Command, args []string) {
 	}
 	var addPoolData = new(DeployContract)
 	addPoolData.Nonce = signInfo.Nonce
-	addPoolData.SignedRawTx = signedtx
+	addPoolData.RawTx = signedtx
 	addPoolData.TxHash = hash
 	addPoolData.ContractName = "addpool"
 	signData = append(signData, addPoolData)
@@ -153,7 +153,7 @@ func (u *updateAllocPoint) UpdateAllocPoint(cmd *cobra.Command, args []string) {
 
 	var updateAllocData = new(DeployContract)
 	updateAllocData.Nonce = signInfo.Nonce
-	updateAllocData.SignedRawTx = signedtx
+	updateAllocData.RawTx = signedtx
 	updateAllocData.TxHash = hash
 	updateAllocData.ContractName = "updateAllocPoint"
 	signData = append(signData, updateAllocData)
@@ -247,7 +247,7 @@ func (t *transferOwnerShip) TransferOwnerShip(cmd *cobra.Command, args []string)
 	var transferOwner = new(DeployContract)
 	var signData = make([]*DeployContract, 0)
 	transferOwner.Nonce = signInfo.Nonce
-	transferOwner.SignedRawTx = signedtx
+	transferOwner.RawTx = signedtx
 	transferOwner.TxHash = hash
 	transferOwner.ContractName = "transferOwnership"
 	signData = append(signData, transferOwner)

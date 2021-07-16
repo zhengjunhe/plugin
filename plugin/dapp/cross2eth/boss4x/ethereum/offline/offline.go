@@ -204,11 +204,11 @@ func sendTxs(cmd *cobra.Command, args []string) {
 		}
 		ret := &DeployContractRet{ContractAddr: deployInfo.ContractorAddr.String(), TxHash: tx.Hash().String(), ContractName: deployInfo.Name}
 		respData = append(respData, ret)
-		if !checkTxStatus(client,tx.Hash().String(),deployInfo.Name){
+		if !checkTxStatus(client, tx.Hash().String(), deployInfo.Name) {
 			fmt.Println("FATAL ERROR! DEPLOY CONTRACTOR TERMINATION……:-(")
 			break
 		}
-		fmt.Println("Step:",i+1,"tx hash",tx.Hash().String(),"op:",deployInfo.Name)
+		fmt.Println("Step:", i+1, "tx hash", tx.Hash().String(), "op:", deployInfo.Name)
 	}
 
 	data, err := json.MarshalIndent(respData, "", "\t")
@@ -216,14 +216,13 @@ func sendTxs(cmd *cobra.Command, args []string) {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
-	writeToFile("deploysendtx.txt",data)
+	writeToFile("deploysendtx.txt", data)
 	fmt.Println(string(data))
 }
 
-
-func checkTxStatus(client *ethclient.Client,txhash ,txName string) bool{
-	var checkticket =time.NewTicker(time.Second*3)
-	var timeout=time.NewTicker(time.Second*300)
+func checkTxStatus(client *ethclient.Client, txhash, txName string) bool {
+	var checkticket = time.NewTicker(time.Second * 3)
+	var timeout = time.NewTicker(time.Second * 300)
 	for {
 		select {
 		case <-timeout.C:
@@ -231,28 +230,26 @@ func checkTxStatus(client *ethclient.Client,txhash ,txName string) bool{
 		case <-checkticket.C:
 			receipt, err := client.TransactionReceipt(context.Background(), common.HexToHash(txhash))
 			if err == ethereum.NotFound {
-				fmt.Println("\n No receipt received yet for " +txName," tx and continue to wait")
+				fmt.Println("\n No receipt received yet for "+txName, " tx and continue to wait")
 				continue
 			} else if err != nil {
 				panic("failed due to" + err.Error())
 			}
 
 			//hasBridgeBank
-		//	fmt.Println("receip:",receipt)
+			//	fmt.Println("receip:",receipt)
 
-			if receipt.Status==types.ReceiptStatusSuccessful{
+			if receipt.Status == types.ReceiptStatusSuccessful {
 				return true
 			}
 
-			if receipt.Status==types.ReceiptStatusFailed{
-				fmt.Println("tx status:",types.ReceiptStatusFailed)
-				return  false
-				}
+			if receipt.Status == types.ReceiptStatusFailed {
+				fmt.Println("tx status:", types.ReceiptStatusFailed)
+				return false
 			}
 		}
-
+	}
 
 	return false
-
 
 }
