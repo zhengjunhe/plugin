@@ -27,8 +27,7 @@ func EthCmd() *cobra.Command {
 	}
 	cmd.AddCommand(
 		DeployContrctsCmd(),
-		offline.OfflineDeployContractsCmd(),
-		//offline.Boss4xEthOfflineCmd(),
+		offline.DeployOfflineContractsCmd(),
 	)
 	return cmd
 

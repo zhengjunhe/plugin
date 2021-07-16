@@ -123,9 +123,6 @@ func CallContractAndSign(txCreateInfo *TxCreateInfo, action *evmtypes.EVMContrac
 	if err != nil {
 		return "", nil, errors.New(contractAddr + " call contract error:" + err.Error())
 	}
-	//fmt.Println("The call tx is as created below:")
-	//fmt.Println(data)
-
 	return data, txHash, nil
 }
 

@@ -15,13 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type DepolyInfo struct {
-	//OperatorAddr       string   `toml:"operatorAddr"`
-	DeployerPrivateKey string   `toml:"deployerPrivateKey"`
-	ValidatorsAddr     []string `toml:"validatorsAddr"`
-	InitPowers         []int64  `toml:"initPowers"`
-}
-
 func SignCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sign", //first step
@@ -34,12 +27,11 @@ func SignCmd() *cobra.Command {
 
 func addSignFlag(cmd *cobra.Command) {
 	cmd.Flags().StringP("key", "k", "", "private key ")
-	cmd.MarkFlagRequired("key")
-	cmd.Flags().StringP("file", "f", "deploytxs.txt", "tx file")
-
+	_ = cmd.MarkFlagRequired("key")
+	cmd.Flags().StringP("file", "f", "deploytxs.txt", "tx file, default:deploytxs.txt")
 }
 
-func signTx(cmd *cobra.Command, args []string) {
+func signTx(cmd *cobra.Command, _ []string) {
 	privatekey, _ := cmd.Flags().GetString("key")
 	txFilePath, _ := cmd.Flags().GetString("file")
 	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(privatekey))
@@ -71,7 +63,6 @@ func signTx(cmd *cobra.Command, args []string) {
 
 	//finsh write to file
 	writeToFile("deploysigntxs.txt", deployTxInfos)
-
 }
 
 //deploy contract step 1
@@ -174,5 +165,4 @@ func deployBridgeRegistry(chain33BridgeAddr, bridgeBankAddr, oracleAddr, valSetA
 		panic(err)
 	}
 	return append(bin, packData...), nil
-
 }

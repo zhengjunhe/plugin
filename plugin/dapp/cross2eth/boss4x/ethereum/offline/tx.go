@@ -14,24 +14,9 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"strconv"
+	"strings"
 )
-
-//查询deploy 私钥的nonce信息，并输出到文件中
-
-func TxCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "tx", //first step
-		Short: "create deploy tx",
-		Run:   newTx, //对要部署的factory合约进行签名
-	}
-	addQueryFlags(cmd)
-	return cmd
-}
-
-func addQueryFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("conf", "c", "", "config file")
-	cmd.MarkFlagRequired("conf")
-}
 
 type DeployInfo struct {
 	Name           string
@@ -44,10 +29,207 @@ type DeployInfo struct {
 	Gas            uint64
 }
 
-func newTx(cmd *cobra.Command, args []string) {
+type DeployConfigInfo struct {
+	//OperatorAddr       string   `toml:"operatorAddr"`
+	DeployerPrivateKey string   `toml:"deployerPrivateKey"`
+	ValidatorsAddr     []string `toml:"validatorsAddr"`
+	InitPowers         []int64  `toml:"initPowers"`
+}
+
+// CreateCmd 查询deploy 私钥的nonce信息，并输出到文件中
+func CreateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create", //first step
+		Short: "create deploy tx",
+		Run:   createTx, //对要部署的factory合约进行签名
+	}
+	addCreateFlags(cmd)
+	return cmd
+}
+
+func addCreateFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("validatorsAddrs", "v", "", "validatorsAddrs, as: 'addr,addr,addr,addr'")
+	_ = cmd.MarkFlagRequired("validatorsAddrs")
+	cmd.Flags().StringP("initPowers", "p", "", "initPowers, as: '25,25,25,25'")
+	_ = cmd.MarkFlagRequired("initPowers")
+	cmd.Flags().StringP("owner", "o", "", "the deployer address")
+	_ = cmd.MarkFlagRequired("owner")
+}
+
+func createTx(cmd *cobra.Command, _ []string) {
+	url, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
+	validatorsAddrs, _ := cmd.Flags().GetString("validatorsAddrs")
+	initpowers, _ := cmd.Flags().GetString("initPowers")
+	owner, _ := cmd.Flags().GetString("owner")
+	deployerAddr := common.HexToAddress(owner)
+	fmt.Println("owner", owner, deployerAddr.String())
+
+	validatorsAddrsArray := strings.Split(validatorsAddrs, ",")
+	initPowersArray := strings.Split(initpowers, ",")
+
+	if len(validatorsAddrsArray) != len(initPowersArray) {
+		fmt.Println("input validatorsAddrs initPowers error!")
+		return
+	}
+
+	if len(validatorsAddrsArray) < 3 {
+		fmt.Println("the number of validator must be not less than 3")
+		return
+	}
+
+	var validators []common.Address
+	var initPowers []*big.Int
+	for _, v := range validatorsAddrsArray {
+		validators = append(validators, common.HexToAddress(v))
+	}
+
+	for _, v := range initPowersArray {
+		vint64, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		initPowers = append(initPowers, big.NewInt(vint64))
+	}
+
+	err := createDeployTxs(url, deployerAddr, validators, initPowers)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func createDeployTxs(url string, deployerAddr common.Address, validators []common.Address, initPowers []*big.Int) error {
+	client, err := ethclient.Dial(url)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	price, err := client.SuggestGasPrice(ctx)
+	if err != nil {
+		return err
+	}
+
+	startNonce, err := client.PendingNonceAt(ctx, deployerAddr)
+	if nil != err {
+		return err
+	}
+
+	var infos []*DeployInfo
+	//step1 valSet
+	packData, err := deployValSetPackData(validators, initPowers, deployerAddr)
+	if err != nil {
+		return err
+	}
+	valSetAddr := crypto.CreateAddress(deployerAddr, startNonce)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: valSetAddr, Name: "valSet", Nonce: startNonce, To: nil})
+
+	//step2 chain33bridge
+	packData, err = deploychain33BridgePackData(deployerAddr, valSetAddr)
+	if err != nil {
+		return err
+	}
+	chain33BridgeAddr := crypto.CreateAddress(deployerAddr, startNonce+1)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: chain33BridgeAddr, Name: "chain33Bridge", Nonce: startNonce + 1, To: nil})
+
+	//step3 oracle
+	packData, err = deployOraclePackData(deployerAddr, valSetAddr, chain33BridgeAddr)
+	if err != nil {
+		return err
+	}
+	oracleAddr := crypto.CreateAddress(deployerAddr, startNonce+2)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: oracleAddr, Name: "oracle", Nonce: startNonce + 2, To: nil})
+
+	//step4 bridgebank
+	packData, err = deployBridgeBankPackData(deployerAddr, chain33BridgeAddr, oracleAddr)
+	if err != nil {
+		return err
+	}
+	bridgeBankAddr := crypto.CreateAddress(deployerAddr, startNonce+3)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeBankAddr, Name: "bridgebank", Nonce: startNonce + 3, To: nil})
+
+	//step5
+	packData, err = callSetBridgeBank(bridgeBankAddr)
+	if err != nil {
+		return err
+	}
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: common.Address{}, Name: "setbridgebank", Nonce: startNonce + 4, To: &chain33BridgeAddr})
+
+	//step6
+	packData, err = callSetOracal(oracleAddr)
+	if err != nil {
+		return err
+	}
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: common.Address{}, Name: "setoracle", Nonce: startNonce + 5, To: &chain33BridgeAddr})
+
+	//step7 bridgeRegistry
+	packData, err = deployBridgeRegistry(chain33BridgeAddr, bridgeBankAddr, oracleAddr, valSetAddr)
+	if err != nil {
+		return err
+	}
+	bridgeRegAddr := crypto.CreateAddress(deployerAddr, startNonce+6)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeRegAddr, Name: "bridgeRegistry", Nonce: startNonce + 6, To: nil})
+
+	//预估gas,批量构造交易
+	for i, info := range infos {
+		var msg ethereum.CallMsg
+		msg.From = deployerAddr
+		msg.To = info.To
+		msg.Value = big.NewInt(0)
+		msg.Data = info.PackData
+		//估算gas
+		gasLimit, err := client.EstimateGas(ctx, msg)
+		if err != nil {
+			return err
+		}
+		if gasLimit < 100*10000 {
+			gasLimit = 100 * 10000
+		}
+		ntx := types.NewTx(&types.LegacyTx{
+			Nonce:    info.Nonce,
+			Gas:      gasLimit,
+			GasPrice: price,
+			Data:     info.PackData,
+			To:       info.To,
+		})
+
+		txBytes, err := ntx.MarshalBinary()
+		if err != nil {
+			return err
+		}
+		infos[i].RawTx = common.Bytes2Hex(txBytes)
+		infos[i].Gas = gasLimit
+	}
+
+	jbytes, err := json.MarshalIndent(&infos, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(jbytes))
+	writeToFile("deploytxs.txt", &infos)
+
+	return nil
+}
+
+func CreateWithFileCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create_file", //first step
+		Short: "create deploy tx with file",
+		Run:   createWithFileTx, //对要部署的factory合约进行签名
+	}
+	addCreateWithFileFlags(cmd)
+	return cmd
+}
+
+func addCreateWithFileFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("conf", "c", "", "config file")
+	_ = cmd.MarkFlagRequired("conf")
+}
+
+func createWithFileTx(cmd *cobra.Command, _ []string) {
 	url, _ := cmd.Flags().GetString("rpc_laddr_ethereum")
 	cfgpath, _ := cmd.Flags().GetString("conf")
-	var deployCfg DepolyInfo
+	var deployCfg DeployConfigInfo
 	InitCfg(cfgpath, &deployCfg)
 	deployPrivateKey, err := crypto.ToECDSA(common.FromHex(deployCfg.DeployerPrivateKey))
 	if err != nil {
@@ -70,117 +252,10 @@ func newTx(cmd *cobra.Command, args []string) {
 		initPowers = append(initPowers, big.NewInt(deployCfg.InitPowers[i]))
 	}
 
-	client, err := ethclient.Dial(url)
+	err = createDeployTxs(url, deployerAddr, validators, initPowers)
 	if err != nil {
 		panic(err)
 	}
-
-	ctx := context.Background()
-	price, err := client.SuggestGasPrice(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	startNonce, err := client.PendingNonceAt(ctx, deployerAddr)
-	if nil != err {
-		panic(err)
-	}
-
-	var infos []*DeployInfo
-	//step1 valSet
-	packData, err := deployValSetPackData(validators, initPowers, deployerAddr)
-	if err != nil {
-		panic(err)
-	}
-	valSetAddr := crypto.CreateAddress(deployerAddr, startNonce)
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: valSetAddr, Name: "valSet", Nonce: startNonce, To: nil})
-
-	//step2 chain33bridge
-	packData, err = deploychain33BridgePackData(deployerAddr, valSetAddr)
-	if err != nil {
-		panic(err)
-	}
-	chain33BridgeAddr := crypto.CreateAddress(deployerAddr, startNonce+1)
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: chain33BridgeAddr, Name: "chain33Bridge", Nonce: startNonce + 1, To: nil})
-
-	//step3 oracle
-	packData, err = deployOraclePackData(deployerAddr, valSetAddr, chain33BridgeAddr)
-	if err != nil {
-		panic(err)
-	}
-	oracleAddr := crypto.CreateAddress(deployerAddr, startNonce+2)
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: oracleAddr, Name: "oracle", Nonce: startNonce + 2, To: nil})
-
-	//step4 bridgebank
-	packData, err = deployBridgeBankPackData(deployerAddr, chain33BridgeAddr, oracleAddr)
-	if err != nil {
-		panic(err)
-	}
-	bridgeBankAddr := crypto.CreateAddress(deployerAddr, startNonce+3)
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeBankAddr, Name: "bridgebank", Nonce: startNonce + 3, To: nil})
-
-	//step5
-	packData, err = callSetBridgeBank(bridgeBankAddr)
-	if err != nil {
-		panic(err)
-	}
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: common.Address{}, Name: "setbridgebank", Nonce: startNonce + 4, To: &chain33BridgeAddr})
-
-	//step6
-	packData, err = callSetOracal(oracleAddr)
-	if err != nil {
-		panic(err)
-	}
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: common.Address{}, Name: "setoracle", Nonce: startNonce + 5, To: &chain33BridgeAddr})
-
-	//step7 bridgeRegistry
-	packData, err = deployBridgeRegistry(chain33BridgeAddr, bridgeBankAddr, oracleAddr, valSetAddr)
-	if err != nil {
-		panic(err)
-	}
-	bridgeRegAddr := crypto.CreateAddress(deployerAddr, startNonce+6)
-	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeRegAddr, Name: "bridgeRegistry", Nonce: startNonce + 6, To: nil})
-
-	//预估gas,批量构造交易
-	for i, info := range infos {
-		var msg ethereum.CallMsg
-		msg.From = deployerAddr
-		msg.To = info.To
-		msg.Value = big.NewInt(0)
-		msg.Data = info.PackData
-		//估算gas
-		gasLimit, err := client.EstimateGas(ctx, msg)
-		if err != nil {
-			panic(err)
-		}
-		if gasLimit < 100*10000 {
-			gasLimit = 100 * 10000
-		}
-		ntx := types.NewTx(&types.LegacyTx{
-			Nonce:    info.Nonce,
-			Gas:      gasLimit,
-			GasPrice: price,
-			Data:     info.PackData,
-			To:       info.To,
-		})
-
-		txBytes, err := ntx.MarshalBinary()
-		if err != nil {
-			panic(err)
-		}
-		infos[i].RawTx = common.Bytes2Hex(txBytes)
-		infos[i].Gas = gasLimit
-	}
-
-	jbytes, err := json.MarshalIndent(&infos, "", "\t")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println(string(jbytes))
-	writeToFile("deploytxs.txt", &infos)
-	return
-
 }
 
 func paraseFile(file string, result interface{}) error {
