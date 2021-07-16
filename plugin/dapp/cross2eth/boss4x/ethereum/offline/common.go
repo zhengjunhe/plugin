@@ -12,9 +12,9 @@ func OfflineDeployContractsCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		TxCmd(),
-		SignCmd(),
-		sendTxsCmd(),
+		TxCmd(),//构造交易
+		SignCmd(),//签名交易
+		sendTxsCmd(),//发送交易
 
 	)
 
