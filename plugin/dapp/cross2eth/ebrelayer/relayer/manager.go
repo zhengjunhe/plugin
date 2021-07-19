@@ -391,7 +391,7 @@ func (manager *Manager) CreateERC20ToChain33(param relayerTypes.ERC20Token, resu
 	return nil
 }
 
-func (manager *Manager) DeployMulsign2Chain33(param interface{}, result *interface{}) error {
+func (manager *Manager) DeployMulsign2Chain33(_ interface{}, result *interface{}) error {
 	manager.mtx.Lock()
 	defer manager.mtx.Unlock()
 	if err := manager.checkPermission(); nil != err {
@@ -1024,6 +1024,32 @@ func (manager *Manager) TransferEth(transfer relayerTypes.TransferToken, result 
 	*result = rpctypes.Reply{
 		IsOk: true,
 		Msg:  txhash,
+	}
+	return nil
+}
+
+func (manager *Manager) SetChain33MultiSignAddr(multiSignAddr string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	manager.chain33Relayer.SetMultiSignAddr(multiSignAddr)
+	*result = rpctypes.Reply{
+		IsOk: true,
+	}
+	return nil
+}
+
+func (manager *Manager) SetEthMultiSignAddr(multiSignAddr string, result *interface{}) error {
+	manager.mtx.Lock()
+	defer manager.mtx.Unlock()
+	if err := manager.checkPermission(); nil != err {
+		return err
+	}
+	manager.ethRelayer.SetMultiSignAddr(multiSignAddr)
+	*result = rpctypes.Reply{
+		IsOk: true,
 	}
 	return nil
 }

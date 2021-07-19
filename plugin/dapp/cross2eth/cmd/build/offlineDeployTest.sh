@@ -6,6 +6,7 @@ set +e
 
 source "./publicTest.sh"
 source "./relayerPublic.sh"
+source "./multisignPublicTest.sh"
 
 # ETH 部署合约者的私钥 用于部署合约时签名使用
 ethDeployAddr="0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a"
@@ -90,6 +91,13 @@ function TestChain33ToEthAssets() {
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
     balance_ret "${result}" "2.0000"
 
+    # eth burn
+    result=$(${CLIA} ethereum burn -m 2 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
+    cli_ret "${result}" "burn"
+
+    result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
+    balance_ret "${result}" "0.0000"
+
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
@@ -137,6 +145,13 @@ function TestChain33ToEthZBCAssets() {
     # chain33BridgeBank 是否减少了 1
     result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
     is_equal "${result}" "100000000"
+
+    # eth burn
+    result=$(${CLIA} ethereum burn -m 1 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethBridgeToeknZBCAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
+    cli_ret "${result}" "burn"
+
+    result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
+    is_equal "${result}" "0"
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -189,6 +204,12 @@ function TestETH2Chain33Assets() {
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}")
     cli_ret "${result}" "balance" ".balance" "105"
 
+    ${CLIA} chain33 burn -m 6 -k "${chain33ReceiverAddrKey}" -r "${ethReceiverAddr1}" -t "${chain33EthTokenAddr}"
+    sleep ${maturityDegree}
+
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
+    cli_ret "${result}" "balance" ".balance" "0"
+
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
@@ -239,6 +260,12 @@ function TestETH2Chain33Ycc() {
     result=$(${CLIA} ethereum balance -o "${ethReceiverAddr1}" -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "balance" ".balance" "5"
 
+    ${CLIA} chain33 burn -m 2 -k "${chain33ReceiverAddrKey}" -r "${ethReceiverAddr1}" -t "${chain33YccTokenAddr}"
+    sleep ${maturityDegree}
+
+    result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "balance" ".balance" "0"
+
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
@@ -272,6 +299,7 @@ function InitAndOfflineDeploy() {
     BridgeRegistryOnChain33=$(echo "${result}" | jq -r ".[6].ContractAddr")
     # shellcheck disable=SC2034
     multisignChain33Addr=$(echo "${result}" | jq -r ".[7].ContractAddr")
+    ${CLIA} chain33 multisign set_multiSign -a "${multisignChain33Addr}"
 
     # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
     cp BridgeRegistry.abi "${BridgeRegistryOnChain33}.abi"
@@ -281,15 +309,19 @@ function InitAndOfflineDeploy() {
     # 在 Eth 上部署合约
 #    ./boss4x ethereum offline create -p "25,25,25,25" -o 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830"
 #    ./boss4x ethereum offline sign -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
-    ${Boss4xCLI} ethereum offline create -p "25,25,25,25" -o 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830"
-    ${Boss4xCLI} ethereum offline sign -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
+    # shellcheck disable=SC2154
+    ${Boss4xCLI} ethereum offline create -p "25,25,25,25" -o "${ethValidatorAddrA}" -v "${ethValidatorAddrA},${ethValidatorAddrB},${ethValidatorAddrC},${ethValidatorAddrD}"
+    ${Boss4xCLI} ethereum offline sign -k "${ethValidatorAddrKeyA}"
     result=$(${Boss4xCLI} ethereum offline send)
-    for i in {0..6}; do
+    for i in {0..7}; do
         hash=$(echo "${result}" | jq -r ".[$i].TxHash")
         check_eth_tx "${hash}"
     done
     BridgeRegistryOnEth=$(echo "${result}" | jq -r ".[6].ContractAddr")
     ethBridgeBank=$(echo "${result}" | jq -r ".[3].ContractAddr")
+    # shellcheck disable=SC2034
+    multisignEthAddr=$(echo "${result}" | jq -r ".[7].ContractAddr")
+    ${CLIA} ethereum multisign set_multiSign -a "${multisignEthAddr}"
 
     # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
     cp BridgeRegistry.abi "${BridgeRegistryOnEth}.abi"
@@ -340,9 +372,9 @@ function StartRelayerAndOfflineDeploy() {
     InitTokenAddr
 
     # 设置离线多签数据
-#    initMultisignAddr
-#    setupChain33AndEthMultisign
-#    transferChain33MultisignFee
+    initMultisignAddr
+    setupChain33AndEthMultisign
+    transferChain33MultisignFee
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
@@ -364,6 +396,11 @@ function mainTest() {
     TestChain33ToEthZBCAssets
     TestETH2Chain33Assets
     TestETH2Chain33Ycc
+
+    lockBty
+    lockChain33Ycc
+    lockEth
+    lockEthYcc
 }
 
 mainTest "${1}"

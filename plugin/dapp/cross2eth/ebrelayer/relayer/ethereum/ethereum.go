@@ -985,3 +985,11 @@ func (ethRelayer *Relayer4Ethereum) ConfigLockedTokenOfflineSave(addr, symbol, t
 	txhash, err := ethtxs.ConfigLockedTokenOfflineSave(addr, symbol, bn, uint8(percents), ethRelayer.clientSpec, ethRelayer.operatorInfo, ethRelayer.x2EthContracts)
 	return txhash, err
 }
+
+func (ethRelayer *Relayer4Ethereum) SetMultiSignAddr(address string) {
+	ethRelayer.rwLock.Lock()
+	ethRelayer.mulSignAddr = address
+	ethRelayer.rwLock.Unlock()
+
+	ethRelayer.setMultiSignAddress(address)
+}

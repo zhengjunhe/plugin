@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	gnosis "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/gnosis/generated"
 	tml "github.com/BurntSushi/toml"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -168,6 +169,11 @@ func createDeployTxs(url string, deployerAddr common.Address, validators []commo
 	}
 	bridgeRegAddr := crypto.CreateAddress(deployerAddr, startNonce+6)
 	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: bridgeRegAddr, Name: "bridgeRegistry", Nonce: startNonce + 6, To: nil})
+
+	//step8 bridgeRegistry
+	packData = common.FromHex(gnosis.GnosisSafeBin)
+	mulSignAddr := crypto.CreateAddress(deployerAddr, startNonce+7)
+	infos = append(infos, &DeployInfo{PackData: packData, ContractorAddr: mulSignAddr, Name: "mulSignAddr", Nonce: startNonce + 7, To: nil})
 
 	//预估gas,批量构造交易
 	for i, info := range infos {

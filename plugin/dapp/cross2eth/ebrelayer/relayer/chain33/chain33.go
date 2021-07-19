@@ -548,3 +548,11 @@ func (chain33Relayer *Relayer4Chain33) SafeTransfer(para ebTypes.SafeTransfer) (
 	return safeTransfer(para.OwnerPrivateKeys[0], chain33Relayer.mulSignAddr, chain33Relayer.chainName,
 		chain33Relayer.rpcLaddr, para.To, para.Token, para.OwnerPrivateKeys, para.Amount)
 }
+
+func (chain33Relayer *Relayer4Chain33) SetMultiSignAddr(address string) {
+	chain33Relayer.rwLock.Lock()
+	chain33Relayer.mulSignAddr = address
+	chain33Relayer.rwLock.Unlock()
+
+	chain33Relayer.setMultiSignAddress(address)
+}

@@ -25,6 +25,7 @@ func MultiSignCmd() *cobra.Command {
 		SetupCmd(),
 		TransferCmd(),
 		ShowAddrCmd(),
+		SetChain33MultiSignAddrCmd(),
 	)
 	return cmd
 }
@@ -144,5 +145,28 @@ func Transfer(cmd *cobra.Command, args []string) {
 	}
 	var res rpctypes.Reply
 	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SafeTransfer4Chain33", para, &res)
+	ctx.Run()
+}
+
+func SetChain33MultiSignAddrCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set_multiSign",
+		Short: "set multiSign address",
+		Run:   SetChain33MultiSignAddr,
+	}
+	SetChain33MultiSignAddrCmdFlags(cmd)
+	return cmd
+}
+
+func SetChain33MultiSignAddrCmdFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("address", "a", "", "address")
+	_ = cmd.MarkFlagRequired("address")
+}
+
+func SetChain33MultiSignAddr(cmd *cobra.Command, _ []string) {
+	rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	address, _ := cmd.Flags().GetString("address")
+	var res rpctypes.Reply
+	ctx := jsonclient.NewRPCCtx(rpcLaddr, "Manager.SetChain33MultiSignAddr", address, &res)
 	ctx.Run()
 }
