@@ -634,3 +634,13 @@ function lock_ethereum_ycc_multisign() {
         cli_ret "${result}" "balance" ".balance" "${multisignBalance}"
     fi
 }
+
+# 检查交易是否执行成功 $1:交易hash
+function check_eth_tx() {
+    local tx=${1}
+    ty=$(${CLIA} ethereum receipt -s "${tx}" | jq .status | sed 's/\"//g')
+    if [[ ${ty} != 0x1 ]]; then
+        echo -e "${RED}check eth tx error, hash is ${tx}${NOC}"
+        exit_cp_file
+    fi
+}

@@ -192,7 +192,7 @@ func setOracle2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, oracle string) 
 		fmt.Println("setOracle2EthBridge", "Failed to do abi.Pack due to:", err.Error())
 		return nil, err
 	}
-	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
+	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: "setOracle2EthBridge", Para: packData, ContractAddr: ethbridge}
 	content, txHash, err := utils.CallContractAndSign(getTxInfo(cmd), action, ethbridge)
 	if nil != err {
 		return nil, err
@@ -218,7 +218,7 @@ func setBridgeBank2EthBridgeTxAndSign(cmd *cobra.Command, ethbridge, bridgebank 
 		fmt.Println("setBridgeBank2EthBridge", "Failed to do abi.Pack due to:", err.Error())
 		return nil, err
 	}
-	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: parameter, Para: packData}
+	action := &evmtypes.EVMContractAction{Amount: 0, GasLimit: 0, GasPrice: 0, Note: "setBridgeBank2EthBridge", Para: packData, ContractAddr: ethbridge}
 	content, txHash, err := utils.CallContractAndSign(getTxInfo(cmd), action, ethbridge)
 	if nil != err {
 		return nil, err

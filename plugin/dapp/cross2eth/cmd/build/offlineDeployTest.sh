@@ -260,18 +260,15 @@ function InitAndOfflineDeploy() {
     cli_ret "${result}" "ethereum import_privatekey"
 
     # 在 chain33 上部署合约
-#    result=$(${CLIA} chain33 deploy)
-#    cli_ret "${result}" "chain33 deploy"
-#    BridgeRegistryOnChain33=$(echo "${result}" | jq -r ".msg")
-
 #    ./boss4x chain33 offline create -f 1 -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae -n "deploy crossx to chain33" -r "1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, [1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, 155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6, 13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv, 113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG], [25, 25, 25, 25]" --chainID 33
     # shellcheck disable=SC2154
     ${Boss4xCLI} chain33 offline create -f 1 -k "${chain33DeployKey}" -n "deploy crossx to chain33" -r "${chain33ValidatorA}, [${chain33ValidatorA}, ${chain33ValidatorB}, ${chain33ValidatorC}, ${chain33ValidatorD}], [25, 25, 25, 25]" --chainID 33
     result=$(${Boss4xCLI} chain33 offline send)
-    hash=$(echo "${result}" | jq -r ".[6].TxHash")
-    check_tx "${Chain33Cli}" "${hash}"
-    hash=$(echo "${result}" | jq -r ".[7].TxHash")
-    check_tx "${Chain33Cli}" "${hash}"
+
+    for i in {0..7}; do
+        hash=$(echo "${result}" | jq -r ".[$i].TxHash")
+        check_tx "${Chain33Cli}" "${hash}"
+    done
     BridgeRegistryOnChain33=$(echo "${result}" | jq -r ".[6].ContractAddr")
     # shellcheck disable=SC2034
     multisignChain33Addr=$(echo "${result}" | jq -r ".[7].ContractAddr")
@@ -281,26 +278,21 @@ function InitAndOfflineDeploy() {
     chain33BridgeBank=$(${Chain33Cli} evm abi call -c "${chain33DeployAddr}" -b "bridgeBank()" -a "${BridgeRegistryOnChain33}")
     cp Chain33BridgeBank.abi "${chain33BridgeBank}.abi"
 
-#    exit 0
-
     # 在 Eth 上部署合约
-#    result=$(${CLIA} ethereum deploy)
-#    cli_ret "${result}" "ethereum deploy"
-#    BridgeRegistryOnEth=$(echo "${result}" | jq -r ".msg")
-
-#    ./boss4x ethereum offline create_sign -l 500000 -n 0 -g 20000000000 -p "25,25,25,25" -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830" -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
-#    cp ../../../plugin/dapp/cross2eth/boss4x/ethereum/deploy.toml ./deploy.toml
-#    ./boss4x ethereum offline sign -c ./deploy.toml -g 20000000000 -l 500000
-    ./boss4x ethereum offline create -p "25,25,25,25" -o 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830"
-    ./boss4x ethereum offline sign -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
-    result=$(./boss4x ethereum offline send)
+#    ./boss4x ethereum offline create -p "25,25,25,25" -o 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830"
+#    ./boss4x ethereum offline sign -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
+    ${Boss4xCLI} ethereum offline create -p "25,25,25,25" -o 0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a -v "0x8afdadfc88a1087c9a1d6c0f5dd04634b87f303a,0x0df9a824699bc5878232c9e612fe1a5346a5a368,0xcb074cb21cdddf3ce9c3c0a7ac4497d633c9d9f1,0xd9dab021e74ecf475788ed7b61356056b2095830"
+    ${Boss4xCLI} ethereum offline sign -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230
+    result=$(${Boss4xCLI} ethereum offline send)
+    for i in {0..6}; do
+        hash=$(echo "${result}" | jq -r ".[$i].TxHash")
+        check_eth_tx "${hash}"
+    done
     BridgeRegistryOnEth=$(echo "${result}" | jq -r ".[6].ContractAddr")
+    ethBridgeBank=$(echo "${result}" | jq -r ".[3].ContractAddr")
 
     # 拷贝 BridgeRegistry.abi 和 BridgeBank.abi
     cp BridgeRegistry.abi "${BridgeRegistryOnEth}.abi"
-#    result=$(${CLIA} ethereum bridgeBankAddr)
-#    ethBridgeBank=$(echo "${result}" | jq -r ".addr")
-    ethBridgeBank=$(echo "${result}" | jq -r ".[3].ContractAddr")
     cp EthBridgeBank.abi "${ethBridgeBank}.abi"
 
     # 修改 relayer.toml 字段
