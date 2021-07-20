@@ -95,6 +95,9 @@ function TestChain33ToEthAssets() {
     result=$(${CLIA} ethereum burn -m 2 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethereumBtyTokenAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
 
+    eth_block_wait 2
+    sleep ${maturityDegree}
+
     result=$(${Chain33Cli} account balance -a "${chain33BridgeBank}" -e evm)
     balance_ret "${result}" "0.0000"
 
@@ -149,6 +152,9 @@ function TestChain33ToEthZBCAssets() {
     # eth burn
     result=$(${CLIA} ethereum burn -m 1 -k "${ethDeployKey}" -r "${chain33ReceiverAddr}" -t "${ethBridgeToeknZBCAddr}" ) #--node_addr https://ropsten.infura.io/v3/9e83f296716142ffbaeaafc05790f26c)
     cli_ret "${result}" "burn"
+
+    eth_block_wait 2
+    sleep ${maturityDegree}
 
     result=$(${Chain33Cli} evm abi call -a "${chain33ZBCErc20Addr}" -c "${chain33BridgeBank}" -b "balanceOf(${chain33BridgeBank})")
     is_equal "${result}" "0"
@@ -205,6 +211,7 @@ function TestETH2Chain33Assets() {
     cli_ret "${result}" "balance" ".balance" "105"
 
     ${CLIA} chain33 burn -m 6 -k "${chain33ReceiverAddrKey}" -r "${ethReceiverAddr1}" -t "${chain33EthTokenAddr}"
+    
     sleep ${maturityDegree}
 
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" )
@@ -261,6 +268,7 @@ function TestETH2Chain33Ycc() {
     cli_ret "${result}" "balance" ".balance" "5"
 
     ${CLIA} chain33 burn -m 2 -k "${chain33ReceiverAddrKey}" -r "${ethReceiverAddr1}" -t "${chain33YccTokenAddr}"
+
     sleep ${maturityDegree}
 
     result=$(${CLIA} ethereum balance -o "${ethBridgeBank}" -t "${ethereumYccTokenAddr}")
