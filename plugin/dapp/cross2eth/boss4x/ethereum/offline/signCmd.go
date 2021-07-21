@@ -2,7 +2,6 @@ package offline
 
 import (
 	"fmt"
-	//"github.com/33cn/plugin/plugin/dapp/cross2eth/boss4x/ethereum"
 	"math/big"
 	"strings"
 
@@ -58,7 +57,6 @@ func signTx(cmd *cobra.Command, _ []string) {
 		}
 		deployTxInfos[i].RawTx = signedTx
 		deployTxInfos[i].TxHash = txHash
-
 	}
 
 	//finsh write to file

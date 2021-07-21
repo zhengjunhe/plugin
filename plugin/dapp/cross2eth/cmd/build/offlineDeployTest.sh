@@ -298,7 +298,7 @@ function InitAndOfflineDeploy() {
 #    ./boss4x chain33 offline create -f 1 -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae -n "deploy crossx to chain33" -r "1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, [1N6HstkyLFS8QCeVfdvYxx1xoryXoJtvvZ, 155ooMPBTF8QQsGAknkK7ei5D78rwDEFe6, 13zBdQwuyDh7cKN79oT2odkxYuDbgQiXFv, 113ZzVamKfAtGt9dq45fX1mNsEoDiN95HG], [25, 25, 25, 25]" --chainID 33
     # shellcheck disable=SC2154
     ${Boss4xCLI} chain33 offline create -f 1 -k "${chain33DeployKey}" -n "deploy crossx to chain33" -r "${chain33ValidatorA}, [${chain33ValidatorA}, ${chain33ValidatorB}, ${chain33ValidatorC}, ${chain33ValidatorD}], [25, 25, 25, 25]" --chainID 33
-    result=$(${Boss4xCLI} chain33 offline send)
+    result=$(${Boss4xCLI} chain33 offline send -f "deployCrossX2Chain33.txt")
 
     for i in {0..7}; do
         hash=$(echo "${result}" | jq -r ".[$i].TxHash")
@@ -320,7 +320,7 @@ function InitAndOfflineDeploy() {
     # shellcheck disable=SC2154
     ${Boss4xCLI} ethereum offline create -p "25,25,25,25" -o "${ethValidatorAddrA}" -v "${ethValidatorAddrA},${ethValidatorAddrB},${ethValidatorAddrC},${ethValidatorAddrD}"
     ${Boss4xCLI} ethereum offline sign -k "${ethValidatorAddrKeyA}"
-    result=$(${Boss4xCLI} ethereum offline send)
+    result=$(${Boss4xCLI} ethereum offline send -f "deploysigntxs.txt")
     for i in {0..7}; do
         hash=$(echo "${result}" | jq -r ".[$i].TxHash")
         check_eth_tx "${hash}"
@@ -344,6 +344,62 @@ function InitAndOfflineDeploy() {
     fi
 
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
+}
+
+function offline_deploy_erc20_eth_YCC() {
+    # eth 上 铸币 YCC
+    echo -e "${GRE}======= 在 ethereum 上创建 ERC20 ycc ======${NOC}"
+    ./boss4x ethereum offline create_erc20 -m 33000000000000000000 -k 8656d2bc732a8a816a461ba5e2d8aac7c7f85c26a813df30d5327210465eb230 -s YCC -o "${ethValidatorAddrA}"
+    sleep 2
+    result=$(${Boss4xCLI} ethereum offline send -f "deployErc20YCC.txt")
+    hash=$(echo "${result}" | jq -r ".[0].TxHash")
+    check_eth_tx "${hash}"
+    ethereumYccTokenAddr=$(echo "${result}" | jq -r ".[0].ContractAddr")
+
+#    result=$(${CLIA} ethereum deploy_erc20 -c "${ethDeployAddr}" -n YCC -s YCC -m 33000000000000000000)
+#    cli_ret "${result}" "ethereum deploy_erc20 -s YCC"
+#    ethereumYccTokenAddr=$(echo "${result}" | jq -r .msg)
+
+    result=$(${CLIA} ethereum token add_lock_list -s YCC -t "${ethereumYccTokenAddr}")
+    cli_ret "${result}" "add_lock_list"
+}
+
+function offline_deploy_erc20_chain33_YCC() {
+    # chain33 token create YCC
+    echo -e "${GRE}======= 在 chain33 上创建 ERC20 YCC ======${NOC}"
+    ./boss4x chain33 offline create_erc20 -s YCC -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae --chainID 33
+    result=$(${Boss4xCLI} chain33 offline send -f "deployErc20YCCChain33.txt")
+    hash=$(echo "${result}" | jq -r ".[0].TxHash")
+    check_tx "${Chain33Cli}" "${hash}"
+    chain33YccErc20Addr=$(echo "${result}" | jq -r ".[0].ContractAddr")
+    cp ERC20.abi "${chain33YccErc20Addr}.abi"
+
+    # echo 'YCC.1:增加allowance的设置,或者使用relayer工具进行'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33YccErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)" --chainID "${chain33ID}")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    # echo 'YCC.2:#执行add lock操作:addToken2LockList'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "addToken2LockList(${chain33YccErc20Addr}, YCC)" --chainID "${chain33ID}")
+    check_tx "${Chain33Cli}" "${hash}"
+}
+
+function offline_deploy_erc20_chain33_ZBC() {
+    # chain33 token create ZBC
+    echo -e "${GRE}======= 在 chain33 上创建 ERC20 ZBC ======${NOC}"
+    ./boss4x chain33 offline create_erc20 -s ZBC -k 0x027ca96466c71c7e7c5d73b7e1f43cb889b3bd65ebd2413eefd31c6709c262ae --chainID 33
+    result=$(${Boss4xCLI} chain33 offline send -f "deployErc20ZBCChain33.txt")
+    hash=$(echo "${result}" | jq -r ".[0].TxHash")
+    check_tx "${Chain33Cli}" "${hash}"
+    chain33ZBCErc20Addr=$(echo "${result}" | jq -r ".[0].ContractAddr")
+    cp ERC20.abi "${chain33ZBCErc20Addr}.abi"
+
+    # echo 'ZBC.1:增加allowance的设置,或者使用relayer工具进行'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33ZBCErc20Addr}" -p "approve(${chain33BridgeBank}, 330000000000)" --chainID "${chain33ID}")
+    check_tx "${Chain33Cli}" "${hash}"
+
+    # echo 'ZBC.2:#执行add lock操作:addToken2LockList'
+    hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "addToken2LockList(${chain33ZBCErc20Addr}, ZBC)" --chainID "${chain33ID}")
+    check_tx "${Chain33Cli}" "${hash}"
 }
 
 function StartRelayerAndOfflineDeploy() {
@@ -377,7 +433,15 @@ function StartRelayerAndOfflineDeploy() {
     updata_toml_start_BCD
 
     # 设置 token 地址
-    InitTokenAddr
+#    InitTokenAddr
+    create_bridge_token_eth_BTY
+    create_bridge_token_chain33_ETH
+    offline_deploy_erc20_eth_YCC
+    create_bridge_token_chain33_YCC
+    offline_deploy_erc20_chain33_YCC
+    create_bridge_token_eth_YCC
+    offline_deploy_erc20_chain33_ZBC
+    create_bridge_token_eth_ZBC
 
     # 设置离线多签数据
     initMultisignAddr
@@ -400,15 +464,15 @@ function mainTest() {
     StartRelayerAndOfflineDeploy
 #    StartRelayerAndDeploy
 
-    TestChain33ToEthAssets
-    TestChain33ToEthZBCAssets
-    TestETH2Chain33Assets
+#    TestChain33ToEthAssets
+#    TestChain33ToEthZBCAssets
+#    TestETH2Chain33Assets
     TestETH2Chain33Ycc
 
-    lockBty
-    lockChain33Ycc
-    lockEth
-    lockEthYcc
+#    lockBty
+#    lockChain33Ycc
+#    lockEth
+#    lockEthYcc
 }
 
 mainTest "${1}"

@@ -150,16 +150,16 @@ function InitAndDeploy() {
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 
-# shellcheck disable=SC2120
-function InitTokenAddr() {
-    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+function create_bridge_token_eth_BTY() {
     # 在 Ethereum 上创建 bridgeToken BTY
     echo -e "${GRE}======= 在 Ethereum 上创建 bridgeToken BTY ======${NOC}"
     result=$(${CLIA} ethereum token create-bridge-token -s BTY)
     cli_ret "${result}" "ethereum token create-bridge-token -s BTY"
     # shellcheck disable=SC2034
     ethereumBtyTokenAddr=$(echo "${result}" | jq -r .addr)
+}
 
+function create_bridge_token_chain33_ETH() {
     # 在 chain33 上创建 bridgeToken ETH
     echo -e "${GRE}======= 在 chain33 上创建 bridgeToken ETH ======${NOC}"
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(ETH)" --chainID "${chain33ID}")
@@ -170,7 +170,9 @@ function InitTokenAddr() {
 
     result=$(${Chain33Cli} evm abi call -a "${chain33EthTokenAddr}" -c "${chain33EthTokenAddr}" -b "symbol()")
     is_equal "${result}" "ETH"
+}
 
+function deploy_erc20_eth_YCC() {
     # eth 上 铸币 YCC
     echo -e "${GRE}======= 在 ethereum 上创建 ERC20 ycc ======${NOC}"
     result=$(${CLIA} ethereum deploy_erc20 -c "${ethDeployAddr}" -n YCC -s YCC -m 33000000000000000000)
@@ -179,7 +181,9 @@ function InitTokenAddr() {
 
     result=$(${CLIA} ethereum token add_lock_list -s YCC -t "${ethereumYccTokenAddr}")
     cli_ret "${result}" "add_lock_list"
+}
 
+function create_bridge_token_chain33_YCC() {
     # 在chain33上创建bridgeToken YCC
     echo -e "${GRE}======= 在 chain33 上创建 bridgeToken YCC ======${NOC}"
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "createNewBridgeToken(YCC)" --chainID "${chain33ID}")
@@ -190,7 +194,9 @@ function InitTokenAddr() {
 
     result=$(${Chain33Cli} evm abi call -a "${chain33YccTokenAddr}" -c "${chain33YccTokenAddr}" -b "symbol()")
     is_equal "${result}" "YCC"
+}
 
+function deploy_erc20_chain33_YCC() {
     # chain33 token create YCC
     echo -e "${GRE}======= 在 chain33 上创建 ERC20 YCC ======${NOC}"
     result=$(${CLIA} chain33 token create -s YCC -o "${chain33DeployAddr}")
@@ -205,14 +211,18 @@ function InitTokenAddr() {
     # echo 'YCC.2:#执行add lock操作:addToken2LockList'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "addToken2LockList(${chain33YccErc20Addr}, YCC)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
+}
 
+function create_bridge_token_eth_YCC() {
     # ethereum create-bridge-token YCC
     echo -e "${GRE}======= 在 ethereum 上创建 bridgeToken ycc ======${NOC}"
     result=$(${CLIA} ethereum token create-bridge-token -s YCC)
     cli_ret "${result}" "ethereum token create -s YCC"
     ethBridgeToeknYccAddr=$(echo "${result}" | jq -r .addr)
     cp BridgeToken.abi "${ethBridgeToeknYccAddr}.abi"
+}
 
+function deploy_erc20_chain33_ZBC() {
     # chain33 token create ZBC
     echo -e "${GRE}======= 在 chain33 上创建 ERC20 ZBC ======${NOC}"
     result=$(${CLIA} chain33 token create -s ZBC -o "${chain33DeployAddr}")
@@ -227,14 +237,28 @@ function InitTokenAddr() {
     # echo 'ZBC.2:#执行add lock操作:addToken2LockList'
     hash=$(${Chain33Cli} evm call -f 1 -c "${chain33DeployAddr}" -e "${chain33BridgeBank}" -p "addToken2LockList(${chain33ZBCErc20Addr}, ZBC)" --chainID "${chain33ID}")
     check_tx "${Chain33Cli}" "${hash}"
+}
 
+function create_bridge_token_eth_ZBC() {
     # ethereum create-bridge-token ZBC
     echo -e "${GRE}======= 在 ethereum 上创建 bridgeToken ZBC ======${NOC}"
     result=$(${CLIA} ethereum token create-bridge-token -s ZBC)
     cli_ret "${result}" "ethereum token create -s ZBC"
     ethBridgeToeknZBCAddr=$(echo "${result}" | jq -r .addr)
     cp BridgeToken.abi "${ethBridgeToeknZBCAddr}.abi"
+}
 
+# shellcheck disable=SC2120
+function InitTokenAddr() {
+    echo -e "${GRE}=========== $FUNCNAME begin ===========${NOC}"
+    create_bridge_token_eth_BTY
+    create_bridge_token_chain33_ETH
+    deploy_erc20_eth_YCC
+    create_bridge_token_chain33_YCC
+    deploy_erc20_chain33_YCC
+    create_bridge_token_eth_YCC
+    deploy_erc20_chain33_ZBC
+    create_bridge_token_eth_ZBC
     echo -e "${GRE}=========== $FUNCNAME end ===========${NOC}"
 }
 

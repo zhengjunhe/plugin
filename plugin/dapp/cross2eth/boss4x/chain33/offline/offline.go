@@ -1,7 +1,14 @@
 package offline
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+
+	//"github.com/33cn/chain33/rpc/jsonclient"
+	//rpctypes "github.com/33cn/chain33/rpc/types"
+	erc20 "github.com/33cn/plugin/plugin/dapp/cross2eth/contracts/erc20/generated"
+
 	"time"
 
 	"github.com/33cn/chain33/common/address"
@@ -26,6 +33,7 @@ func Boss4xOfflineCmd() *cobra.Command {
 	cmd.AddCommand(
 		createCrossBridgeCmd(),
 		sendSignTxs2Chain33Cmd(),
+		createERC20Cmd(),
 	)
 	return cmd
 }
@@ -33,7 +41,7 @@ func Boss4xOfflineCmd() *cobra.Command {
 func createCrossBridgeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "create and sign all the offline cross to ethereum contracts(inclue valset,ethereumBridge, bridgeBank,oracle,bridgeRegistry)",
+		Short: "create and sign all the offline cross to ethereum contracts(inclue valset,ethereumBridge,bridgeBank,oracle,bridgeRegistry,mulSign)",
 		Run:   createCrossBridge,
 	}
 	addCreateCrossBridgeFlags(cmd)
@@ -338,14 +346,86 @@ func sendSignTxs2Chain33Cmd() *cobra.Command {
 }
 
 func addSendSignTxs2Chain33Flags(cmd *cobra.Command) {
-	usage := fmt.Sprintf("(optional)path of txs file,default to current directroy ./, and file name is:%s", crossXfileName)
-	cmd.Flags().StringP("path", "p", "./", usage)
+	cmd.Flags().StringP("file", "f", "", "signed tx file")
+	_ = cmd.MarkFlagRequired("file")
 }
 
 func sendSignTxs2Chain33(cmd *cobra.Command, args []string) {
-	_ = args
-	filePath, _ := cmd.Flags().GetString("path")
+	filePath, _ := cmd.Flags().GetString("file")
 	url, _ := cmd.Flags().GetString("rpc_laddr")
-	filePath += crossXfileName
 	utils.SendSignTxs2Chain33(filePath, url)
+}
+
+func createERC20Cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create_erc20",
+		Short: "create erc20 contracts and sign, default 3300*1e8 to be minted",
+		Run:   CreateERC20,
+	}
+	CreateERC20Flags(cmd)
+	return cmd
+}
+
+//CreateERC20Flags ...
+func CreateERC20Flags(cmd *cobra.Command) {
+	cmd.Flags().StringP("key", "k", "", "the deployer private key")
+	_ = cmd.MarkFlagRequired("key")
+	//cmd.Flags().StringP("owner", "o", "", "owner address")
+	//_ = cmd.MarkFlagRequired("owner")
+	cmd.Flags().StringP("symbol", "s", "", "token symbol")
+	_ = cmd.MarkFlagRequired("symbol")
+	cmd.Flags().Float64P("amount", "a", 0, "amount to be minted(optional),default to 3300*1e8")
+}
+
+func CreateERC20(cmd *cobra.Command, args []string) {
+	//rpcLaddr, _ := cmd.Flags().GetString("rpc_laddr")
+	symbol, _ := cmd.Flags().GetString("symbol")
+	//owner, _ := cmd.Flags().GetString("owner")
+	amount, _ := cmd.Flags().GetFloat64("amount")
+	amountInt64 := int64(3300 * 1e8)
+	if 0 != int64(amount) {
+		amountInt64 = int64(amount)
+	}
+
+	privateKeyStr, _ := cmd.Flags().GetString("key")
+	var driver secp256k1.Driver
+	privateKeySli := common.FromHex(privateKeyStr)
+	privateKey, err := driver.PrivKeyFromBytes(privateKeySli)
+	if nil != err {
+		fmt.Println("Failed to do PrivKeyFromBytes")
+		return
+	}
+	fromAddr := address.PubKeyToAddress(privateKey.PubKey().Bytes())
+	from := common.Address{
+		Addr: fromAddr,
+	}
+
+	createPara := fmt.Sprintf("%s,%s,%s,%s", symbol, symbol, fmt.Sprintf("%d", amountInt64), fromAddr.String())
+	content, txHash, err := utils.CreateContractAndSign(getTxInfo(cmd), erc20.ERC20Bin, erc20.ERC20ABI, createPara, "ERC20:"+symbol)
+	if nil != err {
+		fmt.Println("CreateContractAndSign erc20 fail")
+		return
+	}
+
+	newContractAddr := common.NewContractAddress(from, txHash).String()
+	Erc20Tx := &utils.Chain33OfflineTx{
+		ContractAddr:  newContractAddr,
+		TxHash:        common.Bytes2Hex(txHash),
+		SignedRawTx:   content,
+		OperationName: "deploy ERC20:" + symbol,
+	}
+
+	data, err := json.MarshalIndent(Erc20Tx, "", "    ")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	fmt.Println(string(data))
+
+	var txs []*utils.Chain33OfflineTx
+	txs = append(txs, Erc20Tx)
+
+	fileName := fmt.Sprintf("deployErc20%sChain33.txt", symbol)
+	fmt.Printf("Write all the txs to file:   %s \n", fileName)
+	utils.WriteToFileInJson(fileName, txs)
 }

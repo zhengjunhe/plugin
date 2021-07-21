@@ -41,7 +41,7 @@ type DeployConfigInfo struct {
 func CreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create", //first step
-		Short: "create deploy tx",
+		Short: "create and sign all the offline cross to ethereum contracts(inclue valset,ethereumBridge,bridgeBank,oracle,bridgeRegistry,mulSign)",
 		Run:   createTx, //对要部署的factory合约进行签名
 	}
 	addCreateFlags(cmd)
